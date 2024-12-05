@@ -52,7 +52,14 @@ socket.on("signal", async (data) => {
 
       const audio = new Audio();
       audio.srcObject = event.streams[0];
-      audio.play().catch((err) => console.error("Ses oynatılamadı:", err));
+
+      // Kullanıcı tıklamasıyla sesi başlat
+      const playButton = document.getElementById('startCall');
+      playButton.addEventListener('click', () => {
+        audio.play().catch((err) => console.error("Ses oynatılamadı:", err));
+      });
+
+      console.log("Remote stream bağlı, sesi başlatmak için butona tıklayın.");
     };
 
     // ICE ve PeerConnection durumları
