@@ -5,8 +5,13 @@ let peers = {};
 // Mikrofon erişimi al ve debug logları ekle
 navigator.mediaDevices.getUserMedia({ audio: true })
   .then((stream) => {
-    console.log("Mikrofon erişimi verildi:", stream); // Debug için mikrofon bilgisi
+    console.log("Mikrofon erişimi verildi:", stream); 
     localStream = stream;
+
+    // Debug: Ses akışındaki tüm track'leri logla
+    stream.getTracks().forEach((track) => {
+      console.log("Track tipi:", track.kind, "Durum:", track.readyState);
+    });
   })
   .catch((err) => console.error("Mikrofon erişimi reddedildi:", err));
 
@@ -40,10 +45,23 @@ socket.on("signal", async (data) => {
 
     // Ses stream'i geldiğinde çal ve debug logları ekle
     peer.ontrack = (event) => {
-      console.log("Remote stream alındı:", event.streams[0]); // Remote stream debug
+      console.log("Remote stream alındı:", event.streams[0]); 
+      event.streams[0].getTracks().forEach((track) => {
+        console.log("Remote track tipi:", track.kind, "Durum:", track.readyState);
+      });
+
       const audio = new Audio();
       audio.srcObject = event.streams[0];
-      audio.play();
+      audio.play().catch((err) => console.error("Ses oynatılamadı:", err));
+    };
+
+    // ICE ve PeerConnection durumları
+    peer.onconnectionstatechange = () => {
+      console.log("PeerConnection durumu:", peer.connectionState);
+    };
+
+    peer.oniceconnectionstatechange = () => {
+      console.log("ICE bağlantı durumu:", peer.iceConnectionState);
     };
   } else {
     peer = peers[from];
@@ -54,7 +72,7 @@ socket.on("signal", async (data) => {
   if (signal.type === "offer") {
     const answer = await peer.createAnswer();
     await peer.setLocalDescription(answer);
-    console.log("Bağlantıya cevap verildi:", answer); // Debug için
+    console.log("Bağlantıya cevap verildi:", answer); 
     socket.emit("signal", { to: from, signal: peer.localDescription });
   }
 });
