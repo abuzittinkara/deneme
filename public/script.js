@@ -8,14 +8,12 @@ navigator.mediaDevices.getUserMedia({ audio: true })
     console.log("Mikrofon erişimi verildi:", stream); 
     localStream = stream;
 
-    // Debug: Ses akışındaki tüm track'leri logla
     stream.getTracks().forEach((track) => {
       console.log("Track tipi:", track.kind, "Durum:", track.readyState);
     });
   })
   .catch((err) => console.error("Mikrofon erişimi reddedildi:", err));
 
-// Kullanıcı bağlantı kurduğunda
 socket.on("signal", async (data) => {
   const { from, signal } = data;
   let peer;
@@ -23,29 +21,34 @@ socket.on("signal", async (data) => {
   if (!peers[from]) {
     peer = new RTCPeerConnection({
       iceServers: [
-        { urls: "stun:stun.l.google.com:19302" }, // STUN sunucusu
+        { urls: "stun:stun.l.google.com:19302" },
       ],
     });
     peers[from] = peer;
 
-    // Mikrofon stream'ini ekle
     if (localStream) {
       localStream.getTracks().forEach((track) => peer.addTrack(track, localStream));
     }
 
-    // ICE adaylarını gönder ve debug logları ekle
     peer.onicecandidate = (event) => {
       if (event.candidate) {
-        console.log("Yeni ICE Candidate gönderildi:", event.candidate); // ICE logu
+        console.log("Yeni ICE Candidate oluşturuldu:", event.candidate);
         socket.emit("signal", { to: from, signal: event.candidate });
       } else {
-        console.log("Tüm ICE Candidate'ler gönderildi."); // ICE işlemi bitti
+        console.log("ICE Candidate süreci tamamlandı.");
       }
     };
 
-    // Ses stream'i geldiğinde çal ve debug logları ekle
+    peer.oniceconnectionstatechange = () => {
+      console.log("ICE bağlantı durumu:", peer.iceConnectionState);
+    };
+
+    peer.onconnectionstatechange = () => {
+      console.log("PeerConnection durumu:", peer.connectionState);
+    };
+
     peer.ontrack = (event) => {
-      console.log("Remote stream alındı:", event.streams[0]); 
+      console.log("Remote stream alındı:", event.streams[0]);
       event.streams[0].getTracks().forEach((track) => {
         console.log("Remote track tipi:", track.kind, "Durum:", track.readyState);
       });
@@ -53,28 +56,15 @@ socket.on("signal", async (data) => {
       const audio = new Audio();
       audio.srcObject = event.streams[0];
 
-      // Kullanıcı tıklamasıyla sesi başlat
       const playButton = document.getElementById('startCall');
       playButton.addEventListener('click', () => {
         audio.play().catch((err) => console.error("Ses oynatılamadı:", err));
       });
-
-      console.log("Remote stream bağlı, sesi başlatmak için butona tıklayın.");
-    };
-
-    // ICE ve PeerConnection durumları
-    peer.onconnectionstatechange = () => {
-      console.log("PeerConnection durumu:", peer.connectionState);
-    };
-
-    peer.oniceconnectionstatechange = () => {
-      console.log("ICE bağlantı durumu:", peer.iceConnectionState);
     };
   } else {
     peer = peers[from];
   }
 
-  // Bağlantı sinyallerini işleyin
   await peer.setRemoteDescription(new RTCSessionDescription(signal));
   if (signal.type === "offer") {
     const answer = await peer.createAnswer();
@@ -84,7 +74,6 @@ socket.on("signal", async (data) => {
   }
 });
 
-// Debug: Kullanıcı bağlanma ve kopma logları
 socket.on("connect", () => {
   console.log("WebSocket bağlantısı kuruldu. Kullanıcı ID:", socket.id);
 });
