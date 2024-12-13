@@ -44,7 +44,6 @@ navigator.mediaDevices.getUserMedia({ audio: true })
   .then((stream) => {
     console.log("Mikrofon erişimi verildi:", stream); 
     localStream = stream;
-
     stream.getTracks().forEach((track) => {
       console.log("Track tipi:", track.kind, "Durum:", track.readyState);
     });
@@ -92,12 +91,7 @@ function initPeer(userId, isInitiator) {
   const peer = new RTCPeerConnection({
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
-      // TURN sunucusu gerekiyorsa buraya ekleyebilirsiniz
-      // {
-      //   urls: "turn:YOUR_TURN_SERVER",
-      //   username: "USER",
-      //   credential: "PASS"
-      // }
+      // Gerekirse TURN sunucusu ekleyin
     ],
   });
   peers[userId] = peer;
@@ -124,29 +118,12 @@ function initPeer(userId, isInitiator) {
   };
 
   peer.ontrack = (event) => {
-    const audio = new Audio();
-    audio.srcObject = event.streams[0];
-    audio.autoplay = false; // Otomatik oynatmayı kapatın
-    audio.muted = false;
-    remoteAudios.push(audio);
-  
     console.log("Remote stream alındı ama ses başlatılmadı. Bekliyoruz...");
-  };
-
     const audio = new Audio();
     audio.srcObject = event.streams[0];
-    audio.autoplay = true; 
+    audio.autoplay = false; // Butona basmadan otomatik çalmaya çalışmayın
     audio.muted = false;
-
     remoteAudios.push(audio);
-
-    if (audioPermissionGranted) {
-      audio.play().catch(err => console.error("Ses oynatılamadı:", err));
-    } else {
-      console.log("Ses başlatılmadı. Butona basıldıktan sonra audio.play() çağrısına gerek kalmaz.");
-    }    
-
-    console.log("Remote stream bağlı.");
   };
 
   if (isInitiator) {
