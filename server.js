@@ -12,12 +12,12 @@ app.use(express.static("public")); // Static files (frontend)
 
 io.on("connection", (socket) => {
   console.log("Kullanıcı bağlandı:", socket.id);
-  users.add(socket.id); // Kullanıcıyı sete ekle
+  users.add(socket.id);
 
-  // Mevcut kullanıcı listesini yeni bağlanan kullanıcıya gönder
+  // Mevcut kullanıcılar
   socket.emit("users", Array.from(users).filter((id) => id !== socket.id));
 
-  // Diğer kullanıcılara yeni kullanıcının bağlandığını bildir
+  // Diğer kullanıcılara yeni kullanıcı bilgisi
   socket.broadcast.emit("new-user", socket.id);
 
   socket.on("signal", (data) => {
@@ -38,18 +38,17 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    users.delete(socket.id); // Kullanıcıyı setten çıkar
+    users.delete(socket.id);
     console.log("Kullanıcı ayrıldı:", socket.id);
   });
 });
 
-// 10 saniyede bir bağlı kullanıcıları logla
+// Her 10 sn'de bir kullanıcıları logla
 setInterval(() => {
   console.log("Bağlı kullanıcılar:", Array.from(users));
 }, 10000);
 
 const PORT = process.env.PORT || 3000;
-
 server.listen(PORT, () => {
   console.log(`Sunucu çalışıyor: http://localhost:${PORT}`);
 });
