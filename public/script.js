@@ -2,8 +2,44 @@ const socket = io();
 let localStream;
 let peers = {};
 let audioPermissionGranted = false;
+let remoteAudios = []; 
+let username = null; // Kullanıcı adını burada saklayacağız
 
-// Mikrofon erişimi al
+// Ekran elementleri
+const usernameScreen = document.getElementById('usernameScreen');
+const callScreen = document.getElementById('callScreen');
+const usernameInput = document.getElementById('usernameInput');
+const continueButton = document.getElementById('continueButton');
+const startCallButton = document.getElementById('startCall');
+
+// Başlangıçta sadece username ekranı görünsün
+usernameScreen.style.display = 'block';
+callScreen.style.display = 'none';
+
+// Kullanıcı "Devam Et" butonuna basınca
+continueButton.addEventListener('click', () => {
+  const val = usernameInput.value.trim();
+  if(val) {
+    username = val;
+    // Kullanıcı ismi belirlendikten sonra ekrana geç
+    usernameScreen.style.display = 'none';
+    callScreen.style.display = 'block';
+  } else {
+    alert("Lütfen bir kullanıcı adı girin.");
+  }
+});
+
+// "Sesi Başlat" butonuna basıldığında otomatik oynatmaya izin ver
+startCallButton.addEventListener('click', () => {
+  audioPermissionGranted = true;
+  console.log("Ses oynatma izni verildi.");
+
+  // Şimdi remoteAudios içindeki tüm sesleri çal
+  remoteAudios.forEach(audioEl => {
+    audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
+  });
+});
+
 navigator.mediaDevices.getUserMedia({ audio: true })
   .then((stream) => {
     console.log("Mikrofon erişimi verildi:", stream); 
@@ -15,22 +51,18 @@ navigator.mediaDevices.getUserMedia({ audio: true })
   })
   .catch((err) => console.error("Mikrofon erişimi reddedildi:", err));
 
-// Mevcut kullanıcıları al
 socket.on("users", (users) => {
   console.log("Mevcut kullanıcılar:", users);
-  // Mevcut kullanıcılara offer gönder
   users.forEach((userId) => {
-    initPeer(userId, true);
+    initPeer(userId, true); 
   });
 });
 
-// Yeni bir kullanıcı bağlandığında, ondan offer bekle (biz answer vereceğiz)
 socket.on("new-user", (userId) => {
   console.log("Yeni kullanıcı bağlandı:", userId);
   initPeer(userId, false);
 });
 
-// Sinyal alımı
 socket.on("signal", async (data) => {
   console.log("Signal alındı:", data);
   const { from, signal } = data;
@@ -56,21 +88,24 @@ socket.on("signal", async (data) => {
   }
 });
 
-// Peer oluşturma fonksiyonu
 function initPeer(userId, isInitiator) {
   const peer = new RTCPeerConnection({
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
+      // TURN sunucusu gerekiyorsa buraya ekleyebilirsiniz
+      // {
+      //   urls: "turn:YOUR_TURN_SERVER",
+      //   username: "USER",
+      //   credential: "PASS"
+      // }
     ],
   });
   peers[userId] = peer;
 
-  // Lokal stream ekle
   if (localStream) {
     localStream.getTracks().forEach((track) => peer.addTrack(track, localStream));
   }
 
-  // ICE candidate
   peer.onicecandidate = (event) => {
     if (event.candidate) {
       console.log("Yeni ICE Candidate oluşturuldu:", event.candidate);
@@ -80,7 +115,6 @@ function initPeer(userId, isInitiator) {
     }
   };
 
-  // Durum değişiklikleri logla
   peer.oniceconnectionstatechange = () => {
     console.log("ICE bağlantı durumu:", peer.iceConnectionState);
   };
@@ -89,29 +123,32 @@ function initPeer(userId, isInitiator) {
     console.log("PeerConnection durumu:", peer.connectionState);
   };
 
-  // Remote stream alındığında
   peer.ontrack = (event) => {
-    console.log("Remote stream alındı:", event.streams[0]);
-    event.streams[0].getTracks().forEach((track) => {
-      console.log("Remote track tipi:", track.kind, "Durum:", track.readyState);
-    });
+    const audio = new Audio();
+    audio.srcObject = event.streams[0];
+    audio.autoplay = false; // Otomatik oynatmayı kapatın
+    audio.muted = false;
+    remoteAudios.push(audio);
+  
+    console.log("Remote stream alındı ama ses başlatılmadı. Bekliyoruz...");
+  };
 
     const audio = new Audio();
     audio.srcObject = event.streams[0];
     audio.autoplay = true; 
     audio.muted = false;
 
-    // Kullanıcı "Sesi Başlat" butonuna bastıysa otomatik olarak çalmaya çalış
+    remoteAudios.push(audio);
+
     if (audioPermissionGranted) {
-      audio.play().catch((err) => console.error("Ses oynatılamadı:", err));
+      audio.play().catch(err => console.error("Ses oynatılamadı:", err));
     } else {
-      console.log("Kullanıcı henüz 'Sesi Başlat' butonuna basmadı. Ses devreye girmeyebilir.");
-    }
+      console.log("Ses başlatılmadı. Butona basıldıktan sonra audio.play() çağrısına gerek kalmaz.");
+    }    
 
     console.log("Remote stream bağlı.");
   };
 
-  // Eğer bağlantıyı başlatan kişi ise offer oluştur
   if (isInitiator) {
     createOffer(peer, userId);
   }
@@ -119,7 +156,6 @@ function initPeer(userId, isInitiator) {
   return peer;
 }
 
-// Offer oluşturma fonksiyonu
 async function createOffer(peer, userId) {
   const offer = await peer.createOffer();
   await peer.setLocalDescription(offer);
@@ -127,7 +163,6 @@ async function createOffer(peer, userId) {
   socket.emit("signal", { to: userId, signal: peer.localDescription });
 }
 
-// WebSocket bağlantı durumu
 socket.on("connect", () => {
   console.log("WebSocket bağlantısı kuruldu. Kullanıcı ID:", socket.id);
 });
@@ -136,14 +171,6 @@ socket.on("disconnect", () => {
   console.log("WebSocket bağlantısı kesildi.");
 });
 
-// "Sesi Başlat" butonuna basıldığında otomatik oynatma izni ver
-const playButton = document.getElementById('startCall');
-playButton.addEventListener('click', () => {
-  audioPermissionGranted = true;
-  console.log("Ses oynatma izni verildi. Yeni gelen stream'ler otomatik olarak çalınacaktır.");
-});
-
-// Periyodik peer logları
 setInterval(() => {
   console.log("Mevcut PeerConnection'lar:", peers);
 }, 10000);
