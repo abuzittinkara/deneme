@@ -5,6 +5,10 @@ let audioPermissionGranted = false;
 let remoteAudios = []; 
 let username = null; // Kullanıcı adını burada saklayacağız
 
+// Bu diziler, "Sesi Başlat" butonuna basana kadar gelen kullanıcıları saklamak için
+let pendingUsers = [];
+let pendingNewUsers = [];
+
 // Ekran elementleri
 const usernameScreen = document.getElementById('usernameScreen');
 const callScreen = document.getElementById('callScreen');
@@ -16,12 +20,11 @@ const startCallButton = document.getElementById('startCall');
 usernameScreen.style.display = 'block';
 callScreen.style.display = 'none';
 
-// Kullanıcı "Devam Et" butonuna basınca
+// Kullanıcı "Devam Et" butonuna basınca kullanıcı adı al
 continueButton.addEventListener('click', () => {
   const val = usernameInput.value.trim();
-  if (val) {
+  if(val) {
     username = val;
-    // Kullanıcı ismi belirlendikten sonra ekrana geç
     usernameScreen.style.display = 'none';
     callScreen.style.display = 'block';
   } else {
@@ -29,53 +32,70 @@ continueButton.addEventListener('click', () => {
   }
 });
 
-// "Sesi Başlat" butonuna basıldığında mikrofon iznini iste
+// "Sesi Başlat" butonuna basıldığında mikrofon izni iste
 startCallButton.addEventListener('click', () => {
   console.log("Sesi Başlat butonuna basıldı. Mikrofon izni isteniyor...");
-
   navigator.mediaDevices.getUserMedia({ audio: true })
     .then((stream) => { 
       console.log("Mikrofon erişimi verildi:", stream); 
       localStream = stream;
       audioPermissionGranted = true;
 
-      // Daha önce gelen remote stream'leri artık oynatmaya çalış
+      // Önceden gelen remote streamleri çal
       remoteAudios.forEach(audioEl => {
         audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
       });
 
       console.log("Ses oynatma izni verildi ve localStream elde edildi.");
 
-      // Eğer hali hazırda bağlı kullanıcılar varsa şimdi onlara offer gönderebilirsiniz
-      // Çünkü artık localStream var.
-      // Not: Eğer initPeer çağrılarını users event'inde yapıyorsanız, localStream şimdi var olduğu için sorun olmamalı.
-      // Gerekirse burada mevcut users'ı tekrar alıp offer gönderebilirsiniz.
-      
+      // Şimdi bekleyen kullanıcılar için peer oluştur
+      pendingUsers.forEach(userId => {
+        initPeer(userId, true);
+      });
+      pendingUsers = [];
+
+      pendingNewUsers.forEach(userId => {
+        initPeer(userId, false);
+      });
+      pendingNewUsers = [];
+
     })
     .catch((err) => console.error("Mikrofon erişimi reddedildi:", err));
 });
 
-// Sunucudan mevcut kullanıcıların listesi geldiğinde
+// Sunucudan mevcut kullanıcılar geldiğinde, localStream henüz yoksa sakla
 socket.on("users", (users) => {
   console.log("Mevcut kullanıcılar:", users);
-  users.forEach((userId) => {
-    initPeer(userId, true); 
-  });
+  if (audioPermissionGranted && localStream) {
+    // Local stream var, direkt peer oluştur
+    users.forEach((userId) => {
+      initPeer(userId, true); 
+    });
+  } else {
+    // Local stream henüz yok, bekle
+    pendingUsers = users;
+  }
 });
 
-// Yeni kullanıcı bağlandığında
+// Yeni bir kullanıcı bağlandığında, localStream yoksa sakla, varsa direkt peer oluştur
 socket.on("new-user", (userId) => {
   console.log("Yeni kullanıcı bağlandı:", userId);
-  initPeer(userId, false);
+  if (audioPermissionGranted && localStream) {
+    initPeer(userId, false);
+  } else {
+    pendingNewUsers.push(userId);
+  }
 });
 
-// Sinyal alımı (offer/answer/ice candidate)
+// Sinyal alımı
 socket.on("signal", async (data) => {
   console.log("Signal alındı:", data);
   const { from, signal } = data;
 
   let peer;
   if (!peers[from]) {
+    // Bu kullanıcı için henüz peer yoksa localStream ve izin bekleniyor olabilir
+    // Ancak bu noktaya geldiyse muhtemelen localStream var.
     peer = initPeer(from, false);
   } else {
     peer = peers[from];
@@ -95,19 +115,20 @@ socket.on("signal", async (data) => {
   }
 });
 
-// Peer oluşturma fonksiyonu
 function initPeer(userId, isInitiator) {
+  console.log(`initPeer çağrıldı: userId=${userId}, isInitiator=${isInitiator}`);
   const peer = new RTCPeerConnection({
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
-      // Gerekirse TURN sunucusu burada ekleyin
+      // Gerekirse TURN sunucusu ekleyin
     ],
   });
   peers[userId] = peer;
 
-  // localStream varsa track ekle
   if (localStream) {
     localStream.getTracks().forEach((track) => peer.addTrack(track, localStream));
+  } else {
+    console.warn("localStream yokken initPeer çağrıldı!");
   }
 
   peer.onicecandidate = (event) => {
@@ -135,7 +156,7 @@ function initPeer(userId, isInitiator) {
     audio.muted = false;
     remoteAudios.push(audio);
 
-    // Eğer butona daha önce basılıp izin verilmişse direk oynat
+    // Eğer butona basılıp izin verilmişse direk oynat
     if (audioPermissionGranted) {
       audio.play().catch(err => console.error("Ses oynatılamadı:", err));
     }
@@ -148,7 +169,6 @@ function initPeer(userId, isInitiator) {
   return peer;
 }
 
-// Offer oluşturma fonksiyonu
 async function createOffer(peer, userId) {
   const offer = await peer.createOffer();
   await peer.setLocalDescription(offer);
@@ -156,7 +176,6 @@ async function createOffer(peer, userId) {
   socket.emit("signal", { to: userId, signal: peer.localDescription });
 }
 
-// WebSocket bağlantı olayları
 socket.on("connect", () => {
   console.log("WebSocket bağlantısı kuruldu. Kullanıcı ID:", socket.id);
 });
@@ -165,7 +184,6 @@ socket.on("disconnect", () => {
   console.log("WebSocket bağlantısı kesildi.");
 });
 
-// Her 10 saniyede PeerConnection'ları logla
 setInterval(() => {
   console.log("Mevcut PeerConnection'lar:", peers);
 }, 10000);
