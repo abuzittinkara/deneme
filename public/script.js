@@ -68,12 +68,13 @@ startCallButton.addEventListener('click', () => {
 socket.on('user-list', (list) => {
   updateUserTable(list);
 
-  // Şu anki kullanıcı dışında kalanları al
+  // Kendi id dışındaki kullanıcıları al
   const userIds = list
     .filter(u => u.id !== socket.id)
     .map(u => u.id)
-    .filter(id => !peers[id]);  // Zaten peer oluşturduğumuz kullanıcıları atla
+    .filter(id => !peers[id]);  // Zaten peer oluşturulmuş kullanıcıları atla
 
+  // localStream varsa hemen peer başlat, yoksa pendingUsers'a at
   if (audioPermissionGranted && localStream) {
     userIds.forEach(userId => {
       if (!peers[userId]) {
@@ -82,20 +83,21 @@ socket.on('user-list', (list) => {
     });
   } else {
     // Ses izni yoksa bekleyenlere ekle
-    pendingUsers = userIds;
+    pendingUsers = pendingUsers.concat(userIds);
   }
 });
 
-// Yeni bir kullanıcı bağlandığında, zaten peer varsa tekrar initPeer yapma
+// Yeni bir kullanıcı bağlandığında
 socket.on("new-user", (userId) => {
   console.log("Yeni kullanıcı bağlandı:", userId);
   
-  // Eğer bu kullanıcı için zaten peer oluşturulduysa tekrar yapma
+  // Bu kullanıcı için zaten peer varsa tekrar initPeer yapma
   if (peers[userId]) {
     console.log("Bu kullanıcı için zaten bir peer bağlantısı var, initPeer çağrılmayacak.");
     return;
   }
 
+  // localStream yoksa beklet, varsa direkt initPeer
   if (audioPermissionGranted && localStream) {
     initPeer(userId, false);
   } else {
@@ -110,6 +112,13 @@ socket.on("signal", async (data) => {
 
   let peer;
   if (!peers[from]) {
+    // localStream yoksa henüz peer oluşturmayacağız. Ancak bu nokta genelde sinyal geldiğine göre peer gerekiyor.
+    // Yine de kontrol ekleyelim.
+    if (!localStream) {
+      console.warn("localStream henüz yok, ama signal alındı. Bu kullanıcıyı bekletiyoruz.");
+      pendingNewUsers.push(from);
+      return;
+    }
     peer = initPeer(from, false);
   } else {
     peer = peers[from];
@@ -144,6 +153,16 @@ function updateUserTable(userList) {
 }
 
 function initPeer(userId, isInitiator) {
+  if (!localStream || !audioPermissionGranted) {
+    console.warn("localStream yokken initPeer çağrıldı. Bu kullanıcı bekletilecek.");
+    if (isInitiator) {
+      pendingUsers.push(userId);
+    } else {
+      pendingNewUsers.push(userId);
+    }
+    return;
+  }
+
   // Aynı kullanıcı için birden fazla peer oluşturulmasını engelle
   if (peers[userId]) {
     console.log("Bu kullanıcı için zaten bir peer var, initPeer iptal.");
@@ -162,7 +181,7 @@ function initPeer(userId, isInitiator) {
   if (localStream) {
     localStream.getTracks().forEach((track) => peer.addTrack(track, localStream));
   } else {
-    console.warn("localStream yokken initPeer çağrıldı!");
+    console.warn("initPeer içinde hala localStream yok! Bu durum normalde yaşanmamalı.");
   }
 
   peer.onicecandidate = (event) => {
