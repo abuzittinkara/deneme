@@ -4,29 +4,39 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Sesli Görüşme Uygulaması</title>
+<link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Modern bir font örneği: Roboto -->
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="/socket.io/socket.io.js"></script>
+<script src="Script.js"></script>
 </head>
 <body>
-  <div id="usernameScreen">
-    <input type="text" id="usernameInput" placeholder="Kullanıcı Adı"/>
-    <button id="continueButton">Devam Et</button>
-  </div>
-  
-  <div id="callScreen" style="display:none;">
-    <button id="startCall">Sesi Başlat</button>
-    
-    <h3>Bağlı Kullanıcılar</h3>
-    <table id="userTable" border="1">
-      <thead>
-        <tr>
-          <th>Kullanıcı Adı</th>
-          <th>Socket ID</th>
-        </tr>
-      </thead>
-      <tbody id="userTableBody"></tbody>
-    </table>
+  <div id="usernameScreen" class="screen-container">
+    <div class="card">
+      <h1 class="app-title">Görüşmeye Katıl</h1>
+      <input type="text" id="usernameInput" placeholder="Kullanıcı Adı" class="input-text"/>
+      <button id="continueButton" class="btn primary">Devam Et</button>
+    </div>
   </div>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="script.js"></script>
+  <div id="callScreen" class="screen-container" style="display:none;">
+    <div class="card">
+      <h1 class="app-title">Sesli Görüşme</h1>
+      <button id="startCall" class="btn primary">Sesi Başlat</button>
+
+      <h3>Bağlı Kullanıcılar</h3>
+      <table id="userTable" class="user-table">
+        <thead>
+          <tr>
+            <th>Kullanıcı Adı</th>
+            <th>Socket ID</th>
+          </tr>
+        </thead>
+        <tbody id="userTableBody"></tbody>
+      </table>
+    </div>
+  </div>
 </body>
 </html>
