@@ -8,38 +8,25 @@
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div id="usernameScreen" class="screen-container center-content">
-    <div class="login-card">
-      <h1 class="app-title">Hoş Geldin</h1>
-      <input type="text" id="usernameInput" placeholder="Kullanıcı Adı" class="input-text username-input"/>
-      <button id="continueButton" class="btn primary">Giriş Yap</button>
+  <div id="usernameScreen" class="screen-container">
+    <div class="card">
+      <h1 class="app-title">Görüşmeye Katıl</h1>
+      <input type="text" id="usernameInput" placeholder="Kullanıcı Adı" class="input-text"/>
+      <button id="continueButton" class="btn primary">Devam Et</button>
     </div>
   </div>
 
-  <div id="callScreen" class="app-container" style="display:none;">
-    <!-- Sol kenar çubuğu -->
-    <div class="sidebar">
-      <div class="sidebar-top">
-        <div class="create-group-btn" id="createGroupButtonIcon">+</div>
-      </div>
-      <div class="group-list" id="sidebarGroupList">
-        <!-- Gruplar buraya eklenir -->
-      </div>
-    </div>
+  <div id="callScreen" class="screen-container" style="display:none;">
+    <div class="card">
+      <h1 class="app-title">Sesli Görüşme</h1>
+      
+      <h3>Gruplar</h3>
+      <div id="groupList"></div>
 
-    <!-- Sağ ana içerik -->
-    <div class="main-content">
-      <div class="top-bar">
-        <h1 class="app-title">Sesli Görüşme</h1>
-      </div>
+      <input type="text" id="createGroupInput" placeholder="Grup Adı" class="input-text" style="margin-bottom: 0.5rem;" />
+      <button id="createGroupButton" class="btn primary" style="margin-bottom: 1rem;">Grup Oluştur</button>
 
-      <!-- Grup oluşturma alanı (gizli, + butonuna basınca açılacak) -->
-      <div class="create-group-container" id="createGroupContainer" style="display:none;">
-        <input type="text" id="createGroupInput" placeholder="Grup Adı" class="input-text" />
-        <button id="createGroupButton" class="btn primary">Grup Oluştur</button>
-      </div>
-
-      <h3 style="margin-top:20px;">Bağlı Kullanıcılar</h3>
+      <h3>Bağlı Kullanıcılar</h3>
       <table id="userTable" class="user-table">
         <thead>
           <tr>
