@@ -2,33 +2,44 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Roboto', sans-serif;
-  background: #f5f5f5;
-  color: #333;
+  background: #2f3136;
+  color: #ddd;
+  overflow: hidden;
 }
 
-/* Genel ekran düzeni */
-.screen-container {
-  width: 100vw;
-  height: 100vh;
+.center-content {
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 100vh;
 }
 
-/* Kart stil */
-.card {
-  background: #fff;
+/* Login Ekranı */
+.login-card {
+  background: #36393f;
   padding: 2rem;
   border-radius: 8px;
   min-width: 300px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
   text-align: center;
 }
 
-.app-title {
+.login-card .app-title {
   margin-bottom: 1.5rem;
   font-weight: 500;
-  color: #222;
+  color: #fff;
+}
+
+/* Kullanıcı adı input */
+.username-input {
+  background: #202225;
+  color: #fff;
+  border: none;
+  outline: none;
+  border-radius: 6px;
+  padding: 0.75rem;
+  font-size: 1rem;
+  margin-bottom: 1rem;
 }
 
 /* Butonlar */
@@ -40,25 +51,121 @@ body {
   cursor: pointer;
   margin-top: 1rem;
   transition: background 0.3s ease;
+  font-weight: 500;
 }
 
 .btn.primary {
-  background: #2196f3;
+  background: #5865F2;
   color: #fff;
 }
 
 .btn.primary:hover {
-  background: #1976d2;
+  background: #4752c4;
 }
 
-/* Input alanı */
-.input-text {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 1rem;
+/* Uygulama Ekranı */
+.app-container {
+  display: flex;
+  height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 80px;
+  background: #202225;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 1rem;
+  box-sizing: border-box;
+}
+
+.sidebar-top {
   margin-bottom: 1rem;
+}
+
+.create-group-btn {
+  width: 50px;
+  height: 50px;
+  background: #36393f;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.create-group-btn:hover {
+  background: #4f545c;
+}
+
+.group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.group-item {
+  width: 50px;
+  height: 50px;
+  background: #36393f;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #fff;
+  transition: background 0.3s, transform 0.3s;
+}
+
+.group-item:hover {
+  background: #4f545c;
+}
+
+.group-item.active {
+  background: #5865F2;
+  transform: scale(1.1);
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  background: #2f3136;
+  padding: 1rem 2rem;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-title {
+  font-weight: 500;
+  color: #fff;
+  margin: 0;
+}
+
+.create-group-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 1rem;
+}
+
+.create-group-container .input-text {
+  background: #202225;
+  color: #fff;
+  border: none;
+  outline: none;
+  border-radius: 6px;
+  padding: 0.5rem;
 }
 
 /* Tablo düzeni */
@@ -67,6 +174,7 @@ body {
   border-collapse: collapse;
   margin-top: 1.5rem;
   font-size: 0.95rem;
+  color: #ddd;
 }
 
 .user-table th, .user-table td {
@@ -75,12 +183,12 @@ body {
 }
 
 .user-table thead {
-  background: #2196f3;
+  background: #202225;
   color: #fff;
 }
 
 .user-table tr:nth-child(even) {
-  background: #f9f9f9;
+  background: #2f3136;
 }
 
 .user-table th {
@@ -88,5 +196,5 @@ body {
 }
 
 .user-table td {
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #3a3c41;
 }

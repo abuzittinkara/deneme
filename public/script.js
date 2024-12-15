@@ -18,9 +18,13 @@ const continueButton = document.getElementById('continueButton');
 const userTableBody = document.getElementById('userTableBody');
 
 // Grup oluşturma ve listeleme elemanları
-const groupListDiv = document.getElementById('groupList');
+// Artık gruplar sol kenar çubuğunda listelenecek.
+// Yeni HTML yapısında groupList yerine sidebarGroupList kullanıyoruz.
+const sidebarGroupList = document.getElementById('sidebarGroupList');
 const createGroupInput = document.getElementById('createGroupInput');
 const createGroupButton = document.getElementById('createGroupButton');
+const createGroupContainer = document.getElementById('createGroupContainer');
+const createGroupButtonIcon = document.getElementById('createGroupButtonIcon');
 
 usernameScreen.style.display = 'block';
 callScreen.style.display = 'none';
@@ -30,7 +34,7 @@ continueButton.addEventListener('click', () => {
   if(val) {
     username = val;
     usernameScreen.style.display = 'none';
-    callScreen.style.display = 'block';
+    callScreen.style.display = 'flex';
     socket.emit('set-username', username);
   } else {
     alert("Lütfen bir kullanıcı adı girin.");
@@ -42,6 +46,17 @@ createGroupButton.addEventListener('click', () => {
   if (grpName) {
     socket.emit('createGroup', grpName);
     createGroupInput.value = '';
+    // Grup oluşturulduktan sonra input alanını gizleyebilirsiniz.
+    createGroupContainer.style.display = 'none';
+  }
+});
+
+// + ikonuna basınca grup oluşturma alanını aç/kapa
+createGroupButtonIcon.addEventListener('click', () => {
+  if (createGroupContainer.style.display === 'none') {
+    createGroupContainer.style.display = 'flex';
+  } else {
+    createGroupContainer.style.display = 'none';
   }
 });
 
@@ -61,19 +76,23 @@ function joinGroup(groupName) {
 
 // Sunucudan grup listesi geldiğinde güncelle
 socket.on('groupsList', (groupNames) => {
-  groupListDiv.innerHTML = '';
+  sidebarGroupList.innerHTML = '';
   groupNames.forEach(grp => {
     const grpItem = document.createElement('div');
-    grpItem.innerText = grp;
-    grpItem.style.cursor = 'pointer';
-    grpItem.style.padding = '0.5rem';
-    grpItem.style.border = '1px solid #ddd';
-    grpItem.style.marginBottom = '0.5rem';
-    grpItem.style.borderRadius = '4px';
+    grpItem.className = 'group-item';
+    grpItem.innerText = grp.charAt(0).toUpperCase(); // Grup ilk harfi
+    grpItem.title = grp; // Hover'da tam grup adı görünsün
+    
     grpItem.addEventListener('click', () => {
       joinGroup(grp);
     });
-    groupListDiv.appendChild(grpItem);
+
+    // Eğer bu grup şu an aktif kullanıcının grubu ise active class ekle
+    if (currentGroup === grp) {
+      grpItem.classList.add('active');
+    }
+
+    sidebarGroupList.appendChild(grpItem);
   });
 });
 
