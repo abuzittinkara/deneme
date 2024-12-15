@@ -1,138 +1,116 @@
 const http = require("http");
 const express = require("express");
 const socketIO = require("socket.io");
-const { v4: uuidv4 } = require('uuid'); // Grup için benzersiz ID üretmek isterseniz
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
-const users = {}; // socket.id -> { username: "..." }
-const groups = []; // { id: "groupId", name: "Grup Adı", members: [socketId, ...] }
+const users = {};  
+const groups = {};
 
 app.use(express.static("public")); // Static files (frontend)
 
 io.on("connection", (socket) => {
   console.log("Kullanıcı bağlandı:", socket.id);
   
-  // Bağlanan kullanıcı için username başta bilinmiyor
-  users[socket.id] = { username: null };
+  // Kullanıcı ilk bağlandığında username yok, currentGroup yok
+  users[socket.id] = { username: null, currentGroup: null };
 
-  // Mevcut user list gönderiyoruz (gerekirse)
-  sendUserList();
-  
-  // Mevcut grup listesini gönder
-  sendGroupList(socket);
+  // Yeni bağlanan kullanıcıya mevcut grup listesini gönder
+  sendGroupsList();
 
+  // Kullanıcıdan kullanıcı adını al
   socket.on('set-username', (username) => {
     if (username && typeof username === 'string') {
       users[socket.id].username = username.trim();
-      console.log(`Kullanıcı ${socket.id} için kullanıcı adı: ${username}`);
-      sendUserList();
-      // Kullanıcı ismi alındıktan sonra belki anında grup listesini güncellemek isterseniz:
-      sendGroupList();
+      console.log(`Kullanıcı ${socket.id} için kullanıcı adı belirlendi: ${username}`);
+      // İstemci tarafında gruba katılma olmadan önce sadece grup listesi görünecek.
     }
   });
 
-  // Grup oluşturma
-  socket.on('create-group', (data) => {
-    const groupName = (data && data.groupName) ? data.groupName.trim() : "";
-    if (groupName) {
-      const groupId = uuidv4();
-      groups.push({
-        id: groupId,
-        name: groupName,
-        members: []
-      });
-      console.log(`Grup oluşturuldu: ${groupName} (ID: ${groupId})`);
-      sendGroupList();
-    }
-  });
-
-  // Gruba katılma
-  socket.on('join-group', (data) => {
-    const groupId = data && data.groupId;
-    const group = groups.find(g => g.id === groupId);
-    if (group) {
-      // Kullanıcı zaten ekli değilse ekle
-      if (!group.members.includes(socket.id)) {
-        group.members.push(socket.id);
+  // Yeni grup oluştur
+  socket.on('createGroup', (groupName) => {
+    if (groupName && typeof groupName === 'string') {
+      groupName = groupName.trim();
+      if (!groups[groupName]) {
+        groups[groupName] = { users: [] };
+        console.log(`Yeni grup oluşturuldu: ${groupName}`);
+        sendGroupsList();
       }
-      // Grubun üyelerini al
-      const groupMembers = group.members.map(id => ({
-        id: id,
-        username: users[id] ? users[id].username : "(bilinmiyor)"
-      }));
-
-      console.log(`Kullanıcı ${socket.id} gruba katıldı: ${group.name}`);
-
-      // Kullanıcıya gruba katıldığı bilgisini gönder ve grubun üyelerini ilet
-      io.to(socket.id).emit('joined-group', {
-        groupId: groupId,
-        members: groupMembers
-      });
-
-      // Güncel grup listesi herkese
-      sendGroupList();
     }
   });
 
-  // WebRTC sinyalleşme
+  // Bir gruba katıl
+  socket.on('joinGroup', (groupName) => {
+    if (groupName && groups[groupName]) {
+      // Kullanıcı eski bir grupta mı?
+      const oldGroup = users[socket.id].currentGroup;
+      const username = users[socket.id].username || `(Kullanıcı ${socket.id})`;
+
+      if (oldGroup && groups[oldGroup]) {
+        // Eski gruptan çıkar
+        groups[oldGroup].users = groups[oldGroup].users.filter(u => u.id !== socket.id);
+        // Eski gruptaki kullanıcılara yeni listeyi gönder
+        io.to(oldGroup).emit('groupUsers', groups[oldGroup].users);
+        socket.leave(oldGroup);
+      }
+
+      // Yeni gruba ekle
+      groups[groupName].users.push({ id: socket.id, username: username });
+      users[socket.id].currentGroup = groupName;
+      socket.join(groupName);
+      
+      // Yeni gruptaki kullanıcılara kullanıcı listesini gönder
+      io.to(groupName).emit('groupUsers', groups[groupName].users);
+
+      console.log(`Kullanıcı ${socket.id} (${username}) gruba katıldı: ${groupName}`);
+    }
+  });
+
+  // Sinyal işleme (WebRTC)
   socket.on("signal", (data) => {
-    console.log("Signal alındı:", data);
-    if (data.to) {
-      if (users[data.to]) {
-        io.to(data.to).emit("signal", {
+    const targetId = data.to;
+    if (targetId && users[targetId]) {
+      // Her iki kullanıcı da aynı grupta mı?
+      const senderGroup = users[socket.id].currentGroup;
+      const targetGroup = users[targetId].currentGroup;
+      if (senderGroup && targetGroup && senderGroup === targetGroup) {
+        io.to(targetId).emit("signal", {
           from: socket.id,
           signal: data.signal,
         });
-        console.log("Signal iletildi:", data);
       } else {
-        console.log(`Hedef kullanıcı (${data.to}) mevcut değil.`);
+        console.log(`Signal gönderilemedi. Kullanıcılar aynı grupta değil: ${socket.id} -> ${targetId}`);
       }
     } else {
-      console.log("Hedef kullanıcı yok:", data.to);
+      console.log(`Hedef kullanıcı mevcut değil: ${data.to}`);
     }
   });
 
   // Bağlantı kesildiğinde kullanıcıyı listeden çıkar
   socket.on("disconnect", () => {
     console.log("Kullanıcı ayrıldı:", socket.id);
-    delete users[socket.id];
-
-    // Kullanıcı gruplardan çıkar
-    groups.forEach(g => {
-      const index = g.members.indexOf(socket.id);
-      if (index !== -1) {
-        g.members.splice(index, 1);
+    const userData = users[socket.id];
+    if (userData && userData.currentGroup) {
+      const grp = userData.currentGroup;
+      if (groups[grp]) {
+        groups[grp].users = groups[grp].users.filter(u => u.id !== socket.id);
+        io.to(grp).emit('groupUsers', groups[grp].users);
       }
-    });
-
-    sendUserList();
-    sendGroupList();
+    }
+    delete users[socket.id];
   });
 });
 
-function sendUserList() {
-  const userList = Object.keys(users).map(id => ({
-    id: id,
-    username: users[id].username
-  }));
-  io.emit('user-list', userList);
-}
+// Her 10 sn'de bir kullanıcılar ve gruplar logla (debug amaçlı)
+setInterval(() => {
+  console.log("Bağlı kullanıcılar:", users);
+  console.log("Gruplar:", groups);
+}, 10000);
 
-function sendGroupList(socketToSend=null) {
-  // Tüm grupları ismi, id'si ve üye sayısı ile gönderelim
-  const groupList = groups.map(g => ({
-    id: g.id,
-    name: g.name,
-    memberCount: g.members.length
-  }));
-  if (socketToSend) {
-    socketToSend.emit('group-list', groupList);
-  } else {
-    io.emit('group-list', groupList);
-  }
+function sendGroupsList() {
+  io.emit('groupsList', Object.keys(groups));
 }
 
 const PORT = process.env.PORT || 3000;

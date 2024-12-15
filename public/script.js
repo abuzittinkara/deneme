@@ -4,25 +4,25 @@ let peers = {};
 let audioPermissionGranted = false;
 let remoteAudios = []; 
 let username = null;
+let currentGroup = null; // Şu anki grup
 
-// Yeni eklenen değişkenler
-let currentGroupId = null; // Şu an içinde olduğumuz grup
+// Bekleyen kullanıcı listeleri (ses izni alınmadan gelen kullanıcılar)
+let pendingUsers = [];
+let pendingNewUsers = [];
 
 // Ekran elementleri
 const usernameScreen = document.getElementById('usernameScreen');
 const callScreen = document.getElementById('callScreen');
 const usernameInput = document.getElementById('usernameInput');
 const continueButton = document.getElementById('continueButton');
-
-// Yeni eklenen elementler (index.html’de ekleyeceğiz)
-let groupListDiv;
-let newGroupNameInput;
-let createGroupButton;
-
-// Önceki elementler
+const startCallButton = document.getElementById('startCall');
 const userTableBody = document.getElementById('userTableBody');
 
-// Kullanıcı adı belirleme ekranı başlangıçta görünsün
+// Grup oluşturma ve listeleme elemanları
+const groupListDiv = document.getElementById('groupList');
+const createGroupInput = document.getElementById('createGroupInput');
+const createGroupButton = document.getElementById('createGroupButton');
+
 usernameScreen.style.display = 'block';
 callScreen.style.display = 'none';
 
@@ -38,47 +38,108 @@ continueButton.addEventListener('click', () => {
   }
 });
 
-// Sunucudan grup listesi aldığımızda ekranda güncelle
-socket.on('group-list', (groups) => {
-  updateGroupList(groups);
+createGroupButton.addEventListener('click', () => {
+  const grpName = createGroupInput.value.trim();
+  if (grpName) {
+    socket.emit('createGroup', grpName);
+    createGroupInput.value = '';
+  }
 });
 
-// Kullanıcı bir gruba katıldığında sunucudan geri yanıt alır
-socket.on('joined-group', (data) => {
-  currentGroupId = data.groupId;
+startCallButton.addEventListener('click', () => {
+  if (!currentGroup) {
+    alert("Lütfen önce bir gruba katılın.");
+    return;
+  }
 
-  // data.members: Bu gruptaki tüm üyelerin listesi
-  // Mikrofon izni yoksa önce mikrofon izni al, sonra bağlantıları kur
-  ensureAudioPermission().then(() => {
-    // Gruba katıldık, şimdi üyelerle peer bağlantıları kuralım
-    // Kendi id'mizi çıkaralım
-    const otherMembers = data.members.filter(m => m.id !== socket.id);
-    // Halihazırda peers varsa sıfırla
-    Object.keys(peers).forEach(pid => {
-      if (peers[pid]) {
-        peers[pid].close();
-        delete peers[pid];
-      }
-    });
+  console.log("Sesi Başlat butonuna basıldı. Mikrofon izni isteniyor...");
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then((stream) => { 
+      console.log("Mikrofon erişimi verildi:", stream); 
+      localStream = stream;
+      audioPermissionGranted = true;
 
-    otherMembers.forEach(member => {
-      if (!peers[member.id]) {
-        initPeer(member.id, true); // Biz offer başlatıyoruz
-      }
+      // Önceden gelen remote streamleri çal
+      remoteAudios.forEach(audioEl => {
+        audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
+      });
+
+      console.log("Ses oynatma izni verildi ve localStream elde edildi.");
+
+      // Bekleyen kullanıcılar için peer oluştur (ses izni şimdi var)
+      pendingUsers.forEach(userId => {
+        if (!peers[userId]) initPeer(userId, true);
+      });
+      pendingUsers = [];
+
+      pendingNewUsers.forEach(userId => {
+        if (!peers[userId]) initPeer(userId, false);
+      });
+      pendingNewUsers = [];
+    })
+    .catch((err) => console.error("Mikrofon erişimi reddedildi:", err));
+});
+
+// Sunucudan grup listesi geldiğinde güncelle
+socket.on('groupsList', (groupNames) => {
+  groupListDiv.innerHTML = '';
+  groupNames.forEach(grp => {
+    const grpItem = document.createElement('div');
+    grpItem.innerText = grp;
+    grpItem.style.cursor = 'pointer';
+    grpItem.style.padding = '0.5rem';
+    grpItem.style.border = '1px solid #ddd';
+    grpItem.style.marginBottom = '0.5rem';
+    grpItem.style.borderRadius = '4px';
+    grpItem.addEventListener('click', () => {
+      joinGroup(grp);
     });
+    groupListDiv.appendChild(grpItem);
   });
 });
 
-// Sinyal alımı (önceki gibi kalıyor)
+// Gruba katılma fonksiyonu
+function joinGroup(groupName) {
+  // Başka bir gruptaysak, tüm peer bağlantılarını kapat
+  if (currentGroup && currentGroup !== groupName) {
+    closeAllPeers();
+  }
+
+  // Yeni gruba katıl
+  socket.emit('joinGroup', groupName);
+  currentGroup = groupName;
+}
+
+// Gruba ait kullanıcı listesi geldiğinde tabloyu güncelle
+socket.on('groupUsers', (usersInGroup) => {
+  updateUserTable(usersInGroup);
+
+  const userIds = usersInGroup
+    .filter(u => u.id !== socket.id)
+    .map(u => u.id)
+    .filter(id => !peers[id]);  // zaten peer varsa atla
+
+  if (audioPermissionGranted && localStream) {
+    userIds.forEach(userId => {
+      if (!peers[userId]) {
+        initPeer(userId, true);
+      }
+    });
+  } else {
+    pendingUsers = pendingUsers.concat(userIds);
+  }
+});
+
+// Sinyal alımı
 socket.on("signal", async (data) => {
   console.log("Signal alındı:", data);
   const { from, signal } = data;
 
   let peer;
   if (!peers[from]) {
-    // localStream yoksa beklet
     if (!localStream) {
-      console.warn("localStream henüz yok, sinyal geldi. Bekletiyoruz.");
+      console.warn("localStream henüz yok, ama signal alındı. Bu kullanıcıyı bekletiyoruz.");
+      pendingNewUsers.push(from);
       return;
     }
     peer = initPeer(from, false);
@@ -100,47 +161,9 @@ socket.on("signal", async (data) => {
   }
 });
 
-// Kullanıcı listesi geldiğinde tabloyu güncelle
-socket.on('user-list', (list) => {
-  updateUserTable(list);
-});
-
-socket.on("connect", () => {
-  console.log("WebSocket bağlantısı kuruldu. Kullanıcı ID:", socket.id);
-});
-
-socket.on("disconnect", () => {
-  console.log("WebSocket bağlantısı kesildi.");
-});
-
-setInterval(() => {
-  console.log("Mevcut PeerConnection'lar:", peers);
-}, 10000);
-
-// Audio izni alma fonksiyonu
-async function ensureAudioPermission() {
-  if (audioPermissionGranted && localStream) return;
-
-  console.log("Mikrofon izni isteniyor...");
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    console.log("Mikrofon erişimi verildi:", stream);
-    localStream = stream;
-    audioPermissionGranted = true;
-
-    // Daha önce gelen remote streamleri çal
-    remoteAudios.forEach(audioEl => {
-      audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
-    });
-    console.log("Ses oynatma izni verildi ve localStream elde edildi.");
-  } catch (err) {
-    console.error("Mikrofon erişimi reddedildi:", err);
-  }
-}
-
-function updateUserTable(userList) {
+function updateUserTable(usersInGroup) {
   userTableBody.innerHTML = '';
-  userList.forEach(user => {
+  usersInGroup.forEach(user => {
     const tr = document.createElement('tr');
     const tdUsername = document.createElement('td');
     const tdId = document.createElement('td');
@@ -154,20 +177,25 @@ function updateUserTable(userList) {
 
 function initPeer(userId, isInitiator) {
   if (!localStream || !audioPermissionGranted) {
-    console.warn("localStream yokken initPeer çağrıldı. Bekletebiliriz.");
+    console.warn("localStream yokken initPeer çağrıldı. Bu kullanıcı bekletilecek.");
+    if (isInitiator) {
+      pendingUsers.push(userId);
+    } else {
+      pendingNewUsers.push(userId);
+    }
     return;
   }
 
+  // Aynı kullanıcı için birden fazla peer oluşturulmasını engelle
   if (peers[userId]) {
     console.log("Bu kullanıcı için zaten bir peer var, initPeer iptal.");
     return peers[userId];
   }
 
-  console.log(`initPeer: userId=${userId}, isInitiator=${isInitiator}`);
+  console.log(`initPeer çağrıldı: userId=${userId}, isInitiator=${isInitiator}`);
   const peer = new RTCPeerConnection({
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
-      // Eğer TURN gerekirse burada ekleyebilirsiniz
     ],
   });
   peers[userId] = peer;
@@ -178,16 +206,29 @@ function initPeer(userId, isInitiator) {
 
   peer.onicecandidate = (event) => {
     if (event.candidate) {
+      console.log("Yeni ICE Candidate oluşturuldu:", event.candidate);
       socket.emit("signal", { to: userId, signal: event.candidate });
+    } else {
+      console.log("ICE Candidate süreci tamamlandı.");
     }
   };
 
+  peer.oniceconnectionstatechange = () => {
+    console.log("ICE bağlantı durumu:", peer.iceConnectionState);
+  };
+
+  peer.onconnectionstatechange = () => {
+    console.log("PeerConnection durumu:", peer.connectionState);
+  };
+
   peer.ontrack = (event) => {
+    console.log("Remote stream alındı, ses izni bekleniyor...");
     const audio = new Audio();
     audio.srcObject = event.streams[0];
     audio.autoplay = false; 
     audio.muted = false;
     remoteAudios.push(audio);
+
     if (audioPermissionGranted) {
       audio.play().catch(err => console.error("Ses oynatılamadı:", err));
     }
@@ -203,60 +244,28 @@ function initPeer(userId, isInitiator) {
 async function createOffer(peer, userId) {
   const offer = await peer.createOffer();
   await peer.setLocalDescription(offer);
+  console.log("Offer oluşturuldu ve gönderildi:", offer);
   socket.emit("signal", { to: userId, signal: peer.localDescription });
 }
 
-// Grup listesini güncelleme fonksiyonu
-function updateGroupList(groups) {
-  // Eğer henüz oluşturmadıysak HTML elemanlarını oluşturalım
-  if (!groupListDiv) {
-    groupListDiv = document.createElement('div');
-    const groupTitle = document.createElement('h3');
-    groupTitle.textContent = "Gruplar";
-    groupListDiv.appendChild(groupTitle);
-
-    newGroupNameInput = document.createElement('input');
-    newGroupNameInput.placeholder = "Grup adı";
-    newGroupNameInput.className = "input-text";
-    groupListDiv.appendChild(newGroupNameInput);
-
-    createGroupButton = document.createElement('button');
-    createGroupButton.textContent = "Grup Oluştur";
-    createGroupButton.className = "btn primary";
-    createGroupButton.style.marginTop = "10px";
-    createGroupButton.addEventListener('click', () => {
-      const gName = newGroupNameInput.value.trim();
-      if (gName) {
-        socket.emit('create-group', { groupName: gName });
-        newGroupNameInput.value = "";
-      }
-    });
-    groupListDiv.appendChild(createGroupButton);
-
-    // Grup listesini gösteren alan
-    const listContainer = document.createElement('div');
-    listContainer.id = "groupListContainer";
-    groupListDiv.appendChild(listContainer);
-
-    const callCard = document.querySelector('#callScreen .card');
-    callCard.appendChild(groupListDiv);
+function closeAllPeers() {
+  for (const userId in peers) {
+    if (peers[userId]) {
+      peers[userId].close();
+      delete peers[userId];
+    }
   }
-
-  const listContainer = document.getElementById('groupListContainer');
-  listContainer.innerHTML = '';
-  
-  groups.forEach(group => {
-    const div = document.createElement('div');
-    div.style.marginTop = "10px";
-    div.style.cursor = "pointer";
-    div.style.padding = "5px 10px";
-    div.style.border = "1px solid #ccc";
-    div.style.borderRadius = "4px";
-    div.textContent = `${group.name} (${group.memberCount} üye)`;
-    div.addEventListener('click', () => {
-      // Gruba katıl
-      socket.emit('join-group', { groupId: group.id });
-    });
-    listContainer.appendChild(div);
-  });
+  remoteAudios = [];
 }
+
+socket.on("connect", () => {
+  console.log("WebSocket bağlantısı kuruldu. Kullanıcı ID:", socket.id);
+});
+
+socket.on("disconnect", () => {
+  console.log("WebSocket bağlantısı kesildi.");
+});
+
+setInterval(() => {
+  console.log("Mevcut PeerConnection'lar:", peers);
+}, 10000);
