@@ -3,9 +3,9 @@ let localStream;
 let peers = {};
 let audioPermissionGranted = false;
 let remoteAudios = []; 
-let username = null; 
+let username = null;
 
-// Bu diziler, "Sesi Başlat" butonuna basana kadar gelen kullanıcıları saklamak için
+// Bekleyen kullanıcı listeleri (ses izni alınmadan gelen kullanıcılar)
 let pendingUsers = [];
 let pendingNewUsers = [];
 
@@ -27,7 +27,6 @@ continueButton.addEventListener('click', () => {
     username = val;
     usernameScreen.style.display = 'none';
     callScreen.style.display = 'block';
-    // Kullanıcı adı sunucuya bildirilsin
     socket.emit('set-username', username);
   } else {
     alert("Lütfen bir kullanıcı adı girin.");
@@ -50,14 +49,14 @@ startCallButton.addEventListener('click', () => {
 
       console.log("Ses oynatma izni verildi ve localStream elde edildi.");
 
-      // Şimdi bekleyen kullanıcılar için peer oluştur
+      // Bekleyen kullanıcılar için peer oluştur (ses izni şimdi var)
       pendingUsers.forEach(userId => {
-        initPeer(userId, true);
+        if (!peers[userId]) initPeer(userId, true);
       });
       pendingUsers = [];
 
       pendingNewUsers.forEach(userId => {
-        initPeer(userId, false);
+        if (!peers[userId]) initPeer(userId, false);
       });
       pendingNewUsers = [];
 
@@ -65,13 +64,38 @@ startCallButton.addEventListener('click', () => {
     .catch((err) => console.error("Mikrofon erişimi reddedildi:", err));
 });
 
-socket.on("users", (users) => {
-  console.log("Mevcut kullanıcılar (deprecated event):", users);
-  // Bu event eskiden kullanılıyordu. Artık user-list eventini kullanacağız.
+// Kullanıcı listesi geldiğinde tabloyu güncelle ve eğer izinler varsa yeni peers başlat
+socket.on('user-list', (list) => {
+  updateUserTable(list);
+
+  // Şu anki kullanıcı dışında kalanları al
+  const userIds = list
+    .filter(u => u.id !== socket.id)
+    .map(u => u.id)
+    .filter(id => !peers[id]);  // Zaten peer oluşturduğumuz kullanıcıları atla
+
+  if (audioPermissionGranted && localStream) {
+    userIds.forEach(userId => {
+      if (!peers[userId]) {
+        initPeer(userId, true);
+      }
+    });
+  } else {
+    // Ses izni yoksa bekleyenlere ekle
+    pendingUsers = userIds;
+  }
 });
 
+// Yeni bir kullanıcı bağlandığında, zaten peer varsa tekrar initPeer yapma
 socket.on("new-user", (userId) => {
   console.log("Yeni kullanıcı bağlandı:", userId);
+  
+  // Eğer bu kullanıcı için zaten peer oluşturulduysa tekrar yapma
+  if (peers[userId]) {
+    console.log("Bu kullanıcı için zaten bir peer bağlantısı var, initPeer çağrılmayacak.");
+    return;
+  }
+
   if (audioPermissionGranted && localStream) {
     initPeer(userId, false);
   } else {
@@ -79,7 +103,7 @@ socket.on("new-user", (userId) => {
   }
 });
 
-// Kullanıcılardan gelen sinyaller
+// Sinyal alımı
 socket.on("signal", async (data) => {
   console.log("Signal alındı:", data);
   const { from, signal } = data;
@@ -105,21 +129,6 @@ socket.on("signal", async (data) => {
   }
 });
 
-socket.on('user-list', (list) => {
-  updateUserTable(list);
-  
-  // Daha önce "users" event'inde yaptığınız gibi burada da peer bağlantılarını başlatın
-  const userIds = list.map(u => u.id).filter(id => id !== socket.id);
-
-  if (audioPermissionGranted && localStream) {
-    userIds.forEach(userId => {
-      initPeer(userId, true);
-    });
-  } else {
-    pendingUsers = userIds; // Eğer izin yoksa ya da stream yoksa, pendingUsers'e atayın
-  }
-});
-
 function updateUserTable(userList) {
   userTableBody.innerHTML = '';
   userList.forEach(user => {
@@ -135,10 +144,17 @@ function updateUserTable(userList) {
 }
 
 function initPeer(userId, isInitiator) {
+  // Aynı kullanıcı için birden fazla peer oluşturulmasını engelle
+  if (peers[userId]) {
+    console.log("Bu kullanıcı için zaten bir peer var, initPeer iptal.");
+    return peers[userId];
+  }
+
   console.log(`initPeer çağrıldı: userId=${userId}, isInitiator=${isInitiator}`);
   const peer = new RTCPeerConnection({
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
+      // Gerekirse buraya TURN server ekleyin
     ],
   });
   peers[userId] = peer;
