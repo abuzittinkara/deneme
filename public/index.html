@@ -1,29 +1,37 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>WebRTC Örneği</title>
-    <style>
-      #callScreen {
-        display: none; /* İlk başta gizli */
-      }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sesli Görüşme Uygulaması</title>
+<style>
+  #userTable {
+    border: 1px solid black;
+  }
+</style>
 </head>
 <body>
-    <div id="usernameScreen">
-        <h2>Kullanıcı Adı Belirleyin</h2>
-        <input type="text" id="usernameInput" placeholder="Kullanıcı adınız" />
-        <button id="continueButton">Devam Et</button>
-    </div>
+  <div id="usernameScreen">
+    <input type="text" id="usernameInput" placeholder="Kullanıcı Adı">
+    <button id="continueButton">Devam Et</button>
+  </div>
+  
+  <div id="callScreen" style="display:none;">
+    <button id="startCall">Sesi Başlat</button>
+    
+    <h3>Bağlı Kullanıcılar</h3>
+    <table id="userTable">
+      <thead>
+        <tr>
+          <th>Kullanıcı Adı</th>
+          <th>Socket ID</th>
+        </tr>
+      </thead>
+      <tbody id="userTableBody"></tbody>
+    </table>
+  </div>
 
-    <div id="callScreen">
-        <h1>WebRTC Ses İletimi</h1>
-        <p>“Sesi Başlat” butonuna tıklayın, ardından başka kullanıcılar katıldığında seslerini sayfa yenilemeden duyabileceksiniz.</p>
-        <button id="startCall">Sesi Başlat</button>
-    </div>
-
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="script.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="Script.js"></script>
 </body>
 </html>

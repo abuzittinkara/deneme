@@ -3,7 +3,7 @@ let localStream;
 let peers = {};
 let audioPermissionGranted = false;
 let remoteAudios = []; 
-let username = null; // Kullanıcı adını burada saklayacağız
+let username = null; 
 
 // Bu diziler, "Sesi Başlat" butonuna basana kadar gelen kullanıcıları saklamak için
 let pendingUsers = [];
@@ -15,18 +15,20 @@ const callScreen = document.getElementById('callScreen');
 const usernameInput = document.getElementById('usernameInput');
 const continueButton = document.getElementById('continueButton');
 const startCallButton = document.getElementById('startCall');
+const userTableBody = document.getElementById('userTableBody');
 
 // Başlangıçta sadece username ekranı görünsün
 usernameScreen.style.display = 'block';
 callScreen.style.display = 'none';
 
-// Kullanıcı "Devam Et" butonuna basınca kullanıcı adı al
 continueButton.addEventListener('click', () => {
   const val = usernameInput.value.trim();
   if(val) {
     username = val;
     usernameScreen.style.display = 'none';
     callScreen.style.display = 'block';
+    // Kullanıcı adı sunucuya bildirilsin
+    socket.emit('set-username', username);
   } else {
     alert("Lütfen bir kullanıcı adı girin.");
   }
@@ -63,21 +65,11 @@ startCallButton.addEventListener('click', () => {
     .catch((err) => console.error("Mikrofon erişimi reddedildi:", err));
 });
 
-// Sunucudan mevcut kullanıcılar geldiğinde, localStream henüz yoksa sakla
 socket.on("users", (users) => {
-  console.log("Mevcut kullanıcılar:", users);
-  if (audioPermissionGranted && localStream) {
-    // Local stream var, direkt peer oluştur
-    users.forEach((userId) => {
-      initPeer(userId, true); 
-    });
-  } else {
-    // Local stream henüz yok, bekle
-    pendingUsers = users;
-  }
+  console.log("Mevcut kullanıcılar (deprecated event):", users);
+  // Bu event eskiden kullanılıyordu. Artık user-list eventini kullanacağız.
 });
 
-// Yeni bir kullanıcı bağlandığında, localStream yoksa sakla, varsa direkt peer oluştur
 socket.on("new-user", (userId) => {
   console.log("Yeni kullanıcı bağlandı:", userId);
   if (audioPermissionGranted && localStream) {
@@ -87,15 +79,13 @@ socket.on("new-user", (userId) => {
   }
 });
 
-// Sinyal alımı
+// Kullanıcılardan gelen sinyaller
 socket.on("signal", async (data) => {
   console.log("Signal alındı:", data);
   const { from, signal } = data;
 
   let peer;
   if (!peers[from]) {
-    // Bu kullanıcı için henüz peer yoksa localStream ve izin bekleniyor olabilir
-    // Ancak bu noktaya geldiyse muhtemelen localStream var.
     peer = initPeer(from, false);
   } else {
     peer = peers[from];
@@ -115,12 +105,30 @@ socket.on("signal", async (data) => {
   }
 });
 
+socket.on('user-list', (list) => {
+  // user-list eventinde gelen kullanıcı listesini tabloya yaz
+  updateUserTable(list);
+});
+
+function updateUserTable(userList) {
+  userTableBody.innerHTML = '';
+  userList.forEach(user => {
+    const tr = document.createElement('tr');
+    const tdUsername = document.createElement('td');
+    const tdId = document.createElement('td');
+    tdUsername.textContent = user.username || '(İsimsiz)';
+    tdId.textContent = user.id;
+    tr.appendChild(tdUsername);
+    tr.appendChild(tdId);
+    userTableBody.appendChild(tr);
+  });
+}
+
 function initPeer(userId, isInitiator) {
   console.log(`initPeer çağrıldı: userId=${userId}, isInitiator=${isInitiator}`);
   const peer = new RTCPeerConnection({
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
-      // Gerekirse TURN sunucusu ekleyin
     ],
   });
   peers[userId] = peer;
@@ -156,7 +164,6 @@ function initPeer(userId, isInitiator) {
     audio.muted = false;
     remoteAudios.push(audio);
 
-    // Eğer butona basılıp izin verilmişse direk oynat
     if (audioPermissionGranted) {
       audio.play().catch(err => console.error("Ses oynatılamadı:", err));
     }
