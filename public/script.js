@@ -15,7 +15,6 @@ const usernameScreen = document.getElementById('usernameScreen');
 const callScreen = document.getElementById('callScreen');
 const usernameInput = document.getElementById('usernameInput');
 const continueButton = document.getElementById('continueButton');
-const startCallButton = document.getElementById('startCall');
 const userTableBody = document.getElementById('userTableBody');
 
 // Grup oluşturma ve listeleme elemanları
@@ -46,39 +45,19 @@ createGroupButton.addEventListener('click', () => {
   }
 });
 
-startCallButton.addEventListener('click', () => {
-  if (!currentGroup) {
-    alert("Lütfen önce bir gruba katılın.");
-    return;
+// Gruba katılma fonksiyonu
+function joinGroup(groupName) {
+  // Başka bir gruptaysak, tüm peer bağlantılarını kapat
+  if (currentGroup && currentGroup !== groupName) {
+    closeAllPeers();
+    audioPermissionGranted = false;
+    localStream = null;
   }
 
-  console.log("Sesi Başlat butonuna basıldı. Mikrofon izni isteniyor...");
-  navigator.mediaDevices.getUserMedia({ audio: true })
-    .then((stream) => { 
-      console.log("Mikrofon erişimi verildi:", stream); 
-      localStream = stream;
-      audioPermissionGranted = true;
-
-      // Önceden gelen remote streamleri çal
-      remoteAudios.forEach(audioEl => {
-        audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
-      });
-
-      console.log("Ses oynatma izni verildi ve localStream elde edildi.");
-
-      // Bekleyen kullanıcılar için peer oluştur (ses izni şimdi var)
-      pendingUsers.forEach(userId => {
-        if (!peers[userId]) initPeer(userId, true);
-      });
-      pendingUsers = [];
-
-      pendingNewUsers.forEach(userId => {
-        if (!peers[userId]) initPeer(userId, false);
-      });
-      pendingNewUsers = [];
-    })
-    .catch((err) => console.error("Mikrofon erişimi reddedildi:", err));
-});
+  // Yeni gruba katıl
+  socket.emit('joinGroup', groupName);
+  currentGroup = groupName;
+}
 
 // Sunucudan grup listesi geldiğinde güncelle
 socket.on('groupsList', (groupNames) => {
@@ -98,39 +77,61 @@ socket.on('groupsList', (groupNames) => {
   });
 });
 
-// Gruba katılma fonksiyonu
-function joinGroup(groupName) {
-  // Başka bir gruptaysak, tüm peer bağlantılarını kapat
-  if (currentGroup && currentGroup !== groupName) {
-    closeAllPeers();
-  }
-
-  // Yeni gruba katıl
-  socket.emit('joinGroup', groupName);
-  currentGroup = groupName;
-}
-
 // Gruba ait kullanıcı listesi geldiğinde tabloyu güncelle
 socket.on('groupUsers', (usersInGroup) => {
   updateUserTable(usersInGroup);
 
-  const userIds = usersInGroup
+  const otherUserIds = usersInGroup
     .filter(u => u.id !== socket.id)
     .map(u => u.id)
     .filter(id => !peers[id]);  // zaten peer varsa atla
 
-  if (audioPermissionGranted && localStream) {
-    userIds.forEach(userId => {
+  // Eğer mikrofon izni yoksa şimdi isteyelim (ilk defa gruba giriyoruz veya değiştik)
+  if (!audioPermissionGranted || !localStream) {
+    requestMicrophoneAccess().then(() => {
+      // Mikrofon izni alındıktan sonra pending kullanıcılarla bağlantı kur
+      if (otherUserIds.length > 0) {
+        otherUserIds.forEach(userId => {
+          if (!peers[userId]) {
+            initPeer(userId, true);
+          }
+        });
+      }
+
+      // Bekleyen kullanıcılar için peer oluştur (ses izni şimdi var)
+      pendingUsers.forEach(userId => {
+        if (!peers[userId]) initPeer(userId, true);
+      });
+      pendingUsers = [];
+
+      pendingNewUsers.forEach(userId => {
+        if (!peers[userId]) initPeer(userId, false);
+      });
+      pendingNewUsers = [];
+    }).catch(err => {
+      console.error("Mikrofon izni alınamadı:", err);
+    });
+  } else {
+    // Zaten mikrofon izni varsa doğrudan peer bağlantılarını kur
+    otherUserIds.forEach(userId => {
       if (!peers[userId]) {
         initPeer(userId, true);
       }
     });
-  } else {
-    pendingUsers = pendingUsers.concat(userIds);
   }
 });
 
-// Sinyal alımı
+async function requestMicrophoneAccess() {
+  console.log("Mikrofon izni isteniyor...");
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  console.log("Mikrofon erişimi verildi:", stream); 
+  localStream = stream;
+  audioPermissionGranted = true;
+  remoteAudios.forEach(audioEl => {
+    audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
+  });
+}
+
 socket.on("signal", async (data) => {
   console.log("Signal alındı:", data);
   const { from, signal } = data;
@@ -186,7 +187,6 @@ function initPeer(userId, isInitiator) {
     return;
   }
 
-  // Aynı kullanıcı için birden fazla peer oluşturulmasını engelle
   if (peers[userId]) {
     console.log("Bu kullanıcı için zaten bir peer var, initPeer iptal.");
     return peers[userId];
