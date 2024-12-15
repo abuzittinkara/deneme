@@ -106,8 +106,18 @@ socket.on("signal", async (data) => {
 });
 
 socket.on('user-list', (list) => {
-  // user-list eventinde gelen kullanıcı listesini tabloya yaz
   updateUserTable(list);
+  
+  // Daha önce "users" event'inde yaptığınız gibi burada da peer bağlantılarını başlatın
+  const userIds = list.map(u => u.id).filter(id => id !== socket.id);
+
+  if (audioPermissionGranted && localStream) {
+    userIds.forEach(userId => {
+      initPeer(userId, true);
+    });
+  } else {
+    pendingUsers = userIds; // Eğer izin yoksa ya da stream yoksa, pendingUsers'e atayın
+  }
 });
 
 function updateUserTable(userList) {
