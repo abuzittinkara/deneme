@@ -8,14 +8,35 @@
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div id="usernameScreen" class="screen-container">
+  <!-- Giriş Ekranı -->
+  <div id="loginScreen" class="screen-container" style="display: block;">
     <div class="card">
-      <h1 class="app-title">Görüşmeye Katıl</h1>
-      <input type="text" id="usernameInput" placeholder="Kullanıcı Adı" class="input-text"/>
-      <button id="continueButton" class="btn primary">Devam Et</button>
+      <h1 class="app-title">Giriş Yap</h1>
+      <input type="text" id="loginUsernameInput" placeholder="Kullanıcı Adı" class="input-text"/>
+      <input type="password" id="loginPasswordInput" placeholder="Parola" class="input-text"/>
+      <button id="loginButton" class="btn primary">Giriş Yap</button>
+      <p>Hesabın yok mu? <span id="showRegisterScreen" style="color:blue; cursor:pointer;">Kayıt Ol</span></p>
     </div>
   </div>
 
+  <!-- Kayıt Ekranı -->
+  <div id="registerScreen" class="screen-container" style="display: none;">
+    <div class="card">
+      <h1 class="app-title">Kayıt Ol</h1>
+      <input type="text" id="regUsernameInput" placeholder="Kullanıcı Adı (küçük harf, benzersiz)" class="input-text"/>
+      <input type="text" id="regNameInput" placeholder="İsim" class="input-text"/>
+      <input type="text" id="regSurnameInput" placeholder="Soy İsim" class="input-text"/>
+      <input type="date" id="regBirthdateInput" class="input-text"/>
+      <input type="email" id="regEmailInput" placeholder="E-Posta" class="input-text"/>
+      <input type="tel" id="regPhoneInput" placeholder="Telefon Numarası" class="input-text"/>
+      <input type="password" id="regPasswordInput" placeholder="Parola" class="input-text"/>
+      <input type="password" id="regPasswordConfirmInput" placeholder="Parola (Tekrar)" class="input-text"/>
+      <button id="registerButton" class="btn primary">Kayıt Ol</button>
+      <p>Zaten hesabın var mı? <span id="showLoginScreen" style="color:blue; cursor:pointer;">Giriş Yap</span></p>
+    </div>
+  </div>
+
+  <!-- Görüşme Ekranı -->
   <div id="callScreen" class="screen-container" style="display:none;">
     <div class="card">
       <h1 class="app-title">Sesli Görüşme</h1>

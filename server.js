@@ -9,6 +9,11 @@ const io = socketIO(server);
 const users = {};  
 const groups = {};
 
+// Basit kayıtlı kullanıcılar listesi (veritabanı yerine)
+const registeredUsers = {
+// örnek: 'ahmet': { password: '12345', name:'Ahmet', surname:'Yılmaz', birthdate:'1990-01-01', email:'...', phone:'...' }
+};
+
 app.use(express.static("public")); // Static files (frontend)
 
 io.on("connection", (socket) => {
@@ -20,12 +25,57 @@ io.on("connection", (socket) => {
   // Yeni bağlanan kullanıcıya mevcut grup listesini gönder
   sendGroupsList();
 
-  // Kullanıcıdan kullanıcı adını al
+  // Login olayı
+  socket.on('login', ({ username, password }) => {
+    if (registeredUsers[username] && registeredUsers[username].password === password) {
+      socket.emit('loginResult', { success: true, username: username });
+    } else {
+      socket.emit('loginResult', { success: false, message: 'Kullanıcı adı veya parola hatalı.' });
+    }
+  });
+
+  // Register olayı
+  socket.on('register', (userData) => {
+    const { username, name, surname, birthdate, email, phone, password, passwordConfirm } = userData;
+
+    if (!username || !name || !surname || !birthdate || !email || !phone || !password || !passwordConfirm) {
+      socket.emit('registerResult', { success: false, message: 'Tüm alanları doldurunuz.' });
+      return;
+    }
+
+    if (username !== username.toLowerCase()) {
+      socket.emit('registerResult', { success: false, message: 'Kullanıcı adı sadece küçük harf olmalı.' });
+      return;
+    }
+
+    if (registeredUsers[username]) {
+      socket.emit('registerResult', { success: false, message: 'Bu kullanıcı adı zaten alınmış.' });
+      return;
+    }
+
+    if (password !== passwordConfirm) {
+      socket.emit('registerResult', { success: false, message: 'Parolalar eşleşmiyor.' });
+      return;
+    }
+
+    // Kullanıcıyı kaydet
+    registeredUsers[username] = {
+      password: password,
+      name: name,
+      surname: surname,
+      birthdate: birthdate,
+      email: email,
+      phone: phone
+    };
+
+    socket.emit('registerResult', { success: true });
+  });
+
+  // Kullanıcı adını ayarla
   socket.on('set-username', (username) => {
     if (username && typeof username === 'string') {
       users[socket.id].username = username.trim();
       console.log(`Kullanıcı ${socket.id} için kullanıcı adı belirlendi: ${username}`);
-      // İstemci tarafında gruba katılma olmadan önce sadece grup listesi görünecek.
     }
   });
 
@@ -44,24 +94,19 @@ io.on("connection", (socket) => {
   // Bir gruba katıl
   socket.on('joinGroup', (groupName) => {
     if (groupName && groups[groupName]) {
-      // Kullanıcı eski bir grupta mı?
       const oldGroup = users[socket.id].currentGroup;
       const username = users[socket.id].username || `(Kullanıcı ${socket.id})`;
 
       if (oldGroup && groups[oldGroup]) {
-        // Eski gruptan çıkar
         groups[oldGroup].users = groups[oldGroup].users.filter(u => u.id !== socket.id);
-        // Eski gruptaki kullanıcılara yeni listeyi gönder
         io.to(oldGroup).emit('groupUsers', groups[oldGroup].users);
         socket.leave(oldGroup);
       }
 
-      // Yeni gruba ekle
       groups[groupName].users.push({ id: socket.id, username: username });
       users[socket.id].currentGroup = groupName;
       socket.join(groupName);
       
-      // Yeni gruptaki kullanıcılara kullanıcı listesini gönder
       io.to(groupName).emit('groupUsers', groups[groupName].users);
 
       console.log(`Kullanıcı ${socket.id} (${username}) gruba katıldı: ${groupName}`);
@@ -72,7 +117,6 @@ io.on("connection", (socket) => {
   socket.on("signal", (data) => {
     const targetId = data.to;
     if (targetId && users[targetId]) {
-      // Her iki kullanıcı da aynı grupta mı?
       const senderGroup = users[socket.id].currentGroup;
       const targetGroup = users[targetId].currentGroup;
       if (senderGroup && targetGroup && senderGroup === targetGroup) {
@@ -103,7 +147,6 @@ io.on("connection", (socket) => {
   });
 });
 
-// Her 10 sn'de bir kullanıcılar ve gruplar logla (debug amaçlı)
 setInterval(() => {
   console.log("Bağlı kullanıcılar:", users);
   console.log("Gruplar:", groups);

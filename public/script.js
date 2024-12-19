@@ -11,32 +11,117 @@ let pendingUsers = [];
 let pendingNewUsers = [];
 
 // Ekran elementleri
-const usernameScreen = document.getElementById('usernameScreen');
+const loginScreen = document.getElementById('loginScreen');
+const registerScreen = document.getElementById('registerScreen');
 const callScreen = document.getElementById('callScreen');
-const usernameInput = document.getElementById('usernameInput');
-const continueButton = document.getElementById('continueButton');
-const userTableBody = document.getElementById('userTableBody');
+
+// Login alanları
+const loginUsernameInput = document.getElementById('loginUsernameInput');
+const loginPasswordInput = document.getElementById('loginPasswordInput');
+const loginButton = document.getElementById('loginButton');
+
+// Register alanları
+const regUsernameInput = document.getElementById('regUsernameInput');
+const regNameInput = document.getElementById('regNameInput');
+const regSurnameInput = document.getElementById('regSurnameInput');
+const regBirthdateInput = document.getElementById('regBirthdateInput');
+const regEmailInput = document.getElementById('regEmailInput');
+const regPhoneInput = document.getElementById('regPhoneInput');
+const regPasswordInput = document.getElementById('regPasswordInput');
+const regPasswordConfirmInput = document.getElementById('regPasswordConfirmInput');
+const registerButton = document.getElementById('registerButton');
+
+// Ekran değiştirme linkleri
+const showRegisterScreen = document.getElementById('showRegisterScreen');
+const showLoginScreen = document.getElementById('showLoginScreen');
 
 // Grup oluşturma ve listeleme elemanları
 const groupListDiv = document.getElementById('groupList');
 const createGroupInput = document.getElementById('createGroupInput');
 const createGroupButton = document.getElementById('createGroupButton');
 
-usernameScreen.style.display = 'block';
-callScreen.style.display = 'none';
+// Kullanıcı tablosu
+const userTableBody = document.getElementById('userTableBody');
 
-continueButton.addEventListener('click', () => {
-  const val = usernameInput.value.trim();
-  if(val) {
-    username = val;
-    usernameScreen.style.display = 'none';
+// Ekran geçişleri
+showRegisterScreen.addEventListener('click', () => {
+  loginScreen.style.display = 'none';
+  registerScreen.style.display = 'block';
+});
+
+showLoginScreen.addEventListener('click', () => {
+  registerScreen.style.display = 'none';
+  loginScreen.style.display = 'block';
+});
+
+// Giriş yap butonu
+loginButton.addEventListener('click', () => {
+  const usernameVal = loginUsernameInput.value.trim();
+  const passwordVal = loginPasswordInput.value.trim();
+  if (!usernameVal || !passwordVal) {
+    alert("Lütfen kullanıcı adı ve parola girin.");
+    return;
+  }
+  socket.emit('login', { username: usernameVal, password: passwordVal });
+});
+
+// Kayıt ol butonu
+registerButton.addEventListener('click', () => {
+  const userData = {
+    username: regUsernameInput.value.trim(),
+    name: regNameInput.value.trim(),
+    surname: regSurnameInput.value.trim(),
+    birthdate: regBirthdateInput.value.trim(),
+    email: regEmailInput.value.trim(),
+    phone: regPhoneInput.value.trim(),
+    password: regPasswordInput.value.trim(),
+    passwordConfirm: regPasswordConfirmInput.value.trim()
+  };
+  
+  if (!userData.username || !userData.name || !userData.surname || 
+      !userData.birthdate || !userData.email || !userData.phone ||
+      !userData.password || !userData.passwordConfirm) {
+    alert("Lütfen tüm alanları doldurun.");
+    return;
+  }
+
+  if (userData.username !== userData.username.toLowerCase()) {
+    alert("Kullanıcı adı sadece küçük harf olmalı.");
+    return;
+  }
+
+  if (userData.password !== userData.passwordConfirm) {
+    alert("Parolalar eşleşmiyor!");
+    return;
+  }
+
+  socket.emit('register', userData);
+});
+
+// Sunucudan login sonucu
+socket.on('loginResult', (data) => {
+  if (data.success) {
+    username = data.username;
+    loginScreen.style.display = 'none';
     callScreen.style.display = 'block';
     socket.emit('set-username', username);
   } else {
-    alert("Lütfen bir kullanıcı adı girin.");
+    alert("Giriş başarısız: " + data.message);
   }
 });
 
+// Sunucudan register sonucu
+socket.on('registerResult', (data) => {
+  if (data.success) {
+    alert("Kayıt başarılı! Şimdi giriş yapabilirsiniz.");
+    registerScreen.style.display = 'none';
+    loginScreen.style.display = 'block';
+  } else {
+    alert("Kayıt başarısız: " + data.message);
+  }
+});
+
+// Grup oluştur
 createGroupButton.addEventListener('click', () => {
   const grpName = createGroupInput.value.trim();
   if (grpName) {
@@ -77,7 +162,7 @@ socket.on('groupsList', (groupNames) => {
   });
 });
 
-// Gruba ait kullanıcı listesi geldiğinde tabloyu güncelle
+// Gruba ait kullanıcı listesi
 socket.on('groupUsers', (usersInGroup) => {
   updateUserTable(usersInGroup);
 
@@ -86,10 +171,8 @@ socket.on('groupUsers', (usersInGroup) => {
     .map(u => u.id)
     .filter(id => !peers[id]);  // zaten peer varsa atla
 
-  // Eğer mikrofon izni yoksa şimdi isteyelim (ilk defa gruba giriyoruz veya değiştik)
   if (!audioPermissionGranted || !localStream) {
     requestMicrophoneAccess().then(() => {
-      // Mikrofon izni alındıktan sonra pending kullanıcılarla bağlantı kur
       if (otherUserIds.length > 0) {
         otherUserIds.forEach(userId => {
           if (!peers[userId]) {
@@ -98,7 +181,6 @@ socket.on('groupUsers', (usersInGroup) => {
         });
       }
 
-      // Bekleyen kullanıcılar için peer oluştur (ses izni şimdi var)
       pendingUsers.forEach(userId => {
         if (!peers[userId]) initPeer(userId, true);
       });
@@ -112,7 +194,6 @@ socket.on('groupUsers', (usersInGroup) => {
       console.error("Mikrofon izni alınamadı:", err);
     });
   } else {
-    // Zaten mikrofon izni varsa doğrudan peer bağlantılarını kur
     otherUserIds.forEach(userId => {
       if (!peers[userId]) {
         initPeer(userId, true);
