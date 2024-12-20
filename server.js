@@ -9,16 +9,15 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
-// MongoDB Bağlantısı
+// MongoDB Bağlantısı (useNewUrlParser ve useUnifiedTopology kaldırıldı)
 const uri = process.env.MONGODB_URI || "mongodb+srv://abuzorttin:19070480019Mg.@cluster0.vdrdy.mongodb.net/myappdb?retryWrites=true&w=majority";
-mongoose.connect(uri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => {
-  console.log("MongoDB bağlantısı başarılı!");
-}).catch(err => {
-  console.error("MongoDB bağlantı hatası:", err);
-});
+mongoose.connect(uri)
+  .then(() => {
+    console.log("MongoDB bağlantısı başarılı!");
+  })
+  .catch(err => {
+    console.error("MongoDB bağlantı hatası:", err);
+  });
 
 const users = {};  
 const groups = {};
