@@ -10,7 +10,7 @@ const server = http.createServer(app);
 const io = socketIO(server);
 
 // MongoDB Bağlantısı
-const uri = process.env.MONGODB_URI || "mongodb+srv://KULLANICI:PAROLA@cluster0.vdrdy.mongodb.net/myappdb?retryWrites=true&w=majority";
+const uri = process.env.MONGODB_URI || "mongodb+srv://abuzorttin:19070480019Mg.@cluster0.vdrdy.mongodb.net/myappdb?retryWrites=true&w=majority";
 mongoose.connect(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true
