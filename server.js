@@ -1,21 +1,31 @@
 const http = require("http");
 const express = require("express");
 const socketIO = require("socket.io");
+const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+const User = require('./models/User'); // User modelini kullanıyoruz
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
+// MongoDB Bağlantısı
+const uri = process.env.MONGODB_URI || "mongodb+srv://KULLANICI:PAROLA@cluster0.vdrdy.mongodb.net/myappdb?retryWrites=true&w=majority";
+mongoose.connect(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => {
+  console.log("MongoDB bağlantısı başarılı!");
+}).catch(err => {
+  console.error("MongoDB bağlantı hatası:", err);
+});
+
 const users = {};  
 const groups = {};
 
-// Basit kayıtlı kullanıcılar listesi (veritabanı yerine)
-const registeredUsers = {
-// örnek: 'ahmet': { password: '12345', name:'Ahmet', surname:'Yılmaz', birthdate:'1990-01-01', email:'...', phone:'...' }
-};
-
 app.use(express.static("public")); // Static files (frontend)
 
+// Socket bağlantısı
 io.on("connection", (socket) => {
   console.log("Kullanıcı bağlandı:", socket.id);
   
@@ -25,50 +35,80 @@ io.on("connection", (socket) => {
   // Yeni bağlanan kullanıcıya mevcut grup listesini gönder
   sendGroupsList();
 
-  // Login olayı
-  socket.on('login', ({ username, password }) => {
-    if (registeredUsers[username] && registeredUsers[username].password === password) {
-      socket.emit('loginResult', { success: true, username: username });
-    } else {
-      socket.emit('loginResult', { success: false, message: 'Kullanıcı adı veya parola hatalı.' });
+  // Login olayı (MongoDB üzerinden)
+  socket.on('login', async ({ username, password }) => {
+    if (!username || !password) {
+      socket.emit('loginResult', { success: false, message: 'Kullanıcı adı veya parola eksik.' });
+      return;
+    }
+  
+    try {
+      const user = await User.findOne({ username });
+      if (!user) {
+        socket.emit('loginResult', { success: false, message: 'Kullanıcı bulunamadı.' });
+        return;
+      }
+  
+      const passwordMatch = await bcrypt.compare(password, user.passwordHash);
+      if (!passwordMatch) {
+        socket.emit('loginResult', { success: false, message: 'Kullanıcı adı veya parola hatalı.' });
+        return;
+      }
+  
+      socket.emit('loginResult', { success: true, username: user.username });
+  
+    } catch (err) {
+      console.error(err);
+      socket.emit('loginResult', { success: false, message: 'Giriş sırasında bir hata oluştu.' });
     }
   });
-
-  // Register olayı
-  socket.on('register', (userData) => {
+  
+  // Register olayı (MongoDB üzerinden)
+  socket.on('register', async (userData) => {
     const { username, name, surname, birthdate, email, phone, password, passwordConfirm } = userData;
-
+  
     if (!username || !name || !surname || !birthdate || !email || !phone || !password || !passwordConfirm) {
       socket.emit('registerResult', { success: false, message: 'Tüm alanları doldurunuz.' });
       return;
     }
-
+  
     if (username !== username.toLowerCase()) {
       socket.emit('registerResult', { success: false, message: 'Kullanıcı adı sadece küçük harf olmalı.' });
       return;
     }
-
-    if (registeredUsers[username]) {
-      socket.emit('registerResult', { success: false, message: 'Bu kullanıcı adı zaten alınmış.' });
-      return;
-    }
-
+  
     if (password !== passwordConfirm) {
       socket.emit('registerResult', { success: false, message: 'Parolalar eşleşmiyor.' });
       return;
     }
-
-    // Kullanıcıyı kaydet
-    registeredUsers[username] = {
-      password: password,
-      name: name,
-      surname: surname,
-      birthdate: birthdate,
-      email: email,
-      phone: phone
-    };
-
-    socket.emit('registerResult', { success: true });
+  
+    try {
+      const existingUser = await User.findOne({ $or: [ { username }, { email } ] });
+      if (existingUser) {
+        socket.emit('registerResult', { success: false, message: 'Kullanıcı adı veya e-posta zaten alınmış.' });
+        return;
+      }
+  
+      const passwordHash = await bcrypt.hash(password, 10);
+  
+      const newUser = new User({
+        username,
+        passwordHash,
+        name,
+        surname,
+        birthdate: new Date(birthdate),
+        email,
+        phone
+      });
+  
+      await newUser.save();
+  
+      socket.emit('registerResult', { success: true });
+  
+    } catch (err) {
+      console.error(err);
+      socket.emit('registerResult', { success: false, message: 'Kayıt sırasında bir hata oluştu.' });
+    }
   });
 
   // Kullanıcı adını ayarla
@@ -155,33 +195,6 @@ setInterval(() => {
 function sendGroupsList() {
   io.emit('groupsList', Object.keys(groups));
 }
-
-// Aşağıdaki kod, MongoDB'ye bağlanmak ve bağlantıyı test etmek için eklendi
-const { MongoClient, ServerApiVersion } = require('mongodb');
-const uri = "mongodb+srv://abuzorttin:19070480019Mg.@cluster0.vdrdy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"; 
-
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
-});
-
-async function run() {
-  try {
-    // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
-    // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  } finally {
-    // Ensures that the client will close when you finish/error
-    await client.close();
-  }
-}
-run().catch(console.dir);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {

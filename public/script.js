@@ -144,7 +144,7 @@ function joinGroup(groupName) {
   currentGroup = groupName;
 }
 
-// Sunucudan grup listesi geldiğinde güncelle
+// Sunucudan grup listesi
 socket.on('groupsList', (groupNames) => {
   groupListDiv.innerHTML = '';
   groupNames.forEach(grp => {
@@ -169,7 +169,7 @@ socket.on('groupUsers', (usersInGroup) => {
   const otherUserIds = usersInGroup
     .filter(u => u.id !== socket.id)
     .map(u => u.id)
-    .filter(id => !peers[id]);  // zaten peer varsa atla
+    .filter(id => !peers[id]);
 
   if (!audioPermissionGranted || !localStream) {
     requestMicrophoneAccess().then(() => {
@@ -303,7 +303,7 @@ function initPeer(userId, isInitiator) {
   };
 
   peer.ontrack = (event) => {
-    console.log("Remote stream alındı, ses izni bekleniyor...");
+    console.log("Remote stream alındı...");
     const audio = new Audio();
     audio.srcObject = event.streams[0];
     audio.autoplay = false; 
