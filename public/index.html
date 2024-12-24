@@ -77,6 +77,18 @@
     </div>
   </div>
 
+  <!-- Modal: Grup Oluşturma Kutusu -->
+  <div id="groupModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h2>Grup Oluştur</h2>
+      <input type="text" id="modalGroupName" class="input-text" placeholder="Grup Adı" />
+      <div class="modal-buttons">
+        <button id="modalCreateGroupButton" class="btn primary">Oluştur</button>
+        <button id="modalCloseButton" class="btn secondary">Kapat</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Scriptler -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="script.js"></script>

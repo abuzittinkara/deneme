@@ -31,7 +31,7 @@ const regPasswordInput = document.getElementById('regPasswordInput');
 const regPasswordConfirmInput = document.getElementById('regPasswordConfirmInput');
 const registerButton = document.getElementById('registerButton');
 
-// Geri gel butonu (register->login)
+// Geri gel butonu
 const backToLoginButton = document.getElementById('backToLoginButton');
 
 // Ekran değiştirme linkleri
@@ -41,10 +41,15 @@ const showLoginScreen = document.getElementById('showLoginScreen');
 // Grup oluşturma ve listeleme elemanları
 const groupListDiv = document.getElementById('groupList');
 const createGroupButton = document.getElementById('createGroupButton');
-// const createGroupInput = document.getElementById('createGroupInput'); // Artık kullanmıyoruz, isterseniz kaldırın.
 
 // Kullanıcı tablosu
 const userTableBody = document.getElementById('userTableBody');
+
+// Modal elemanları
+const groupModal = document.getElementById('groupModal');
+const modalGroupName = document.getElementById('modalGroupName');
+const modalCreateGroupButton = document.getElementById('modalCreateGroupButton');
+const modalCloseButton = document.getElementById('modalCloseButton');
 
 // Ekran geçişleri
 showRegisterScreen.addEventListener('click', () => {
@@ -112,7 +117,7 @@ socket.on('loginResult', (data) => {
   if (data.success) {
     username = data.username;
     loginScreen.style.display = 'none';
-    callScreen.style.display = 'flex'; // callScreen görünür
+    callScreen.style.display = 'flex';
     socket.emit('set-username', username);
   } else {
     alert("Giriş başarısız: " + data.message);
@@ -130,12 +135,30 @@ socket.on('registerResult', (data) => {
   }
 });
 
-// Grup oluştur (prompt ile)
+// ---------------------
+// Modal ile Grup Oluştur
+// ---------------------
 createGroupButton.addEventListener('click', () => {
-  const grpName = prompt("Yeni Grup Adı:");
+  // Modal aç
+  groupModal.style.display = 'flex';
+  modalGroupName.value = '';
+  modalGroupName.focus();
+});
+
+// Modal içi “Oluştur” butonu
+modalCreateGroupButton.addEventListener('click', () => {
+  const grpName = modalGroupName.value.trim();
   if (grpName) {
-    socket.emit('createGroup', grpName.trim());
+    socket.emit('createGroup', grpName);
+    groupModal.style.display = 'none';
+  } else {
+    alert("Lütfen bir grup adı girin");
   }
+});
+
+// Modal içi “Kapat” butonu
+modalCloseButton.addEventListener('click', () => {
+  groupModal.style.display = 'none';
 });
 
 // Gruba katılma fonksiyonu
@@ -158,9 +181,8 @@ socket.on('groupsList', (groupNames) => {
   groupNames.forEach(grp => {
     const grpItem = document.createElement('div');
     grpItem.className = 'grp-item';
-    // Discord'da genelde sadece ilk harf veya kısa isim, isterseniz tamamını yazdırın:
     grpItem.innerText = grp[0].toUpperCase(); 
-    grpItem.title = grp; // Hover'da grup adını göstersin
+    grpItem.title = grp; 
     grpItem.addEventListener('click', () => {
       joinGroup(grp);
     });
