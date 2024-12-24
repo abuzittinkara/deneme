@@ -3,12 +3,12 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Roboto', sans-serif;
-  background: #efefef; /* Diğer ekranlar için arka plan */
+  background: #efefef;
   color: #333;
   font-size: 16px;
 }
 
-/* Tüm screen-container için varsayılan stil */
+/* Tüm screen-container varsayılan */
 .screen-container {
   width: 100vw;
   height: 100vh;
@@ -17,27 +17,31 @@ body {
   justify-content: center;
 }
 
-/* --- ÖZELLEŞTİRMELER: OTURUM AÇ EKRANI (loginScreen) --- */
-#loginScreen.screen-container {
-  background: #2d2d2d; /* Sadece login ekranının arka planı koyu gri */
+/* Oturum Aç (login) Ekranı ve Kayıt (register) Ekranı Arkaplanı */
+#loginScreen.screen-container,
+#registerScreen.screen-container {
+  background: #2d2d2d; /* Tamamen koyu gri */
 }
 
-/* Kart stil */
+/* Kart stilini de koyu yapmak için değiştirdik */
 .card {
-  background: #fff;
+  background: #2d2d2d; /* Kart da koyu olsun, beyaz kısım kalmasın */
   padding: 2rem;
   border-radius: 8px;
   min-width: 320px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
   text-align: center;
-  border: 1px solid #ddd;
+  border: none; /* Sınır çizgisi kaldırıldı */
+  box-shadow: none; /* Gölgeyi de kaldırabiliriz, isterseniz ekleyebilirsiniz */
 }
 
-.app-title {
-  margin-bottom: 1.5rem;
-  font-weight: 500;
-  color: #333;
-  font-size: 1.4rem;
+/* Kart içindeki yazılar beyaz görünsün */
+.card .app-title,
+.card p,
+.card h3,
+.card th,
+.card td,
+.card span {
+  color: #fff; 
 }
 
 /* Butonlar */
@@ -51,44 +55,46 @@ body {
   transition: background 0.3s ease;
 }
 
-/* Giriş Yap butonu özel renk */
-#loginButton.btn.primary {
-  background: #c61884;  /* İstediğiniz pembe/mor ton */
-  color: #fff;          /* Yazı rengi beyaz */
-}
-#loginButton.btn.primary:hover {
-  background: #a3156f;  /* Hover durumu için biraz koyulaştırdık */
-}
-
-/* Kayıt ekranı ve çağrı ekranı butonları hala turuncu kalsın */
-#registerScreen .btn.primary,
-#callScreen .btn.primary {
-  background: #ff5722;
+/* Primary butonun arkaplanı ve yazı rengi */
+.btn.primary {
+  background: #c61884; /* İstenilen pembe/mor ton */
   color: #fff;
 }
-#registerScreen .btn.primary:hover,
-#callScreen .btn.primary:hover {
-  background: #e64a19;
+.btn.primary:hover {
+  background: #a3156f;
 }
 
-/* Input alanı */
+/* Secondary buton (Geri Gel) için farklı bir stil */
+.btn.secondary {
+  background: #444;
+  color: #fff;
+}
+.btn.secondary:hover {
+  background: #666;
+}
+
+/* Input alanı da koyu olsun */
 .input-text {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ccc;
+  background: #444;   /* Koyu gri arkaplan */
+  color: #fff;        /* Beyaz yazı */
+  border: 1px solid #666;
   border-radius: 6px;
   font-size: 1rem;
   margin-bottom: 1rem;
+  box-sizing: border-box;
 }
 
-/* Sadece loginScreen'deki input'ları biraz daraltıyoruz */
-#loginScreen .input-text {
-  max-width: 280px;   /* Genişliği sınırladık */
-  margin: 0 auto;     /* Ortalayabilmek için */
-  display: block;     /* Ortalamada inline eleman sorununu aşmak için */
+/* Kullanıcı adı / parola / e-posta gibi alanları daraltmak isterseniz */
+#loginScreen .input-text,
+#registerScreen .input-text {
+  max-width: 280px;
+  margin: 0 auto;
+  display: block;
 }
 
-/* Tablo düzeni */
+/* Diğer ekranlardaki tablo vs. kalsın, callScreen beyaz zemin, turuncu butonlar vs. */
 .user-table {
   width: 100%;
   border-collapse: collapse;

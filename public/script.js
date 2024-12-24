@@ -31,6 +31,9 @@ const regPasswordInput = document.getElementById('regPasswordInput');
 const regPasswordConfirmInput = document.getElementById('regPasswordConfirmInput');
 const registerButton = document.getElementById('registerButton');
 
+// Yeni eklenen geri dön butonu
+const backToLoginButton = document.getElementById('backToLoginButton');
+
 // Ekran değiştirme linkleri
 const showRegisterScreen = document.getElementById('showRegisterScreen');
 const showLoginScreen = document.getElementById('showLoginScreen');
@@ -50,6 +53,12 @@ showRegisterScreen.addEventListener('click', () => {
 });
 
 showLoginScreen.addEventListener('click', () => {
+  registerScreen.style.display = 'none';
+  loginScreen.style.display = 'block';
+});
+
+// Geri dön butonu (register -> login)
+backToLoginButton.addEventListener('click', () => {
   registerScreen.style.display = 'none';
   loginScreen.style.display = 'block';
 });
@@ -347,6 +356,7 @@ socket.on("disconnect", () => {
   console.log("WebSocket bağlantısı kesildi.");
 });
 
+// Debug amaçlı periyodik log
 setInterval(() => {
   console.log("Mevcut PeerConnection'lar:", peers);
 }, 10000);

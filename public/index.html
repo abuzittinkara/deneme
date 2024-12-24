@@ -15,7 +15,12 @@
       <input type="text" id="loginUsernameInput" placeholder="Kullanıcı Adı" class="input-text"/>
       <input type="password" id="loginPasswordInput" placeholder="Parola" class="input-text"/>
       <button id="loginButton" class="btn primary">Giriş Yap</button>
-      <p>Hesabın yok mu? <span id="showRegisterScreen" style="color:blue; cursor:pointer;">Yeni Hesap Oluştur</span></p>
+      <p style="margin-top: 1rem;">
+        Hesabın yok mu? 
+        <span id="showRegisterScreen" style="color:#fff; cursor:pointer; text-decoration:underline;">
+          Yeni Hesap Oluştur
+        </span>
+      </p>
     </div>
   </div>
 
@@ -32,11 +37,20 @@
       <input type="password" id="regPasswordInput" placeholder="Parola" class="input-text"/>
       <input type="password" id="regPasswordConfirmInput" placeholder="Parola (Tekrar)" class="input-text"/>
       <button id="registerButton" class="btn primary">Kayıt Ol ve Başla</button>
-      <p>Zaten hesabın var mı? <span id="showLoginScreen" style="color:blue; cursor:pointer;">Oturum Aç</span></p>
+
+      <!-- Geri gel butonu -->
+      <button id="backToLoginButton" class="btn secondary">Geri Gel</button>
+
+      <p style="margin-top: 1rem;">
+        Zaten hesabın var mı? 
+        <span id="showLoginScreen" style="color:#fff; cursor:pointer; text-decoration:underline;">
+          Oturum Aç
+        </span>
+      </p>
     </div>
   </div>
 
-  <!-- Görüşme Ekranı -->
+  <!-- Görüşme Ekranı (değişmedi) -->
   <div id="callScreen" class="screen-container" style="display:none;">
     <div class="card">
       <h1 class="app-title">Sesli Görüşme</h1>
