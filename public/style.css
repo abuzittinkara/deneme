@@ -1,13 +1,16 @@
+/* Genel ayarlar */
 body {
   margin: 0;
   padding: 0;
   font-family: 'Roboto', sans-serif;
-  background: #f5f5f5;
+  background: #efefef; /* Daha açık bir arkaplan rengi */
   color: #333;
+  font-size: 16px; /* Biraz daha büyük font */
 }
 
-/* Genel ekran düzeni */
+/* Ekran düzeni */
 .screen-container {
+  background: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%); /* Arka planda hafif degrade */
   width: 100vw;
   height: 100vh;
   display: flex;
@@ -20,15 +23,17 @@ body {
   background: #fff;
   padding: 2rem;
   border-radius: 8px;
-  min-width: 300px;
+  min-width: 320px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
   text-align: center;
+  border: 1px solid #ddd; /* Hafif çerçeve */
 }
 
 .app-title {
   margin-bottom: 1.5rem;
   font-weight: 500;
-  color: #222;
+  color: #333;
+  font-size: 1.4rem;
 }
 
 /* Butonlar */
@@ -42,20 +47,21 @@ body {
   transition: background 0.3s ease;
 }
 
+/* Turuncu tonlarında birincil buton */
 .btn.primary {
-  background: #2196f3;
+  background: #ff5722;
   color: #fff;
 }
 
 .btn.primary:hover {
-  background: #1976d2;
+  background: #e64a19;
 }
 
 /* Input alanı */
 .input-text {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ddd;
+  border: 1px solid #ccc; /* Daha hafif renk */
   border-radius: 6px;
   font-size: 1rem;
   margin-bottom: 1rem;
@@ -69,13 +75,14 @@ body {
   font-size: 0.95rem;
 }
 
-.user-table th, .user-table td {
+.user-table th,
+.user-table td {
   text-align: left;
   padding: 0.75rem;
 }
 
 .user-table thead {
-  background: #2196f3;
+  background: #ff5722; /* Turuncu üst */
   color: #fff;
 }
 
@@ -89,4 +96,16 @@ body {
 
 .user-table td {
   border-bottom: 1px solid #eee;
+}
+
+/* Mobil uyumluluk için örnek (isteğe bağlı) */
+@media (max-width: 600px) {
+  .card {
+    padding: 1rem;
+    min-width: 280px;
+  }
+
+  .app-title {
+    font-size: 1.2rem;
+  }
 }
