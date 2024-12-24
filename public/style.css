@@ -3,19 +3,23 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Roboto', sans-serif;
-  background: #efefef; /* Daha açık bir arkaplan rengi */
+  background: #efefef; /* Diğer ekranlar için arka plan */
   color: #333;
-  font-size: 16px; /* Biraz daha büyük font */
+  font-size: 16px;
 }
 
-/* Ekran düzeni */
+/* Tüm screen-container için varsayılan stil */
 .screen-container {
-  background: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%); /* Arka planda hafif degrade */
   width: 100vw;
   height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* --- ÖZELLEŞTİRMELER: OTURUM AÇ EKRANI (loginScreen) --- */
+#loginScreen.screen-container {
+  background: #2d2d2d; /* Sadece login ekranının arka planı koyu gri */
 }
 
 /* Kart stil */
@@ -26,7 +30,7 @@ body {
   min-width: 320px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.1);
   text-align: center;
-  border: 1px solid #ddd; /* Hafif çerçeve */
+  border: 1px solid #ddd;
 }
 
 .app-title {
@@ -47,13 +51,23 @@ body {
   transition: background 0.3s ease;
 }
 
-/* Turuncu tonlarında birincil buton */
-.btn.primary {
+/* Giriş Yap butonu özel renk */
+#loginButton.btn.primary {
+  background: #c61884;  /* İstediğiniz pembe/mor ton */
+  color: #fff;          /* Yazı rengi beyaz */
+}
+#loginButton.btn.primary:hover {
+  background: #a3156f;  /* Hover durumu için biraz koyulaştırdık */
+}
+
+/* Kayıt ekranı ve çağrı ekranı butonları hala turuncu kalsın */
+#registerScreen .btn.primary,
+#callScreen .btn.primary {
   background: #ff5722;
   color: #fff;
 }
-
-.btn.primary:hover {
+#registerScreen .btn.primary:hover,
+#callScreen .btn.primary:hover {
   background: #e64a19;
 }
 
@@ -61,10 +75,17 @@ body {
 .input-text {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ccc; /* Daha hafif renk */
+  border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 1rem;
   margin-bottom: 1rem;
+}
+
+/* Sadece loginScreen'deki input'ları biraz daraltıyoruz */
+#loginScreen .input-text {
+  max-width: 280px;   /* Genişliği sınırladık */
+  margin: 0 auto;     /* Ortalayabilmek için */
+  display: block;     /* Ortalamada inline eleman sorununu aşmak için */
 }
 
 /* Tablo düzeni */
@@ -82,7 +103,7 @@ body {
 }
 
 .user-table thead {
-  background: #ff5722; /* Turuncu üst */
+  background: #ff5722;
   color: #fff;
 }
 
@@ -98,7 +119,7 @@ body {
   border-bottom: 1px solid #eee;
 }
 
-/* Mobil uyumluluk için örnek (isteğe bağlı) */
+/* Mobil uyumluluk (isteğe bağlı) */
 @media (max-width: 600px) {
   .card {
     padding: 1rem;
