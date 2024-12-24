@@ -38,10 +38,9 @@ body {
   box-shadow: none; 
 }
 
-/* Kart içindeki tüm yazılar login/register ekranlarında beyaz */
 #loginScreen .card *,
 #registerScreen .card * {
-  color: #fff;
+  color: #fff; 
 }
 
 /* Butonlar */
@@ -57,7 +56,7 @@ body {
 
 /* Primary buton (login/register) */
 .btn.primary {
-  background: #c61884; /* Pembe/mor ton */
+  background: #c61884; 
   color: #fff;
 }
 .btn.primary:hover {
@@ -86,7 +85,7 @@ body {
   box-sizing: border-box;
 }
 
-/* Login & Register ekranlarında input genişliğini daraltmak isterseniz */
+/* Daraltmak isterseniz */
 #loginScreen .input-text,
 #registerScreen .input-text {
   max-width: 280px;
@@ -98,37 +97,80 @@ body {
 /* 2) Sesli Görüşme (callScreen) ekranı */
 /* ------------------- */
 
-/* callScreen'i de koyu tema (#2d2d2d) yapalım */
 #callScreen.screen-container {
-  background: #2d2d2d;
+  background: #2d2d2d; 
+  flex-direction: row;        /* Solda sidebar, sağda içerik */
+  align-items: stretch;       
+  justify-content: flex-start;
 }
 
-/* Buradaki card da koyu olsun */
-#callScreen .card {
-  background: #2d2d2d;
-  border: none;
-  box-shadow: none;
+/* Sol menü (sidebar) */
+.sidebar {
+  background: #1f1f1f;
+  width: 80px;         /* Dar bir alan */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 0;
 }
 
-/* callScreen içindeki yazılar beyaz gözüksün */
-#callScreen .card * {
+/* Yuvarlak buton ("+") */
+.circle-btn {
+  background-color: #c61884;
   color: #fff;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: none;
+  font-size: 2rem;  /* "+" büyük gözükmesi için */
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+.circle-btn:hover {
+  background-color: #a3156f;
 }
 
-/* Oluşturulan grup isimleri (groupList) de beyaz yazı */
-#callScreen #groupList div {
+/* Grupların listelendiği alan */
+.group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* Gruplar yuvarlak baloncuklar */
+.group-list .grp-item {
+  width: 50px;
+  height: 50px;
+  background: #444;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-size: 1rem;
+  text-align: center;
+}
+.group-list .grp-item:hover {
+  background: #666;
+}
+
+/* Sağdaki içerik alanı */
+.call-content {
+  flex: 1; 
+  padding: 2rem;
+  overflow: auto;
   color: #fff; 
-  /* isterseniz biraz padding ve border ekleyebilirsiniz */
-  /* örn: padding: 0.5rem; border: 1px solid #666; */
 }
 
-/* Kullanıcı Adı ve Socket ID tablosunun başlık rengi (#c61884) */
+/* Tablo başlık rengi #c61884 */
 .user-table thead {
   background: #c61884;
   color: #fff;
 }
 
-/* Tablo düzeni (ortak) */
+/* Tablo düzeni */
 .user-table {
   width: 100%;
   border-collapse: collapse;
@@ -141,19 +183,17 @@ body {
   padding: 0.75rem;
 }
 .user-table tr:nth-child(even) {
-  background: #3a3a3a; /* Koyu tema icin satır rengini koyultabiliriz */
+  background: #3a3a3a;
 }
 .user-table th {
   font-weight: 500;
 }
 .user-table td {
   border-bottom: 1px solid #555;
-  /* Arka plan çok koyu ise satırların daha belirgin olması için 
-     border rengini de koyulaştırdık */
 }
 
 /* ------------------- */
-/* 3) Mobil uyumluluk */
+/* 3) Mobil uyumluluk (isteğe bağlı) */
 /* ------------------- */
 @media (max-width: 600px) {
   .card {

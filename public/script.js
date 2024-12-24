@@ -31,7 +31,7 @@ const regPasswordInput = document.getElementById('regPasswordInput');
 const regPasswordConfirmInput = document.getElementById('regPasswordConfirmInput');
 const registerButton = document.getElementById('registerButton');
 
-// Yeni eklenen geri dön butonu
+// Geri gel butonu (register->login)
 const backToLoginButton = document.getElementById('backToLoginButton');
 
 // Ekran değiştirme linkleri
@@ -40,8 +40,8 @@ const showLoginScreen = document.getElementById('showLoginScreen');
 
 // Grup oluşturma ve listeleme elemanları
 const groupListDiv = document.getElementById('groupList');
-const createGroupInput = document.getElementById('createGroupInput');
 const createGroupButton = document.getElementById('createGroupButton');
+// const createGroupInput = document.getElementById('createGroupInput'); // Artık kullanmıyoruz, isterseniz kaldırın.
 
 // Kullanıcı tablosu
 const userTableBody = document.getElementById('userTableBody');
@@ -112,7 +112,7 @@ socket.on('loginResult', (data) => {
   if (data.success) {
     username = data.username;
     loginScreen.style.display = 'none';
-    callScreen.style.display = 'block';
+    callScreen.style.display = 'flex'; // callScreen görünür
     socket.emit('set-username', username);
   } else {
     alert("Giriş başarısız: " + data.message);
@@ -130,12 +130,11 @@ socket.on('registerResult', (data) => {
   }
 });
 
-// Grup oluştur
+// Grup oluştur (prompt ile)
 createGroupButton.addEventListener('click', () => {
-  const grpName = createGroupInput.value.trim();
+  const grpName = prompt("Yeni Grup Adı:");
   if (grpName) {
-    socket.emit('createGroup', grpName);
-    createGroupInput.value = '';
+    socket.emit('createGroup', grpName.trim());
   }
 });
 
@@ -158,12 +157,10 @@ socket.on('groupsList', (groupNames) => {
   groupListDiv.innerHTML = '';
   groupNames.forEach(grp => {
     const grpItem = document.createElement('div');
-    grpItem.innerText = grp;
-    grpItem.style.cursor = 'pointer';
-    grpItem.style.padding = '0.5rem';
-    grpItem.style.border = '1px solid #ddd';
-    grpItem.style.marginBottom = '0.5rem';
-    grpItem.style.borderRadius = '4px';
+    grpItem.className = 'grp-item';
+    // Discord'da genelde sadece ilk harf veya kısa isim, isterseniz tamamını yazdırın:
+    grpItem.innerText = grp[0].toUpperCase(); 
+    grpItem.title = grp; // Hover'da grup adını göstersin
     grpItem.addEventListener('click', () => {
       joinGroup(grp);
     });
@@ -184,9 +181,7 @@ socket.on('groupUsers', (usersInGroup) => {
     requestMicrophoneAccess().then(() => {
       if (otherUserIds.length > 0) {
         otherUserIds.forEach(userId => {
-          if (!peers[userId]) {
-            initPeer(userId, true);
-          }
+          if (!peers[userId]) initPeer(userId, true);
         });
       }
 
@@ -291,7 +286,7 @@ function initPeer(userId, isInitiator) {
   peers[userId] = peer;
 
   if (localStream) {
-    localStream.getTracks().forEach((track) => peer.addTrack(track, localStream));
+    localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
   }
 
   peer.onicecandidate = (event) => {

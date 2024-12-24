@@ -38,7 +38,7 @@
       <input type="password" id="regPasswordConfirmInput" placeholder="Parola (Tekrar)" class="input-text"/>
       <button id="registerButton" class="btn primary">Kayıt Ol ve Başla</button>
 
-      <!-- Geri gel butonu -->
+      <!-- Geri Gel Butonu -->
       <button id="backToLoginButton" class="btn secondary">Geri Gel</button>
 
       <p style="margin-top: 1rem;">
@@ -50,17 +50,20 @@
     </div>
   </div>
 
-  <!-- Görüşme Ekranı (değişmedi) -->
+  <!-- Görüşme Ekranı -->
   <div id="callScreen" class="screen-container" style="display:none;">
-    <div class="card">
+    <!-- Soldaki sidebar -->
+    <div class="sidebar">
+      <!-- Grup oluşturmak için yuvarlak buton -->
+      <button id="createGroupButton" class="circle-btn">+</button>
+
+      <!-- Gruplar listelenecek -->
+      <div id="groupList" class="group-list"></div>
+    </div>
+
+    <!-- Sağdaki içerik alanı -->
+    <div class="call-content">
       <h1 class="app-title">Sesli Görüşme</h1>
-      
-      <h3>Gruplar</h3>
-      <div id="groupList"></div>
-
-      <input type="text" id="createGroupInput" placeholder="Grup Adı" class="input-text" style="margin-bottom: 0.5rem;" />
-      <button id="createGroupButton" class="btn primary" style="margin-bottom: 1rem;">Grup Oluştur</button>
-
       <h3>Bağlı Kullanıcılar</h3>
       <table id="userTable" class="user-table">
         <thead>
