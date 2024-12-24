@@ -17,31 +17,31 @@ body {
   justify-content: center;
 }
 
+/* ------------------- */
+/* 1) Login & Register ekranları (koyu tema) */
+/* ------------------- */
+
 /* Oturum Aç (login) Ekranı ve Kayıt (register) Ekranı Arkaplanı */
 #loginScreen.screen-container,
 #registerScreen.screen-container {
-  background: #2d2d2d; /* Tamamen koyu gri */
+  background: #2d2d2d; 
 }
 
 /* Kart stilini de koyu yapmak için değiştirdik */
 .card {
-  background: #2d2d2d; /* Kart da koyu olsun, beyaz kısım kalmasın */
+  background: #2d2d2d; 
   padding: 2rem;
   border-radius: 8px;
   min-width: 320px;
   text-align: center;
-  border: none; /* Sınır çizgisi kaldırıldı */
-  box-shadow: none; /* Gölgeyi de kaldırabiliriz, isterseniz ekleyebilirsiniz */
+  border: none; 
+  box-shadow: none; 
 }
 
-/* Kart içindeki yazılar beyaz görünsün */
-.card .app-title,
-.card p,
-.card h3,
-.card th,
-.card td,
-.card span {
-  color: #fff; 
+/* Kart içindeki tüm yazılar login/register ekranlarında beyaz */
+#loginScreen .card *,
+#registerScreen .card * {
+  color: #fff;
 }
 
 /* Butonlar */
@@ -55,16 +55,16 @@ body {
   transition: background 0.3s ease;
 }
 
-/* Primary butonun arkaplanı ve yazı rengi */
+/* Primary buton (login/register) */
 .btn.primary {
-  background: #c61884; /* İstenilen pembe/mor ton */
+  background: #c61884; /* Pembe/mor ton */
   color: #fff;
 }
 .btn.primary:hover {
   background: #a3156f;
 }
 
-/* Secondary buton (Geri Gel) için farklı bir stil */
+/* Secondary buton (örnek: Geri Gel) */
 .btn.secondary {
   background: #444;
   color: #fff;
@@ -77,8 +77,8 @@ body {
 .input-text {
   width: 100%;
   padding: 0.75rem;
-  background: #444;   /* Koyu gri arkaplan */
-  color: #fff;        /* Beyaz yazı */
+  background: #444;  
+  color: #fff;       
   border: 1px solid #666;
   border-radius: 6px;
   font-size: 1rem;
@@ -86,7 +86,7 @@ body {
   box-sizing: border-box;
 }
 
-/* Kullanıcı adı / parola / e-posta gibi alanları daraltmak isterseniz */
+/* Login & Register ekranlarında input genişliğini daraltmak isterseniz */
 #loginScreen .input-text,
 #registerScreen .input-text {
   max-width: 280px;
@@ -94,44 +94,72 @@ body {
   display: block;
 }
 
-/* Diğer ekranlardaki tablo vs. kalsın, callScreen beyaz zemin, turuncu butonlar vs. */
+/* ------------------- */
+/* 2) Sesli Görüşme (callScreen) ekranı */
+/* ------------------- */
+
+/* callScreen'i de koyu tema (#2d2d2d) yapalım */
+#callScreen.screen-container {
+  background: #2d2d2d;
+}
+
+/* Buradaki card da koyu olsun */
+#callScreen .card {
+  background: #2d2d2d;
+  border: none;
+  box-shadow: none;
+}
+
+/* callScreen içindeki yazılar beyaz gözüksün */
+#callScreen .card * {
+  color: #fff;
+}
+
+/* Oluşturulan grup isimleri (groupList) de beyaz yazı */
+#callScreen #groupList div {
+  color: #fff; 
+  /* isterseniz biraz padding ve border ekleyebilirsiniz */
+  /* örn: padding: 0.5rem; border: 1px solid #666; */
+}
+
+/* Kullanıcı Adı ve Socket ID tablosunun başlık rengi (#c61884) */
+.user-table thead {
+  background: #c61884;
+  color: #fff;
+}
+
+/* Tablo düzeni (ortak) */
 .user-table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 1.5rem;
   font-size: 0.95rem;
 }
-
 .user-table th,
 .user-table td {
   text-align: left;
   padding: 0.75rem;
 }
-
-.user-table thead {
-  background: #ff5722;
-  color: #fff;
-}
-
 .user-table tr:nth-child(even) {
-  background: #f9f9f9;
+  background: #3a3a3a; /* Koyu tema icin satır rengini koyultabiliriz */
 }
-
 .user-table th {
   font-weight: 500;
 }
-
 .user-table td {
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #555;
+  /* Arka plan çok koyu ise satırların daha belirgin olması için 
+     border rengini de koyulaştırdık */
 }
 
-/* Mobil uyumluluk (isteğe bağlı) */
+/* ------------------- */
+/* 3) Mobil uyumluluk */
+/* ------------------- */
 @media (max-width: 600px) {
   .card {
     padding: 1rem;
     min-width: 280px;
   }
-
   .app-title {
     font-size: 1.2rem;
   }
