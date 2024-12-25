@@ -99,7 +99,7 @@ body {
 
 #callScreen.screen-container {
   background: #2d2d2d; 
-  flex-direction: row;        /* Solda sidebar, sağda içerik */
+  flex-direction: row; /* Solda sidebar, ortada main-content, sağda user-list paneli */
   align-items: stretch;       
   justify-content: flex-start;
 }
@@ -107,27 +107,30 @@ body {
 /* Sol menü (sidebar) */
 .sidebar {
   background: #1f1f1f;
-  width: 80px;         
+  width: 80px;        /* Varsayılan genişlik */
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 1rem 0;
+  position: relative; /* create-group-btn’i en alta sabitlemek için */
+  transition: width 0.3s ease; /* DM moduna geçerken animasyon olsun */
 }
 
-/* Yuvarlak buton ("+") */
-.circle-btn {
-  background-color: #c61884;
-  color: #fff;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  border: none;
-  font-size: 2rem; 
-  cursor: pointer;
-  margin-bottom: 1rem;
+/* Sidebar genişletildiğinde uygulanacak sınıf */
+.sidebar.sidebar-expanded {
+  width: 220px; /* DM modunda yan panel bu genişliğe geçsin */
 }
-.circle-btn:hover {
-  background-color: #a3156f;
+
+/* DM butonu (sol üst) */
+.dm-toggle-btn {
+  margin-bottom: 1rem; 
+}
+
+/* DM paneli iç stili */
+.dm-panel {
+  margin-top: 1rem;
+  width: 100%;
+  padding: 0 1rem; /* Geniş görünümde kenarlardan biraz boşluk */
 }
 
 /* Grupların listelendiği alan */
@@ -156,40 +159,106 @@ body {
   background: #666;
 }
 
-/* Sağdaki içerik alanı */
-.call-content {
+/* Sol en altta yer alacak grup oluşturma butonu */
+.create-group-btn {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Yuvarlak buton ("+") ve DM butonu için ortak stil */
+.circle-btn {
+  background-color: #c61884;
+  color: #fff;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: none;
+  font-size: 1.5rem; 
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.circle-btn:hover {
+  background-color: #a3156f;
+}
+
+/* Ortadaki ana içerik */
+.main-content {
   flex: 1; 
   padding: 2rem;
   overflow: auto;
   color: #fff; 
 }
 
-/* Tablo başlık rengi #c61884 */
-.user-table thead {
-  background: #c61884;
+/* Sağ panel (kullanıcı listesi) */
+.right-panel {
+  width: 280px; /* Sol tarafa göre biraz daha geniş */
+  background: #1f1f1f;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
   color: #fff;
 }
 
-/* Tablo düzeni */
-.user-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1.5rem;
-  font-size: 0.95rem;
+.panel-title {
+  margin: 0 0 1rem;
+  font-size: 1.25rem;
 }
-.user-table th,
-.user-table td {
-  text-align: left;
+
+/* Kullanıcı listesi */
+.user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Tek bir kullanıcı öğesi */
+.user-item {
+  background: #2d2d2d;
   padding: 0.75rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
-.user-table tr:nth-child(even) {
-  background: #3a3a3a;
+
+.user-item:hover {
+  background: #444;
 }
-.user-table th {
+
+/* Profil fotoğrafı dairesi (şimdilik boş, ileride background-image veya <img>) */
+.profile-thumb {
+  width: 40px;
+  height: 40px;
+  background: #666;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Kullanıcı adı */
+.user-name {
+  flex: 1;
   font-weight: 500;
+  color: #fff;
 }
-.user-table td {
-  border-bottom: 1px solid #555;
+
+/* ID kopyalama butonu */
+.copy-id-btn {
+  background: #555;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.3s ease;
+}
+.copy-id-btn:hover {
+  background: #777;
 }
 
 /* ------------------- */
@@ -238,5 +307,11 @@ body {
   }
   .app-title {
     font-size: 1.2rem;
+  }
+
+  /* Sağ paneli mobilde daraltmak */
+  .right-panel {
+    width: 100px;
+    padding: 0.5rem;
   }
 }

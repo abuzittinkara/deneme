@@ -53,27 +53,45 @@
   <!-- Görüşme Ekranı -->
   <div id="callScreen" class="screen-container" style="display:none;">
     <!-- Soldaki sidebar -->
-    <div class="sidebar">
-      <!-- Grup oluşturmak için yuvarlak buton -->
-      <button id="createGroupButton" class="circle-btn">+</button>
+    <div class="sidebar" id="sidebar">
+      <!-- Sol üstte DM butonu (varsayılan mektup simgesi) -->
+      <button id="toggleDMButton" class="circle-btn dm-toggle-btn">
+        <!-- Inline SVG: Basit zarf ikonu -->
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" 
+             stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 
+                   1.1-.9 2-2 2H4c-1.1 
+                   0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+          <polyline points="22,6 12,13 2,6"></polyline>
+        </svg>
+      </button>
 
-      <!-- Gruplar listelenecek -->
-      <div id="groupList" class="group-list"></div>
+      <!-- DM paneli (varsayılan gizli) -->
+      <div id="dmPanel" class="dm-panel" style="display: none;">
+        <h3>DM Mesajları</h3>
+        <p>Birebir mesajlar buraya gelecek.</p>
+        <!-- İstediğiniz DM listeleme veya chat arayüzünü ekleyebilirsiniz -->
+      </div>
+
+      <!-- Grup listesi (varsayılan açık) -->
+      <div id="groupList" class="group-list">
+        <!-- Gruplar buraya script.js aracılığıyla eklenecek -->
+      </div>
+
+      <!-- Sol en altta sabitlenen grup oluşturma butonu -->
+      <button id="createGroupButton" class="circle-btn create-group-btn">+</button>
     </div>
 
-    <!-- Sağdaki içerik alanı -->
-    <div class="call-content">
+    <!-- Ortadaki ana içerik -->
+    <div class="main-content">
       <h1 class="app-title">Sesli Görüşme</h1>
-      <h3>Bağlı Kullanıcılar</h3>
-      <table id="userTable" class="user-table">
-        <thead>
-          <tr>
-            <th>Kullanıcı Adı</th>
-            <th>Socket ID</th>
-          </tr>
-        </thead>
-        <tbody id="userTableBody"></tbody>
-      </table>
+      <p>Buraya dilerseniz görüşme sırasında kullanılacak ek UI öğelerini ekleyebilirsiniz.</p>
+    </div>
+
+    <!-- Sağdaki kullanıcı paneli -->
+    <div class="right-panel" id="rightPanel">
+      <h2 class="panel-title">Aktif Kullanıcılar</h2>
+      <div id="userList" class="user-list"></div>
     </div>
   </div>
 

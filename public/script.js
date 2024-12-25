@@ -42,14 +42,71 @@ const showLoginScreen = document.getElementById('showLoginScreen');
 const groupListDiv = document.getElementById('groupList');
 const createGroupButton = document.getElementById('createGroupButton');
 
-// Kullanıcı tablosu
-const userTableBody = document.getElementById('userTableBody');
+// Sağ paneldeki kullanıcı listesi
+const userListDiv = document.getElementById('userList');
 
 // Modal elemanları
 const groupModal = document.getElementById('groupModal');
 const modalGroupName = document.getElementById('modalGroupName');
 const modalCreateGroupButton = document.getElementById('modalCreateGroupButton');
 const modalCloseButton = document.getElementById('modalCloseButton');
+
+// ----------------------
+// DM / GRUP Sekmesi Geçiş
+// ----------------------
+const sidebar = document.getElementById('sidebar');
+const dmPanel = document.getElementById('dmPanel');
+const toggleDMButton = document.getElementById('toggleDMButton');
+
+let isDMMode = false;
+
+// İki farklı inline SVG (mektup ve kullanıcı/grup)
+const envelopeIcon = `
+<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"
+     stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0
+           1.1-.9 2-2 2H4c-1.1 
+           0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+  <polyline points="22,6 12,13 2,6"></polyline>
+</svg>`;
+
+const usersIcon = `
+<svg fill="#ffffff" width="24" height="24" viewBox="0 0 640 512" xmlns="http://www.w3.org/2000/svg">
+  <path d="M96 96C96 42.98 138.1 0 192 0C245 0 288 42.98 288 
+   96C288 149 245 192 192 192C138.1 192 96 149 96 96zM640 
+   224C640 188.7 611.3 160 576 160C540.7 160 512 188.7 512 
+   224C512 259.3 540.7 288 576 288C611.3 288 640 259.3 640 
+   224zM512 384C512 337.1 476.1 304 432 304H400.6C405.4 315 
+   409.4 326.2 411.1 338.3C412.6 345.2 413.8 352.3 414.3 
+   359.4C438.4 371.4 455.4 393.3 455.4 419.3V448H592C600.8 
+   448 608 440.8 608 432C608 419.5 603.6 407.8 595.5 398.3C577.4 
+   378.4 552.5 368 527.2 368C519.4 368 511.8 367.3 504.6 366.1C503.7 
+   366 502.7 366 501.7 365.1C494.3 364.2 487.3 363.3 481.4 363C476.7 
+   362.6 472.1 362.1 467.4 361.1C460.5 359.9 453.5 359.7 446.7 359.3C444.2 
+   359.2 441.7 359 439.2 359H427.2C442.7 373.3 448 397.5 448 416V448H512V384zM224 
+   264C154.1 264 96 322.1 96 392V448H352V392C352 322.1 293.9 264 224 264zM448 96C448 
+   149 490.1 192 544 192C597 192 640 149 640 96C640 42.98 597 0 544 0C490.1 0 448 
+   42.98 448 96z"/>
+</svg>`;
+
+toggleDMButton.addEventListener('click', () => {
+  isDMMode = !isDMMode;
+  if (isDMMode) {
+    // DM moduna geç
+    sidebar.classList.add('sidebar-expanded');
+    dmPanel.style.display = 'block';
+    groupListDiv.style.display = 'none';
+    // Butona grup ikonu yerleştir
+    toggleDMButton.innerHTML = usersIcon;
+  } else {
+    // Grup moduna dön
+    sidebar.classList.remove('sidebar-expanded');
+    dmPanel.style.display = 'none';
+    groupListDiv.style.display = 'flex';
+    // Butona tekrar mektup ikonu
+    toggleDMButton.innerHTML = envelopeIcon;
+  }
+});
 
 // Ekran geçişleri
 showRegisterScreen.addEventListener('click', () => {
@@ -190,10 +247,11 @@ socket.on('groupsList', (groupNames) => {
   });
 });
 
-// Gruba ait kullanıcı listesi
+// Sunucudan güncel kullanıcı listesi
 socket.on('groupUsers', (usersInGroup) => {
-  updateUserTable(usersInGroup);
+  updateUserList(usersInGroup); // Artık tablo değil, liste yapısı kullanıyoruz
 
+  // WebRTC peer bağlantılarının yönetimi
   const otherUserIds = usersInGroup
     .filter(u => u.id !== socket.id)
     .map(u => u.id)
@@ -206,7 +264,6 @@ socket.on('groupUsers', (usersInGroup) => {
           if (!peers[userId]) initPeer(userId, true);
         });
       }
-
       pendingUsers.forEach(userId => {
         if (!peers[userId]) initPeer(userId, true);
       });
@@ -227,6 +284,51 @@ socket.on('groupUsers', (usersInGroup) => {
     });
   }
 });
+
+// Kullanıcı listesini sağ panelde güncelleyen fonksiyon
+function updateUserList(usersInGroup) {
+  userListDiv.innerHTML = ''; 
+  usersInGroup.forEach(user => {
+    // Her kullanıcı için .user-item oluştur
+    const userItem = document.createElement('div');
+    userItem.classList.add('user-item');
+
+    // Profil fotoğrafı (şimdilik boş)
+    const profileThumb = document.createElement('div');
+    profileThumb.classList.add('profile-thumb');
+
+    // Kullanıcı adı
+    const userNameSpan = document.createElement('span');
+    userNameSpan.classList.add('user-name');
+    userNameSpan.textContent = user.username || '(İsimsiz)';
+
+    // ID kopyala butonu (Socket ID’yi panoya kopyalayacak)
+    const copyIdButton = document.createElement('button');
+    copyIdButton.classList.add('copy-id-btn');
+    copyIdButton.textContent = "ID Kopyala";
+    copyIdButton.dataset.userid = user.id; 
+    copyIdButton.addEventListener('click', (e) => {
+      e.stopPropagation(); // Kullanıcı item click eventini tetiklemesin
+      const socketId = e.target.dataset.userid;
+      navigator.clipboard.writeText(socketId)
+        .then(() => {
+          alert("Kullanıcı ID kopyalandı: " + socketId);
+        })
+        .catch(err => {
+          console.error("Kopyalama hatası:", err);
+          alert("Kopyalama başarısız!");
+        });
+    });
+
+    // Elemanları userItem içine ekle
+    userItem.appendChild(profileThumb);
+    userItem.appendChild(userNameSpan);
+    userItem.appendChild(copyIdButton);
+
+    // userListDiv'e ekle
+    userListDiv.appendChild(userItem);
+  });
+}
 
 async function requestMicrophoneAccess() {
   console.log("Mikrofon izni isteniyor...");
@@ -268,20 +370,6 @@ socket.on("signal", async (data) => {
     console.log("ICE Candidate eklendi:", signal);
   }
 });
-
-function updateUserTable(usersInGroup) {
-  userTableBody.innerHTML = '';
-  usersInGroup.forEach(user => {
-    const tr = document.createElement('tr');
-    const tdUsername = document.createElement('td');
-    const tdId = document.createElement('td');
-    tdUsername.textContent = user.username || '(İsimsiz)';
-    tdId.textContent = user.id;
-    tr.appendChild(tdUsername);
-    tr.appendChild(tdId);
-    userTableBody.appendChild(tr);
-  });
-}
 
 function initPeer(userId, isInitiator) {
   if (!localStream || !audioPermissionGranted) {
