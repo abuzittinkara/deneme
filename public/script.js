@@ -4,7 +4,8 @@ let peers = {};
 let audioPermissionGranted = false;
 let remoteAudios = []; 
 let username = null;
-let currentGroup = null; // Şu anki grup
+let currentGroup = null; 
+let currentRoom = null; // YENİ - içinde bulunduğumuz oda
 
 // Bekleyen kullanıcı listeleri (ses izni alınmadan gelen kullanıcılar)
 let pendingUsers = [];
@@ -42,14 +43,24 @@ const showLoginScreen = document.getElementById('showLoginScreen');
 const groupListDiv = document.getElementById('groupList');
 const createGroupButton = document.getElementById('createGroupButton');
 
+// Oda oluşturma ve listeleme (YENİ)
+const roomListDiv = document.getElementById('roomList');
+const createRoomButton = document.getElementById('createRoomButton');
+
 // Sağ paneldeki kullanıcı listesi
 const userListDiv = document.getElementById('userList');
 
-// Modal elemanları
+// Modal: Grup oluşturma
 const groupModal = document.getElementById('groupModal');
 const modalGroupName = document.getElementById('modalGroupName');
 const modalCreateGroupButton = document.getElementById('modalCreateGroupButton');
 const modalCloseButton = document.getElementById('modalCloseButton');
+
+// Modal: Oda oluşturma (YENİ)
+const roomModal = document.getElementById('roomModal');
+const modalRoomName = document.getElementById('modalRoomName');
+const modalCreateRoomBtn = document.getElementById('modalCreateRoomBtn');
+const modalCloseRoomBtn = document.getElementById('modalCloseRoomBtn');
 
 // ----------------------
 // DM / GRUP Sekmesi Geçiş
@@ -193,16 +204,14 @@ socket.on('registerResult', (data) => {
 });
 
 // ---------------------
-// Modal ile Grup Oluştur
+// Grup Oluşturma
 // ---------------------
 createGroupButton.addEventListener('click', () => {
-  // Modal aç
   groupModal.style.display = 'flex';
   modalGroupName.value = '';
   modalGroupName.focus();
 });
 
-// Modal içi “Oluştur” butonu
 modalCreateGroupButton.addEventListener('click', () => {
   const grpName = modalGroupName.value.trim();
   if (grpName) {
@@ -213,26 +222,11 @@ modalCreateGroupButton.addEventListener('click', () => {
   }
 });
 
-// Modal içi “Kapat” butonu
 modalCloseButton.addEventListener('click', () => {
   groupModal.style.display = 'none';
 });
 
-// Gruba katılma fonksiyonu
-function joinGroup(groupName) {
-  // Başka bir gruptaysak, tüm peer bağlantılarını kapat
-  if (currentGroup && currentGroup !== groupName) {
-    closeAllPeers();
-    audioPermissionGranted = false;
-    localStream = null;
-  }
-
-  // Yeni gruba katıl
-  socket.emit('joinGroup', groupName);
-  currentGroup = groupName;
-}
-
-// Sunucudan grup listesi
+// Sunucudan grup listesi (eski)
 socket.on('groupsList', (groupNames) => {
   groupListDiv.innerHTML = '';
   groupNames.forEach(grp => {
@@ -247,12 +241,86 @@ socket.on('groupsList', (groupNames) => {
   });
 });
 
-// Sunucudan güncel kullanıcı listesi
-socket.on('groupUsers', (usersInGroup) => {
-  updateUserList(usersInGroup); // Artık tablo değil, liste yapısı kullanıyoruz
+// Gruba katılma fonksiyonu
+function joinGroup(groupName) {
+  // Başka bir gruptaysak, tüm peer bağlantılarını kapat
+  if (currentGroup && currentGroup !== groupName) {
+    closeAllPeers();
+    audioPermissionGranted = false;
+    localStream = null;
+  }
+  currentGroup = groupName;
+  currentRoom = null; // Grup değişince oda sıfırlayalım
+  // Odalar listesini boşalt
+  roomListDiv.innerHTML = '';
+
+  socket.emit('joinGroup', groupName);
+}
+
+// Sunucudan grubun odalar listesi (YENİ)
+socket.on('roomsList', (rooms) => {
+  // rooms: Object.keys(groups[groupName].rooms) tipinde gelir
+  roomListDiv.innerHTML = '';
+  rooms.forEach(roomName => {
+    const roomItem = document.createElement('div');
+    roomItem.className = 'grp-item';
+    roomItem.innerText = roomName[0].toUpperCase();
+    roomItem.title = roomName;
+    roomItem.addEventListener('click', () => {
+      joinRoom(currentGroup, roomName);
+    });
+    roomListDiv.appendChild(roomItem);
+  });
+});
+
+// ---------------------
+// Oda Oluşturma (YENİ)
+// ---------------------
+createRoomButton.addEventListener('click', () => {
+  if (!currentGroup) {
+    alert("Önce bir gruba katılın veya oluşturun!");
+    return;
+  }
+  roomModal.style.display = 'flex';
+  modalRoomName.value = '';
+  modalRoomName.focus();
+});
+
+modalCreateRoomBtn.addEventListener('click', () => {
+  const rName = modalRoomName.value.trim();
+  if (rName) {
+    // Sunucuya oda oluşturma isteği
+    socket.emit('createRoom', { groupName: currentGroup, roomName: rName });
+    roomModal.style.display = 'none';
+  } else {
+    alert("Lütfen bir oda adı girin");
+  }
+});
+
+modalCloseRoomBtn.addEventListener('click', () => {
+  roomModal.style.display = 'none';
+});
+
+// Odaya katılma fonksiyonu (YENİ)
+function joinRoom(groupName, roomName) {
+  // Başka bir odadaysak, kapat
+  if (currentRoom && currentRoom !== roomName) {
+    closeAllPeers();
+    audioPermissionGranted = false;
+    localStream = null;
+  }
+  currentRoom = roomName;
+  socket.emit('joinRoom', { groupName, roomName });
+}
+
+// ---------------------
+// Odaya ait kullanıcı listesi (YENİ)
+// ---------------------
+socket.on('roomUsers', (usersInRoom) => {
+  updateUserList(usersInRoom); // Yalnızca o odadaki kullanıcılar
 
   // WebRTC peer bağlantılarının yönetimi
-  const otherUserIds = usersInGroup
+  const otherUserIds = usersInRoom
     .filter(u => u.id !== socket.id)
     .map(u => u.id)
     .filter(id => !peers[id]);
@@ -286,9 +354,9 @@ socket.on('groupUsers', (usersInGroup) => {
 });
 
 // Kullanıcı listesini sağ panelde güncelleyen fonksiyon
-function updateUserList(usersInGroup) {
+function updateUserList(usersInRoom) {
   userListDiv.innerHTML = ''; 
-  usersInGroup.forEach(user => {
+  usersInRoom.forEach(user => {
     // Her kullanıcı için .user-item oluştur
     const userItem = document.createElement('div');
     userItem.classList.add('user-item');
@@ -302,13 +370,13 @@ function updateUserList(usersInGroup) {
     userNameSpan.classList.add('user-name');
     userNameSpan.textContent = user.username || '(İsimsiz)';
 
-    // ID kopyala butonu (Socket ID’yi panoya kopyalayacak)
+    // ID kopyala butonu
     const copyIdButton = document.createElement('button');
     copyIdButton.classList.add('copy-id-btn');
     copyIdButton.textContent = "ID Kopyala";
     copyIdButton.dataset.userid = user.id; 
     copyIdButton.addEventListener('click', (e) => {
-      e.stopPropagation(); // Kullanıcı item click eventini tetiklemesin
+      e.stopPropagation();
       const socketId = e.target.dataset.userid;
       navigator.clipboard.writeText(socketId)
         .then(() => {

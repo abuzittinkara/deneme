@@ -16,7 +16,7 @@
       <input type="password" id="loginPasswordInput" placeholder="Parola" class="input-text"/>
       <button id="loginButton" class="btn primary">Giriş Yap</button>
       <p style="margin-top: 1rem;">
-        Hesabın yok mu? 
+        Hesabın yok mu?
         <span id="showRegisterScreen" style="color:#fff; cursor:pointer; text-decoration:underline;">
           Yeni Hesap Oluştur
         </span>
@@ -42,7 +42,7 @@
       <button id="backToLoginButton" class="btn secondary">Geri Gel</button>
 
       <p style="margin-top: 1rem;">
-        Zaten hesabın var mı? 
+        Zaten hesabın var mı?
         <span id="showLoginScreen" style="color:#fff; cursor:pointer; text-decoration:underline;">
           Oturum Aç
         </span>
@@ -70,7 +70,6 @@
       <div id="dmPanel" class="dm-panel" style="display: none;">
         <h3>DM Mesajları</h3>
         <p>Birebir mesajlar buraya gelecek.</p>
-        <!-- İstediğiniz DM listeleme veya chat arayüzünü ekleyebilirsiniz -->
       </div>
 
       <!-- Grup listesi (varsayılan açık) -->
@@ -85,12 +84,17 @@
     <!-- Ortadaki ana içerik -->
     <div class="main-content">
       <h1 class="app-title">Sesli Görüşme</h1>
-      <p>Buraya dilerseniz görüşme sırasında kullanılacak ek UI öğelerini ekleyebilirsiniz.</p>
+      <p>Grup içinden bir odaya katıldığınızda WebRTC ses akışı başlayacaktır.</p>
+
+      <!-- Oda listesi (YENİ) -->
+      <h2 class="panel-title">Oda Listesi</h2>
+      <div id="roomList" class="group-list" style="margin-top: 1rem;"></div>
+      <button id="createRoomButton" class="circle-btn create-group-btn" style="margin-top: 1rem;">+</button>
     </div>
 
     <!-- Sağdaki kullanıcı paneli -->
     <div class="right-panel" id="rightPanel">
-      <h2 class="panel-title">Aktif Kullanıcılar</h2>
+      <h2 class="panel-title">Aktif Kullanıcılar (Oda)</h2>
       <div id="userList" class="user-list"></div>
     </div>
   </div>
@@ -103,6 +107,18 @@
       <div class="modal-buttons">
         <button id="modalCreateGroupButton" class="btn primary">Oluştur</button>
         <button id="modalCloseButton" class="btn secondary">Kapat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Oda Oluşturma Kutusu (YENİ) -->
+  <div id="roomModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h2>Oda Oluştur</h2>
+      <input type="text" id="modalRoomName" class="input-text" placeholder="Oda Adı" />
+      <div class="modal-buttons">
+        <button id="modalCreateRoomBtn" class="btn primary">Oluştur</button>
+        <button id="modalCloseRoomBtn" class="btn secondary">Kapat</button>
       </div>
     </div>
   </div>
