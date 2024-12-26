@@ -1,3 +1,5 @@
+/* style.css */
+
 /* Genel ayarlar */
 body {
   margin: 0;
@@ -89,9 +91,12 @@ body {
   justify-content: flex-start;
 }
 
-/* Sol menü (sidebar) */
+/* 
+  Soldaki menü (sidebar).
+  GRUPLAR sekmesi biraz daha koyu ton (#1a1a1a) yapıldı.
+*/
 .sidebar {
-  background: #1f1f1f;
+  background: #1a1a1a; /* Değiştirildi: Eskiden #1f1f1f idi */
   width: 80px;        
   display: flex;
   flex-direction: column;
@@ -156,7 +161,7 @@ body {
   background-color: #a3156f;
 }
 
-/* YENİ: Odalar paneli (rooms-panel) gruplar sekmesinden biraz daha geniş */
+/* Odalar paneli (rooms-panel) gruplar sekmesinden biraz daha açık (#1f1f1f) */
 .rooms-panel {
   background: #1f1f1f;
   width: 140px; /* Grup sidebar'ın 80px'inden daha geniş */
