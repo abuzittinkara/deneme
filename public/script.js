@@ -32,7 +32,7 @@ const regPasswordInput = document.getElementById('regPasswordInput');
 const regPasswordConfirmInput = document.getElementById('regPasswordConfirmInput');
 const registerButton = document.getElementById('registerButton');
 
-// Geri gel
+// Geri Gel
 const backToLoginButton = document.getElementById('backToLoginButton');
 
 // Ekran değiştirme linkleri
@@ -46,6 +46,14 @@ const createGroupButton = document.getElementById('createGroupButton');
 // Odalar
 const roomListDiv = document.getElementById('roomList');
 const createRoomButton = document.getElementById('createRoomButton');
+const groupTitle = document.getElementById('groupTitle'); // YENİ
+const groupDropdownIcon = document.getElementById('groupDropdownIcon'); // YENİ
+const groupDropdownMenu = document.getElementById('groupDropdownMenu'); // YENİ
+
+// Dropdown menü öğeleri
+const renameGroupBtn = document.getElementById('renameGroupBtn');
+const createChannelBtn = document.getElementById('createChannelBtn');
+const deleteGroupBtn = document.getElementById('deleteGroupBtn');
 
 // Sağ panel (kullanıcı listesi)
 const userListDiv = document.getElementById('userList');
@@ -64,7 +72,7 @@ const modalCloseRoomBtn = document.getElementById('modalCloseRoomBtn');
 
 // DM / GRUP Sekmesi
 const toggleDMButton = document.getElementById('toggleDMButton');
-const closeDMButton = document.getElementById('closeDMButton'); // YENİ
+const closeDMButton = document.getElementById('closeDMButton');
 const dmPanel = document.getElementById('dmPanel');
 const groupsAndRooms = document.getElementById('groupsAndRooms');
 let isDMMode = false;
@@ -127,7 +135,7 @@ registerButton.addEventListener('click', () => {
   socket.emit('register', userData);
 });
 
-// Login sonucu
+// Sunucudan login sonucu
 socket.on('loginResult', (data) => {
   if (data.success) {
     username = data.username;
@@ -139,7 +147,7 @@ socket.on('loginResult', (data) => {
   }
 });
 
-// Register sonucu
+// Sunucudan register sonucu
 socket.on('registerResult', (data) => {
   if (data.success) {
     alert("Kayıt başarılı! Şimdi giriş yapabilirsiniz.");
@@ -150,14 +158,14 @@ socket.on('registerResult', (data) => {
   }
 });
 
-// DM butonuna tıklayınca
+// DM butonuna tıklama
 toggleDMButton.addEventListener('click', () => {
   isDMMode = true;
   groupsAndRooms.style.display = 'none';
   dmPanel.style.display = 'block';
 });
 
-// DM'den geri dönüş butonu (YENİ)
+// DM'den geri dönüş
 closeDMButton.addEventListener('click', () => {
   isDMMode = false;
   dmPanel.style.display = 'none';
@@ -208,6 +216,10 @@ function joinGroup(groupName) {
   currentGroup = groupName;
   currentRoom = null;
   roomListDiv.innerHTML = '';
+
+  // YENİ: Başlığa grup adını yaz
+  groupTitle.textContent = groupName; 
+
   socket.emit('joinGroup', groupName);
 }
 
@@ -334,6 +346,7 @@ function updateUserList(usersInRoom) {
   });
 }
 
+// Mikrofon izni
 async function requestMicrophoneAccess() {
   console.log("Mikrofon izni isteniyor...");
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -456,7 +469,28 @@ socket.on("disconnect", () => {
   console.log("WebSocket bağlantısı koptu.");
 });
 
-// Debug
-setInterval(() => {
-  console.log("Peers:", Object.keys(peers));
-}, 10000);
+// ------------------------------
+// YENİ: Dropdown menü kontrolü
+// ------------------------------
+let dropdownOpen = false;
+groupDropdownIcon.addEventListener('click', () => {
+  dropdownOpen = !dropdownOpen;
+  groupDropdownMenu.style.display = dropdownOpen ? 'flex' : 'none';
+});
+
+// Menü öğelerine tıklandığında
+renameGroupBtn.addEventListener('click', () => {
+  alert("Grup ismi değiştirme işlemi henüz tanımlanmadı.");
+  groupDropdownMenu.style.display = 'none';
+  dropdownOpen = false;
+});
+createChannelBtn.addEventListener('click', () => {
+  alert("Kanal oluşturma işlemi henüz tanımlanmadı.");
+  groupDropdownMenu.style.display = 'none';
+  dropdownOpen = false;
+});
+deleteGroupBtn.addEventListener('click', () => {
+  alert("Grubu silme işlemi henüz tanımlanmadı.");
+  groupDropdownMenu.style.display = 'none';
+  dropdownOpen = false;
+});

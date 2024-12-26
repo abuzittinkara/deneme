@@ -52,13 +52,12 @@
 
   <!-- Görüşme Ekranı -->
   <div id="callScreen" class="screen-container" style="display:none;">
-    <!-- Sol tarafı (Gruplar + Sesli Odalar + DM Panel) kapsayan container -->
+    <!-- Sol taraftaki panel (Gruplar + DM) -->
     <div id="leftPanels" class="left-panels">
-      <!-- 1) Gruplar + Odalar (Normal modda gözükecek) -->
       <div id="groupsAndRooms" class="groups-rooms">
-        <!-- Soldaki dar sidebar (Gruplar) -->
+        <!-- Gruplar Sekmesi (sidebar) -->
         <div class="sidebar" id="sidebar">
-          <!-- Sol üstte DM butonu -->
+          <!-- DM butonu -->
           <button id="toggleDMButton" class="circle-btn dm-toggle-btn">
             <!-- Zarf ikonu -->
             <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" 
@@ -69,26 +68,35 @@
               <polyline points="22,6 12,13 2,6"></polyline>
             </svg>
           </button>
-
-          <!-- Grup listesi -->
+          
+          <!-- Gruplar listesi -->
           <div id="groupList" class="group-list"></div>
-          <!-- Grup oluşturma butonu -->
           <button id="createGroupButton" class="circle-btn create-group-btn">+</button>
         </div>
 
-        <!-- Odalar paneli (biraz daha geniş) -->
+        <!-- Odalar Sekmesi -->
         <div id="roomPanel" class="rooms-panel">
-          <h2 class="panel-title">Sesli Odalar</h2>
+          <!-- Başlık: Grup Adı + Ok (⌄) -->
+          <div class="room-panel-header">
+            <h2 id="groupTitle" class="panel-title">Seçili Grup</h2>
+            <span id="groupDropdownIcon" class="dropdown-icon">⌄</span>
+            
+            <!-- Dropdown menü (gizli) -->
+            <div id="groupDropdownMenu" class="dropdown-menu" style="display: none;">
+              <div class="dropdown-item" id="renameGroupBtn">Grup ismi değiştir</div>
+              <div class="dropdown-item" id="createChannelBtn">Kanal Oluştur</div>
+              <div class="dropdown-item" id="deleteGroupBtn">Grubu Sil</div>
+            </div>
+          </div>
+
           <div id="roomList" class="room-list"></div>
           <button id="createRoomButton" class="circle-btn create-room-btn">+</button>
         </div>
       </div>
-
-      <!-- 2) DM paneli (tüm sol kısmı kaplar) -->
-      <div id="dmPanel" class="dm-panel" style="display: none; position: relative;">
-        <!-- Geri dönüş butonu (Gruplara dön) -->
+      
+      <!-- DM paneli (tam sol) -->
+      <div id="dmPanel" class="dm-panel" style="display:none; position: relative;">
         <button id="closeDMButton" class="circle-btn dm-close-btn">
-          <!-- Geri ok ikonu -->
           <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
                stroke-linejoin="round" viewBox="0 0 24 24" width="24" height="24">
             <line x1="19" y1="12" x2="5" y2="12"></line>
@@ -115,7 +123,7 @@
     </div>
   </div>
 
-  <!-- Modal: Grup Oluşturma Kutusu -->
+  <!-- Modal: Grup Oluşturma -->
   <div id="groupModal" class="modal" style="display: none;">
     <div class="modal-content">
       <h2>Grup Oluştur</h2>
@@ -127,7 +135,7 @@
     </div>
   </div>
 
-  <!-- Modal: Oda Oluşturma Kutusu -->
+  <!-- Modal: Oda Oluşturma -->
   <div id="roomModal" class="modal" style="display: none;">
     <div class="modal-content">
       <h2>Oda Oluştur</h2>

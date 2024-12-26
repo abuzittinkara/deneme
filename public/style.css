@@ -1,4 +1,4 @@
-/* Genel ayarlar */
+/* Genel Ayarlar */
 body {
   margin: 0;
   padding: 0;
@@ -91,7 +91,7 @@ body {
 
 /* 
   Tüm sol taraf: Gruplar + Odalar + DM 
-  Normalde: width = sidebar(80px) + rooms-panel(140px) = 220px 
+  (Normalde 80px sidebar + 140px rooms = 220px toplam)
 */
 .left-panels {
   display: flex;
@@ -100,15 +100,11 @@ body {
   transition: width 0.3s ease;
   overflow: hidden;
 }
-
-/* Gruplar + Odalar bölümü */
 .groups-rooms {
   display: flex;
   flex-direction: row;
   width: 220px;
 }
-
-/* DM paneli */
 .dm-panel {
   width: 100%;
   background: #222;
@@ -116,17 +112,15 @@ body {
   padding: 1rem;
   box-sizing: border-box;
   overflow: auto;
-  position: relative; /* Buton yerleşimi için */
+  position: relative;
 }
-
-/* DM'den geri dön butonu */
 .dm-close-btn {
   position: absolute;
   top: 1rem;
   left: 1rem;
 }
 
-/* Sidebar (Gruplar sekmesi koyu ton) */
+/* Sidebar (Gruplar sekmesi) */
 .sidebar {
   background: #1a1a1a; 
   width: 80px;        
@@ -135,7 +129,6 @@ body {
   align-items: center;
   padding: 1rem 0;
   position: relative; 
-  transition: width 0.3s ease;
 }
 .dm-toggle-btn {
   margin-bottom: 1rem; 
@@ -195,6 +188,53 @@ body {
   box-sizing: border-box;
   gap: 1rem;
 }
+
+/* Oda paneli üst kısmı: Grup Adı + ok simgesi (⌄) */
+.room-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative; /* dropdown menü için */
+}
+
+/* Ok simgesi (⌄) */
+.dropdown-icon {
+  cursor: pointer;
+  user-select: none;
+  font-size: 1.5rem; 
+  color: #ccc;
+  margin-left: auto; /* Grup adının sağında dursun */
+}
+.dropdown-icon:hover {
+  color: #fff;
+}
+
+/* Dropdown menü */
+.dropdown-menu {
+  position: absolute;
+  top: 2rem; /* h2 + padding kadar offset */
+  right: 0;
+  background: #2d2d2d;
+  border: 1px solid #444;
+  border-radius: 6px;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+}
+.dropdown-item {
+  padding: 0.75rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #fff;
+  border-bottom: 1px solid #444;
+}
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+.dropdown-item:hover {
+  background: #444;
+}
+
 .room-list {
   display: flex;
   flex-direction: column;
