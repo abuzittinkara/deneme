@@ -54,12 +54,13 @@
   <div id="callScreen" class="screen-container" style="display:none;">
     <!-- Sol tarafı (Gruplar + Sesli Odalar + DM Panel) kapsayan container -->
     <div id="leftPanels" class="left-panels">
-      <!-- 1) Gruplar + Odalar  (Normal modda gözükecek) -->
+      <!-- 1) Gruplar + Odalar (Normal modda gözükecek) -->
       <div id="groupsAndRooms" class="groups-rooms">
         <!-- Soldaki dar sidebar (Gruplar) -->
         <div class="sidebar" id="sidebar">
           <!-- Sol üstte DM butonu -->
           <button id="toggleDMButton" class="circle-btn dm-toggle-btn">
+            <!-- Zarf ikonu -->
             <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" 
                  stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
               <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 
@@ -84,8 +85,18 @@
       </div>
 
       <!-- 2) DM paneli (tüm sol kısmı kaplar) -->
-      <div id="dmPanel" class="dm-panel" style="display: none;">
-        <h3>DM Mesajları</h3>
+      <div id="dmPanel" class="dm-panel" style="display: none; position: relative;">
+        <!-- Geri dönüş butonu (Gruplara dön) -->
+        <button id="closeDMButton" class="circle-btn dm-close-btn">
+          <!-- Geri ok ikonu -->
+          <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+               stroke-linejoin="round" viewBox="0 0 24 24" width="24" height="24">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+        </button>
+
+        <h3 style="margin-top: 2.5rem;">DM Mesajları</h3>
         <p>Birebir mesajlar buraya gelecek.</p>
       </div>
     </div>

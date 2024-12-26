@@ -98,24 +98,17 @@ body {
   flex-direction: row;
   width: 220px; 
   transition: width 0.3s ease;
-  overflow: hidden; /* DM panelin açılış/kapanışında taşma olmasın */
+  overflow: hidden;
 }
 
-/* 
-  Gruplar + Odalar bölümü 
-  Normal modda display:flex 
-  DM modunda gizleyeceğiz (script.js içinde display:none)
-*/
+/* Gruplar + Odalar bölümü */
 .groups-rooms {
   display: flex;
   flex-direction: row;
   width: 220px;
 }
 
-/* DM paneli 
-   Normalde kapalı (display:none),
-   DM modunda görünecek, bu panelin width: 100% yaparak left-panels’in tamamını kaplasın.
-*/
+/* DM paneli */
 .dm-panel {
   width: 100%;
   background: #222;
@@ -123,6 +116,14 @@ body {
   padding: 1rem;
   box-sizing: border-box;
   overflow: auto;
+  position: relative; /* Buton yerleşimi için */
+}
+
+/* DM'den geri dön butonu */
+.dm-close-btn {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
 }
 
 /* Sidebar (Gruplar sekmesi koyu ton) */

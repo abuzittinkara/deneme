@@ -64,6 +64,7 @@ const modalCloseRoomBtn = document.getElementById('modalCloseRoomBtn');
 
 // DM / GRUP Sekmesi
 const toggleDMButton = document.getElementById('toggleDMButton');
+const closeDMButton = document.getElementById('closeDMButton'); // YENİ
 const dmPanel = document.getElementById('dmPanel');
 const groupsAndRooms = document.getElementById('groupsAndRooms');
 let isDMMode = false;
@@ -151,18 +152,16 @@ socket.on('registerResult', (data) => {
 
 // DM butonuna tıklayınca
 toggleDMButton.addEventListener('click', () => {
-  isDMMode = !isDMMode;
-  if (isDMMode) {
-    // Gruplar + Odalar gizle
-    groupsAndRooms.style.display = 'none';
-    // DM paneli tam sol tarafa yayılsın
-    dmPanel.style.display = 'block';
-  } else {
-    // DM paneli gizle
-    dmPanel.style.display = 'none';
-    // Gruplar + Odalar geri gelsin
-    groupsAndRooms.style.display = 'flex';
-  }
+  isDMMode = true;
+  groupsAndRooms.style.display = 'none';
+  dmPanel.style.display = 'block';
+});
+
+// DM'den geri dönüş butonu (YENİ)
+closeDMButton.addEventListener('click', () => {
+  isDMMode = false;
+  dmPanel.style.display = 'none';
+  groupsAndRooms.style.display = 'flex';
 });
 
 // Grup oluşturma
