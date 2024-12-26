@@ -8,7 +8,6 @@ body {
   font-size: 16px;
 }
 
-/* Tüm screen-container varsayılan */
 .screen-container {
   width: 100vw;
   height: 100vh;
@@ -17,17 +16,12 @@ body {
   justify-content: center;
 }
 
-/* ------------------- */
-/* 1) Login & Register ekranları (koyu tema) */
-/* ------------------- */
-
-/* Oturum Aç (login) Ekranı ve Kayıt (register) Ekranı Arkaplanı */
+/* Login & Register ekranları koyu tema */
 #loginScreen.screen-container,
 #registerScreen.screen-container {
   background: #2d2d2d; 
 }
 
-/* Kart stilini de koyu yapmak için değiştirdik */
 .card {
   background: #2d2d2d; 
   padding: 2rem;
@@ -53,8 +47,6 @@ body {
   margin-top: 1rem;
   transition: background 0.3s ease;
 }
-
-/* Primary buton (login/register) */
 .btn.primary {
   background: #c61884; 
   color: #fff;
@@ -62,8 +54,6 @@ body {
 .btn.primary:hover {
   background: #a3156f;
 }
-
-/* Secondary buton (örnek: Geri Gel veya Kapat) */
 .btn.secondary {
   background: #444;
   color: #fff;
@@ -72,7 +62,7 @@ body {
   background: #666;
 }
 
-/* Input alanı da koyu olsun */
+/* Input alanları */
 .input-text {
   width: 100%;
   padding: 0.75rem;
@@ -84,8 +74,6 @@ body {
   margin-bottom: 1rem;
   box-sizing: border-box;
 }
-
-/* Daraltmak isterseniz */
 #loginScreen .input-text,
 #registerScreen .input-text {
   max-width: 280px;
@@ -93,13 +81,10 @@ body {
   display: block;
 }
 
-/* ------------------- */
-/* 2) Sesli Görüşme (callScreen) ekranı */
-/* ------------------- */
-
+/* callScreen koyu tema */
 #callScreen.screen-container {
   background: #2d2d2d; 
-  flex-direction: row; /* Solda sidebar, ortada main-content, sağda user-list paneli */
+  flex-direction: row; /* Solda sidebar, ortada main-content, sağda panel */
   align-items: stretch;       
   justify-content: flex-start;
 }
@@ -107,42 +92,32 @@ body {
 /* Sol menü (sidebar) */
 .sidebar {
   background: #1f1f1f;
-  width: 80px;        /* Varsayılan genişlik */
+  width: 80px;        
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 1rem 0;
-  position: relative; /* create-group-btn’i en alta sabitlemek için */
-  transition: width 0.3s ease; /* DM moduna geçerken animasyon olsun */
+  position: relative; 
+  transition: width 0.3s ease;
 }
-
-/* Sidebar genişletildiğinde uygulanacak sınıf */
 .sidebar.sidebar-expanded {
-  width: 220px; /* DM modunda yan panel bu genişliğe geçsin */
+  width: 220px; 
 }
-
-/* DM butonu (sol üst) */
 .dm-toggle-btn {
   margin-bottom: 1rem; 
 }
-
-/* DM paneli iç stili */
 .dm-panel {
   margin-top: 1rem;
   width: 100%;
-  padding: 0 1rem; /* Geniş görünümde kenarlardan biraz boşluk */
+  padding: 0 1rem;
 }
-
-/* Grupların listelendiği alan */
 .group-list {
   display: flex;
   flex-direction: column;
   gap: 1rem;
   margin-top: 1rem;
 }
-
-/* Gruplar yuvarlak baloncuklar */
-.group-list .grp-item {
+.grp-item {
   width: 50px;
   height: 50px;
   background: #444;
@@ -155,19 +130,15 @@ body {
   font-size: 1rem;
   text-align: center;
 }
-.group-list .grp-item:hover {
+.grp-item:hover {
   background: #666;
 }
-
-/* Sol en altta yer alacak grup oluşturma butonu */
 .create-group-btn {
   position: absolute;
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
 }
-
-/* Yuvarlak buton ("+") ve DM butonu için ortak stil */
 .circle-btn {
   background-color: #c61884;
   color: #fff;
@@ -185,6 +156,25 @@ body {
   background-color: #a3156f;
 }
 
+/* YENİ: Odalar paneli (rooms-panel) gruplar sekmesinden biraz daha geniş */
+.rooms-panel {
+  background: #1f1f1f;
+  width: 140px; /* Grup sidebar'ın 80px'inden daha geniş */
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  box-sizing: border-box;
+  gap: 1rem;
+}
+.room-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.create-room-btn {
+  margin-top: auto; /* Altta kalsın */
+}
+
 /* Ortadaki ana içerik */
 .main-content {
   flex: 1; 
@@ -195,7 +185,7 @@ body {
 
 /* Sağ panel (kullanıcı listesi) */
 .right-panel {
-  width: 280px; /* Sol tarafa göre biraz daha geniş */
+  width: 280px; 
   background: #1f1f1f;
   padding: 1rem;
   display: flex;
@@ -203,20 +193,15 @@ body {
   box-sizing: border-box;
   color: #fff;
 }
-
 .panel-title {
   margin: 0 0 1rem;
   font-size: 1.25rem;
 }
-
-/* Kullanıcı listesi */
 .user-list {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
-
-/* Tek bir kullanıcı öğesi */
 .user-item {
   background: #2d2d2d;
   padding: 0.75rem;
@@ -225,12 +210,9 @@ body {
   align-items: center;
   gap: 0.75rem;
 }
-
 .user-item:hover {
   background: #444;
 }
-
-/* Profil fotoğrafı dairesi (şimdilik boş, ileride background-image veya <img>) */
 .profile-thumb {
   width: 40px;
   height: 40px;
@@ -238,15 +220,11 @@ body {
   border-radius: 50%;
   flex-shrink: 0;
 }
-
-/* Kullanıcı adı */
 .user-name {
   flex: 1;
   font-weight: 500;
   color: #fff;
 }
-
-/* ID kopyalama butonu */
 .copy-id-btn {
   background: #555;
   color: #fff;
@@ -261,9 +239,7 @@ body {
   background: #777;
 }
 
-/* ------------------- */
-/* 3) Modal Stil */
-/* ------------------- */
+/* Modal Stil */
 .modal {
   position: fixed;
   top: 0;
@@ -291,15 +267,12 @@ body {
   margin-top: 1rem;
   justify-content: center;
 }
-
-/* Modal varsayılan gizli olsun */
-#groupModal {
+#groupModal,
+#roomModal {
   display: none;
 }
 
-/* ------------------- */
-/* 4) Mobil uyumluluk (isteğe bağlı) */
-/* ------------------- */
+/* Mobil uyumluluk (isteğe bağlı) */
 @media (max-width: 600px) {
   .card {
     padding: 1rem;
@@ -308,8 +281,6 @@ body {
   .app-title {
     font-size: 1.2rem;
   }
-
-  /* Sağ paneli mobilde daraltmak */
   .right-panel {
     width: 100px;
     padding: 0.5rem;

@@ -5,9 +5,9 @@ let audioPermissionGranted = false;
 let remoteAudios = []; 
 let username = null;
 let currentGroup = null; 
-let currentRoom = null; // YENİ - içinde bulunduğumuz oda
+let currentRoom = null; // hangi odadayız
 
-// Bekleyen kullanıcı listeleri (ses izni alınmadan gelen kullanıcılar)
+// Bekleyen kullanıcı listeleri
 let pendingUsers = [];
 let pendingNewUsers = [];
 
@@ -16,12 +16,12 @@ const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
 const callScreen = document.getElementById('callScreen');
 
-// Login alanları
+// Login
 const loginUsernameInput = document.getElementById('loginUsernameInput');
 const loginPasswordInput = document.getElementById('loginPasswordInput');
 const loginButton = document.getElementById('loginButton');
 
-// Register alanları
+// Register
 const regUsernameInput = document.getElementById('regUsernameInput');
 const regNameInput = document.getElementById('regNameInput');
 const regSurnameInput = document.getElementById('regSurnameInput');
@@ -39,32 +39,30 @@ const backToLoginButton = document.getElementById('backToLoginButton');
 const showRegisterScreen = document.getElementById('showRegisterScreen');
 const showLoginScreen = document.getElementById('showLoginScreen');
 
-// Grup oluşturma ve listeleme elemanları
+// Gruplar
 const groupListDiv = document.getElementById('groupList');
 const createGroupButton = document.getElementById('createGroupButton');
 
-// Oda oluşturma ve listeleme (YENİ)
+// Odalar paneli
 const roomListDiv = document.getElementById('roomList');
 const createRoomButton = document.getElementById('createRoomButton');
 
 // Sağ paneldeki kullanıcı listesi
 const userListDiv = document.getElementById('userList');
 
-// Modal: Grup oluşturma
+// Modal: Grup Oluşturma
 const groupModal = document.getElementById('groupModal');
 const modalGroupName = document.getElementById('modalGroupName');
 const modalCreateGroupButton = document.getElementById('modalCreateGroupButton');
 const modalCloseButton = document.getElementById('modalCloseButton');
 
-// Modal: Oda oluşturma (YENİ)
+// Modal: Oda Oluşturma
 const roomModal = document.getElementById('roomModal');
 const modalRoomName = document.getElementById('modalRoomName');
 const modalCreateRoomBtn = document.getElementById('modalCreateRoomBtn');
 const modalCloseRoomBtn = document.getElementById('modalCloseRoomBtn');
 
-// ----------------------
-// DM / GRUP Sekmesi Geçiş
-// ----------------------
+// DM / GRUP Sekmesi
 const sidebar = document.getElementById('sidebar');
 const dmPanel = document.getElementById('dmPanel');
 const toggleDMButton = document.getElementById('toggleDMButton');
@@ -103,18 +101,14 @@ const usersIcon = `
 toggleDMButton.addEventListener('click', () => {
   isDMMode = !isDMMode;
   if (isDMMode) {
-    // DM moduna geç
     sidebar.classList.add('sidebar-expanded');
     dmPanel.style.display = 'block';
     groupListDiv.style.display = 'none';
-    // Butona grup ikonu yerleştir
     toggleDMButton.innerHTML = usersIcon;
   } else {
-    // Grup moduna dön
     sidebar.classList.remove('sidebar-expanded');
     dmPanel.style.display = 'none';
     groupListDiv.style.display = 'flex';
-    // Butona tekrar mektup ikonu
     toggleDMButton.innerHTML = envelopeIcon;
   }
 });
@@ -136,7 +130,7 @@ backToLoginButton.addEventListener('click', () => {
   loginScreen.style.display = 'block';
 });
 
-// Giriş yap butonu
+// Giriş yap
 loginButton.addEventListener('click', () => {
   const usernameVal = loginUsernameInput.value.trim();
   const passwordVal = loginPasswordInput.value.trim();
@@ -147,7 +141,7 @@ loginButton.addEventListener('click', () => {
   socket.emit('login', { username: usernameVal, password: passwordVal });
 });
 
-// Kayıt ol butonu
+// Kayıt ol
 registerButton.addEventListener('click', () => {
   const userData = {
     username: regUsernameInput.value.trim(),
@@ -203,9 +197,7 @@ socket.on('registerResult', (data) => {
   }
 });
 
-// ---------------------
-// Grup Oluşturma
-// ---------------------
+// Grup oluşturma
 createGroupButton.addEventListener('click', () => {
   groupModal.style.display = 'flex';
   modalGroupName.value = '';
@@ -221,12 +213,11 @@ modalCreateGroupButton.addEventListener('click', () => {
     alert("Lütfen bir grup adı girin");
   }
 });
-
 modalCloseButton.addEventListener('click', () => {
   groupModal.style.display = 'none';
 });
 
-// Sunucudan grup listesi (eski)
+// Sunucudan grup listesi
 socket.on('groupsList', (groupNames) => {
   groupListDiv.innerHTML = '';
   groupNames.forEach(grp => {
@@ -241,25 +232,21 @@ socket.on('groupsList', (groupNames) => {
   });
 });
 
-// Gruba katılma fonksiyonu
+// Gruba katıl
 function joinGroup(groupName) {
-  // Başka bir gruptaysak, tüm peer bağlantılarını kapat
   if (currentGroup && currentGroup !== groupName) {
     closeAllPeers();
     audioPermissionGranted = false;
     localStream = null;
   }
   currentGroup = groupName;
-  currentRoom = null; // Grup değişince oda sıfırlayalım
-  // Odalar listesini boşalt
+  currentRoom = null; 
   roomListDiv.innerHTML = '';
-
   socket.emit('joinGroup', groupName);
 }
 
-// Sunucudan grubun odalar listesi (YENİ)
+// Sunucudan odalar listesi
 socket.on('roomsList', (rooms) => {
-  // rooms: Object.keys(groups[groupName].rooms) tipinde gelir
   roomListDiv.innerHTML = '';
   rooms.forEach(roomName => {
     const roomItem = document.createElement('div');
@@ -273,9 +260,7 @@ socket.on('roomsList', (rooms) => {
   });
 });
 
-// ---------------------
-// Oda Oluşturma (YENİ)
-// ---------------------
+// Oda oluşturma
 createRoomButton.addEventListener('click', () => {
   if (!currentGroup) {
     alert("Önce bir gruba katılın veya oluşturun!");
@@ -289,21 +274,18 @@ createRoomButton.addEventListener('click', () => {
 modalCreateRoomBtn.addEventListener('click', () => {
   const rName = modalRoomName.value.trim();
   if (rName) {
-    // Sunucuya oda oluşturma isteği
     socket.emit('createRoom', { groupName: currentGroup, roomName: rName });
     roomModal.style.display = 'none';
   } else {
     alert("Lütfen bir oda adı girin");
   }
 });
-
 modalCloseRoomBtn.addEventListener('click', () => {
   roomModal.style.display = 'none';
 });
 
-// Odaya katılma fonksiyonu (YENİ)
+// Odaya katıl
 function joinRoom(groupName, roomName) {
-  // Başka bir odadaysak, kapat
   if (currentRoom && currentRoom !== roomName) {
     closeAllPeers();
     audioPermissionGranted = false;
@@ -313,13 +295,10 @@ function joinRoom(groupName, roomName) {
   socket.emit('joinRoom', { groupName, roomName });
 }
 
-// ---------------------
-// Odaya ait kullanıcı listesi (YENİ)
-// ---------------------
+// Sunucudan "roomUsers" bilgisi
 socket.on('roomUsers', (usersInRoom) => {
-  updateUserList(usersInRoom); // Yalnızca o odadaki kullanıcılar
+  updateUserList(usersInRoom);
 
-  // WebRTC peer bağlantılarının yönetimi
   const otherUserIds = usersInRoom
     .filter(u => u.id !== socket.id)
     .map(u => u.id)
@@ -336,7 +315,6 @@ socket.on('roomUsers', (usersInRoom) => {
         if (!peers[userId]) initPeer(userId, true);
       });
       pendingUsers = [];
-
       pendingNewUsers.forEach(userId => {
         if (!peers[userId]) initPeer(userId, false);
       });
@@ -353,24 +331,20 @@ socket.on('roomUsers', (usersInRoom) => {
   }
 });
 
-// Kullanıcı listesini sağ panelde güncelleyen fonksiyon
+// Sağ panelde kullanıcı listesini güncelle
 function updateUserList(usersInRoom) {
   userListDiv.innerHTML = ''; 
   usersInRoom.forEach(user => {
-    // Her kullanıcı için .user-item oluştur
     const userItem = document.createElement('div');
     userItem.classList.add('user-item');
 
-    // Profil fotoğrafı (şimdilik boş)
     const profileThumb = document.createElement('div');
     profileThumb.classList.add('profile-thumb');
 
-    // Kullanıcı adı
     const userNameSpan = document.createElement('span');
     userNameSpan.classList.add('user-name');
     userNameSpan.textContent = user.username || '(İsimsiz)';
 
-    // ID kopyala butonu
     const copyIdButton = document.createElement('button');
     copyIdButton.classList.add('copy-id-btn');
     copyIdButton.textContent = "ID Kopyala";
@@ -388,16 +362,14 @@ function updateUserList(usersInRoom) {
         });
     });
 
-    // Elemanları userItem içine ekle
     userItem.appendChild(profileThumb);
     userItem.appendChild(userNameSpan);
     userItem.appendChild(copyIdButton);
-
-    // userListDiv'e ekle
     userListDiv.appendChild(userItem);
   });
 }
 
+// Mikrofon izni
 async function requestMicrophoneAccess() {
   console.log("Mikrofon izni isteniyor...");
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -409,6 +381,7 @@ async function requestMicrophoneAccess() {
   });
 }
 
+// WebRTC signal
 socket.on("signal", async (data) => {
   console.log("Signal alındı:", data);
   const { from, signal } = data;
@@ -416,7 +389,7 @@ socket.on("signal", async (data) => {
   let peer;
   if (!peers[from]) {
     if (!localStream) {
-      console.warn("localStream henüz yok, ama signal alındı. Bu kullanıcıyı bekletiyoruz.");
+      console.warn("localStream yok, sinyal bekleteceğiz.");
       pendingNewUsers.push(from);
       return;
     }
@@ -429,7 +402,7 @@ socket.on("signal", async (data) => {
     await peer.setRemoteDescription(new RTCSessionDescription(signal));
     const answer = await peer.createAnswer();
     await peer.setLocalDescription(answer);
-    console.log("Bağlantıya cevap verildi (answer):", answer);
+    console.log("Answer gönderiliyor:", answer);
     socket.emit("signal", { to: from, signal: peer.localDescription });
   } else if (signal.type === "answer") {
     await peer.setRemoteDescription(new RTCSessionDescription(signal));
@@ -439,9 +412,10 @@ socket.on("signal", async (data) => {
   }
 });
 
+// Peer başlat
 function initPeer(userId, isInitiator) {
   if (!localStream || !audioPermissionGranted) {
-    console.warn("localStream yokken initPeer çağrıldı. Bu kullanıcı bekletilecek.");
+    console.warn("localStream yok, initPeer bekletiliyor.");
     if (isInitiator) {
       pendingUsers.push(userId);
     } else {
@@ -451,11 +425,11 @@ function initPeer(userId, isInitiator) {
   }
 
   if (peers[userId]) {
-    console.log("Bu kullanıcı için zaten bir peer var, initPeer iptal.");
+    console.log("Bu kullanıcı için zaten bir peer var.");
     return peers[userId];
   }
 
-  console.log(`initPeer çağrıldı: userId=${userId}, isInitiator=${isInitiator}`);
+  console.log(`initPeer: userId=${userId}, isInitiator=${isInitiator}`);
   const peer = new RTCPeerConnection({
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
@@ -463,35 +437,26 @@ function initPeer(userId, isInitiator) {
   });
   peers[userId] = peer;
 
-  if (localStream) {
-    localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
-  }
+  localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
 
   peer.onicecandidate = (event) => {
     if (event.candidate) {
-      console.log("Yeni ICE Candidate oluşturuldu:", event.candidate);
       socket.emit("signal", { to: userId, signal: event.candidate });
-    } else {
-      console.log("ICE Candidate süreci tamamlandı.");
     }
   };
-
   peer.oniceconnectionstatechange = () => {
-    console.log("ICE bağlantı durumu:", peer.iceConnectionState);
+    console.log("ICE durumu:", peer.iceConnectionState);
   };
-
   peer.onconnectionstatechange = () => {
     console.log("PeerConnection durumu:", peer.connectionState);
   };
-
   peer.ontrack = (event) => {
-    console.log("Remote stream alındı...");
+    console.log("Remote stream alındı.");
     const audio = new Audio();
     audio.srcObject = event.streams[0];
     audio.autoplay = false; 
     audio.muted = false;
     remoteAudios.push(audio);
-
     if (audioPermissionGranted) {
       audio.play().catch(err => console.error("Ses oynatılamadı:", err));
     }
@@ -500,17 +465,17 @@ function initPeer(userId, isInitiator) {
   if (isInitiator) {
     createOffer(peer, userId);
   }
-
   return peer;
 }
 
+// Offer oluştur
 async function createOffer(peer, userId) {
   const offer = await peer.createOffer();
   await peer.setLocalDescription(offer);
-  console.log("Offer oluşturuldu ve gönderildi:", offer);
   socket.emit("signal", { to: userId, signal: peer.localDescription });
 }
 
+// Tüm peer bağlantılarını kapat
 function closeAllPeers() {
   for (const userId in peers) {
     if (peers[userId]) {
@@ -522,14 +487,13 @@ function closeAllPeers() {
 }
 
 socket.on("connect", () => {
-  console.log("WebSocket bağlantısı kuruldu. Kullanıcı ID:", socket.id);
+  console.log("Bağlantı sağlandı:", socket.id);
 });
-
 socket.on("disconnect", () => {
-  console.log("WebSocket bağlantısı kesildi.");
+  console.log("Bağlantı koptu.");
 });
 
-// Debug amaçlı periyodik log
+// Debug
 setInterval(() => {
-  console.log("Mevcut PeerConnection'lar:", peers);
+  console.log("Peers:", Object.keys(peers));
 }, 10000);

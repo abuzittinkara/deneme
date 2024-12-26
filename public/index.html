@@ -52,11 +52,10 @@
 
   <!-- Görüşme Ekranı -->
   <div id="callScreen" class="screen-container" style="display:none;">
-    <!-- Soldaki sidebar -->
+    <!-- Soldaki sidebar (Gruplar) -->
     <div class="sidebar" id="sidebar">
       <!-- Sol üstte DM butonu (varsayılan mektup simgesi) -->
       <button id="toggleDMButton" class="circle-btn dm-toggle-btn">
-        <!-- Inline SVG: Basit zarf ikonu -->
         <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" 
              stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
           <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 
@@ -81,15 +80,18 @@
       <button id="createGroupButton" class="circle-btn create-group-btn">+</button>
     </div>
 
+    <!-- Hemen sağında, odaların listelendiği panel (biraz daha geniş) -->
+    <div id="roomPanel" class="rooms-panel">
+      <h2 class="panel-title">Sesli Odalar</h2>
+      <div id="roomList" class="room-list"></div>
+      <button id="createRoomButton" class="circle-btn create-room-btn">+</button>
+    </div>
+
     <!-- Ortadaki ana içerik -->
     <div class="main-content">
       <h1 class="app-title">Sesli Görüşme</h1>
-      <p>Grup içinden bir odaya katıldığınızda WebRTC ses akışı başlayacaktır.</p>
-
-      <!-- Oda listesi (YENİ) -->
-      <h2 class="panel-title">Oda Listesi</h2>
-      <div id="roomList" class="group-list" style="margin-top: 1rem;"></div>
-      <button id="createRoomButton" class="circle-btn create-group-btn" style="margin-top: 1rem;">+</button>
+      <p>Grup seçin ve ardından soldan bir oda oluşturup katılın.</p>
+      <p>Katıldığınız odadaki kullanıcılarla sesli görüşme yapabilirsiniz.</p>
     </div>
 
     <!-- Sağdaki kullanıcı paneli -->
@@ -111,7 +113,7 @@
     </div>
   </div>
 
-  <!-- Modal: Oda Oluşturma Kutusu (YENİ) -->
+  <!-- Modal: Oda Oluşturma Kutusu -->
   <div id="roomModal" class="modal" style="display: none;">
     <div class="modal-content">
       <h2>Oda Oluştur</h2>
