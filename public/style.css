@@ -1,5 +1,3 @@
-/* style.css */
-
 /* Genel ayarlar */
 body {
   margin: 0;
@@ -86,17 +84,50 @@ body {
 /* callScreen koyu tema */
 #callScreen.screen-container {
   background: #2d2d2d; 
-  flex-direction: row; /* Solda sidebar, ortada main-content, sağda panel */
+  flex-direction: row;
   align-items: stretch;       
   justify-content: flex-start;
 }
 
 /* 
-  Soldaki menü (sidebar).
-  GRUPLAR sekmesi biraz daha koyu ton (#1a1a1a) yapıldı.
+  Tüm sol taraf: Gruplar + Odalar + DM 
+  Normalde: width = sidebar(80px) + rooms-panel(140px) = 220px 
 */
+.left-panels {
+  display: flex;
+  flex-direction: row;
+  width: 220px; 
+  transition: width 0.3s ease;
+  overflow: hidden; /* DM panelin açılış/kapanışında taşma olmasın */
+}
+
+/* 
+  Gruplar + Odalar bölümü 
+  Normal modda display:flex 
+  DM modunda gizleyeceğiz (script.js içinde display:none)
+*/
+.groups-rooms {
+  display: flex;
+  flex-direction: row;
+  width: 220px;
+}
+
+/* DM paneli 
+   Normalde kapalı (display:none),
+   DM modunda görünecek, bu panelin width: 100% yaparak left-panels’in tamamını kaplasın.
+*/
+.dm-panel {
+  width: 100%;
+  background: #222;
+  color: #fff;
+  padding: 1rem;
+  box-sizing: border-box;
+  overflow: auto;
+}
+
+/* Sidebar (Gruplar sekmesi koyu ton) */
 .sidebar {
-  background: #1a1a1a; /* Değiştirildi: Eskiden #1f1f1f idi */
+  background: #1a1a1a; 
   width: 80px;        
   display: flex;
   flex-direction: column;
@@ -105,16 +136,8 @@ body {
   position: relative; 
   transition: width 0.3s ease;
 }
-.sidebar.sidebar-expanded {
-  width: 220px; 
-}
 .dm-toggle-btn {
   margin-bottom: 1rem; 
-}
-.dm-panel {
-  margin-top: 1rem;
-  width: 100%;
-  padding: 0 1rem;
 }
 .group-list {
   display: flex;
@@ -161,10 +184,10 @@ body {
   background-color: #a3156f;
 }
 
-/* Odalar paneli (rooms-panel) gruplar sekmesinden biraz daha açık (#1f1f1f) */
+/* Odalar paneli */
 .rooms-panel {
   background: #1f1f1f;
-  width: 140px; /* Grup sidebar'ın 80px'inden daha geniş */
+  width: 140px; 
   display: flex;
   flex-direction: column;
   padding: 1rem;
@@ -177,7 +200,7 @@ body {
   gap: 1rem;
 }
 .create-room-btn {
-  margin-top: auto; /* Altta kalsın */
+  margin-top: auto; 
 }
 
 /* Ortadaki ana içerik */

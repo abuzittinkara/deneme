@@ -52,45 +52,48 @@
 
   <!-- Görüşme Ekranı -->
   <div id="callScreen" class="screen-container" style="display:none;">
-    <!-- Soldaki sidebar (Gruplar) -->
-    <div class="sidebar" id="sidebar">
-      <!-- Sol üstte DM butonu (varsayılan mektup simgesi) -->
-      <button id="toggleDMButton" class="circle-btn dm-toggle-btn">
-        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" 
-             stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 
-                   1.1-.9 2-2 2H4c-1.1 
-                   0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-          <polyline points="22,6 12,13 2,6"></polyline>
-        </svg>
-      </button>
+    <!-- Sol tarafı (Gruplar + Sesli Odalar + DM Panel) kapsayan container -->
+    <div id="leftPanels" class="left-panels">
+      <!-- 1) Gruplar + Odalar  (Normal modda gözükecek) -->
+      <div id="groupsAndRooms" class="groups-rooms">
+        <!-- Soldaki dar sidebar (Gruplar) -->
+        <div class="sidebar" id="sidebar">
+          <!-- Sol üstte DM butonu -->
+          <button id="toggleDMButton" class="circle-btn dm-toggle-btn">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" 
+                 stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 
+                       1.1-.9 2-2 2H4c-1.1 
+                       0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+              <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+          </button>
 
-      <!-- DM paneli (varsayılan gizli) -->
+          <!-- Grup listesi -->
+          <div id="groupList" class="group-list"></div>
+          <!-- Grup oluşturma butonu -->
+          <button id="createGroupButton" class="circle-btn create-group-btn">+</button>
+        </div>
+
+        <!-- Odalar paneli (biraz daha geniş) -->
+        <div id="roomPanel" class="rooms-panel">
+          <h2 class="panel-title">Sesli Odalar</h2>
+          <div id="roomList" class="room-list"></div>
+          <button id="createRoomButton" class="circle-btn create-room-btn">+</button>
+        </div>
+      </div>
+
+      <!-- 2) DM paneli (tüm sol kısmı kaplar) -->
       <div id="dmPanel" class="dm-panel" style="display: none;">
         <h3>DM Mesajları</h3>
         <p>Birebir mesajlar buraya gelecek.</p>
       </div>
-
-      <!-- Grup listesi (varsayılan açık) -->
-      <div id="groupList" class="group-list">
-        <!-- Gruplar buraya script.js aracılığıyla eklenecek -->
-      </div>
-
-      <!-- Sol en altta sabitlenen grup oluşturma butonu -->
-      <button id="createGroupButton" class="circle-btn create-group-btn">+</button>
-    </div>
-
-    <!-- Hemen sağında, odaların listelendiği panel (biraz daha geniş) -->
-    <div id="roomPanel" class="rooms-panel">
-      <h2 class="panel-title">Sesli Odalar</h2>
-      <div id="roomList" class="room-list"></div>
-      <button id="createRoomButton" class="circle-btn create-room-btn">+</button>
     </div>
 
     <!-- Ortadaki ana içerik -->
     <div class="main-content">
       <h1 class="app-title">Sesli Görüşme</h1>
-      <p>Grup seçin ve ardından soldan bir oda oluşturup katılın.</p>
+      <p>Grup seçin ve soldan bir oda oluşturup katılın.</p>
       <p>Katıldığınız odadaki kullanıcılarla sesli görüşme yapabilirsiniz.</p>
     </div>
 
