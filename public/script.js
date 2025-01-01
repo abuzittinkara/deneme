@@ -76,7 +76,6 @@ const modalCreateRoomBtn = document.getElementById('modalCreateRoomBtn');
 const modalCloseRoomBtn = document.getElementById('modalCloseRoomBtn');
 
 // Sol alt kullanıcı paneli
-const leftUserPanel = document.getElementById('leftUserPanel');
 const leftUserName = document.getElementById('leftUserName');
 const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
@@ -84,6 +83,57 @@ const deafenToggleButton = document.getElementById('deafenToggleButton');
 // Mikrofon ve Deafen durumları
 let micEnabled = true;
 let selfDeafened = false;
+
+// SVG ikonları (MIC ON/OFF, HEADPHONE ON/OFF)
+
+// Mikrofon Açık
+const micOnSVG = `
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+     stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+     stroke-linejoin="round">
+  <path d="M12 1a3 3 0 0 1 3 3v6a3 3 0 1 1-6 0V4a3 3 0 0 1 3-3z"></path>
+  <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+  <line x1="12" y1="19" x2="12" y2="23"></line>
+  <line x1="8" y1="23" x2="16" y2="23"></line>
+</svg>
+`;
+// Mikrofon Kapalı
+const micOffSVG = `
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+     stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+     stroke-linejoin="round">
+  <line x1="1" y1="1" x2="23" y2="23"></line>
+  <path d="M9 9v3a3 3 0 0 0 5.24 2.13"></path>
+  <path d="M15 10V4a3 3 0 0 0-5.55-1.66"></path>
+  <path d="M17 13v2a5 5 0 0 1-7.63 4.21"></path>
+  <line x1="12" y1="19" x2="12" y2="23"></line>
+  <line x1="8" y1="23" x2="16" y2="23"></line>
+</svg>
+`;
+
+// Kulak üstü kulaklık (Deafen) Açık
+const headphoneOnSVG = `
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+     stroke="currentColor" stroke-width="2" stroke-linecap="round"
+     stroke-linejoin="round">
+  <path d="M4 18v-5a8 8 0 0 1 16 0v5"></path>
+  <path d="M18 19a2 2 0 0 0 2-2v-3"></path>
+  <path d="M6 19a2 2 0 0 1-2-2v-3"></path>
+  <!-- Ek bir işaretle 'aktif' hissi verilebilir. (bu basit hali) -->
+</svg>
+`;
+// Kulak üstü kulaklık (Deafen) Kapalı
+const headphoneOffSVG = `
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+     stroke="currentColor" stroke-width="2" stroke-linecap="round"
+     stroke-linejoin="round">
+  <path d="M4 18v-5a8 8 0 0 1 14.11-5.29"></path>
+  <path d="M17 13v1"></path>
+  <path d="M18 19a2 2 0 0 0 2-2v-2"></path>
+  <path d="M6 19a2 2 0 0 1-2-2v-3"></path>
+  <line x1="2" y1="2" x2="22" y2="22"></line>
+</svg>
+`;
 
 // ------------------
 // Ekran geçişleri
@@ -161,6 +211,8 @@ socket.on('loginResult', (data) => {
 
     // Sol alt panelde kullanıcı adını göster
     leftUserName.textContent = username;
+    // İlk ikon durumlarını atayalım
+    applyAudioStates();
   } else {
     alert("Giriş başarısız: " + data.message);
   }
@@ -484,7 +536,7 @@ function initPeer(userId, isInitiator) {
     audio.autoplay = false; 
     audio.muted = false;
     remoteAudios.push(audio);
-    applyDeafenState(); // eğer deaf isek bu ses de kapansın
+    applyDeafenState(); // Deaf isek sesi kapat
     if (audioPermissionGranted) {
       audio.play().catch(err => console.error("Ses oynatılamadı:", err));
     }
@@ -541,22 +593,16 @@ function createWaveIcon() {
 }
 
 // ------------------------------------------------
-// Mikrofon ve Deafen butonları (Sol alt panel)
+// Mikrofon ve Kulaklık butonları (Sol alt panel)
 // ------------------------------------------------
-
-// Mikrofona basıldığında sadece kendi mikrofonu aç/kapa
 micToggleButton.addEventListener('click', () => {
-  // Eğer zaten Deaf ise ve Deaf'i bozmuyorsak, sadece mikrofonu açmak kapatmak fayda etmeyebilir.
-  // Fakat Discord mantığında, Deaf iken de mic toggling var. 
-  // Biz basitçe micEnabled'i toggle ediyoruz.
   micEnabled = !micEnabled;
   applyAudioStates();
 });
 
-// Deafen butonuna basıldığında hem kendi sesi hem gelen ses kapansın
 deafenToggleButton.addEventListener('click', () => {
   selfDeafened = !selfDeafened;
-  // Deaf olduysa otomatik mic kapatılsın
+  // Deaf olduysa otomatik mic kapansın
   if (selfDeafened) {
     micEnabled = false;
   }
@@ -568,15 +614,15 @@ function applyAudioStates() {
   // Mikrofon durumu
   if (localStream) {
     localStream.getAudioTracks().forEach(track => {
-      track.enabled = micEnabled && !selfDeafened; // Deaf olduğunda mic kapalı kalsın
+      track.enabled = micEnabled && !selfDeafened; 
     });
   }
-  micToggleButton.textContent = micEnabled && !selfDeafened ? "🎤" : "🚫";
+  // Mic ikonu
+  micToggleButton.innerHTML = (micEnabled && !selfDeafened) ? micOnSVG : micOffSVG;
 
   // Deafen durumu
-  // Eğer Deaf isek tüm remote audios muted
   applyDeafenState();
-  deafenToggleButton.textContent = selfDeafened ? "🔈" : "🔇";
+  deafenToggleButton.innerHTML = selfDeafened ? headphoneOnSVG : headphoneOffSVG;
 }
 
 // Gelen sesleri kapat/aç

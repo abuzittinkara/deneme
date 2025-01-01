@@ -310,6 +310,9 @@ body {
   cursor: pointer;
   transition: background 0.2s;
   font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .user-panel-btn:hover {
   background: #555;
