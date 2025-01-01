@@ -12,7 +12,7 @@ let currentRoom = null;   // Bu da oda ID'yi tutar
 // Bekleyen kullanıcı listeleri (WebRTC senaryosu)
 let pendingUsers = [];
 let pendingNewUsers = [];
-
+let therebelight = [];
 // Ekran elementleri
 const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
