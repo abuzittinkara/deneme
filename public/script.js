@@ -9,7 +9,7 @@ let username = null;
 let currentGroup = null;  // Bu ID'yi tutar
 let currentRoom = null;   // Bu da oda ID'yi tutar
 
-// Bekleyen kullanıcı listeleri
+// Bekleyen kullanıcı listeleri (WebRTC senaryosu)
 let pendingUsers = [];
 let pendingNewUsers = [];
 
@@ -41,11 +41,11 @@ const backToLoginButton = document.getElementById('backToLoginButton');
 const showRegisterScreen = document.getElementById('showRegisterScreen');
 const showLoginScreen = document.getElementById('showLoginScreen');
 
-// Gruplar
+// Gruplar (soldaki yuvarlak ikonlar)
 const groupListDiv = document.getElementById('groupList');
 const createGroupButton = document.getElementById('createGroupButton');
 
-// Odalar
+// Odalar (artık metin + ikon)
 const roomListDiv = document.getElementById('roomList');
 const createRoomButton = document.getElementById('createRoomButton');
 const groupTitle = document.getElementById('groupTitle');
@@ -193,16 +193,17 @@ modalCloseButton.addEventListener('click', () => {
   groupModal.style.display = 'none';
 });
 
-// Sunucudan grup listesi geldi
+// Sunucudan grup listesi
 socket.on('groupsList', (groupArray) => {
   // groupArray => [ { id: '...', name: '...' }, ... ]
   groupListDiv.innerHTML = '';
   groupArray.forEach(groupObj => {
     // Bir div oluşturalım
     const grpItem = document.createElement('div');
-    grpItem.className = 'grp-item';
-    grpItem.innerText = groupObj.name[0].toUpperCase();  // Örnek: "S" harfi
-    grpItem.title = groupObj.name;                       // Tooltip olarak tam ad
+    grpItem.className = 'grp-item'; // Yuvarlak grup ikonu
+    grpItem.innerText = groupObj.name[0].toUpperCase(); // Örneğin ilk harf
+    grpItem.title = groupObj.name;   // Tooltip olarak tam ad
+
     // ID'yi saklamak için
     grpItem.dataset.groupId = groupObj.id;
 
@@ -239,15 +240,27 @@ socket.on('roomsList', (roomsArray) => {
   // roomsArray => [ { id: '...', name: '...' }, ... ]
   roomListDiv.innerHTML = '';
   roomsArray.forEach(roomObj => {
+    // Kanalları artık "channel-item" stili ile yapıyoruz
     const roomItem = document.createElement('div');
-    roomItem.className = 'grp-item';
-    roomItem.innerText = roomObj.name[0].toUpperCase();
-    roomItem.title = roomObj.name;
+    roomItem.className = 'channel-item';
 
+    // Ses dalgası ikonu (SVG) oluşturalım
+    const icon = createWaveIcon();
+
+    // Kanal adını gösterecek span
+    const textSpan = document.createElement('span');
+    textSpan.textContent = roomObj.name;
+
+    // Odaya tıklayınca joinRoom
     roomItem.addEventListener('click', () => {
       joinRoom(currentGroup, roomObj.id, roomObj.name);
     });
 
+    // Elemanları birleştir
+    roomItem.appendChild(icon);
+    roomItem.appendChild(textSpan);
+
+    // Oda listesi container'a ekle
     roomListDiv.appendChild(roomItem);
   });
 });
@@ -476,6 +489,28 @@ function closeAllPeers() {
   remoteAudios = [];
 }
 
+// Basit bir ses dalgası ikonu (SVG) oluşturan fonksiyon
+function createWaveIcon() {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("width", "18");
+  svg.setAttribute("height", "18");
+  svg.setAttribute("class", "channel-icon");
+  
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  // Basit bir dalga path'i
+  path.setAttribute("d", "M2,12 C4,8 8,4 12,12 16,20 20,16 22,12");
+  path.setAttribute("stroke", "currentColor");
+  path.setAttribute("stroke-width", "2");
+  path.setAttribute("fill", "none");
+  path.setAttribute("stroke-linecap", "round");
+  path.setAttribute("stroke-linejoin", "round");
+
+  svg.appendChild(path);
+  return svg;
+}
+
+// Socket durum
 socket.on("connect", () => {
   console.log("WebSocket bağlandı:", socket.id);
 });
@@ -483,9 +518,7 @@ socket.on("disconnect", () => {
   console.log("WebSocket bağlantısı koptu.");
 });
 
-// ------------------------------
 // Dropdown menü kontrolü
-// ------------------------------
 let dropdownOpen = false;
 groupDropdownIcon.addEventListener('click', () => {
   dropdownOpen = !dropdownOpen;
