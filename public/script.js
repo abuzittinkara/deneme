@@ -85,74 +85,60 @@ let micEnabled = true;
 let selfDeafened = false;
 
 /* 
-   1) Mikrofon Açık (beyaz) 
-   (defs kaldırıldı, style inline eklendi)
+   Basit Feather/Heroicon benzeri ikonlar
+   -- Mic ON (beyaz)
+   -- Mic OFF (beyaz + kırmızı slash)
+   -- Headphone ON (beyaz)
+   -- Headphone OFF (beyaz + kırmızı slash)
 */
+
+// Mikrofon Açık
 const micOnSVG = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 11.53 19.95">
-  <style>
-    .cls-1 { fill: #fff; }
-    .cls-2 {
-      fill: none;
-      stroke: #fff;
-      stroke-miterlimit: 10;
-      stroke-width: 1.5px;
-    }
-  </style>
-  <path class="cls-2" d="M.75,4.35v6.55c0,.78.18,1.55.53,2.24h0c1.85,3.7,7.13,3.7,8.97,0h0c.35-.7.53-1.46.53-2.24v-6.55"/>
-  <path class="cls-2" d="M5.77,15.91v3.29"/>
-  <path class="cls-2" d="M10.78,19.2H.75"/>
-  <rect class="cls-1" x="2.38" y="0" width="6.77" height="14.28" rx="3.36" ry="3.36"/>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+     stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Feather mic -->
+  <path d="M12 1v11a3 3 0 0 1-6 0V1"></path>
+  <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+  <line x1="12" y1="19" x2="12" y2="23"></line>
+  <line x1="8" y1="23" x2="16" y2="23"></line>
 </svg>
 `;
 
-/* 
-   2) Mikrofon Kapalı (kırmızı)
-   (defs kaldırıldı, style inline eklendi)
-*/
+// Mikrofon Kapalı (Slash kırmızı)
 const micOffSVG = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.28 19.96">
-  <style>
-    .cls-1 { fill: red; }
-  </style>
-  <g>
-    <path class="cls-1" d="M5.45,11.69l-1.22,1.22c-.24-.64-.36-1.33-.36-2.01v-6.54h1.5v6.54c0,.27.03.53.08.79Z"/>
-    <path class="cls-1" d="M6.69,13.98l-1.05,1.05c-.38-.35-.69-.74-.94-1.18l1.1-1.1s.01.04.02.06c.23.46.52.86.87,1.17Z"/>
-    <polygon class="cls-1" points="15.41 4.36 15.41 5.26 13.91 6.76 13.91 4.64 14.19 4.36 15.41 4.36"/>
-    <path class="cls-1" d="M15.41,6.67v4.23c0,.89-.21,1.78-.61,2.58-.88,1.74-2.52,2.9-4.41,3.14v1.84h4.27v1.5H4.62v-1.5h4.27v-1.84c-.91-.11-1.75-.44-2.48-.95l1.07-1.07c.63.37,1.38.57,2.16.57,1.65,0,3.08-.88,3.82-2.36.29-.59.45-1.25.45-1.91v-2.73l1.5-1.5Z"/>
-  </g>
-  <path class="cls-1" d="M13.03,3.36v.75l-6.78,6.78V3.36c0-1.85,1.51-3.36,3.36-3.36h.06c1.85,0,3.36,1.51,3.36,3.36Z"/>
-  <path class="cls-1" d="M13.03,5.52v2.12l-5.73,5.73c-.37-.36-.66-.79-.84-1.28l6.57-6.57Z"/>
-  <path class="cls-1" d="M13.03,9.05v1.88c0,1.86-1.51,3.36-3.36,3.36h-.06c-.53,0-1.03-.12-1.47-.35l4.89-4.89Z"/>
-  <polygon class="cls-1" points="19.28 1.39 13.03 7.64 7.3 13.37 6.69 13.98 1.06 19.61 0 18.55 4.7 13.85 5.8 12.75 6.46 12.09 18.22 .33 19.28 1.39"/>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+     stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Normal mic çizgisi -->
+  <path d="M12 1v11a3 3 0 0 1-6 0V1" />
+  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+  <line x1="12" y1="19" x2="12" y2="23" />
+  <line x1="8" y1="23" x2="16" y2="23" />
+  <!-- Slash: çizgiyi kırmızı yapalım -->
+  <line x1="1" y1="1" x2="23" y2="23" stroke="red" stroke-width="2" />
 </svg>
 `;
 
-/* 
-   3) Kulaklık Normal (beyaz)
-   (defs kaldırıldı, style inline eklendi)
-*/
+// Kulaklık Normal (beyaz)
 const headphoneOffSVG = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18.53 19.02">
-  <style>
-    .cls-1 { fill: #fff; }
-  </style>
-  <path class="cls-1" d="M16.63,8.08h-.6v-2.05c0-3.33-2.71-6.03-6.03-6.03S3.97,2.71,3.97,6.03v2.05h-.6c-1.05,0-1.9.85-1.9,1.9v3.71c0,1.05.85,1.9,1.9,1.9h2.1V6.03c0-2.5,2.03-4.53,4.53-4.53s4.53,2.03,4.53,4.53v9.57h2.1c1.05,0,1.9-.85,1.9-1.9v-3.71c0-1.05-.85-1.9-1.9-1.9Z"/>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+     stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Basit headphone -->
+  <path d="M4 14v-2a8 8 0 0 1 16 0v2" />
+  <path d="M4 14h-2v4h2z" />
+  <path d="M20 14h2v4h-2z" />
 </svg>
 `;
 
-/* 
-   4) Kulaklık Sağır (kırmızı)
-   (defs kaldırıldı, style inline eklendi)
-*/
+// Kulaklık Sağır (slash kırmızı)
 const headphoneOnSVG = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.61 19.61">
-  <style>
-    .cls-1 { fill: red; }
-  </style>
-  <path class="cls-1" d="M14.5,2.63l-1.06,1.06c-.82-.98-2.06-1.6-3.44-1.6-2.5,0-4.53,2.04-4.53,4.54v5.03l-3.68,3.68c-.2-.3-.32-.66-.32-1.05v-3.71c0-1.05.85-1.9,1.9-1.9h.6v-2.05C3.97,3.3,6.67.59,10,.59c1.8,0,3.41.79,4.5,2.04Z"/>
-  <path class="cls-1" d="M18.53,10.58v3.71c0,1.05-.85,1.9-1.9,1.9h-2.1V7.56l1.47-1.47c.02.18.03.36.03.54v2.05h.6c1.05,0,1.9.85,1.9,1.9Z"/>
-  <polygon class="cls-1" points="19.61 1.06 14.51 6.16 14.51 6.17 5.47 15.2 4.48 16.19 1.45 19.22 .39 18.16 2.55 16 5.47 13.08 14.01 4.54 15.11 3.44 18.55 0 19.61 1.06"/>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+     stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Basit headphone -->
+  <path d="M4 14v-2a8 8 0 0 1 16 0v2" />
+  <path d="M4 14h-2v4h2z" />
+  <path d="M20 14h2v4h-2z" />
+  <!-- Slash kırmızı -->
+  <line x1="1" y1="1" x2="23" y2="23" stroke="red" stroke-width="2" />
 </svg>
 `;
 

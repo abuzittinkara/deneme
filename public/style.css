@@ -186,7 +186,7 @@ body {
   gap: 1rem;
 }
 
-/* Oda paneli üst kısmı: Grup Adı + ok (⌄) */
+/* Oda paneli üst kısmı: Grup Adı + ok simgesi (⌄) */
 .room-panel-header {
   display: flex;
   align-items: center;
