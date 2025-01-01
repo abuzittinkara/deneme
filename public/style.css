@@ -3,8 +3,8 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Roboto', sans-serif;
-  background: #efefef;
-  color: #333;
+  background: #2d2d2d;
+  color: #fff;
   font-size: 16px;
 }
 
@@ -14,12 +14,6 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-/* Login & Register ekranları koyu tema */
-#loginScreen.screen-container,
-#registerScreen.screen-container {
-  background: #2d2d2d; 
 }
 
 .card {
@@ -32,9 +26,9 @@ body {
   box-shadow: none; 
 }
 
-#loginScreen .card *,
-#registerScreen .card * {
-  color: #fff; 
+.app-title {
+  margin: 0 0 1rem;
+  font-size: 1.5rem;
 }
 
 /* Butonlar */
@@ -74,37 +68,42 @@ body {
   margin-bottom: 1rem;
   box-sizing: border-box;
 }
-#loginScreen .input-text,
-#registerScreen .input-text {
-  max-width: 280px;
-  margin: 0 auto;
-  display: block;
-}
 
-/* callScreen koyu tema */
-#callScreen.screen-container {
+/* Ekranlar koyu arka plan */
+#loginScreen.screen-container,
+#registerScreen.screen-container {
   background: #2d2d2d; 
-  flex-direction: row;
-  align-items: stretch;       
-  justify-content: flex-start;
 }
 
-/* 
-  Tüm sol taraf: Gruplar + Odalar + DM 
-  (Normalde 80px sidebar + 140px rooms = 220px toplam)
-*/
+/* callScreen */
+#callScreen.screen-container {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: flex-start;
+  background: #2d2d2d;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Sol taraftaki paneller */
 .left-panels {
   display: flex;
   flex-direction: row;
-  width: 220px; 
-  transition: width 0.3s ease;
-  overflow: hidden;
+  width: 220px;
+  height: 100%;
+  position: relative;
 }
+
+/* Gruplar + Odalar (sidebar) */
 .groups-rooms {
   display: flex;
   flex-direction: row;
   width: 220px;
+  position: relative;
 }
+
+/* DM paneli */
 .dm-panel {
   width: 100%;
   background: #222;
@@ -112,15 +111,20 @@ body {
   padding: 1rem;
   box-sizing: border-box;
   overflow: auto;
-  position: relative;
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
 }
+
+/* Kapat butonu */
 .dm-close-btn {
   position: absolute;
   top: 1rem;
   left: 1rem;
 }
 
-/* Sidebar (Gruplar sekmesi) */
+/* Sidebar (Gruplar) */
 .sidebar {
   background: #1a1a1a; 
   width: 80px;        
@@ -139,8 +143,6 @@ body {
   gap: 1rem;
   margin-top: 1rem;
 }
-
-/* Gruplar (yuvarlak) */
 .grp-item {
   width: 50px;
   height: 50px;
@@ -159,7 +161,7 @@ body {
 }
 .create-group-btn {
   position: absolute;
-  bottom: 20px;
+  bottom: 80px;
   left: 50%;
   transform: translateX(-50%);
 }
@@ -191,21 +193,24 @@ body {
   gap: 1rem;
 }
 
-/* Oda paneli üst kısmı: Grup Adı + ok simgesi (⌄) */
+/* Oda paneli üst kısmı: Grup Adı + ok (⌄) */
 .room-panel-header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   position: relative; /* dropdown menü için */
 }
-
-/* Ok simgesi (⌄) */
+.panel-title {
+  margin: 0;
+  font-size: 1rem;
+  color: #fff;
+}
 .dropdown-icon {
   cursor: pointer;
   user-select: none;
-  font-size: 1.5rem; 
+  font-size: 1.2rem; 
   color: #ccc;
-  margin-left: auto; /* Grup adının sağında dursun */
+  margin-left: auto; 
 }
 .dropdown-icon:hover {
   color: #fff;
@@ -214,7 +219,7 @@ body {
 /* Dropdown menü */
 .dropdown-menu {
   position: absolute;
-  top: 2rem; /* h2 + padding kadar offset */
+  top: 2rem;
   right: 0;
   background: #2d2d2d;
   border: 1px solid #444;
@@ -237,20 +242,19 @@ body {
   background: #444;
 }
 
-/* Kanal listesi */
 .room-list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 .create-room-btn {
   margin-top: auto; 
+  position: absolute;
+  bottom: 80px;
+  right: 15px;
 }
 
-/* 
-  Kanallar (Discord benzeri) 
-  - Düz yazı, yanında ses dalgası ikonu
-*/
+/* Kanal item (Düz yazı + ses dalgası) */
 .channel-item {
   display: flex;
   align-items: center;
@@ -270,12 +274,64 @@ body {
   height: 16px;
 }
 
+/* Sol Alt Kullanıcı Paneli */
+.user-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 220px;
+  background: #1a1a1a;
+  padding: 0.5rem;
+  box-sizing: border-box;
+}
+.user-panel-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.user-profile-pic {
+  width: 40px;
+  height: 40px;
+  background: #666;
+  border-radius: 50%;
+}
+.user-panel-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+.left-username {
+  font-size: 0.9rem;
+  color: #fff;
+}
+.user-panel-buttons {
+  display: flex;
+  gap: 0.25rem;
+}
+.user-panel-btn {
+  background: #444;
+  border: none;
+  color: #fff;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-size: 1rem;
+}
+.user-panel-btn:hover {
+  background: #555;
+}
+
 /* Ortadaki ana içerik */
 .main-content {
   flex: 1; 
   padding: 2rem;
   overflow: auto;
   color: #fff; 
+}
+.app-title {
+  margin: 0 0 1rem;
+  font-size: 1.4rem;
 }
 
 /* Sağ panel (kullanıcı listesi) */
@@ -287,10 +343,6 @@ body {
   flex-direction: column;
   box-sizing: border-box;
   color: #fff;
-}
-.panel-title {
-  margin: 0 0 1rem;
-  font-size: 1.25rem;
 }
 .user-list {
   display: flex;
@@ -367,17 +419,21 @@ body {
   display: none;
 }
 
-/* Mobil uyumluluk (isteğe bağlı) */
+/* Küçük ekran uyumluluğu (isteğe bağlı) */
 @media (max-width: 600px) {
-  .card {
-    padding: 1rem;
-    min-width: 280px;
+  .left-panels {
+    width: 180px;
+  }
+  .rooms-panel {
+    width: 100px;
+  }
+  .user-panel {
+    width: 180px;
   }
   .app-title {
     font-size: 1.2rem;
   }
   .right-panel {
     width: 100px;
-    padding: 0.5rem;
   }
 }

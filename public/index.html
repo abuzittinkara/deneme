@@ -52,10 +52,10 @@
 
   <!-- Görüşme Ekranı -->
   <div id="callScreen" class="screen-container" style="display:none;">
-    <!-- Sol taraftaki panel (Gruplar + DM) -->
+    <!-- Sol taraftaki panel (Gruplar + DM + Odalar) -->
     <div id="leftPanels" class="left-panels">
       <div id="groupsAndRooms" class="groups-rooms">
-        <!-- Gruplar Sekmesi (sidebar) -->
+        <!-- Sidebar (Gruplar) -->
         <div class="sidebar" id="sidebar">
           <!-- DM butonu -->
           <button id="toggleDMButton" class="circle-btn dm-toggle-btn">
@@ -71,10 +71,11 @@
           
           <!-- Gruplar listesi -->
           <div id="groupList" class="group-list"></div>
+          <!-- Grup Oluştur Butonu -->
           <button id="createGroupButton" class="circle-btn create-group-btn">+</button>
         </div>
 
-        <!-- Odalar Sekmesi -->
+        <!-- Odalar Paneli -->
         <div id="roomPanel" class="rooms-panel">
           <!-- Başlık: Grup Adı + Ok (⌄) -->
           <div class="room-panel-header">
@@ -89,11 +90,13 @@
             </div>
           </div>
 
+          <!-- Odalar (kanallar) listesi -->
           <div id="roomList" class="room-list"></div>
+          <!-- Oda Oluşturma Butonu -->
           <button id="createRoomButton" class="circle-btn create-room-btn">+</button>
         </div>
       </div>
-      
+
       <!-- DM paneli (tam sol) -->
       <div id="dmPanel" class="dm-panel" style="display:none; position: relative;">
         <button id="closeDMButton" class="circle-btn dm-close-btn">
@@ -106,6 +109,20 @@
 
         <h3 style="margin-top: 2.5rem;">DM Mesajları</h3>
         <p>Birebir mesajlar buraya gelecek.</p>
+      </div>
+
+      <!-- Sol Alt Kullanıcı Paneli -->
+      <div id="leftUserPanel" class="user-panel">
+        <div class="user-panel-content">
+          <div class="user-profile-pic"></div>
+          <div class="user-panel-info">
+            <span id="leftUserName" class="left-username">(Kullanıcı)</span>
+          </div>
+          <div class="user-panel-buttons">
+            <button id="micToggleButton" class="user-panel-btn" title="Mikrofon Aç/Kapa">🎤</button>
+            <button id="muteToggleButton" class="user-panel-btn" title="Kulaklık (Kendini Sessize Al)">🔇</button>
+          </div>
+        </div>
       </div>
     </div>
 
