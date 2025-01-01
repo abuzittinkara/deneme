@@ -86,23 +86,19 @@ let selfDeafened = false;
 
 /* 
    1) Mikrofon Açık (beyaz) 
-   (Gönderdiğiniz "mikrofonu sessize alma butonu" SVG kodu)
+   (defs kaldırıldı, style inline eklendi)
 */
 const micOnSVG = `
-<svg id="katman_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 11.53 19.95">
-  <defs>
-    <style>
-      .cls-1 {
-        fill: #fff;
-      }
-      .cls-2 {
-        fill: none;
-        stroke: #fff;
-        stroke-miterlimit: 10;
-        stroke-width: 1.5px;
-      }
-    </style>
-  </defs>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 11.53 19.95">
+  <style>
+    .cls-1 { fill: #fff; }
+    .cls-2 {
+      fill: none;
+      stroke: #fff;
+      stroke-miterlimit: 10;
+      stroke-width: 1.5px;
+    }
+  </style>
   <path class="cls-2" d="M.75,4.35v6.55c0,.78.18,1.55.53,2.24h0c1.85,3.7,7.13,3.7,8.97,0h0c.35-.7.53-1.46.53-2.24v-6.55"/>
   <path class="cls-2" d="M5.77,15.91v3.29"/>
   <path class="cls-2" d="M10.78,19.2H.75"/>
@@ -111,18 +107,14 @@ const micOnSVG = `
 `;
 
 /* 
-   2) Mikrofon Kapalı (kırmızı) 
-   (Gönderdiğiniz "sessize alınan mikrofon için svg" kodu)
+   2) Mikrofon Kapalı (kırmızı)
+   (defs kaldırıldı, style inline eklendi)
 */
 const micOffSVG = `
-<svg id="katman_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.28 19.96">
-  <defs>
-    <style>
-      .cls-1 {
-        fill: red;
-      }
-    </style>
-  </defs>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.28 19.96">
+  <style>
+    .cls-1 { fill: red; }
+  </style>
   <g>
     <path class="cls-1" d="M5.45,11.69l-1.22,1.22c-.24-.64-.36-1.33-.36-2.01v-6.54h1.5v6.54c0,.27.03.53.08.79Z"/>
     <path class="cls-1" d="M6.69,13.98l-1.05,1.05c-.38-.35-.69-.74-.94-1.18l1.1-1.1s.01.04.02.06c.23.46.52.86.87,1.17Z"/>
@@ -137,35 +129,27 @@ const micOffSVG = `
 `;
 
 /* 
-   3) Kulaklık Normal (beyaz) 
-   (Gönderdiğiniz "sağırlaştırma butonu" kodu)
+   3) Kulaklık Normal (beyaz)
+   (defs kaldırıldı, style inline eklendi)
 */
 const headphoneOffSVG = `
-<svg id="katman_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18.53 19.02">
-  <defs>
-    <style>
-      .cls-1 {
-        fill: #fff;
-      }
-    </style>
-  </defs>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18.53 19.02">
+  <style>
+    .cls-1 { fill: #fff; }
+  </style>
   <path class="cls-1" d="M16.63,8.08h-.6v-2.05c0-3.33-2.71-6.03-6.03-6.03S3.97,2.71,3.97,6.03v2.05h-.6c-1.05,0-1.9.85-1.9,1.9v3.71c0,1.05.85,1.9,1.9,1.9h2.1V6.03c0-2.5,2.03-4.53,4.53-4.53s4.53,2.03,4.53,4.53v9.57h2.1c1.05,0,1.9-.85,1.9-1.9v-3.71c0-1.05-.85-1.9-1.9-1.9Z"/>
 </svg>
 `;
 
 /* 
    4) Kulaklık Sağır (kırmızı)
-   (Gönderdiğiniz "sağırlaştırıldıktan sonra butonun svg'si" kodu)
+   (defs kaldırıldı, style inline eklendi)
 */
 const headphoneOnSVG = `
-<svg id="katman_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.61 19.61">
-  <defs>
-    <style>
-      .cls-1 {
-        fill: red;
-      }
-    </style>
-  </defs>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19.61 19.61">
+  <style>
+    .cls-1 { fill: red; }
+  </style>
   <path class="cls-1" d="M14.5,2.63l-1.06,1.06c-.82-.98-2.06-1.6-3.44-1.6-2.5,0-4.53,2.04-4.53,4.54v5.03l-3.68,3.68c-.2-.3-.32-.66-.32-1.05v-3.71c0-1.05.85-1.9,1.9-1.9h.6v-2.05C3.97,3.3,6.67.59,10,.59c1.8,0,3.41.79,4.5,2.04Z"/>
   <path class="cls-1" d="M18.53,10.58v3.71c0,1.05-.85,1.9-1.9,1.9h-2.1V7.56l1.47-1.47c.02.18.03.36.03.54v2.05h.6c1.05,0,1.9.85,1.9,1.9Z"/>
   <polygon class="cls-1" points="19.61 1.06 14.51 6.16 14.51 6.17 5.47 15.2 4.48 16.19 1.45 19.22 .39 18.16 2.55 16 5.47 13.08 14.01 4.54 15.11 3.44 18.55 0 19.61 1.06"/>
