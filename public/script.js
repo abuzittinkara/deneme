@@ -4,8 +4,10 @@ let peers = {};
 let audioPermissionGranted = false;
 let remoteAudios = []; 
 let username = null;
-let currentGroup = null; 
-let currentRoom = null;
+
+// Artık grup ismi yerine grup ID saklayacağız
+let currentGroup = null;  // Bu ID'yi tutar
+let currentRoom = null;   // Bu da oda ID'yi tutar
 
 // Bekleyen kullanıcı listeleri
 let pendingUsers = [];
@@ -46,9 +48,9 @@ const createGroupButton = document.getElementById('createGroupButton');
 // Odalar
 const roomListDiv = document.getElementById('roomList');
 const createRoomButton = document.getElementById('createRoomButton');
-const groupTitle = document.getElementById('groupTitle'); // YENİ
-const groupDropdownIcon = document.getElementById('groupDropdownIcon'); // YENİ
-const groupDropdownMenu = document.getElementById('groupDropdownMenu'); // YENİ
+const groupTitle = document.getElementById('groupTitle');
+const groupDropdownIcon = document.getElementById('groupDropdownIcon');
+const groupDropdownMenu = document.getElementById('groupDropdownMenu');
 
 // Dropdown menü öğeleri
 const renameGroupBtn = document.getElementById('renameGroupBtn');
@@ -191,49 +193,61 @@ modalCloseButton.addEventListener('click', () => {
   groupModal.style.display = 'none';
 });
 
-// Sunucudan grup listesi
-socket.on('groupsList', (groupNames) => {
+// Sunucudan grup listesi geldi
+socket.on('groupsList', (groupArray) => {
+  // groupArray => [ { id: '...', name: '...' }, ... ]
   groupListDiv.innerHTML = '';
-  groupNames.forEach(grp => {
+  groupArray.forEach(groupObj => {
+    // Bir div oluşturalım
     const grpItem = document.createElement('div');
     grpItem.className = 'grp-item';
-    grpItem.innerText = grp[0].toUpperCase(); 
-    grpItem.title = grp; 
+    grpItem.innerText = groupObj.name[0].toUpperCase();  // Örnek: "S" harfi
+    grpItem.title = groupObj.name;                       // Tooltip olarak tam ad
+    // ID'yi saklamak için
+    grpItem.dataset.groupId = groupObj.id;
+
+    // Tıklanınca joinGroup fonksiyonumuzu çağıralım
     grpItem.addEventListener('click', () => {
-      joinGroup(grp);
+      joinGroup(groupObj.id, groupObj.name);
     });
+
     groupListDiv.appendChild(grpItem);
   });
 });
 
 // Bir gruba katıl
-function joinGroup(groupName) {
-  if (currentGroup && currentGroup !== groupName) {
+function joinGroup(groupId, groupName) {
+  // Eğer zaten farklı bir gruptaysak, tüm Peer'ları kapat
+  if (currentGroup && currentGroup !== groupId) {
     closeAllPeers();
     audioPermissionGranted = false;
     localStream = null;
   }
-  currentGroup = groupName;
+  currentGroup = groupId;
   currentRoom = null;
   roomListDiv.innerHTML = '';
 
-  // YENİ: Başlığa grup adını yaz
-  groupTitle.textContent = groupName; 
+  // Ekrandaki başlık
+  groupTitle.textContent = groupName;
 
-  socket.emit('joinGroup', groupName);
+  // Sunucuya bildir
+  socket.emit('joinGroup', groupId);
 }
 
-// Sunucudan odalar listesi
-socket.on('roomsList', (rooms) => {
+// Sunucudan odalar listesi geldi
+socket.on('roomsList', (roomsArray) => {
+  // roomsArray => [ { id: '...', name: '...' }, ... ]
   roomListDiv.innerHTML = '';
-  rooms.forEach(roomName => {
+  roomsArray.forEach(roomObj => {
     const roomItem = document.createElement('div');
     roomItem.className = 'grp-item';
-    roomItem.innerText = roomName[0].toUpperCase();
-    roomItem.title = roomName;
+    roomItem.innerText = roomObj.name[0].toUpperCase();
+    roomItem.title = roomObj.name;
+
     roomItem.addEventListener('click', () => {
-      joinRoom(currentGroup, roomName);
+      joinRoom(currentGroup, roomObj.id, roomObj.name);
     });
+
     roomListDiv.appendChild(roomItem);
   });
 });
@@ -251,7 +265,7 @@ createRoomButton.addEventListener('click', () => {
 modalCreateRoomBtn.addEventListener('click', () => {
   const rName = modalRoomName.value.trim();
   if (rName) {
-    socket.emit('createRoom', { groupName: currentGroup, roomName: rName });
+    socket.emit('createRoom', { groupId: currentGroup, roomName: rName });
     roomModal.style.display = 'none';
   } else {
     alert("Lütfen bir oda adı girin");
@@ -262,14 +276,14 @@ modalCloseRoomBtn.addEventListener('click', () => {
 });
 
 // Odaya katıl
-function joinRoom(groupName, roomName) {
-  if (currentRoom && currentRoom !== roomName) {
+function joinRoom(groupId, roomId, roomName) {
+  if (currentRoom && currentRoom !== roomId) {
     closeAllPeers();
     audioPermissionGranted = false;
     localStream = null;
   }
-  currentRoom = roomName;
-  socket.emit('joinRoom', { groupName, roomName });
+  currentRoom = roomId;
+  socket.emit('joinRoom', { groupId, roomId });
 }
 
 // Odadaki kullanıcılar
@@ -470,7 +484,7 @@ socket.on("disconnect", () => {
 });
 
 // ------------------------------
-// YENİ: Dropdown menü kontrolü
+// Dropdown menü kontrolü
 // ------------------------------
 let dropdownOpen = false;
 groupDropdownIcon.addEventListener('click', () => {
@@ -478,7 +492,6 @@ groupDropdownIcon.addEventListener('click', () => {
   groupDropdownMenu.style.display = dropdownOpen ? 'flex' : 'none';
 });
 
-// Menü öğelerine tıklandığında
 renameGroupBtn.addEventListener('click', () => {
   alert("Grup ismi değiştirme işlemi henüz tanımlanmadı.");
   groupDropdownMenu.style.display = 'none';
