@@ -43,7 +43,7 @@ body {
   box-sizing: border-box;
 }
 
-/* Butonlar */
+/* Butonlar (Ana buton stilleri) */
 .btn {
   padding: 0.75rem 1.25rem;
   border: none;
@@ -301,21 +301,24 @@ body {
   display: flex;
   gap: 0.25rem;
 }
+
+/* Mikrofon & Kulaklık butonlarının çerçevesiz görünümü */
 .user-panel-btn {
-  background: #444;
-  border: none;
+  background: none;    /* arka plan yok */
+  border: none;        /* kenarlık yok */
   color: #fff;
-  padding: 0.3rem 0.6rem;
-  border-radius: 4px;
   cursor: pointer;
-  transition: background 0.2s;
   font-size: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0;          /* butonların default paddingini sıfırla */
+  width: 24px;         /* ikon boyutuyla aynı, isterseniz 24px tutabilirsiniz */
+  height: 24px;
 }
 .user-panel-btn:hover {
-  background: #555;
+  /* Üzerine gelince hafif renk değişimi */
+  color: #c61884;
 }
 
 /* Ortadaki ana içerik */
@@ -380,6 +383,23 @@ body {
 }
 .copy-id-btn:hover {
   background: #777;
+}
+
+/* Ayrıl butonu (sağ panelin en altında) */
+.leave-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-top: auto; 
+  margin-left: auto; 
+  padding: 0.5rem 1rem;
+  align-self: flex-end; 
+}
+.leave-btn:hover {
+  color: #c61884;
+  text-decoration: underline;
 }
 
 /* Modal Stil */

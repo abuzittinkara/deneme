@@ -38,11 +38,11 @@ const backToLoginButton = document.getElementById('backToLoginButton');
 const showRegisterScreen = document.getElementById('showRegisterScreen');
 const showLoginScreen = document.getElementById('showLoginScreen');
 
-// Gruplar
+// Gruplar (soldaki yuvarlak ikonlar)
 const groupListDiv = document.getElementById('groupList');
 const createGroupButton = document.getElementById('createGroupButton');
 
-// Odalar
+// Odalar (kanallar)
 const roomListDiv = document.getElementById('roomList');
 const createRoomButton = document.getElementById('createRoomButton');
 const groupTitle = document.getElementById('groupTitle');
@@ -59,8 +59,9 @@ const dmPanel = document.getElementById('dmPanel');
 const groupsAndRooms = document.getElementById('groupsAndRooms');
 let isDMMode = false;
 
-// Sağ panel (kullanıcı listesi)
+// Sağ panel (kullanıcı listesi) + Ayrıl
 const userListDiv = document.getElementById('userList');
+const leaveButton = document.getElementById('leaveButton');
 
 // Modal: Grup
 const groupModal = document.getElementById('groupModal');
@@ -337,6 +338,34 @@ function joinRoom(groupId, roomId, roomName) {
   }
   currentRoom = roomId;
   socket.emit('joinRoom', { groupId, roomId });
+
+  // Kanal/odaya katıldıktan sonra Ayrıl butonunu göster
+  leaveButton.style.display = 'block';
+}
+
+/* ----------------------------------
+   Odaya/Aktif Kanala Ayrıl Butonu
+-------------------------------------*/
+leaveButton.addEventListener('click', () => {
+  leaveRoom();
+});
+
+function leaveRoom() {
+  if (!currentRoom) return;
+  
+  // Bu kısımda sunucuya "leaveRoom" mesajı atabilirsiniz.
+  socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
+
+  // Peer’ları kapat
+  closeAllPeers();
+
+  currentRoom = null;
+  userListDiv.innerHTML = '';
+  // Kanaldan ayrıldık, Ayrıl butonu gizle
+  leaveButton.style.display = 'none';
+
+  // Diğer mantıkları buraya ekleyebilirsiniz
+  console.log("Kanaldan ayrıldınız.");
 }
 
 /* ----------------------------------
@@ -567,7 +596,6 @@ micToggleButton.addEventListener('click', () => {
   micEnabled = !micEnabled;
   applyAudioStates();
 });
-
 deafenToggleButton.addEventListener('click', () => {
   selfDeafened = !selfDeafened;
   if (selfDeafened) {

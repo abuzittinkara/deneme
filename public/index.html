@@ -119,9 +119,9 @@
             <span id="leftUserName" class="left-username">(Kullanıcı)</span>
           </div>
           <div class="user-panel-buttons">
-            <!-- Mikrofon Butonu -->
+            <!-- Mikrofon Butonu (çerçevesiz) -->
             <button id="micToggleButton" class="user-panel-btn" title="Mikrofon Aç/Kapa"></button>
-            <!-- Deafen (Kulaklık) Butonu -->
+            <!-- Kulaklık (Deafen) Butonu (çerçevesiz) -->
             <button id="deafenToggleButton" class="user-panel-btn" title="Kendini Sağırlaştır"></button>
           </div>
         </div>
@@ -139,6 +139,11 @@
     <div class="right-panel" id="rightPanel">
       <h2 class="panel-title">Aktif Kullanıcılar (Oda)</h2>
       <div id="userList" class="user-list"></div>
+
+      <!-- Ayrıl butonu (kanaldan/gruptan ayrıl) -->
+      <button id="leaveButton" class="leave-btn" style="display: none;">
+        Ayrıl
+      </button>
     </div>
   </div>
 
