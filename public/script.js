@@ -85,24 +85,26 @@ let micEnabled = true;
 let selfDeafened = false;
 
 /* 
-   Düzgün Feather stili mikrofon ikonları
-   -- Mic ON (beyaz)
-   -- Mic OFF (beyaz + kırmızı slash)
+   Yeni mikrofon açık ikonunuz (mikOnSVG):
+   Gönderdiğiniz koddan "<?xml ...?>" kısmını ve "id" değerini kaldırdık,
+   sadece <svg> etiketine odaklandık; fill/stroke ayarlarını koruduk.
 */
-
-// Mikrofon Açık
 const micOnSVG = `
-<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-     stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <!-- Feather mic (daha düzgün) -->
-  <path d="M12 1v11a3 3 0 0 0 6 0V1"></path>
-  <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-  <line x1="12" y1="19" x2="12" y2="23"></line>
-  <line x1="8" y1="23" x2="16" y2="23"></line>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 13.27 19.9">
+  <path d="M6.63.83c-1.37,0-2.49,1.11-2.49,2.49h0v6.63h0c0,1.37,1.11,2.49,2.49,2.49h0c1.37,0,2.49-1.11,2.49-2.49h0V3.32h0c0-1.37-1.11-2.49-2.49-2.49h0Z"
+    style="fill:none; stroke:#fff; stroke-linecap:round; stroke-linejoin:round; stroke-width:1.67px;"/>
+  <path d="M12.44,8.29v1.66c0,3.2-2.6,5.8-5.8,5.8S.83,13.15.83,9.95v-1.66"
+    style="fill:none; stroke:#fff; stroke-linecap:round; stroke-linejoin:round; stroke-width:1.67px;"/>
+  <line x1="6.63" y1="15.75" x2="6.63" y2="19.06"
+    style="fill:none; stroke:#fff; stroke-linecap:round; stroke-linejoin:round; stroke-width:1.67px;"/>
+  <line x1="3.32" y1="19.06" x2="9.95" y2="19.06"
+    style="fill:none; stroke:#fff; stroke-linecap:round; stroke-linejoin:round; stroke-width:1.67px;"/>
 </svg>
 `;
 
-// Mikrofon Kapalı (Slash kırmızı)
+/* 
+   Mikrofon Kapalı (Slash kırmızı) (eski ikon, sabit)
+*/
 const micOffSVG = `
 <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
      stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -117,9 +119,8 @@ const micOffSVG = `
 `;
 
 /* 
-   Kulaklık ikonları (normal/sağır)
+   Kulaklık (normal/sağır) - aynı kaldı
 */
-
 // Kulaklık Normal (beyaz)
 const headphoneOffSVG = `
 <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -624,7 +625,7 @@ function applyAudioStates() {
       track.enabled = micEnabled && !selfDeafened; 
     });
   }
-  // Mic ikonu
+  // Mic ikonu => yeni SVG'yi buraya yerleştiriyoruz
   micToggleButton.innerHTML = (micEnabled && !selfDeafened) ? micOnSVG : micOffSVG;
 
   // Deafen durumu
