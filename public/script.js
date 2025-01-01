@@ -87,7 +87,7 @@ let selfDeafened = false;
    Mik & Kulaklık SVG'leri (çerçevesiz)
 -------------------------------------*/
 
-// Mikrofon Açık
+// Mikrofon Açık (beyaz)
 const micOnSVG = `
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
      stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -110,7 +110,7 @@ const micOffSVG = `
 </svg>
 `;
 
-// Kulaklık Açık
+// Kulaklık Açık (beyaz)
 const headphoneOffSVG = `
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
      stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -241,7 +241,6 @@ createGroupButton.addEventListener('click', () => {
   modalGroupName.value = '';
   modalGroupName.focus();
 });
-
 modalCreateGroupButton.addEventListener('click', () => {
   const grpName = modalGroupName.value.trim();
   if (grpName) {
@@ -297,7 +296,6 @@ createRoomButton.addEventListener('click', () => {
   modalRoomName.value = '';
   modalRoomName.focus();
 });
-
 modalCreateRoomBtn.addEventListener('click', () => {
   const rName = modalRoomName.value.trim();
   if (rName) {
@@ -307,7 +305,6 @@ modalCreateRoomBtn.addEventListener('click', () => {
     alert("Lütfen bir oda adı girin");
   }
 });
-
 modalCloseRoomBtn.addEventListener('click', () => {
   roomModal.style.display = 'none';
 });
@@ -371,7 +368,9 @@ socket.on('roomUsers', (usersInRoom) => {
     });
   } else {
     otherUserIds.forEach(userId => {
-      if (!peers[userId]) initPeer(userId, true);
+      if (!peers[userId]) {
+        initPeer(userId, true);
+      }
     });
   }
 });
@@ -562,12 +561,13 @@ function createWaveIcon() {
 }
 
 /* ----------------------------------
-   Mikrofon & Kulaklık Durumu
+   Mikrofon & Kulaklık Butonları
 -------------------------------------*/
 micToggleButton.addEventListener('click', () => {
   micEnabled = !micEnabled;
   applyAudioStates();
 });
+
 deafenToggleButton.addEventListener('click', () => {
   selfDeafened = !selfDeafened;
   if (selfDeafened) {
@@ -602,10 +602,13 @@ socket.on("connect", () => {
 socket.on("disconnect", () => {
   console.log("WebSocket bağlantısı koptu.");
 });
+
+let dropdownOpen = false;
 groupDropdownIcon.addEventListener('click', () => {
   dropdownOpen = !dropdownOpen;
   groupDropdownMenu.style.display = dropdownOpen ? 'flex' : 'none';
 });
+
 renameGroupBtn.addEventListener('click', () => {
   alert("Grup ismi değiştirme işlemi henüz tanımlanmadı.");
   groupDropdownMenu.style.display = 'none';
@@ -620,4 +623,4 @@ deleteGroupBtn.addEventListener('click', () => {
   alert("Grubu silme işlemi henüz tanımlanmadı.");
   groupDropdownMenu.style.display = 'none';
   dropdownOpen = false;
-}
+});
