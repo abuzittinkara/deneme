@@ -85,19 +85,17 @@ let micEnabled = true;
 let selfDeafened = false;
 
 /* 
-   Basit Feather/Heroicon benzeri ikonlar
+   Düzgün Feather stili mikrofon ikonları
    -- Mic ON (beyaz)
    -- Mic OFF (beyaz + kırmızı slash)
-   -- Headphone ON (beyaz)
-   -- Headphone OFF (beyaz + kırmızı slash)
 */
 
 // Mikrofon Açık
 const micOnSVG = `
 <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
      stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <!-- Feather mic -->
-  <path d="M12 1v11a3 3 0 0 1-6 0V1"></path>
+  <!-- Feather mic (daha düzgün) -->
+  <path d="M12 1v11a3 3 0 0 0 6 0V1"></path>
   <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
   <line x1="12" y1="19" x2="12" y2="23"></line>
   <line x1="8" y1="23" x2="16" y2="23"></line>
@@ -109,23 +107,26 @@ const micOffSVG = `
 <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
      stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <!-- Normal mic çizgisi -->
-  <path d="M12 1v11a3 3 0 0 1-6 0V1" />
-  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-  <line x1="12" y1="19" x2="12" y2="23" />
-  <line x1="8" y1="23" x2="16" y2="23" />
+  <path d="M12 1v11a3 3 0 0 0 6 0V1"></path>
+  <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+  <line x1="12" y1="19" x2="12" y2="23"></line>
+  <line x1="8" y1="23" x2="16" y2="23"></line>
   <!-- Slash: çizgiyi kırmızı yapalım -->
-  <line x1="1" y1="1" x2="23" y2="23" stroke="red" stroke-width="2" />
+  <line x1="1" y1="1" x2="23" y2="23" stroke="red" stroke-width="2"></line>
 </svg>
 `;
+
+/* 
+   Kulaklık ikonları (normal/sağır)
+*/
 
 // Kulaklık Normal (beyaz)
 const headphoneOffSVG = `
 <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
      stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <!-- Basit headphone -->
-  <path d="M4 14v-2a8 8 0 0 1 16 0v2" />
-  <path d="M4 14h-2v4h2z" />
-  <path d="M20 14h2v4h-2z" />
+  <path d="M4 14v-2a8 8 0 0 1 16 0v2"></path>
+  <path d="M4 14h-2v4h2z"></path>
+  <path d="M20 14h2v4h-2z"></path>
 </svg>
 `;
 
@@ -133,12 +134,11 @@ const headphoneOffSVG = `
 const headphoneOnSVG = `
 <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
      stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <!-- Basit headphone -->
-  <path d="M4 14v-2a8 8 0 0 1 16 0v2" />
-  <path d="M4 14h-2v4h2z" />
-  <path d="M20 14h2v4h-2z" />
+  <path d="M4 14v-2a8 8 0 0 1 16 0v2"></path>
+  <path d="M4 14h-2v4h2z"></path>
+  <path d="M20 14h2v4h-2z"></path>
   <!-- Slash kırmızı -->
-  <line x1="1" y1="1" x2="23" y2="23" stroke="red" stroke-width="2" />
+  <line x1="1" y1="1" x2="23" y2="23" stroke="red" stroke-width="2"></line>
 </svg>
 `;
 
