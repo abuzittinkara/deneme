@@ -79,7 +79,11 @@ const modalCloseRoomBtn = document.getElementById('modalCloseRoomBtn');
 const leftUserPanel = document.getElementById('leftUserPanel');
 const leftUserName = document.getElementById('leftUserName');
 const micToggleButton = document.getElementById('micToggleButton');
-const muteToggleButton = document.getElementById('muteToggleButton');
+const deafenToggleButton = document.getElementById('deafenToggleButton');
+
+// Mikrofon ve Deafen durumları
+let micEnabled = true;
+let selfDeafened = false;
 
 // ------------------
 // Ekran geçişleri
@@ -387,7 +391,7 @@ function updateUserList(usersInRoom) {
 }
 
 // ------------------
-// Mikrofon izni
+// Mikrofon izni (ses açma)
 // ------------------
 async function requestMicrophoneAccess() {
   console.log("Mikrofon izni isteniyor...");
@@ -395,6 +399,7 @@ async function requestMicrophoneAccess() {
   console.log("Mikrofon erişimi verildi:", stream); 
   localStream = stream;
   audioPermissionGranted = true;
+  applyAudioStates(); // Mute / Deaf durumu uygula
   remoteAudios.forEach(audioEl => {
     audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
   });
@@ -479,6 +484,7 @@ function initPeer(userId, isInitiator) {
     audio.autoplay = false; 
     audio.muted = false;
     remoteAudios.push(audio);
+    applyDeafenState(); // eğer deaf isek bu ses de kapansın
     if (audioPermissionGranted) {
       audio.play().catch(err => console.error("Ses oynatılamadı:", err));
     }
@@ -534,32 +540,51 @@ function createWaveIcon() {
   return svg;
 }
 
-// ------------------
-// Mikrofon ve Kulaklık butonları (Sol alt panel)
-// ------------------
-let micEnabled = true;
-let selfMuted = false;
+// ------------------------------------------------
+// Mikrofon ve Deafen butonları (Sol alt panel)
+// ------------------------------------------------
 
-// Mikrofona basıldığında
+// Mikrofona basıldığında sadece kendi mikrofonu aç/kapa
 micToggleButton.addEventListener('click', () => {
+  // Eğer zaten Deaf ise ve Deaf'i bozmuyorsak, sadece mikrofonu açmak kapatmak fayda etmeyebilir.
+  // Fakat Discord mantığında, Deaf iken de mic toggling var. 
+  // Biz basitçe micEnabled'i toggle ediyoruz.
   micEnabled = !micEnabled;
+  applyAudioStates();
+});
+
+// Deafen butonuna basıldığında hem kendi sesi hem gelen ses kapansın
+deafenToggleButton.addEventListener('click', () => {
+  selfDeafened = !selfDeafened;
+  // Deaf olduysa otomatik mic kapatılsın
+  if (selfDeafened) {
+    micEnabled = false;
+  }
+  applyAudioStates();
+});
+
+// Uygun buton simgelerini ayarla, localStream track.enabled ayarla, remoteAudios muted ayarla
+function applyAudioStates() {
+  // Mikrofon durumu
   if (localStream) {
     localStream.getAudioTracks().forEach(track => {
-      track.enabled = micEnabled;
+      track.enabled = micEnabled && !selfDeafened; // Deaf olduğunda mic kapalı kalsın
     });
   }
-  micToggleButton.textContent = micEnabled ? "🎤" : "🚫";
-});
+  micToggleButton.textContent = micEnabled && !selfDeafened ? "🎤" : "🚫";
 
-// Kendini sessize almak
-muteToggleButton.addEventListener('click', () => {
-  selfMuted = !selfMuted;
-  // Bu örnekte "selfMuted" mantığını sadece arayüz için tutuyoruz
-  // Gerçekte "kulaklık kapama" demek, gelen sesi duymamak. 
-  // Tam bir "kulaklık kapama" için stream'i devre dışı bırakmanız veya 
-  // volume=0 yapmanız vs. gerekebilir.
-  muteToggleButton.textContent = selfMuted ? "🔈" : "🔇";
-});
+  // Deafen durumu
+  // Eğer Deaf isek tüm remote audios muted
+  applyDeafenState();
+  deafenToggleButton.textContent = selfDeafened ? "🔈" : "🔇";
+}
+
+// Gelen sesleri kapat/aç
+function applyDeafenState() {
+  remoteAudios.forEach(audio => {
+    audio.muted = selfDeafened; 
+  });
+}
 
 // ------------------
 // Socket durum

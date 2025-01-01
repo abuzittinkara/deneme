@@ -31,6 +31,18 @@ body {
   font-size: 1.5rem;
 }
 
+.input-text {
+  width: 100%;
+  padding: 0.75rem;
+  background: #444;  
+  color: #fff;       
+  border: 1px solid #666;
+  border-radius: 6px;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+}
+
 /* Butonlar */
 .btn {
   padding: 0.75rem 1.25rem;
@@ -54,25 +66,6 @@ body {
 }
 .btn.secondary:hover {
   background: #666;
-}
-
-/* Input alanları */
-.input-text {
-  width: 100%;
-  padding: 0.75rem;
-  background: #444;  
-  color: #fff;       
-  border: 1px solid #666;
-  border-radius: 6px;
-  font-size: 1rem;
-  margin-bottom: 1rem;
-  box-sizing: border-box;
-}
-
-/* Ekranlar koyu arka plan */
-#loginScreen.screen-container,
-#registerScreen.screen-container {
-  background: #2d2d2d; 
 }
 
 /* callScreen */
@@ -105,7 +98,7 @@ body {
 
 /* DM paneli */
 .dm-panel {
-  width: 100%;
+  width: 220px;
   background: #222;
   color: #fff;
   padding: 1rem;
