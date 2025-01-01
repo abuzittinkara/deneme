@@ -6,14 +6,13 @@ let remoteAudios = [];
 let username = null;
 
 // Artık grup ismi yerine grup ID saklayacağız
-let currentGroup = null;  // Bu ID'yi tutar
-let currentRoom = null;   // Bu da oda ID'yi tutar
+let currentGroup = null;  
+let currentRoom = null;   
 
-// Bekleyen kullanıcı listeleri (WebRTC senaryosu)
 let pendingUsers = [];
 let pendingNewUsers = [];
 
-// Ekran elementleri
+// DOM Elements
 const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
 const callScreen = document.getElementById('callScreen');
@@ -39,11 +38,11 @@ const backToLoginButton = document.getElementById('backToLoginButton');
 const showRegisterScreen = document.getElementById('showRegisterScreen');
 const showLoginScreen = document.getElementById('showLoginScreen');
 
-// Gruplar (soldaki yuvarlak ikonlar)
+// Gruplar
 const groupListDiv = document.getElementById('groupList');
 const createGroupButton = document.getElementById('createGroupButton');
 
-// Odalar (kanallar)
+// Odalar
 const roomListDiv = document.getElementById('roomList');
 const createRoomButton = document.getElementById('createRoomButton');
 const groupTitle = document.getElementById('groupTitle');
@@ -80,72 +79,61 @@ const leftUserName = document.getElementById('leftUserName');
 const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
 
-// Mikrofon ve Deafen durumları
+// Mikrofon - Kulaklık Durum
 let micEnabled = true;
 let selfDeafened = false;
 
-/* 
-   Yeni mikrofon açık ikonunuz (mikOnSVG):
-   Gönderdiğiniz koddan "<?xml ...?>" kısmını ve "id" değerini kaldırdık,
-   sadece <svg> etiketine odaklandık; fill/stroke ayarlarını koruduk.
-*/
+/* ----------------------------------
+   Mik & Kulaklık SVG'leri (çerçevesiz)
+-------------------------------------*/
+
+// Mikrofon Açık
 const micOnSVG = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 13.27 19.9">
-  <path d="M6.63.83c-1.37,0-2.49,1.11-2.49,2.49h0v6.63h0c0,1.37,1.11,2.49,2.49,2.49h0c1.37,0,2.49-1.11,2.49-2.49h0V3.32h0c0-1.37-1.11-2.49-2.49-2.49h0Z"
-    style="fill:none; stroke:#fff; stroke-linecap:round; stroke-linejoin:round; stroke-width:1.67px;"/>
-  <path d="M12.44,8.29v1.66c0,3.2-2.6,5.8-5.8,5.8S.83,13.15.83,9.95v-1.66"
-    style="fill:none; stroke:#fff; stroke-linecap:round; stroke-linejoin:round; stroke-width:1.67px;"/>
-  <line x1="6.63" y1="15.75" x2="6.63" y2="19.06"
-    style="fill:none; stroke:#fff; stroke-linecap:round; stroke-linejoin:round; stroke-width:1.67px;"/>
-  <line x1="3.32" y1="19.06" x2="9.95" y2="19.06"
-    style="fill:none; stroke:#fff; stroke-linecap:round; stroke-linejoin:round; stroke-width:1.67px;"/>
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+     stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M12 1v11a3 3 0 0 0 6 0V1" />
+  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+  <line x1="12" y1="19" x2="12" y2="23" />
+  <line x1="8" y1="23" x2="16" y2="23" />
 </svg>
 `;
 
-/* 
-   Mikrofon Kapalı (Slash kırmızı) (eski ikon, sabit)
-*/
+// Mikrofon Kapalı (Slash kırmızı)
 const micOffSVG = `
-<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none"
      stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <!-- Normal mic çizgisi -->
-  <path d="M12 1v11a3 3 0 0 0 6 0V1"></path>
-  <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-  <line x1="12" y1="19" x2="12" y2="23"></line>
-  <line x1="8" y1="23" x2="16" y2="23"></line>
-  <!-- Slash: çizgiyi kırmızı yapalım -->
-  <line x1="1" y1="1" x2="23" y2="23" stroke="red" stroke-width="2"></line>
+  <path d="M12 1v11a3 3 0 0 0 6 0V1" />
+  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+  <line x1="12" y1="19" x2="12" y2="23" />
+  <line x1="8" y1="23" x2="16" y2="23" />
+  <line x1="1" y1="1" x2="23" y2="23" stroke="red" stroke-width="2" />
 </svg>
 `;
 
-/* 
-   Kulaklık (normal/sağır) - aynı kaldı
-*/
-// Kulaklık Normal (beyaz)
+// Kulaklık Açık
 const headphoneOffSVG = `
-<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none"
      stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M4 14v-2a8 8 0 0 1 16 0v2"></path>
-  <path d="M4 14h-2v4h2z"></path>
-  <path d="M20 14h2v4h-2z"></path>
+  <path d="M4 14v-2a8 8 0 0 1 16 0v2" />
+  <path d="M4 14h-2v4h2z" />
+  <path d="M20 14h2v4h-2z" />
 </svg>
 `;
 
 // Kulaklık Sağır (slash kırmızı)
 const headphoneOnSVG = `
-<svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none"
      stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M4 14v-2a8 8 0 0 1 16 0v2"></path>
-  <path d="M4 14h-2v4h2z"></path>
-  <path d="M20 14h2v4h-2z"></path>
-  <!-- Slash kırmızı -->
-  <line x1="1" y1="1" x2="23" y2="23" stroke="red" stroke-width="2"></line>
+  <path d="M4 14v-2a8 8 0 0 1 16 0v2" />
+  <path d="M4 14h-2v4h2z" />
+  <path d="M20 14h2v4h-2z" />
+  <line x1="1" y1="1" x2="23" y2="23" stroke="red" stroke-width="2" />
 </svg>
 `;
 
-// ------------------
-// Ekran geçişleri
-// ------------------
+/* ----------------------------------
+   Ekran geçişleri
+-------------------------------------*/
 showRegisterScreen.addEventListener('click', () => {
   loginScreen.style.display = 'none';
   registerScreen.style.display = 'block';
@@ -159,9 +147,9 @@ backToLoginButton.addEventListener('click', () => {
   loginScreen.style.display = 'block';
 });
 
-// ------------------
-// Giriş Yap (Login)
-// ------------------
+/* ----------------------------------
+   Login
+-------------------------------------*/
 loginButton.addEventListener('click', () => {
   const usernameVal = loginUsernameInput.value.trim();
   const passwordVal = loginPasswordInput.value.trim();
@@ -172,9 +160,23 @@ loginButton.addEventListener('click', () => {
   socket.emit('login', { username: usernameVal, password: passwordVal });
 });
 
-// ------------------
-// Kayıt Ol (Register)
-// ------------------
+socket.on('loginResult', (data) => {
+  if (data.success) {
+    username = data.username;
+    loginScreen.style.display = 'none';
+    callScreen.style.display = 'flex';
+    socket.emit('set-username', username);
+    leftUserName.textContent = username;
+
+    applyAudioStates();
+  } else {
+    alert("Giriş başarısız: " + data.message);
+  }
+});
+
+/* ----------------------------------
+   Register
+-------------------------------------*/
 registerButton.addEventListener('click', () => {
   const userData = {
     username: regUsernameInput.value.trim(),
@@ -186,7 +188,7 @@ registerButton.addEventListener('click', () => {
     password: regPasswordInput.value.trim(),
     passwordConfirm: regPasswordConfirmInput.value.trim()
   };
-  
+
   if (!userData.username || !userData.name || !userData.surname || 
       !userData.birthdate || !userData.email || !userData.phone ||
       !userData.password || !userData.passwordConfirm) {
@@ -207,28 +209,6 @@ registerButton.addEventListener('click', () => {
   socket.emit('register', userData);
 });
 
-// ------------------
-// Sunucudan Login Sonucu
-// ------------------
-socket.on('loginResult', (data) => {
-  if (data.success) {
-    username = data.username;
-    loginScreen.style.display = 'none';
-    callScreen.style.display = 'flex';
-    socket.emit('set-username', username);
-
-    // Sol alt panelde kullanıcı adını göster
-    leftUserName.textContent = username;
-    // İlk ikon durumlarını atayalım
-    applyAudioStates();
-  } else {
-    alert("Giriş başarısız: " + data.message);
-  }
-});
-
-// ------------------
-// Sunucudan Register Sonucu
-// ------------------
 socket.on('registerResult', (data) => {
   if (data.success) {
     alert("Kayıt başarılı! Şimdi giriş yapabilirsiniz.");
@@ -239,9 +219,9 @@ socket.on('registerResult', (data) => {
   }
 });
 
-// ------------------
-// DM butonları
-// ------------------
+/* ----------------------------------
+   DM butonları
+-------------------------------------*/
 toggleDMButton.addEventListener('click', () => {
   isDMMode = true;
   groupsAndRooms.style.display = 'none';
@@ -253,14 +233,15 @@ closeDMButton.addEventListener('click', () => {
   groupsAndRooms.style.display = 'flex';
 });
 
-// ------------------
-// Grup Oluşturma Modal
-// ------------------
+/* ----------------------------------
+   Grup Oluşturma
+-------------------------------------*/
 createGroupButton.addEventListener('click', () => {
   groupModal.style.display = 'flex';
   modalGroupName.value = '';
   modalGroupName.focus();
 });
+
 modalCreateGroupButton.addEventListener('click', () => {
   const grpName = modalGroupName.value.trim();
   if (grpName) {
@@ -274,9 +255,6 @@ modalCloseButton.addEventListener('click', () => {
   groupModal.style.display = 'none';
 });
 
-// ------------------
-// Sunucudan grup listesi
-// ------------------
 socket.on('groupsList', (groupArray) => {
   groupListDiv.innerHTML = '';
   groupArray.forEach(groupObj => {
@@ -294,9 +272,6 @@ socket.on('groupsList', (groupArray) => {
   });
 });
 
-// ------------------
-// Bir gruba katıl
-// ------------------
 function joinGroup(groupId, groupName) {
   if (currentGroup && currentGroup !== groupId) {
     closeAllPeers();
@@ -306,14 +281,37 @@ function joinGroup(groupId, groupName) {
   currentGroup = groupId;
   currentRoom = null;
   roomListDiv.innerHTML = '';
-
   groupTitle.textContent = groupName;
   socket.emit('joinGroup', groupId);
 }
 
-// ------------------
-// Odalar (kanallar) listesi
-// ------------------
+/* ----------------------------------
+   Oda Oluşturma
+-------------------------------------*/
+createRoomButton.addEventListener('click', () => {
+  if (!currentGroup) {
+    alert("Önce bir gruba katılın veya oluşturun!");
+    return;
+  }
+  roomModal.style.display = 'flex';
+  modalRoomName.value = '';
+  modalRoomName.focus();
+});
+
+modalCreateRoomBtn.addEventListener('click', () => {
+  const rName = modalRoomName.value.trim();
+  if (rName) {
+    socket.emit('createRoom', { groupId: currentGroup, roomName: rName });
+    roomModal.style.display = 'none';
+  } else {
+    alert("Lütfen bir oda adı girin");
+  }
+});
+
+modalCloseRoomBtn.addEventListener('click', () => {
+  roomModal.style.display = 'none';
+});
+
 socket.on('roomsList', (roomsArray) => {
   roomListDiv.innerHTML = '';
   roomsArray.forEach(roomObj => {
@@ -334,34 +332,6 @@ socket.on('roomsList', (roomsArray) => {
   });
 });
 
-// ------------------
-// Oda oluşturma Modal
-// ------------------
-createRoomButton.addEventListener('click', () => {
-  if (!currentGroup) {
-    alert("Önce bir gruba katılın veya oluşturun!");
-    return;
-  }
-  roomModal.style.display = 'flex';
-  modalRoomName.value = '';
-  modalRoomName.focus();
-});
-modalCreateRoomBtn.addEventListener('click', () => {
-  const rName = modalRoomName.value.trim();
-  if (rName) {
-    socket.emit('createRoom', { groupId: currentGroup, roomName: rName });
-    roomModal.style.display = 'none';
-  } else {
-    alert("Lütfen bir oda adı girin");
-  }
-});
-modalCloseRoomBtn.addEventListener('click', () => {
-  roomModal.style.display = 'none';
-});
-
-// ------------------
-// Odaya katıl
-// ------------------
 function joinRoom(groupId, roomId, roomName) {
   if (currentRoom && currentRoom !== roomId) {
     closeAllPeers();
@@ -372,9 +342,9 @@ function joinRoom(groupId, roomId, roomName) {
   socket.emit('joinRoom', { groupId, roomId });
 }
 
-// ------------------
-// Odadaki kullanıcılar
-// ------------------
+/* ----------------------------------
+   Odadaki Kullanıcılar
+-------------------------------------*/
 socket.on('roomUsers', (usersInRoom) => {
   updateUserList(usersInRoom);
 
@@ -385,11 +355,9 @@ socket.on('roomUsers', (usersInRoom) => {
 
   if (!audioPermissionGranted || !localStream) {
     requestMicrophoneAccess().then(() => {
-      if (otherUserIds.length > 0) {
-        otherUserIds.forEach(userId => {
-          if (!peers[userId]) initPeer(userId, true);
-        });
-      }
+      otherUserIds.forEach(userId => {
+        if (!peers[userId]) initPeer(userId, true);
+      });
       pendingUsers.forEach(userId => {
         if (!peers[userId]) initPeer(userId, true);
       });
@@ -403,16 +371,11 @@ socket.on('roomUsers', (usersInRoom) => {
     });
   } else {
     otherUserIds.forEach(userId => {
-      if (!peers[userId]) {
-        initPeer(userId, true);
-      }
+      if (!peers[userId]) initPeer(userId, true);
     });
   }
 });
 
-// ------------------
-// Kullanıcı listesini (Sağ panel) güncelle
-// ------------------
 function updateUserList(usersInRoom) {
   userListDiv.innerHTML = ''; 
   usersInRoom.forEach(user => {
@@ -429,7 +392,7 @@ function updateUserList(usersInRoom) {
     const copyIdButton = document.createElement('button');
     copyIdButton.classList.add('copy-id-btn');
     copyIdButton.textContent = "ID Kopyala";
-    copyIdButton.dataset.userid = user.id; 
+    copyIdButton.dataset.userid = user.id;
     copyIdButton.addEventListener('click', (e) => {
       e.stopPropagation();
       const socketId = e.target.dataset.userid;
@@ -450,24 +413,28 @@ function updateUserList(usersInRoom) {
   });
 }
 
-// ------------------
-// Mikrofon izni (ses açma)
-// ------------------
+/* ----------------------------------
+   Mikrofon Erişimi
+-------------------------------------*/
 async function requestMicrophoneAccess() {
-  console.log("Mikrofon izni isteniyor...");
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  console.log("Mikrofon erişimi verildi:", stream); 
-  localStream = stream;
-  audioPermissionGranted = true;
-  applyAudioStates(); // Mute / Deaf durumu uygula
-  remoteAudios.forEach(audioEl => {
-    audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
-  });
+  try {
+    console.log("Mikrofon izni isteniyor...");
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    console.log("Mikrofon erişimi verildi:", stream);
+    localStream = stream;
+    audioPermissionGranted = true;
+    applyAudioStates();
+    remoteAudios.forEach(audioEl => {
+      audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
+    });
+  } catch(err) {
+    console.error("Mikrofon izni alınamadı:", err);
+  }
 }
 
-// ------------------
-// WebRTC sinyal
-// ------------------
+/* ----------------------------------
+   WebRTC Sinyal
+-------------------------------------*/
 socket.on("signal", async (data) => {
   console.log("Signal alındı:", data);
   const { from, signal } = data;
@@ -498,9 +465,9 @@ socket.on("signal", async (data) => {
   }
 });
 
-// ------------------
-// Peer başlat
-// ------------------
+/* ----------------------------------
+   Peer Başlat
+-------------------------------------*/
 function initPeer(userId, isInitiator) {
   if (!localStream || !audioPermissionGranted) {
     console.warn("localStream yok, initPeer bekletilecek.");
@@ -541,10 +508,10 @@ function initPeer(userId, isInitiator) {
     console.log("Remote stream alındı.");
     const audio = new Audio();
     audio.srcObject = event.streams[0];
-    audio.autoplay = false; 
+    audio.autoplay = false;
     audio.muted = false;
     remoteAudios.push(audio);
-    applyDeafenState(); // Deaf isek sesi kapat
+    applyDeafenState();
     if (audioPermissionGranted) {
       audio.play().catch(err => console.error("Ses oynatılamadı:", err));
     }
@@ -556,18 +523,12 @@ function initPeer(userId, isInitiator) {
   return peer;
 }
 
-// ------------------
-// Offer oluştur
-// ------------------
 async function createOffer(peer, userId) {
   const offer = await peer.createOffer();
   await peer.setLocalDescription(offer);
   socket.emit("signal", { to: userId, signal: peer.localDescription });
 }
 
-// ------------------
-// Tüm peer’ları kapat
-// ------------------
 function closeAllPeers() {
   for (const userId in peers) {
     if (peers[userId]) {
@@ -578,9 +539,9 @@ function closeAllPeers() {
   remoteAudios = [];
 }
 
-// ------------------
-// Kanal ikonu (ses dalgası)
-///------------------
+/* ----------------------------------
+   Kanal ikonu (ses dalgası)
+-------------------------------------*/
 function createWaveIcon() {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 24 24");
@@ -600,65 +561,51 @@ function createWaveIcon() {
   return svg;
 }
 
-// ------------------------------------------------
-// Mikrofon ve Kulaklık butonları (Sol alt panel)
-// ------------------------------------------------
+/* ----------------------------------
+   Mikrofon & Kulaklık Durumu
+-------------------------------------*/
 micToggleButton.addEventListener('click', () => {
   micEnabled = !micEnabled;
   applyAudioStates();
 });
-
 deafenToggleButton.addEventListener('click', () => {
   selfDeafened = !selfDeafened;
-  // Deaf olduysa otomatik mic kapat
   if (selfDeafened) {
     micEnabled = false;
   }
   applyAudioStates();
 });
 
-// Uygun buton simgelerini ayarla, localStream track.enabled ayarla, remoteAudios muted ayarla
 function applyAudioStates() {
-  // Mikrofon durumu
   if (localStream) {
     localStream.getAudioTracks().forEach(track => {
-      track.enabled = micEnabled && !selfDeafened; 
+      track.enabled = micEnabled && !selfDeafened;
     });
   }
-  // Mic ikonu => yeni SVG'yi buraya yerleştiriyoruz
   micToggleButton.innerHTML = (micEnabled && !selfDeafened) ? micOnSVG : micOffSVG;
-
-  // Deafen durumu
   applyDeafenState();
   deafenToggleButton.innerHTML = selfDeafened ? headphoneOnSVG : headphoneOffSVG;
 }
 
-// Gelen sesleri kapat/aç
 function applyDeafenState() {
   remoteAudios.forEach(audio => {
-    audio.muted = selfDeafened; 
+    audio.muted = selfDeafened;
   });
 }
 
-// ------------------
-// Socket durum
-// ------------------
+/* ----------------------------------
+   Socket Durum
+-------------------------------------*/
 socket.on("connect", () => {
   console.log("WebSocket bağlandı:", socket.id);
 });
 socket.on("disconnect", () => {
   console.log("WebSocket bağlantısı koptu.");
 });
-
-// ------------------
-// Dropdown menü kontrolü
-// ------------------
-let dropdownOpen = false;
 groupDropdownIcon.addEventListener('click', () => {
   dropdownOpen = !dropdownOpen;
   groupDropdownMenu.style.display = dropdownOpen ? 'flex' : 'none';
 });
-
 renameGroupBtn.addEventListener('click', () => {
   alert("Grup ismi değiştirme işlemi henüz tanımlanmadı.");
   groupDropdownMenu.style.display = 'none';
@@ -673,4 +620,4 @@ deleteGroupBtn.addEventListener('click', () => {
   alert("Grubu silme işlemi henüz tanımlanmadı.");
   groupDropdownMenu.style.display = 'none';
   dropdownOpen = false;
-});
+}
