@@ -248,7 +248,7 @@ closeDMButton.addEventListener('click', () => {
 });
 
 /* ----------------------------------
-   Grup Oluştur / Seçenekler
+   Grup Oluştur / Seçenekleri
 -------------------------------------*/
 createGroupButton.addEventListener('click', () => {
   groupModal.style.display = 'flex';
@@ -371,26 +371,51 @@ modalCloseRoomBtn.addEventListener('click', () => {
   roomModal.style.display = 'none';
 });
 
+/* ----------------------------------
+   roomsList Event => Odaları listele
+   (Burada her oda altına channel-users <div> ekleyerek
+   Discord benzeri alt alta kullanıcı gösterimi sağlanacak)
+-------------------------------------*/
 socket.on('roomsList', (roomsArray) => {
   roomListDiv.innerHTML = '';
+
   roomsArray.forEach(roomObj => {
     const roomItem = document.createElement('div');
     roomItem.className = 'channel-item';
+    roomItem.dataset.roomId = roomObj.id;
+    
+    // Kanal başlık (icon + isim)
+    const channelHeader = document.createElement('div');
+    channelHeader.className = 'channel-header';
 
-    const icon = createWaveIcon();
+    const icon = createWaveIcon(); // dalga icon fonksiyonu
     const textSpan = document.createElement('span');
     textSpan.textContent = roomObj.name;
 
+    channelHeader.appendChild(icon);
+    channelHeader.appendChild(textSpan);
+
+    // Kanal altına eklenecek kullanıcı listesi
+    const channelUsers = document.createElement('div');
+    channelUsers.className = 'channel-users';
+    channelUsers.id = `channel-users-${roomObj.id}`;
+
+    // Yapıyı ekle
+    roomItem.appendChild(channelHeader);
+    roomItem.appendChild(channelUsers);
+
+    // Tıklayınca odaya katıl
     roomItem.addEventListener('click', () => {
       joinRoom(currentGroup, roomObj.id, roomObj.name);
     });
 
-    roomItem.appendChild(icon);
-    roomItem.appendChild(textSpan);
     roomListDiv.appendChild(roomItem);
   });
 });
 
+/* ----------------------------------
+   joinRoom => Belirli odaya bağlan
+-------------------------------------*/
 function joinRoom(groupId, roomId, roomName) {
   if (currentRoom && currentRoom !== roomId) {
     closeAllPeers();
@@ -419,9 +444,15 @@ leaveButton.addEventListener('click', () => {
 
 /* ----------------------------------
    Kullanıcıları sağ panelde listele
+   + Kanal altına listele (Discord benzeri)
 -------------------------------------*/
 socket.on('roomUsers', (usersInRoom) => {
+  // Sağ paneli güncelle
   updateUserList(usersInRoom);
+
+  // Kanal altı listeyi güncelle (Discord benzeri)
+  // currentRoom => şu an katıldığınız oda
+  updateChannelUserList(currentRoom, usersInRoom);
 
   const otherUserIds = usersInRoom
     .filter(u => u.id !== socket.id)
@@ -453,6 +484,9 @@ socket.on('roomUsers', (usersInRoom) => {
   }
 });
 
+/* 
+   Sağ paneldeki kullanıcı listesi (varolan fonksiyon)
+*/
 function updateUserList(usersInRoom) {
   userListDiv.innerHTML = ''; 
   usersInRoom.forEach(user => {
@@ -487,6 +521,36 @@ function updateUserList(usersInRoom) {
     userItem.appendChild(userNameSpan);
     userItem.appendChild(copyIdButton);
     userListDiv.appendChild(userItem);
+  });
+}
+
+/*
+   Kanal altındaki kullanıcı listesi (Discord benzeri)
+*/
+function updateChannelUserList(roomId, usersInRoom) {
+  // O anki "channel-users-{roomId}" DIV'i seç
+  const channelUsersDiv = document.getElementById(`channel-users-${roomId}`);
+  if (!channelUsersDiv) return; // Eleman yoksa çık
+  
+  // Önce temizle
+  channelUsersDiv.innerHTML = '';
+
+  // Her kullanıcı için bir .channel-user
+  usersInRoom.forEach(user => {
+    const userDiv = document.createElement('div');
+    userDiv.classList.add('channel-user');
+
+    // Avatar (örnek basit placeholder)
+    const avatarDiv = document.createElement('div');
+    avatarDiv.classList.add('channel-user-avatar');
+    // Gerçek fotoğraf kullanacaksanız <img src="..." /> gibi ekleyebilirsiniz.
+
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = user.username || '(İsimsiz)';
+
+    userDiv.appendChild(avatarDiv);
+    userDiv.appendChild(nameSpan);
+    channelUsersDiv.appendChild(userDiv);
   });
 }
 

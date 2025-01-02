@@ -254,21 +254,45 @@ body {
 /* Kanal item (Düz yazı + ses dalgası) */
 .channel-item {
   display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  color: #ccc;
-  cursor: pointer;
-  padding: 0.3rem 0.5rem;
+  flex-direction: column;
+  background: #2d2d2d;
+  padding: 0.5rem;
   border-radius: 4px;
-  transition: background 0.2s;
+  cursor: pointer;
+  margin-bottom: 0.4rem;
 }
 .channel-item:hover {
   background: #444;
-  color: #fff;
+}
+.channel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 .channel-icon {
   width: 16px;
   height: 16px;
+}
+
+/* Kanal altına gelecek kullanıcı listesi */
+.channel-users {
+  margin-top: 0.5rem;
+  margin-left: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.channel-user {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+.channel-user-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #666; /* placeholder */
 }
 
 /* Sol Alt Kullanıcı Paneli => 265px */
