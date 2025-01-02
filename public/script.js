@@ -12,8 +12,12 @@ let currentRoom = null;
 let pendingUsers = [];
 let pendingNewUsers = [];
 
-// --- [YENİ] ICE candidate'leri geçici olarak tutmak için dictionary
+/**
+ * pendingCandidates[from] = dizi halinde ICE candidate objeleri
+ * sessionUfrag[from] = o peer için remoteDescription'dan parse ettiğimiz ufrag
+ */
 let pendingCandidates = {};
+let sessionUfrag = {};
 
 // DOM Elements
 const loginScreen = document.getElementById('loginScreen');
@@ -594,17 +598,25 @@ socket.on("signal", async (data) => {
     peer = initPeer(from, false);
   }
 
+  // Offer
   if (signal.type === "offer") {
-    // Teklif alındı
     await peer.setRemoteDescription(new RTCSessionDescription(signal));
+    // Artık remoteDescription içindeki ice-ufrag'ı parse edip sessionUfrag[from] kayıt edebiliriz
+    sessionUfrag[from] = parseIceUfrag(signal.sdp);
+
     const answer = await peer.createAnswer();
     await peer.setLocalDescription(answer);
     console.log("Answer gönderiliyor:", answer);
     socket.emit("signal", { to: from, signal: peer.localDescription });
 
-    // Bu aşamada pendingCandidates[from] varsa ekleyebiliriz
+    // pending candidates ekle
     if (pendingCandidates[from]) {
       for (const c of pendingCandidates[from]) {
+        // Ufrag check
+        if (sessionUfrag[from] && sessionUfrag[from] !== c.usernameFragment) {
+          console.warn("Candidate ufrag doesn't match current session. Dropping candidate:", c);
+          continue;
+        }
         try {
           await peer.addIceCandidate(new RTCIceCandidate(c));
           console.log("ICE Candidate eklendi (pendingCandidates):", c);
@@ -615,17 +627,25 @@ socket.on("signal", async (data) => {
       pendingCandidates[from] = [];
     }
 
-  } else if (signal.type === "answer") {
-    // Karşı taraf answer gönderdi
+  }
+  // Answer
+  else if (signal.type === "answer") {
     if (peer.signalingState === "stable") {
       console.warn("PeerConnection already stable. Second answer ignored.");
       return;
     }
     await peer.setRemoteDescription(new RTCSessionDescription(signal));
+    // Kaydet
+    sessionUfrag[from] = parseIceUfrag(signal.sdp);
 
-    // pendingCandidate'ları ekle
+    // pending candidate
     if (pendingCandidates[from]) {
       for (const c of pendingCandidates[from]) {
+        // ufrag check
+        if (sessionUfrag[from] && sessionUfrag[from] !== c.usernameFragment) {
+          console.warn("Candidate ufrag doesn't match current session. Dropping candidate:", c);
+          continue;
+        }
         try {
           await peer.addIceCandidate(new RTCIceCandidate(c));
           console.log("ICE Candidate eklendi (pendingCandidates):", c);
@@ -636,9 +656,10 @@ socket.on("signal", async (data) => {
       pendingCandidates[from] = [];
     }
 
-  } else if (signal.candidate) {
-    // ICE Candidate
-    // remoteDescription henüz yoksa, candidate'i pending'e al
+  }
+  // ICE Candidate
+  else if (signal.candidate) {
+    // eğer remoteDescription boşsa => pending
     if (!peer.remoteDescription || peer.remoteDescription.type === "") {
       console.log("Henüz remoteDescription yok, candidate pending'e alınıyor:", signal);
       if (!pendingCandidates[from]) {
@@ -646,7 +667,12 @@ socket.on("signal", async (data) => {
       }
       pendingCandidates[from].push(signal);
     } else {
-      // Normal şekilde ekle
+      // varsa, ufrag check
+      if (sessionUfrag[from] && sessionUfrag[from] !== signal.usernameFragment) {
+        console.warn("Candidate ufrag doesn't match current session. Dropping candidate:", signal);
+        return;
+      }
+      // normal ekle
       try {
         await peer.addIceCandidate(new RTCIceCandidate(signal));
         console.log("ICE Candidate eklendi:", signal);
@@ -678,7 +704,7 @@ function initPeer(userId, isInitiator) {
   console.log(`initPeer: userId=${userId}, isInitiator=${isInitiator}`);
   const peer = new RTCPeerConnection({
     iceServers: [
-      // Sadece STUN. (TURN eklenmedi, NAT arkasında başarısız olabilir.)
+      // Sadece STUN (TURN yok).
       { urls: "stun:stun.l.google.com:19302" },
     ],
   });
@@ -731,7 +757,8 @@ function closeAllPeers() {
     }
   }
   remoteAudios = [];
-  pendingCandidates = {}; // Temizleyelim
+  pendingCandidates = {};
+  sessionUfrag = {};
 }
 
 /* ----------------------------------
@@ -786,6 +813,20 @@ function applyDeafenState() {
   remoteAudios.forEach(audio => {
     audio.muted = selfDeafened;
   });
+}
+
+/* ----------------------------------
+   Ufak Yardımcı: parseIceUfrag
+   => SDP içinde "a=ice-ufrag:xxxx" kısmını bul
+-------------------------------------*/
+function parseIceUfrag(sdp) {
+  const lines = sdp.split('\n');
+  for (const line of lines) {
+    if (line.startsWith('a=ice-ufrag:')) {
+      return line.split(':')[1].trim();
+    }
+  }
+  return null;
 }
 
 /* ----------------------------------
