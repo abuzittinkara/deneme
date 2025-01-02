@@ -13,8 +13,8 @@ let pendingUsers = [];
 let pendingNewUsers = [];
 
 /**
- * pendingCandidates[from] = dizi halinde ICE candidate objeleri
- * sessionUfrag[from] = o peer için remoteDescription'dan parse ettiğimiz ufrag
+ *  pendingCandidates[from] = dizi halinde ICE candidate objeleri
+ *  sessionUfrag[from] = o peer için remoteDescription'dan parse ettiğimiz ufrag
  */
 let pendingCandidates = {};
 let sessionUfrag = {};
@@ -311,10 +311,9 @@ socket.on('groupsList', (groupArray) => {
     grpItem.title = groupObj.name + " (" + groupObj.id + ")";
     grpItem.dataset.groupId = groupObj.id;
 
-    // Burada grup'a tıklanınca => currentGroup güncelleniyor
     grpItem.addEventListener('click', () => {
       currentGroup = groupObj.id;
-      groupTitle.textContent = groupObj.name; // Üstte grup adını göster
+      groupTitle.textContent = groupObj.name;
       socket.emit('joinGroup', groupObj.id);
     });
 
@@ -390,7 +389,6 @@ socket.on('roomsList', (roomsArray) => {
 /* ----------------------------------
    Oda oluşturma butonları
 -------------------------------------*/
-// 1) Soldaki + butonu
 createRoomButton.addEventListener('click', () => {
   if (!currentGroup) {
     alert("Önce bir gruba katılın veya oluşturun!");
@@ -401,7 +399,7 @@ createRoomButton.addEventListener('click', () => {
   modalRoomName.focus();
 });
 
-// 2) Grup menüsündeki "Kanal Oluştur"
+// Grup menüsündeki "Kanal Oluştur"
 createChannelBtn.addEventListener('click', () => {
   groupDropdownMenu.style.display = 'none';
   if (!currentGroup) {
@@ -576,6 +574,7 @@ async function requestMicrophoneAccess() {
    WebRTC Sinyal (Offer/Answer/ICE)
 -------------------------------------*/
 socket.on("signal", async (data) => {
+  // Kendimizin gönderdiği sinyal mi?
   if (data.from === socket.id) {
     return;
   }
@@ -583,6 +582,7 @@ socket.on("signal", async (data) => {
   const { from, signal } = data;
   let peer = peers[from];
 
+  // Bu peer yoksa => yeni init (non-initiator)
   if (!peer) {
     if (!localStream) {
       console.warn("localStream yok, sinyal bekletiliyor -> user push:", from);
@@ -602,6 +602,7 @@ socket.on("signal", async (data) => {
     console.log("Answer gönderiliyor:", answer);
     socket.emit("signal", { to: from, signal: peer.localDescription });
 
+    // pending candidate ekle
     if (pendingCandidates[from]) {
       for (const c of pendingCandidates[from]) {
         if (sessionUfrag[from] && sessionUfrag[from] !== c.usernameFragment) {
@@ -647,6 +648,7 @@ socket.on("signal", async (data) => {
   }
   // ICE Candidate
   else if (signal.candidate) {
+    // remoteDescription yoksa => pending
     if (!peer.remoteDescription || peer.remoteDescription.type === "") {
       console.log("Henüz remoteDescription yok, candidate pending'e alınıyor:", signal);
       if (!pendingCandidates[from]) {
@@ -654,6 +656,7 @@ socket.on("signal", async (data) => {
       }
       pendingCandidates[from].push(signal);
     } else {
+      // Ufrag check
       if (sessionUfrag[from] && sessionUfrag[from] !== signal.usernameFragment) {
         console.warn("Candidate ufrag doesn't match current session. Dropping candidate:", signal);
         return;
@@ -689,12 +692,13 @@ function initPeer(userId, isInitiator) {
   console.log(`initPeer: userId=${userId}, isInitiator=${isInitiator}`);
   const peer = new RTCPeerConnection({
     iceServers: [
-      // Sadece STUN (TURN yok).
+      // Sadece STUN. (TURN eklemezsek NAT arkasında fail olabilir.)
       { urls: "stun:stun.l.google.com:19302" },
     ],
   });
   peers[userId] = peer;
 
+  // local tracks
   localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
 
   peer.onicecandidate = (event) => {
@@ -704,6 +708,7 @@ function initPeer(userId, isInitiator) {
   };
   peer.oniceconnectionstatechange = () => {
     console.log("ICE durumu:", peer.iceConnectionState);
+    // 'disconnected' veya 'failed' => NAT engeli olabilir, ya da user tarayıcıyı kapatmıştır.
   };
   peer.onconnectionstatechange = () => {
     console.log("PeerConnection durumu:", peer.connectionState);
