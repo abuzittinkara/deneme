@@ -788,7 +788,7 @@ function parseIceUfrag(sdp) {
 }
 
 /* ----------------------------------
-    Socket Durum
+  Socket Durum
 -------------------------------------*/
 socket.on("connect", () => {
   console.log("WebSocket bağlandı:", socket.id);
