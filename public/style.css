@@ -85,22 +85,20 @@ body {
   flex-direction: row;
   height: 100%;
   position: relative;
-  /* En solda grup panel: 65px */
-  width: 65px; /* ÖNEMLİ: bu kısma normalde 80px idi */
+  width: 65px; /* Grup panelin toplam payı (ilk) */
 }
 
-/* Gruplar + Odalar (sidebar) */
+/* Gruplar + Odalar (sidebar) => 65 + 200 = 265 px */
 .groups-rooms {
   display: flex;
   flex-direction: row;
   position: relative;
-  /* group panel 65px + channel panel 200px = 265px total */
-  width: 265px; 
+  width: 265px;
 }
 
 /* DM paneli */
 .dm-panel {
-  width: 265px; /* DM panel de 65 + 200 mantığını korumak isterseniz */
+  width: 265px;
   background: #222;
   color: #fff;
   padding: 1rem;
@@ -122,7 +120,7 @@ body {
 /* Sidebar (Gruplar) => 65px genişlik */
 .sidebar {
   background: #1a1a1a; 
-  width: 65px;   /* 65 px */
+  width: 65px;  
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -154,12 +152,15 @@ body {
 .grp-item:hover {
   background: #666;
 }
+
+/* Grup Oluştur Butonu (biraz daha yukarı) */
 .create-group-btn {
   position: absolute;
-  bottom: 20px;
+  bottom: 120px; /* Eskiden 20px idi, yukarı aldık */
   left: 50%;
   transform: translateX(-50%);
 }
+
 .circle-btn {
   background-color: #c61884;
   color: #fff;
@@ -180,7 +181,7 @@ body {
 /* Odalar paneli => 200px genişlik */
 .rooms-panel {
   background: #1f1f1f;
-  width: 200px; /* 200 px */
+  width: 200px; 
   display: flex;
   flex-direction: column;
   padding: 1rem;
@@ -193,7 +194,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  position: relative; /* dropdown menü için */
+  position: relative;
 }
 .panel-title {
   margin: 0;
@@ -242,10 +243,11 @@ body {
   flex-direction: column;
   gap: 0.4rem;
 }
+
+/* Kanal Oluşturma Butonu (yukarı al) */
 .create-room-btn {
-  margin-top: auto; 
   position: absolute;
-  bottom: 20px;
+  bottom: 120px; /* Eskiden 20px idi, yukarı */
   right: 20px;
 }
 
@@ -269,12 +271,12 @@ body {
   height: 16px;
 }
 
-/* Sol Alt Kullanıcı Paneli */
+/* Sol Alt Kullanıcı Paneli => 265px */
 .user-panel {
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 265px; /* Kullanıcı paneli 265 px */
+  width: 265px;
   background: #1a1a1a;
   padding: 0.5rem;
   box-sizing: border-box;
@@ -299,13 +301,15 @@ body {
   font-size: 0.9rem;
   color: #fff;
 }
+
+/* Butonlar satırında */
 .user-panel-buttons {
   display: flex;
-  gap: 0.5rem; /* Aradaki boşluk biraz arttı */
+  gap: 0.5rem; 
   align-items: center;
 }
 
-/* Mikrofon & Kulaklık butonları */
+/* Mikrofon & Kulaklık butonları (temel) */
 .user-panel-btn {
   background: none;   
   border: none;       
@@ -314,9 +318,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* 18x18 */
-  width: 18px;
-  height: 18px;
+  /* index.html inline => 22x22 */
 }
 .user-panel-btn:hover {
   color: #c61884; 
@@ -331,7 +333,7 @@ body {
   width: 18px;
   height: 18px;
   padding: 0; 
-  border-radius: 4px; /* Hafif köşe yuvarlaklık */
+  border-radius: 4px; 
   display: flex;
   align-items: center;
   justify-content: center;
@@ -354,10 +356,7 @@ body {
   font-size: 1.4rem;
 }
 
-/* Sağ panel (kullanıcı listesi) => 265px istenmemiş, orijinali 280'di 
-   ama kullanıcı paneli 265 px'e sabitledik => 
-   Bunu karıştırmasın diye, eğer bu da 265 isteniyorsa, ayarlayalım.
-*/
+/* Sağ panel (kullanıcı listesi) => 265px */
 .right-panel {
   width: 265px; 
   background: #1f1f1f;

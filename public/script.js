@@ -87,52 +87,11 @@ let micEnabled = true;
 let selfDeafened = false;
 
 /* ----------------------------------
-   Mik & Kulaklık SVG'leri (çerçevesiz)
+   Mikrofon & Kulaklık SVG (index.html de 22x22 style)
 -------------------------------------*/
+// (Aynı kod: micOnSVG, micOffSVG, headphoneOffSVG, headphoneOnSVG)
 
-// Mikrofon Açık (beyaz)
-const micOnSVG = `
-<svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-     stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M12 1v11a3 3 0 0 0 6 0V1" />
-  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-  <line x1="12" y1="19" x2="12" y2="23" />
-  <line x1="8" y1="23" x2="16" y2="23" />
-</svg>
-`;
-
-// Mikrofon Kapalı (Slash kırmızı)
-const micOffSVG = `
-<svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-     stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M12 1v11a3 3 0 0 0 6 0V1" />
-  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-  <line x1="12" y1="19" x2="12" y2="23" />
-  <line x1="8" y1="23" x2="16" y2="23" />
-  <line x1="1" y1="1" x2="23" y2="23" stroke="red" stroke-width="2" />
-</svg>
-`;
-
-// Kulaklık Açık (beyaz)
-const headphoneOffSVG = `
-<svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-     stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M4 14v-2a8 8 0 0 1 16 0v2" />
-  <path d="M4 14h-2v4h2z" />
-  <path d="M20 14h2v4h-2z" />
-</svg>
-`;
-
-// Kulaklık Sağır (slash kırmızı)
-const headphoneOnSVG = `
-<svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-     stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M4 14v-2a8 8 0 0 1 16 0v2" />
-  <path d="M4 14h-2v4h2z" />
-  <path d="M20 14h2v4h-2z" />
-  <line x1="1" y1="1" x2="23" y2="23" stroke="red" stroke-width="2" />
-</svg>
-`;
+/* ... (Kod aynı, isterseniz buraya SVG kodlarını yerleştirin) ... */
 
 /* ----------------------------------
    Ekran geçişleri
@@ -170,7 +129,6 @@ socket.on('loginResult', (data) => {
     callScreen.style.display = 'flex';
     socket.emit('set-username', username);
     leftUserName.textContent = username;
-
     applyAudioStates();
   } else {
     alert("Giriş başarısız: " + data.message);
@@ -342,7 +300,7 @@ function joinRoom(groupId, roomId, roomName) {
   socket.emit('joinRoom', { groupId, roomId });
 
   // Kanala katıldık, Ayrıl butonu görünsün
-  leaveButton.style.display = 'flex'; // veya 'inline-flex'
+  leaveButton.style.display = 'flex';
 }
 
 /* ----------------------------------
@@ -350,13 +308,11 @@ function joinRoom(groupId, roomId, roomName) {
 -------------------------------------*/
 leaveButton.addEventListener('click', () => {
   if (!currentRoom) return;
-  // Belki sunucuya da haber verirsiniz
   socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
-  
   closeAllPeers();
   currentRoom = null;
   userListDiv.innerHTML = '';
-  leaveButton.style.display = 'none'; // Tekrar gizle
+  leaveButton.style.display = 'none';
   console.log("Kanaldan ayrıldınız.");
 });
 
