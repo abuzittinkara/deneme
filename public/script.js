@@ -257,12 +257,10 @@ createGroupButton.addEventListener('click', () => {
 
 // Modal: Grup Seçenekleri
 modalGroupCreateBtn.addEventListener('click', () => {
-  // “Grup Kur” modali aç
   groupModal.style.display = 'none';
   actualGroupCreateModal.style.display = 'flex';
 });
 modalGroupJoinBtn.addEventListener('click', () => {
-  // “Gruba Katıl” modali aç
   groupModal.style.display = 'none';
   joinGroupModal.style.display = 'flex';
 });
@@ -299,7 +297,6 @@ closeJoinGroupModal.addEventListener('click', () => {
    Sunucudan güncel grup listesi
 -------------------------------------*/
 socket.on('groupsList', (groupArray) => {
-  // Sadece bu kullanıcıya ait / katıldığı gruplar
   groupListDiv.innerHTML = '';
   groupArray.forEach(groupObj => {
     const grpItem = document.createElement('div');
@@ -324,7 +321,6 @@ copyGroupIdBtn.addEventListener('click', () => {
     alert("Şu an geçerli bir grup yok!");
     return;
   }
-  // Panoya kopyala
   navigator.clipboard.writeText(currentGroup)
     .then(() => {
       alert("Grup ID kopyalandı: " + currentGroup);
@@ -423,12 +419,16 @@ leaveButton.addEventListener('click', () => {
 });
 
 /* ----------------------------------
-   Odadaki Kullanıcılar
+   Grup Kullanıcıları (Alfabetik)
 -------------------------------------*/
-socket.on('roomUsers', (usersInRoom) => {
-  updateUserList(usersInRoom);
+// Sunucu “groupUsers” event’inde => gruba katılan TÜM kullanıcılar (alfabetik)
+socket.on('groupUsers', (groupUserArray) => {
+  // Bu event geldiğinde, sağ paneli güncelliyoruz:
+  updateUserList(groupUserArray);
 
-  const otherUserIds = usersInRoom
+  // Eğer isterseniz, aynı anda WebRTC logic de burada yapılabilir
+  // (groupUserArray => .filter(u => u.id !== socket.id) ... vs.)
+  const otherUserIds = groupUserArray
     .filter(u => u.id !== socket.id)
     .map(u => u.id)
     .filter(id => !peers[id]);
@@ -458,9 +458,12 @@ socket.on('roomUsers', (usersInRoom) => {
   }
 });
 
-function updateUserList(usersInRoom) {
-  userListDiv.innerHTML = ''; 
-  usersInRoom.forEach(user => {
+/* ----------------------------------
+   Kullanıcıları sağ panelde listele
+-------------------------------------*/
+function updateUserList(groupUsers) {
+  userListDiv.innerHTML = '';
+  groupUsers.forEach(user => {
     const userItem = document.createElement('div');
     userItem.classList.add('user-item');
 
@@ -664,9 +667,7 @@ function applyAudioStates() {
       track.enabled = micEnabled && !selfDeafened;
     });
   }
-  // micOnSVG / micOffSVG
   micToggleButton.innerHTML = (micEnabled && !selfDeafened) ? micOnSVG : micOffSVG;
-  // headphoneOffSVG / headphoneOnSVG
   applyDeafenState();
   deafenToggleButton.innerHTML = selfDeafened ? headphoneOnSVG : headphoneOffSVG;
 }
