@@ -59,8 +59,10 @@ const dmPanel = document.getElementById('dmPanel');
 const groupsAndRooms = document.getElementById('groupsAndRooms');
 let isDMMode = false;
 
-// Sağ panel (kullanıcı listesi) + Ayrıl
+// Sağ panel (kullanıcı listesi)
 const userListDiv = document.getElementById('userList');
+
+// Ayrıl Butonu
 const leaveButton = document.getElementById('leaveButton');
 
 // Modal: Grup
@@ -90,7 +92,7 @@ let selfDeafened = false;
 
 // Mikrofon Açık (beyaz)
 const micOnSVG = `
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none"
      stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M12 1v11a3 3 0 0 0 6 0V1" />
   <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
@@ -101,7 +103,7 @@ const micOnSVG = `
 
 // Mikrofon Kapalı (Slash kırmızı)
 const micOffSVG = `
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none"
      stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M12 1v11a3 3 0 0 0 6 0V1" />
   <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
@@ -113,7 +115,7 @@ const micOffSVG = `
 
 // Kulaklık Açık (beyaz)
 const headphoneOffSVG = `
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none"
      stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M4 14v-2a8 8 0 0 1 16 0v2" />
   <path d="M4 14h-2v4h2z" />
@@ -123,7 +125,7 @@ const headphoneOffSVG = `
 
 // Kulaklık Sağır (slash kırmızı)
 const headphoneOnSVG = `
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none"
      stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M4 14v-2a8 8 0 0 1 16 0v2" />
   <path d="M4 14h-2v4h2z" />
@@ -339,34 +341,24 @@ function joinRoom(groupId, roomId, roomName) {
   currentRoom = roomId;
   socket.emit('joinRoom', { groupId, roomId });
 
-  // Kanal/odaya katıldıktan sonra Ayrıl butonunu göster
-  leaveButton.style.display = 'block';
+  // Kanala katıldık, Ayrıl butonu görünsün
+  leaveButton.style.display = 'flex'; // veya 'inline-flex'
 }
 
 /* ----------------------------------
-   Odaya/Aktif Kanala Ayrıl Butonu
+   Ayrıl Butonu
 -------------------------------------*/
 leaveButton.addEventListener('click', () => {
-  leaveRoom();
-});
-
-function leaveRoom() {
   if (!currentRoom) return;
-  
-  // Bu kısımda sunucuya "leaveRoom" mesajı atabilirsiniz.
+  // Belki sunucuya da haber verirsiniz
   socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
-
-  // Peer’ları kapat
+  
   closeAllPeers();
-
   currentRoom = null;
   userListDiv.innerHTML = '';
-  // Kanaldan ayrıldık, Ayrıl butonu gizle
-  leaveButton.style.display = 'none';
-
-  // Diğer mantıkları buraya ekleyebilirsiniz
+  leaveButton.style.display = 'none'; // Tekrar gizle
   console.log("Kanaldan ayrıldınız.");
-}
+});
 
 /* ----------------------------------
    Odadaki Kullanıcılar

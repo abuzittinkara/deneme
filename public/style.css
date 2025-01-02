@@ -83,22 +83,24 @@ body {
 .left-panels {
   display: flex;
   flex-direction: row;
-  width: 220px;
   height: 100%;
   position: relative;
+  /* En solda grup panel: 65px */
+  width: 65px; /* ÖNEMLİ: bu kısma normalde 80px idi */
 }
 
 /* Gruplar + Odalar (sidebar) */
 .groups-rooms {
   display: flex;
   flex-direction: row;
-  width: 220px;
   position: relative;
+  /* group panel 65px + channel panel 200px = 265px total */
+  width: 265px; 
 }
 
 /* DM paneli */
 .dm-panel {
-  width: 220px;
+  width: 265px; /* DM panel de 65 + 200 mantığını korumak isterseniz */
   background: #222;
   color: #fff;
   padding: 1rem;
@@ -117,10 +119,10 @@ body {
   left: 1rem;
 }
 
-/* Sidebar (Gruplar) */
+/* Sidebar (Gruplar) => 65px genişlik */
 .sidebar {
   background: #1a1a1a; 
-  width: 80px;        
+  width: 65px;   /* 65 px */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -137,8 +139,8 @@ body {
   margin-top: 1rem;
 }
 .grp-item {
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
   background: #444;
   color: #fff;
   border-radius: 50%;
@@ -154,15 +156,15 @@ body {
 }
 .create-group-btn {
   position: absolute;
-  bottom: 80px;
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
 }
 .circle-btn {
   background-color: #c61884;
   color: #fff;
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   border: none;
   font-size: 1.5rem; 
@@ -175,10 +177,10 @@ body {
   background-color: #a3156f;
 }
 
-/* Odalar paneli */
+/* Odalar paneli => 200px genişlik */
 .rooms-panel {
   background: #1f1f1f;
-  width: 140px; 
+  width: 200px; /* 200 px */
   display: flex;
   flex-direction: column;
   padding: 1rem;
@@ -243,8 +245,8 @@ body {
 .create-room-btn {
   margin-top: auto; 
   position: absolute;
-  bottom: 80px;
-  right: 15px;
+  bottom: 20px;
+  right: 20px;
 }
 
 /* Kanal item (Düz yazı + ses dalgası) */
@@ -272,7 +274,7 @@ body {
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 220px;
+  width: 265px; /* Kullanıcı paneli 265 px */
   background: #1a1a1a;
   padding: 0.5rem;
   box-sizing: border-box;
@@ -299,26 +301,45 @@ body {
 }
 .user-panel-buttons {
   display: flex;
-  gap: 0.25rem;
+  gap: 0.5rem; /* Aradaki boşluk biraz arttı */
+  align-items: center;
 }
 
-/* Mikrofon & Kulaklık butonlarının çerçevesiz görünümü */
+/* Mikrofon & Kulaklık butonları */
 .user-panel-btn {
-  background: none;    /* arka plan yok */
-  border: none;        /* kenarlık yok */
+  background: none;   
+  border: none;       
   color: #fff;
   cursor: pointer;
-  font-size: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;          /* butonların default paddingini sıfırla */
-  width: 24px;         /* ikon boyutuyla aynı, isterseniz 24px tutabilirsiniz */
-  height: 24px;
+  /* 18x18 */
+  width: 18px;
+  height: 18px;
 }
 .user-panel-btn:hover {
-  /* Üzerine gelince hafif renk değişimi */
+  color: #c61884; 
+}
+
+/* Ayrıl butonu (kırmızı çerçeve) */
+.leave-btn {
+  background: none;
+  border: 2px solid #c61884;
   color: #c61884;
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  padding: 0; 
+  border-radius: 4px; /* Hafif köşe yuvarlaklık */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.leave-btn:hover {
+  background: #a3156f;
+  border-color: #a3156f;
+  color: #fff;
 }
 
 /* Ortadaki ana içerik */
@@ -333,9 +354,12 @@ body {
   font-size: 1.4rem;
 }
 
-/* Sağ panel (kullanıcı listesi) */
+/* Sağ panel (kullanıcı listesi) => 265px istenmemiş, orijinali 280'di 
+   ama kullanıcı paneli 265 px'e sabitledik => 
+   Bunu karıştırmasın diye, eğer bu da 265 isteniyorsa, ayarlayalım.
+*/
 .right-panel {
-  width: 280px; 
+  width: 265px; 
   background: #1f1f1f;
   padding: 1rem;
   display: flex;
@@ -385,23 +409,6 @@ body {
   background: #777;
 }
 
-/* Ayrıl butonu (sağ panelin en altında) */
-.leave-btn {
-  background: none;
-  border: none;
-  color: #fff;
-  cursor: pointer;
-  font-size: 1rem;
-  margin-top: auto; 
-  margin-left: auto; 
-  padding: 0.5rem 1rem;
-  align-self: flex-end; 
-}
-.leave-btn:hover {
-  color: #c61884;
-  text-decoration: underline;
-}
-
 /* Modal Stil */
 .modal {
   position: fixed;
@@ -438,18 +445,18 @@ body {
 /* Küçük ekran uyumluluğu (isteğe bağlı) */
 @media (max-width: 600px) {
   .left-panels {
-    width: 180px;
+    width: 65px;
   }
   .rooms-panel {
-    width: 100px;
+    width: 200px;
   }
   .user-panel {
-    width: 180px;
+    width: 200px;
   }
   .app-title {
     font-size: 1.2rem;
   }
   .right-panel {
-    width: 100px;
+    width: 200px;
   }
 }
