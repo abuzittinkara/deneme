@@ -418,10 +418,8 @@ leaveButton.addEventListener('click', () => {
 });
 
 /* ----------------------------------
-   (Örnek) Odaya değil, Gruba ait kullanıcılar
+   Kullanıcıları sağ panelde listele
 -------------------------------------*/
-// Sunucuda groupUsers event’i isterseniz tanımlayabilirsiniz.
-// Veya roomUsers event’i (odadaki kullanıcılar). Aşağıda roomUsers var (örnek).
 socket.on('roomUsers', (usersInRoom) => {
   updateUserList(usersInRoom);
 
@@ -455,9 +453,6 @@ socket.on('roomUsers', (usersInRoom) => {
   }
 });
 
-/* ----------------------------------
-   Kullanıcıları sağ panelde listele
--------------------------------------*/
 function updateUserList(usersInRoom) {
   userListDiv.innerHTML = ''; 
   usersInRoom.forEach(user => {
@@ -518,6 +513,12 @@ async function requestMicrophoneAccess() {
    WebRTC Sinyal
 -------------------------------------*/
 socket.on("signal", async (data) => {
+  // 1) Kendimizin gönderdiği sinyal dönerse ignore ediyoruz:
+  if (data.from === socket.id) {
+    // Kendi sinyalimizi tekrar almayalım
+    return;
+  }
+
   console.log("Signal alındı:", data);
   const { from, signal } = data;
 
@@ -539,9 +540,16 @@ socket.on("signal", async (data) => {
     await peer.setLocalDescription(answer);
     console.log("Answer gönderiliyor:", answer);
     socket.emit("signal", { to: from, signal: peer.localDescription });
-  } else if (signal.type === "answer") {
+  } 
+  else if (signal.type === "answer") {
+    // 2) Halihazırda stable durumda isek answer set edilmesin:
+    if (peer.signalingState === "stable") {
+      console.warn("PeerConnection already stable. Second answer ignored.");
+      return;
+    }
     await peer.setRemoteDescription(new RTCSessionDescription(signal));
-  } else if (signal.candidate) {
+  } 
+  else if (signal.candidate) {
     await peer.addIceCandidate(new RTCIceCandidate(signal));
     console.log("ICE Candidate eklendi:", signal);
   }

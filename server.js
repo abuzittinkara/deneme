@@ -3,10 +3,10 @@ const express = require("express");
 const socketIO = require("socket.io");
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const { v4: uuidv4 } = require('uuid'); // UUID
+const { v4: uuidv4 } = require('uuid');
 
-const User = require('./models/User');  // User model
-const Group = require('./models/Group'); // <-- Yeni eklediğimiz Group model
+const User = require('./models/User');
+const Group = require('./models/Group'); // Opsiyonel: Grup modeli varsa
 
 const app = express();
 const server = http.createServer(app);
@@ -18,10 +18,8 @@ mongoose.connect(uri)
   .then(() => console.log("MongoDB bağlantısı başarılı!"))
   .catch(err => console.error("MongoDB bağlantı hatası:", err));
 
-// Kullanıcılar (Bellek içi)
+// Bellek içi örnek veriler
 const users = {};
-
-// Gruplar (Bellek içi) => groupId => { owner, name, users:[], rooms:{} }
 const groups = {};
 
 /*
@@ -151,7 +149,7 @@ io.on("connection", (socket) => {
   });
 
   // set-username
-  socket.on('set-username', async (usernameVal) => {
+  socket.on('set-username', (usernameVal) => {
     if (usernameVal && typeof usernameVal === 'string') {
       users[socket.id].username = usernameVal.trim();
       console.log(`User ${socket.id} => set-username => ${usernameVal}`);
@@ -386,6 +384,12 @@ io.on("connection", (socket) => {
   // ---------------------
   socket.on("signal", (data) => {
     const targetId = data.to;
+
+    // 1) Kendine geri gönderme => engelle
+    if (socket.id === targetId) {
+      return; 
+    }
+
     if (!users[targetId]) return;
 
     const senderGroup = users[socket.id].currentGroup;
