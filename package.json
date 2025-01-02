@@ -6,7 +6,6 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "express": "^4.21.1",
     "mongodb": "^6.12.0",
