@@ -311,7 +311,10 @@ socket.on('groupsList', (groupArray) => {
     grpItem.title = groupObj.name + " (" + groupObj.id + ")";
     grpItem.dataset.groupId = groupObj.id;
 
+    // Burada grup'a tıklanınca => currentGroup güncelleniyor
     grpItem.addEventListener('click', () => {
+      currentGroup = groupObj.id;
+      groupTitle.textContent = groupObj.name; // Üstte grup adını göster
       socket.emit('joinGroup', groupObj.id);
     });
 
@@ -338,7 +341,7 @@ copyGroupIdBtn.addEventListener('click', () => {
 });
 
 /* ----------------------------------
-   joinGroup => server sonra roomsList döndürüyor
+   roomsList => oda listesi sunucudan gelince
 -------------------------------------*/
 socket.on('roomsList', (roomsArray) => {
   roomListDiv.innerHTML = '';
@@ -364,7 +367,7 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Odaya tıklayınca
+    // Odaya tıklayınca => oda değişimi
     roomItem.addEventListener('click', () => {
       if (currentRoom && currentRoom !== roomObj.id) {
         console.log("Leaving old room =>", currentRoom);
@@ -387,7 +390,7 @@ socket.on('roomsList', (roomsArray) => {
 /* ----------------------------------
    Oda oluşturma butonları
 -------------------------------------*/
-// 1) "Oda Oluştur" Butonu (soldaki +)
+// 1) Soldaki + butonu
 createRoomButton.addEventListener('click', () => {
   if (!currentGroup) {
     alert("Önce bir gruba katılın veya oluşturun!");
@@ -398,11 +401,9 @@ createRoomButton.addEventListener('click', () => {
   modalRoomName.focus();
 });
 
-// 2) "Kanal Oluştur" Butonu (grup dropdown)
+// 2) Grup menüsündeki "Kanal Oluştur"
 createChannelBtn.addEventListener('click', () => {
-  // Menüyü kapat
   groupDropdownMenu.style.display = 'none';
-
   if (!currentGroup) {
     alert("Önce bir gruba katılın veya oluşturun!");
     return;
@@ -461,7 +462,6 @@ socket.on('roomUsers', (usersInRoom) => {
     .map(u => u.id)
     .filter(id => !peers[id]);
 
-  // Mikrofon izni yoksa ilk defa al
   if (!audioPermissionGranted || !localStream) {
     requestMicrophoneAccess().then(() => {
       otherUserIds.forEach(userId => {
@@ -487,9 +487,9 @@ socket.on('roomUsers', (usersInRoom) => {
   }
 });
 
-/* 
+/* ----------------------------------
    Sağ panel kullanıcı listesi
-*/
+-------------------------------------*/
 function updateUserList(usersInRoom) {
   userListDiv.innerHTML = ''; 
   usersInRoom.forEach(user => {
@@ -527,9 +527,9 @@ function updateUserList(usersInRoom) {
   });
 }
 
-/*
-   Kanal altındaki kullanıcı listesi (Discord benzeri)
-*/
+/* ----------------------------------
+   Kanal altındaki kullanıcı listesi
+-------------------------------------*/
 function updateChannelUserList(roomId, usersInRoom) {
   if (!roomId) return;
   const channelUsersDiv = document.getElementById(`channel-users-${roomId}`);
