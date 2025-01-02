@@ -149,7 +149,7 @@ io.on("connection", (socket) => {
   });
 
   // set-username
-  socket.on('set-username', (usernameVal) => {
+  socket.on('set-username', async (usernameVal) => {
     if (usernameVal && typeof usernameVal === 'string') {
       users[socket.id].username = usernameVal.trim();
       console.log(`User ${socket.id} => set-username => ${usernameVal}`);
