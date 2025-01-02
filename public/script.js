@@ -38,7 +38,7 @@ const backToLoginButton = document.getElementById('backToLoginButton');
 const showRegisterScreen = document.getElementById('showRegisterScreen');
 const showLoginScreen = document.getElementById('showLoginScreen');
 
-// Gruplar (soldaki yuvarlak ikonlar)
+// Gruplar (sol sidebar)
 const groupListDiv = document.getElementById('groupList');
 const createGroupButton = document.getElementById('createGroupButton');
 
@@ -251,7 +251,6 @@ closeDMButton.addEventListener('click', () => {
    Grup Oluştur / Seçenekler
 -------------------------------------*/
 createGroupButton.addEventListener('click', () => {
-  // groupModal açalım: İki seçenek (Grup Kur / Gruba Katıl)
   groupModal.style.display = 'flex';
 });
 
@@ -419,16 +418,14 @@ leaveButton.addEventListener('click', () => {
 });
 
 /* ----------------------------------
-   Grup Kullanıcıları (Alfabetik)
+   (Örnek) Odaya değil, Gruba ait kullanıcılar
 -------------------------------------*/
-// Sunucu “groupUsers” event’inde => gruba katılan TÜM kullanıcılar (alfabetik)
-socket.on('groupUsers', (groupUserArray) => {
-  // Bu event geldiğinde, sağ paneli güncelliyoruz:
-  updateUserList(groupUserArray);
+// Sunucuda groupUsers event’i isterseniz tanımlayabilirsiniz.
+// Veya roomUsers event’i (odadaki kullanıcılar). Aşağıda roomUsers var (örnek).
+socket.on('roomUsers', (usersInRoom) => {
+  updateUserList(usersInRoom);
 
-  // Eğer isterseniz, aynı anda WebRTC logic de burada yapılabilir
-  // (groupUserArray => .filter(u => u.id !== socket.id) ... vs.)
-  const otherUserIds = groupUserArray
+  const otherUserIds = usersInRoom
     .filter(u => u.id !== socket.id)
     .map(u => u.id)
     .filter(id => !peers[id]);
@@ -461,9 +458,9 @@ socket.on('groupUsers', (groupUserArray) => {
 /* ----------------------------------
    Kullanıcıları sağ panelde listele
 -------------------------------------*/
-function updateUserList(groupUsers) {
-  userListDiv.innerHTML = '';
-  groupUsers.forEach(user => {
+function updateUserList(usersInRoom) {
+  userListDiv.innerHTML = ''; 
+  usersInRoom.forEach(user => {
     const userItem = document.createElement('div');
     userItem.classList.add('user-item');
 
@@ -527,7 +524,7 @@ socket.on("signal", async (data) => {
   let peer;
   if (!peers[from]) {
     if (!localStream) {
-      console.warn("localStream yok, sinyal bekletiyoruz.");
+      console.warn("localStream yok, sinyal bekletiliyor.");
       pendingNewUsers.push(from);
       return;
     }
