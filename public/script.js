@@ -5,7 +5,7 @@ let audioPermissionGranted = false;
 let remoteAudios = []; 
 let username = null;
 
-// Artık grup ismi yerine grup ID saklayacağız
+// Gruplar/Odalar
 let currentGroup = null;  
 let currentRoom = null;   
 
@@ -38,11 +38,11 @@ const backToLoginButton = document.getElementById('backToLoginButton');
 const showRegisterScreen = document.getElementById('showRegisterScreen');
 const showLoginScreen = document.getElementById('showLoginScreen');
 
-// Gruplar (soldaki yuvarlak ikonlar)
+// Gruplar (sol sidebar)
 const groupListDiv = document.getElementById('groupList');
 const createGroupButton = document.getElementById('createGroupButton');
 
-// Odalar (kanallar)
+// Kanallar (oda)
 const roomListDiv = document.getElementById('roomList');
 const createRoomButton = document.getElementById('createRoomButton');
 const groupTitle = document.getElementById('groupTitle');
@@ -52,7 +52,7 @@ const renameGroupBtn = document.getElementById('renameGroupBtn');
 const createChannelBtn = document.getElementById('createChannelBtn');
 const deleteGroupBtn = document.getElementById('deleteGroupBtn');
 
-// DM / GRUP Sekmesi
+// DM / GRUP
 const toggleDMButton = document.getElementById('toggleDMButton');
 const closeDMButton = document.getElementById('closeDMButton');
 const dmPanel = document.getElementById('dmPanel');
@@ -62,16 +62,15 @@ let isDMMode = false;
 // Sağ panel (kullanıcı listesi)
 const userListDiv = document.getElementById('userList');
 
-// Ayrıl Butonu
+// Ayrıl butonu
 const leaveButton = document.getElementById('leaveButton');
 
-// Modal: Grup
+// Modallar: Grup & Oda
 const groupModal = document.getElementById('groupModal');
 const modalGroupName = document.getElementById('modalGroupName');
 const modalCreateGroupButton = document.getElementById('modalCreateGroupButton');
 const modalCloseButton = document.getElementById('modalCloseButton');
 
-// Modal: Oda
 const roomModal = document.getElementById('roomModal');
 const modalRoomName = document.getElementById('modalRoomName');
 const modalCreateRoomBtn = document.getElementById('modalCreateRoomBtn');
@@ -82,16 +81,59 @@ const leftUserName = document.getElementById('leftUserName');
 const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
 
-// Mikrofon - Kulaklık Durum
+// Mikrofon & Kulaklık durumu
 let micEnabled = true;
 let selfDeafened = false;
 
 /* ----------------------------------
-   Mikrofon & Kulaklık SVG (index.html de 22x22 style)
+   Mikrofon & Kulaklık SVG Kodları
 -------------------------------------*/
-// (Aynı kod: micOnSVG, micOffSVG, headphoneOffSVG, headphoneOnSVG)
+// Mikrofon Açık
+const micOnSVG = `
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+     stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M12 1v11a3 3 0 0 0 6 0V1" />
+  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+  <line x1="12" y1="19" x2="12" y2="23" />
+  <line x1="8" y1="23" x2="16" y2="23" />
+</svg>
+`;
 
-/* ... (Kod aynı, isterseniz buraya SVG kodlarını yerleştirin) ... */
+// Mikrofon Kapalı (Slash kırmızı)
+const micOffSVG = `
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+     stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Normal mic -->
+  <path d="M12 1v11a3 3 0 0 0 6 0V1" />
+  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+  <line x1="12" y1="19" x2="12" y2="23" />
+  <line x1="8" y1="23" x2="16" y2="23" />
+  <!-- Slash kırmızı -->
+  <line x1="1" y1="1" x2="23" y2="23" stroke="red" stroke-width="2" />
+</svg>
+`;
+
+// Kulaklık Açık
+const headphoneOffSVG = `
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+     stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M4 14v-2a8 8 0 0 1 16 0v2" />
+  <path d="M4 14h-2v4h2z" />
+  <path d="M20 14h2v4h-2z" />
+</svg>
+`;
+
+// Kulaklık Sağır (slash kırmızı)
+const headphoneOnSVG = `
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+     stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M4 14v-2a8 8 0 0 1 16 0v2" />
+  <path d="M4 14h-2v4h2z" />
+  <path d="M20 14h2v4h-2z" />
+  <!-- Slash kırmızı -->
+  <line x1="1" y1="1" x2="23" y2="23" stroke="red" stroke-width="2" />
+</svg>
+`;
 
 /* ----------------------------------
    Ekran geçişleri
@@ -129,7 +171,8 @@ socket.on('loginResult', (data) => {
     callScreen.style.display = 'flex';
     socket.emit('set-username', username);
     leftUserName.textContent = username;
-    applyAudioStates();
+
+    applyAudioStates(); // mik / kulaklık ikon durumu
   } else {
     alert("Giriş başarısız: " + data.message);
   }
@@ -308,6 +351,7 @@ function joinRoom(groupId, roomId, roomName) {
 -------------------------------------*/
 leaveButton.addEventListener('click', () => {
   if (!currentRoom) return;
+  // Sunucuya haber ver
   socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
   closeAllPeers();
   currentRoom = null;
@@ -558,8 +602,10 @@ function applyAudioStates() {
       track.enabled = micEnabled && !selfDeafened;
     });
   }
+  // micOnSVG / micOffSVG
   micToggleButton.innerHTML = (micEnabled && !selfDeafened) ? micOnSVG : micOffSVG;
   applyDeafenState();
+  // headphoneOffSVG / headphoneOnSVG
   deafenToggleButton.innerHTML = selfDeafened ? headphoneOnSVG : headphoneOffSVG;
 }
 

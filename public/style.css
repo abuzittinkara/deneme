@@ -85,7 +85,7 @@ body {
   flex-direction: row;
   height: 100%;
   position: relative;
-  width: 65px; /* Grup panelin toplam payı (ilk) */
+  width: 65px; /* grup panelin payı */
 }
 
 /* Gruplar + Odalar (sidebar) => 65 + 200 = 265 px */
@@ -117,7 +117,7 @@ body {
   left: 1rem;
 }
 
-/* Sidebar (Gruplar) => 65px genişlik */
+/* Sidebar (Gruplar) => 65px */
 .sidebar {
   background: #1a1a1a; 
   width: 65px;  
@@ -156,7 +156,7 @@ body {
 /* Grup Oluştur Butonu (biraz daha yukarı) */
 .create-group-btn {
   position: absolute;
-  bottom: 120px; /* Eskiden 20px idi, yukarı aldık */
+  bottom: 120px; 
   left: 50%;
   transform: translateX(-50%);
 }
@@ -178,7 +178,7 @@ body {
   background-color: #a3156f;
 }
 
-/* Odalar paneli => 200px genişlik */
+/* Odalar paneli => 200px */
 .rooms-panel {
   background: #1f1f1f;
   width: 200px; 
@@ -244,10 +244,10 @@ body {
   gap: 0.4rem;
 }
 
-/* Kanal Oluşturma Butonu (yukarı al) */
+/* Kanal Oluşturma Butonu (biraz daha yukarı) */
 .create-room-btn {
   position: absolute;
-  bottom: 120px; /* Eskiden 20px idi, yukarı */
+  bottom: 120px; 
   right: 20px;
 }
 
@@ -302,14 +302,12 @@ body {
   color: #fff;
 }
 
-/* Butonlar satırında */
+/* Mikrofon & Kulaklık butonları */
 .user-panel-buttons {
   display: flex;
   gap: 0.5rem; 
   align-items: center;
 }
-
-/* Mikrofon & Kulaklık butonları (temel) */
 .user-panel-btn {
   background: none;   
   border: none;       
@@ -318,7 +316,6 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* index.html inline => 22x22 */
 }
 .user-panel-btn:hover {
   color: #c61884; 
