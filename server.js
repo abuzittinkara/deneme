@@ -159,26 +159,26 @@ io.on("connection", (socket) => {
   // ---------------------
   socket.on('createGroup', (groupName) => {
     if (!groupName) return;
-    const gName = groupName.trim();
-    if (!gName) return;
-
-    const groupId = uuidv4();
-    const userName = users[socket.id].username || `(User ${socket.id})`;
-
+    const trimmed = groupName.trim();
+    if (!trimmed) return;
+  
+    const groupId = uuidv4(); // rastgele ID
+    const userName = users[socket.id].username || `(Kullanıcı ${socket.id})`;
+  
     groups[groupId] = {
       owner: socket.id,
-      name: gName,
+      name: trimmed,
       users: [
         { id: socket.id, username: userName }
       ],
       rooms: {}
     };
-    console.log(`Grup oluşturuldu: ${gName} (ID=${groupId}), owner=${socket.id}`);
-
-    // Sadece bu user'a "groupsList" mantığını client'ta handle ediyorsanız => 
-    // sendGroupsListToUser(socket.id); // YAPILABİLİR
-    // Ama esas odak, group'a girince groupUsers veriyoruz vs.
+    console.log(`Yeni grup oluştur: ${trimmed} (ID=${groupId}), owner=${socket.id}`);
+  
+    // Önemli: sadece bu kullanıcıya, güncel gruplarını gönder
+    sendGroupsListToUser(socket.id);
   });
+  
 
   // ---------------------
   // joinGroupByID
