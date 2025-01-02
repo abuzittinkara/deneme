@@ -353,7 +353,7 @@ body {
   font-size: 1.4rem;
 }
 
-/* Sağ panel (kullanıcı listesi) => 265px */
+/* Sağ panel (kullanıcı listesi) => 200px */
 .right-panel {
   width: 200px; 
   background: #1f1f1f;
@@ -434,7 +434,9 @@ body {
   justify-content: center;
 }
 #groupModal,
-#roomModal {
+#roomModal,
+#actualGroupCreateModal,
+#joinGroupModal {
   display: none;
 }
 

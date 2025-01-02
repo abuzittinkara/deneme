@@ -48,6 +48,7 @@ const createRoomButton = document.getElementById('createRoomButton');
 const groupTitle = document.getElementById('groupTitle');
 const groupDropdownIcon = document.getElementById('groupDropdownIcon');
 const groupDropdownMenu = document.getElementById('groupDropdownMenu');
+const copyGroupIdBtn = document.getElementById('copyGroupIdBtn');
 const renameGroupBtn = document.getElementById('renameGroupBtn');
 const createChannelBtn = document.getElementById('createChannelBtn');
 const deleteGroupBtn = document.getElementById('deleteGroupBtn');
@@ -62,15 +63,27 @@ let isDMMode = false;
 // Sağ panel (kullanıcı listesi)
 const userListDiv = document.getElementById('userList');
 
-// Ayrıl butonu
+// Ayrıl Butonu
 const leaveButton = document.getElementById('leaveButton');
 
-// Modallar: Grup & Oda
+// Modal: Grup Seçenekleri
 const groupModal = document.getElementById('groupModal');
-const modalGroupName = document.getElementById('modalGroupName');
-const modalCreateGroupButton = document.getElementById('modalCreateGroupButton');
-const modalCloseButton = document.getElementById('modalCloseButton');
+const modalGroupCreateBtn = document.getElementById('modalGroupCreateBtn');
+const modalGroupJoinBtn = document.getElementById('modalGroupJoinBtn');
 
+// Modal: Grup Kur
+const actualGroupCreateModal = document.getElementById('actualGroupCreateModal');
+const actualGroupName = document.getElementById('actualGroupName');
+const actualGroupNameBtn = document.getElementById('actualGroupNameBtn');
+const closeCreateGroupModal = document.getElementById('closeCreateGroupModal');
+
+// Modal: Gruba Katıl
+const joinGroupModal = document.getElementById('joinGroupModal');
+const joinGroupIdInput = document.getElementById('joinGroupIdInput');
+const joinGroupIdBtn = document.getElementById('joinGroupIdBtn');
+const closeJoinGroupModal = document.getElementById('closeJoinGroupModal');
+
+// Modal: Oda
 const roomModal = document.getElementById('roomModal');
 const modalRoomName = document.getElementById('modalRoomName');
 const modalCreateRoomBtn = document.getElementById('modalCreateRoomBtn');
@@ -103,12 +116,10 @@ const micOnSVG = `
 const micOffSVG = `
 <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
      stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <!-- Normal mic -->
   <path d="M12 1v11a3 3 0 0 0 6 0V1" />
   <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
   <line x1="12" y1="19" x2="12" y2="23" />
   <line x1="8" y1="23" x2="16" y2="23" />
-  <!-- Slash kırmızı -->
   <line x1="1" y1="1" x2="23" y2="23" stroke="red" stroke-width="2" />
 </svg>
 `;
@@ -130,7 +141,6 @@ const headphoneOnSVG = `
   <path d="M4 14v-2a8 8 0 0 1 16 0v2" />
   <path d="M4 14h-2v4h2z" />
   <path d="M20 14h2v4h-2z" />
-  <!-- Slash kırmızı -->
   <line x1="1" y1="1" x2="23" y2="23" stroke="red" stroke-width="2" />
 </svg>
 `;
@@ -171,8 +181,7 @@ socket.on('loginResult', (data) => {
     callScreen.style.display = 'flex';
     socket.emit('set-username', username);
     leftUserName.textContent = username;
-
-    applyAudioStates(); // mik / kulaklık ikon durumu
+    applyAudioStates();
   } else {
     alert("Giriş başarısız: " + data.message);
   }
@@ -238,33 +247,64 @@ closeDMButton.addEventListener('click', () => {
 });
 
 /* ----------------------------------
-   Grup Oluşturma
+   Grup Oluştur / Seçenekler
 -------------------------------------*/
 createGroupButton.addEventListener('click', () => {
+  // groupModal açalım: İki seçenek (Grup Kur / Gruba Katıl)
   groupModal.style.display = 'flex';
-  modalGroupName.value = '';
-  modalGroupName.focus();
-});
-modalCreateGroupButton.addEventListener('click', () => {
-  const grpName = modalGroupName.value.trim();
-  if (grpName) {
-    socket.emit('createGroup', grpName);
-    groupModal.style.display = 'none';
-  } else {
-    alert("Lütfen bir grup adı girin");
-  }
-});
-modalCloseButton.addEventListener('click', () => {
-  groupModal.style.display = 'none';
 });
 
+// Modal: Grup Seçenekleri
+modalGroupCreateBtn.addEventListener('click', () => {
+  // “Grup Kur” modali aç
+  groupModal.style.display = 'none';
+  actualGroupCreateModal.style.display = 'flex';
+});
+modalGroupJoinBtn.addEventListener('click', () => {
+  // “Gruba Katıl” modali aç
+  groupModal.style.display = 'none';
+  joinGroupModal.style.display = 'flex';
+});
+
+// Modal: Grup Kur
+actualGroupNameBtn.addEventListener('click', () => {
+  const grpName = actualGroupName.value.trim();
+  if (!grpName) {
+    alert("Grup adı boş olamaz!");
+    return;
+  }
+  socket.emit('createGroup', grpName);
+  actualGroupCreateModal.style.display = 'none';
+});
+closeCreateGroupModal.addEventListener('click', () => {
+  actualGroupCreateModal.style.display = 'none';
+});
+
+// Modal: Gruba Katıl
+joinGroupIdBtn.addEventListener('click', () => {
+  const grpIdVal = joinGroupIdInput.value.trim();
+  if (!grpIdVal) {
+    alert("Grup ID boş olamaz!");
+    return;
+  }
+  socket.emit('joinGroupByID', grpIdVal);
+  joinGroupModal.style.display = 'none';
+});
+closeJoinGroupModal.addEventListener('click', () => {
+  joinGroupModal.style.display = 'none';
+});
+
+/* ----------------------------------
+   Sunucudan güncel grup listesi
+-------------------------------------*/
 socket.on('groupsList', (groupArray) => {
+  // Sadece bu kullanıcının (veya katıldığı) gruplar
   groupListDiv.innerHTML = '';
   groupArray.forEach(groupObj => {
     const grpItem = document.createElement('div');
     grpItem.className = 'grp-item';
     grpItem.innerText = groupObj.name[0].toUpperCase();
-    grpItem.title = groupObj.name;
+    grpItem.title = groupObj.name + " (" + groupObj.id + ")";
     grpItem.dataset.groupId = groupObj.id;
 
     grpItem.addEventListener('click', () => {
@@ -275,6 +315,28 @@ socket.on('groupsList', (groupArray) => {
   });
 });
 
+/* ----------------------------------
+   Grup başlığı + ID kopyalama
+-------------------------------------*/
+copyGroupIdBtn.addEventListener('click', () => {
+  if (!currentGroup) {
+    alert("Şu an geçerli bir grup yok!");
+    return;
+  }
+  // Panoya kopyala
+  navigator.clipboard.writeText(currentGroup)
+    .then(() => {
+      alert("Grup ID kopyalandı: " + currentGroup);
+    })
+    .catch(err => {
+      console.error("Grup ID kopyalanamadı:", err);
+    });
+  groupDropdownMenu.style.display = 'none';
+});
+
+/* ----------------------------------
+   Bir gruba ID ile veya listeden
+-------------------------------------*/
 function joinGroup(groupId, groupName) {
   if (currentGroup && currentGroup !== groupId) {
     closeAllPeers();
@@ -302,17 +364,20 @@ createRoomButton.addEventListener('click', () => {
 });
 modalCreateRoomBtn.addEventListener('click', () => {
   const rName = modalRoomName.value.trim();
-  if (rName) {
-    socket.emit('createRoom', { groupId: currentGroup, roomName: rName });
-    roomModal.style.display = 'none';
-  } else {
+  if (!rName) {
     alert("Lütfen bir oda adı girin");
+    return;
   }
+  socket.emit('createRoom', { groupId: currentGroup, roomName: rName });
+  roomModal.style.display = 'none';
 });
 modalCloseRoomBtn.addEventListener('click', () => {
   roomModal.style.display = 'none';
 });
 
+/* ----------------------------------
+   Sunucudan Odalar Listesi
+-------------------------------------*/
 socket.on('roomsList', (roomsArray) => {
   roomListDiv.innerHTML = '';
   roomsArray.forEach(roomObj => {
@@ -351,7 +416,6 @@ function joinRoom(groupId, roomId, roomName) {
 -------------------------------------*/
 leaveButton.addEventListener('click', () => {
   if (!currentRoom) return;
-  // Sunucuya haber ver
   socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
   closeAllPeers();
   currentRoom = null;
@@ -604,11 +668,13 @@ function applyAudioStates() {
   }
   // micOnSVG / micOffSVG
   micToggleButton.innerHTML = (micEnabled && !selfDeafened) ? micOnSVG : micOffSVG;
+  // Deafen
   applyDeafenState();
   // headphoneOffSVG / headphoneOnSVG
   deafenToggleButton.innerHTML = selfDeafened ? headphoneOnSVG : headphoneOffSVG;
 }
 
+// Sesi kapat (remoteAudios) => Deaf
 function applyDeafenState() {
   remoteAudios.forEach(audio => {
     audio.muted = selfDeafened;
@@ -629,20 +695,4 @@ let dropdownOpen = false;
 groupDropdownIcon.addEventListener('click', () => {
   dropdownOpen = !dropdownOpen;
   groupDropdownMenu.style.display = dropdownOpen ? 'flex' : 'none';
-});
-
-renameGroupBtn.addEventListener('click', () => {
-  alert("Grup ismi değiştirme işlemi henüz tanımlanmadı.");
-  groupDropdownMenu.style.display = 'none';
-  dropdownOpen = false;
-});
-createChannelBtn.addEventListener('click', () => {
-  alert("Kanal oluşturma işlemi henüz tanımlanmadı.");
-  groupDropdownMenu.style.display = 'none';
-  dropdownOpen = false;
-});
-deleteGroupBtn.addEventListener('click', () => {
-  alert("Grubu silme işlemi henüz tanımlanmadı.");
-  groupDropdownMenu.style.display = 'none';
-  dropdownOpen = false;
 });
