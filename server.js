@@ -5,7 +5,8 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid'); // UUID
 
-const User = require('./models/User'); // User model
+const User = require('./models/User');  // User model
+const Group = require('./models/Group'); // <-- Yeni eklediğimiz Group model
 
 const app = express();
 const server = http.createServer(app);
@@ -17,62 +18,44 @@ mongoose.connect(uri)
   .then(() => console.log("MongoDB bağlantısı başarılı!"))
   .catch(err => console.error("MongoDB bağlantı hatası:", err));
 
-// Kullanıcılar
-// users[socket.id] = { username, currentGroup, currentRoom }
+// Kullanıcılar (Bellek içi)
 const users = {};
 
-// Gruplar => groupId => { owner, name, users:[], rooms:{} }
+// Gruplar (Bellek içi) => groupId => { owner, name, users:[], rooms:{} }
 const groups = {};
 
-/* 
-  Örnek:
-  groups = {
-    "some-uuid": {
-      owner: "socket.id",
-      name: "Grup Adı",
-      users: [
-        { id: "socket.id", username: "ABC" },
-        ...
-      ],
-      rooms: {
-        "room-uuid": {
-          name: "Kanal Adı",
-          users: [ { id, username }, ... ]
-        }
-      }
-    },
-    ...
-  }
+/*
+  Artık gruplar aynı zamanda MongoDB'de saklanıyor (Group model).
+  Bellek içi "groups" yapısı hâlâ gerçek zamanlı işlev için varlığını koruyor,
+  fakat kullanıcı her girişte veritabanındaki grup kayıtlarını da alabilecek.
 */
 
-app.use(express.static("public")); // index.html, script.js, style.css
-
-// -----------------------------------------------------------------
-// Fonksiyon: Bir kullanıcıya *kendisinin* görebileceği grupları gönder
-// -----------------------------------------------------------------
-function sendGroupsListToUser(socketId) {
+// ----------------------------------------------------------
+// Bir kullanıcıya, veritabanında kayıtlı (katıldığı/oluşturduğu) grupları gönder
+// ----------------------------------------------------------
+async function sendGroupsListToUser(socketId) {
   const userData = users[socketId];
   if (!userData) return;
 
-  // Bu kullanıcı hangi gruplarda?
-  // Koşul: group.owner == socketId veya group.users[].id == socketId
-  const userGroups = Object.keys(groups)
-    .filter(gid => {
-      const g = groups[gid];
-      if (g.owner === socketId) return true;
-      return g.users.some(u => u.id === socketId);
-    })
-    .map(gid => ({
-      id: gid,
-      name: groups[gid].name
-    }));
+  // Kullanıcının username'i ile DB'deki kaydını bul
+  const userDoc = await User.findOne({ username: userData.username })
+    .populate('groups'); // groups alanını doldur (ref:'Group')
 
+  if (!userDoc) return;
+
+  // DB'den gelen userDoc.groups dizisi içindeki Group dokümanlarını map'liyoruz
+  const userGroups = userDoc.groups.map(g => ({
+    id: g.groupId,  // groupId (UUID)
+    name: g.name
+  }));
+
+  // İstemciye gönder
   io.to(socketId).emit('groupsList', userGroups);
 }
 
-// -----------------------------------------------------------------
-// Fonksiyon: roomsList => Belirli bir grup için odaların listesi
-// -----------------------------------------------------------------
+// ----------------------------------------------------------
+// roomsList => Bellek içi "groups" objesinden hala okunuyor
+// ----------------------------------------------------------
 function sendRoomsListToUser(socketId, groupId) {
   const groupObj = groups[groupId];
   if (!groupObj) return;
@@ -82,6 +65,8 @@ function sendRoomsListToUser(socketId, groupId) {
   }));
   io.to(socketId).emit('roomsList', roomArray);
 }
+
+app.use(express.static("public")); // index.html, script.js, style.css
 
 // -----------------------------------------------------------------
 // Socket.IO
@@ -154,7 +139,8 @@ io.on("connection", (socket) => {
         surname,
         birthdate: new Date(birthdate),
         email,
-        phone
+        phone,
+        groups: [] // Başlangıçta boş dizi
       });
       await newUser.save();
       socket.emit('registerResult', { success: true });
@@ -165,25 +151,52 @@ io.on("connection", (socket) => {
   });
 
   // set-username
-  socket.on('set-username', (usernameVal) => {
+  socket.on('set-username', async (usernameVal) => {
     if (usernameVal && typeof usernameVal === 'string') {
       users[socket.id].username = usernameVal.trim();
       console.log(`User ${socket.id} => set-username => ${usernameVal}`);
-      // Giriş sonrası => bu user'a kendi groupsList'i
-      sendGroupsListToUser(socket.id);
+
+      // Giriş sonrası => bu user'a, DB'den grup listesini gönder
+      try {
+        await sendGroupsListToUser(socket.id);
+      } catch (err) {
+        console.error("sendGroupsListToUser hata:", err);
+      }
     }
   });
 
   // ---------------------
   // createGroup
   // ---------------------
-  socket.on('createGroup', (groupName) => {
+  socket.on('createGroup', async (groupName) => {
     if (!groupName || typeof groupName !== 'string') return;
     const trimmed = groupName.trim();
     if (!trimmed) return;
 
     const groupId = uuidv4();
     const userName = users[socket.id].username || `(User ${socket.id})`;
+
+    // Veritabanından kullanıcıyı bul
+    const userDoc = await User.findOne({ username: userName });
+    if (!userDoc) {
+      console.log("createGroup: Kullanıcı DB'de bulunamadı:", userName);
+      return;
+    }
+
+    // Yeni Group dokümanı oluştur
+    const newGroup = new Group({
+      groupId,
+      name: trimmed,
+      owner: userDoc._id,
+      users: [ userDoc._id ]
+    });
+    await newGroup.save();
+
+    // Kullanıcının groups alanına bu yeni group'u ekle
+    userDoc.groups.push(newGroup._id);
+    await userDoc.save();
+
+    // Bellek içinde de sakla (gerçek zamanlı logic için)
     groups[groupId] = {
       owner: socket.id,
       name: trimmed,
@@ -194,37 +207,71 @@ io.on("connection", (socket) => {
     };
     console.log(`Yeni grup oluştur: ${trimmed} (ID=${groupId}), owner=${socket.id}`);
 
-    // Sadece bu user'a => groupsList
-    sendGroupsListToUser(socket.id);
+    // Sadece bu user'a => güncel grup listesini DB'den çekip gönder
+    await sendGroupsListToUser(socket.id);
   });
 
   // ---------------------
   // joinGroupByID
   // ---------------------
-  socket.on('joinGroupByID', (groupId) => {
-    if (!groups[groupId]) {
-      socket.emit('errorMessage', "Böyle bir grup yok.");
-      return;
-    }
-    const userName = users[socket.id].username || `(User ${socket.id})`;
-    // Zaten yoksa ekle
-    if (!groups[groupId].users.some(u => u.id === socket.id)) {
-      groups[groupId].users.push({ id: socket.id, username: userName });
-    }
-    users[socket.id].currentGroup = groupId;
-    users[socket.id].currentRoom = null;
-    console.log(`User ${socket.id} => joinGroupByID => ${groupId}`);
+  socket.on('joinGroupByID', async (groupId) => {
+    try {
+      const userName = users[socket.id].username || `(User ${socket.id})`;
+      const userDoc = await User.findOne({ username: userName });
+      if (!userDoc) {
+        socket.emit('errorMessage', "Kullanıcı bulunamadı (DB).");
+        return;
+      }
 
-    // Bu user'a => groupsList
-    sendGroupsListToUser(socket.id);
+      const groupDoc = await Group.findOne({ groupId });
+      if (!groupDoc) {
+        socket.emit('errorMessage', "Böyle bir grup yok.");
+        return;
+      }
+
+      // Gruba henüz ekli değilse DB'ye ekle
+      if (!groupDoc.users.includes(userDoc._id)) {
+        groupDoc.users.push(userDoc._id);
+        await groupDoc.save();
+      }
+
+      // Kullanıcının groups listesine ekle
+      if (!userDoc.groups.includes(groupDoc._id)) {
+        userDoc.groups.push(groupDoc._id);
+        await userDoc.save();
+      }
+
+      users[socket.id].currentGroup = groupId;
+      users[socket.id].currentRoom = null;
+      console.log(`User ${socket.id} => joinGroupByID => ${groupId}`);
+
+      // Bellek tarafında da yoksa ekle
+      if (!groups[groupId]) {
+        groups[groupId] = {
+          owner: groupDoc.owner.toString(), // veya memory'de tam socket.id eşleme opsiyonel
+          name: groupDoc.name,
+          users: [],
+          rooms: {}
+        };
+      }
+      if (!groups[groupId].users.some(u => u.id === socket.id)) {
+        groups[groupId].users.push({ id: socket.id, username: userName });
+      }
+
+      // Bu user'a => DB'den grup listesini tekrar gönder
+      await sendGroupsListToUser(socket.id);
+
+    } catch (err) {
+      console.error("joinGroupByID hata:", err);
+    }
   });
 
   // ---------------------
   // joinGroup (listeden)
   // ---------------------
-  socket.on('joinGroup', (groupId) => {
+  socket.on('joinGroup', async (groupId) => {
     if (!groups[groupId]) {
-      console.log("Geçersiz grup ID:", groupId);
+      console.log("Geçersiz grup ID (in-memory):", groupId);
       return;
     }
     const oldGroup = users[socket.id].currentGroup;
@@ -239,12 +286,12 @@ io.on("connection", (socket) => {
         io.to(`${oldGroup}::${oldRoom}`).emit('roomUsers', groups[oldGroup].rooms[oldRoom].users);
         socket.leave(`${oldGroup}::${oldRoom}`);
       }
-      // Eski gruptan da çık
+      // Eski gruptan da çıkar (bellek tarafında)
       groups[oldGroup].users = groups[oldGroup].users.filter(u => u.id !== socket.id);
       socket.leave(oldGroup);
     }
 
-    // Bu grupta yoksa ekle
+    // Bu grupta yoksa bellek tarafında ekle
     if (!groups[groupId].users.some(u => u.id === socket.id)) {
       groups[groupId].users.push({ id: socket.id, username: userName });
     }
@@ -252,7 +299,7 @@ io.on("connection", (socket) => {
     users[socket.id].currentRoom = null;
     socket.join(groupId);
 
-    // Odalar listesi sadece bu kullanıcıya
+    // Odalar listesi sadece bu kullanıcıya (in-memory)
     sendRoomsListToUser(socket.id, groupId);
 
     console.log(`User ${socket.id} => joinGroup => ${groupId}`);
@@ -371,7 +418,7 @@ io.on("connection", (socket) => {
           groups[gId].rooms[rId].users = groups[gId].rooms[rId].users.filter(u => u.id !== socket.id);
           io.to(`${gId}::${rId}`).emit('roomUsers', groups[gId].rooms[rId].users);
         }
-        // Gruptan çıkar
+        // Gruptan çıkar (bellek tarafı)
         groups[gId].users = groups[gId].users.filter(u => u.id !== socket.id);
       }
     }
@@ -379,10 +426,10 @@ io.on("connection", (socket) => {
   });
 });
 
-// Periyodik log (isteğe bağlı)
+// Periyodik log (opsiyonel)
 setInterval(() => {
-  console.log("users:", users);
-  console.log("groups:", groups);
+  console.log("users (in-memory):", users);
+  console.log("groups (in-memory):", groups);
 }, 10000);
 
 // Sunucu Başlat

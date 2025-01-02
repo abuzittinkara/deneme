@@ -7,7 +7,11 @@ const UserSchema = new mongoose.Schema({
   surname: { type: String, required: true },
   birthdate: { type: Date, required: true },
   email: { type: String, required: true, unique: true },
-  phone: { type: String, required: true }
+  phone: { type: String, required: true },
+
+  // Kullanıcının üye olduğu veya oluşturduğu grupların MongoDB referansları:
+  groups: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Group' }]
+
 }, {
   timestamps: true
 });
