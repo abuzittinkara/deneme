@@ -1,10 +1,4 @@
-/**************************************************************
- * style.css
- * Genel Layout + Discord benzeri sol panel, sağ panel
- * Online/Offline kullanıcı listeleme + ID kopyalama dropdown
- **************************************************************/
-
-/* Genel */
+/* Genel Ayarlar */
 body {
   margin: 0;
   padding: 0;
@@ -13,6 +7,7 @@ body {
   color: #fff;
   font-size: 16px;
 }
+
 .screen-container {
   width: 100vw;
   height: 100vh;
@@ -20,24 +15,27 @@ body {
   align-items: center;
   justify-content: center;
 }
+
 .card {
-  background: #2d2d2d;
+  background: #2d2d2d; 
   padding: 2rem;
   border-radius: 8px;
   min-width: 320px;
   text-align: center;
-  border: none;
-  box-shadow: none;
+  border: none; 
+  box-shadow: none; 
 }
+
 .app-title {
   margin: 0 0 1rem;
   font-size: 1.5rem;
 }
+
 .input-text {
   width: 100%;
   padding: 0.75rem;
-  background: #444;
-  color: #fff;
+  background: #444;  
+  color: #fff;       
   border: 1px solid #666;
   border-radius: 6px;
   font-size: 1rem;
@@ -45,7 +43,7 @@ body {
   box-sizing: border-box;
 }
 
-/* Button */
+/* Butonlar (Ana buton stilleri) */
 .btn {
   padding: 0.75rem 1.25rem;
   border: none;
@@ -56,7 +54,7 @@ body {
   transition: background 0.3s ease;
 }
 .btn.primary {
-  background: #c61884;
+  background: #c61884; 
   color: #fff;
 }
 .btn.primary:hover {
@@ -81,20 +79,24 @@ body {
   height: 100vh;
 }
 
-/* Sol panel (gruplar + rooms) */
+/* Sol taraftaki paneller */
 .left-panels {
   display: flex;
   flex-direction: row;
   height: 100%;
   position: relative;
-  width: 65px;
+  width: 65px; /* grup panelin payı */
 }
+
+/* Gruplar + Odalar (sidebar) => 65 + 200 = 265 px */
 .groups-rooms {
   display: flex;
   flex-direction: row;
   position: relative;
-  width: 265px; /* 65 + 200 */
+  width: 265px;
 }
+
+/* DM paneli */
 .dm-panel {
   width: 265px;
   background: #222;
@@ -106,26 +108,27 @@ body {
   left: 0;
   top: 0;
   height: 100%;
-  display: none;
 }
+
+/* Kapat butonu */
 .dm-close-btn {
   position: absolute;
   top: 1rem;
   left: 0.55rem;
 }
 
-/* Gruplar sidebar */
+/* Sidebar (Gruplar) => 65px */
 .sidebar {
-  background: #1a1a1a;
-  width: 65px;
+  background: #1a1a1a; 
+  width: 65px;  
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 1rem 0;
-  position: relative;
+  position: relative; 
 }
 .dm-toggle-btn {
-  margin-bottom: 1rem;
+  margin-bottom: 1rem; 
 }
 .group-list {
   display: flex;
@@ -149,12 +152,15 @@ body {
 .grp-item:hover {
   background: #666;
 }
+
+/* Grup Oluştur Butonu (biraz daha yukarı) */
 .create-group-btn {
   position: absolute;
   bottom: 70px; 
   left: 50%;
   transform: translateX(-50%);
 }
+
 .circle-btn {
   background-color: #c61884;
   color: #fff;
@@ -172,10 +178,10 @@ body {
   background-color: #a3156f;
 }
 
-/* Rooms panel => 200px */
+/* Odalar paneli => 200px */
 .rooms-panel {
   background: #1f1f1f;
-  width: 200px;
+  width: 200px; 
   display: flex;
   flex-direction: column;
   padding: 1rem;
@@ -183,7 +189,7 @@ body {
   gap: 1rem;
 }
 
-/* Grup başlığı + dropdown */
+/* Oda paneli üst kısmı: Grup Adı + ok (⌄) */
 .room-panel-header {
   display: flex;
   align-items: center;
@@ -200,11 +206,13 @@ body {
   user-select: none;
   font-size: 1.2rem; 
   color: #ccc;
-  margin-left: auto;
+  margin-left: auto; 
 }
 .dropdown-icon:hover {
   color: #fff;
 }
+
+/* Dropdown menü */
 .dropdown-menu {
   position: absolute;
   top: 2rem;
@@ -213,7 +221,7 @@ body {
   border: 1px solid #444;
   border-radius: 6px;
   min-width: 140px;
-  display: none; /* JS toggling with style.display */
+  display: flex;
   flex-direction: column;
 }
 .dropdown-item {
@@ -230,12 +238,20 @@ body {
   background: #444;
 }
 
-/* Kanallar */
 .room-list {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
 }
+
+/* Kanal Oluşturma Butonu (biraz daha yukarı) */
+.create-room-btn {
+  position: absolute;
+  bottom: 70px; 
+  right: 10px;
+}
+
+/* Kanal item (Düz yazı + ses dalgası) */
 .channel-item {
   display: flex;
   align-items: center;
@@ -254,13 +270,8 @@ body {
   width: 16px;
   height: 16px;
 }
-.create-room-btn {
-  position: absolute;
-  bottom: 70px;
-  right: 10px;
-}
 
-/* Sol alt panel (kullanıcı) => 265px */
+/* Sol Alt Kullanıcı Paneli => 265px */
 .user-panel {
   position: absolute;
   bottom: 0;
@@ -290,14 +301,16 @@ body {
   font-size: 0.9rem;
   color: #fff;
 }
+
+/* Mikrofon & Kulaklık butonları */
 .user-panel-buttons {
   display: flex;
   gap: 0.5rem; 
   align-items: center;
 }
 .user-panel-btn {
-  background: none;
-  border: none;
+  background: none;   
+  border: none;       
   color: #fff;
   cursor: pointer;
   display: flex;
@@ -307,6 +320,8 @@ body {
 .user-panel-btn:hover {
   color: #c61884; 
 }
+
+/* Ayrıl butonu (kırmızı çerçeve) */
 .leave-btn {
   background: none;
   border: 2px solid #c61884;
@@ -314,9 +329,9 @@ body {
   cursor: pointer;
   width: 25px;
   height: 25px;
-  padding: 0;
-  border-radius: 5px;
-  display: none; /* Başlangıçta gizli */
+  padding: 0; 
+  border-radius: 5px; 
+  display: flex;
   align-items: center;
   justify-content: center;
 }
@@ -328,17 +343,17 @@ body {
 
 /* Ortadaki ana içerik */
 .main-content {
-  flex: 1;
+  flex: 1; 
   padding: 15rem;
   overflow: auto;
-  color: #fff;
+  color: #fff; 
 }
-.main-content .app-title {
+.app-title {
   margin: 0 0 1rem;
   font-size: 1.4rem;
 }
 
-/* Sağ panel => 200px */
+/* Sağ panel (kullanıcı listesi) => 200px */
 .right-panel {
   width: 200px; 
   background: #1f1f1f;
@@ -348,18 +363,18 @@ body {
   box-sizing: border-box;
   color: #fff;
 }
-
-/* groupUsers event => user-item */
+.user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
 .user-item {
   background: #2d2d2d;
-  padding: 0.75rem;
-  border-radius: 6px;
+  padding: 0.1rem;
+  border-radius: 0px;
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  position: relative;
-  cursor: pointer;
-  margin-bottom: 0.5rem;
 }
 .user-item:hover {
   background: #444;
@@ -369,47 +384,36 @@ body {
   height: 40px;
   background: #666;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 .user-name {
   flex: 1;
   font-weight: 500;
   color: #fff;
 }
-/* Dropdown menü => ID Kopyala */
-.user-dropdown-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  background: #1f1f1f;
-  border: 1px solid #444;
-  border-radius: 4px;
-  width: 100px;
-  z-index: 999;
-  display: none; /* JS toggling */
-}
-.user-dropdown-menu .dropdown-item {
-  padding: 0.5rem;
-  font-size: 0.9rem;
+.copy-id-btn {
+  background: #555;
   color: #fff;
-  border-bottom: 1px solid #333;
+  border: none;
+  border-radius: 4px;
+  padding: 0.4rem 0.75rem;
   cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.3s ease;
 }
-.user-dropdown-menu .dropdown-item:hover {
-  background: #444;
-}
-.user-dropdown-menu .dropdown-item:last-child {
-  border-bottom: none;
+.copy-id-btn:hover {
+  background: #777;
 }
 
-/* Modal */
+/* Modal Stil */
 .modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.6);
-  display: none; /* JS => flex */
+  background: rgba(0,0,0,0.6); 
+  display: flex;
   align-items: center;
   justify-content: center;
   z-index: 999;
@@ -420,7 +424,7 @@ body {
   border-radius: 8px;
   min-width: 300px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-  color: #fff;
+  color: #fff; 
   text-align: center;
 }
 .modal-buttons {
@@ -429,10 +433,28 @@ body {
   margin-top: 1rem;
   justify-content: center;
 }
-/* groupModal, actualGroupCreateModal, joinGroupModal, roomModal => display: none default */
 #groupModal,
+#roomModal,
 #actualGroupCreateModal,
-#joinGroupModal,
-#roomModal {
+#joinGroupModal {
   display: none;
+}
+
+/* Küçük ekran uyumluluğu (isteğe bağlı) */
+@media (max-width: 600px) {
+  .left-panels {
+    width: 65px;
+  }
+  .rooms-panel {
+    width: 200px;
+  }
+  .user-panel {
+    width: 200px;
+  }
+  .app-title {
+    font-size: 1.2rem;
+  }
+  .right-panel {
+    width: 200px;
+  }
 }
