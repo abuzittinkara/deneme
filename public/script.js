@@ -49,7 +49,7 @@ const showLoginScreen = document.getElementById('showLoginScreen');
 const groupListDiv = document.getElementById('groupList');
 const createGroupButton = document.getElementById('createGroupButton');
 
-// Odalar (kanallar)
+// Odalar (kanallar) ve üst dropdown
 const roomListDiv = document.getElementById('roomList');
 const createRoomButton = document.getElementById('createRoomButton');
 const groupTitle = document.getElementById('groupTitle');
@@ -90,7 +90,7 @@ const joinGroupIdInput = document.getElementById('joinGroupIdInput');
 const joinGroupIdBtn = document.getElementById('joinGroupIdBtn');
 const closeJoinGroupModal = document.getElementById('closeJoinGroupModal');
 
-// Modal: Oda
+// Modal: Oda Oluşturma
 const roomModal = document.getElementById('roomModal');
 const modalRoomName = document.getElementById('modalRoomName');
 const modalCreateRoomBtn = document.getElementById('modalCreateRoomBtn');
@@ -312,7 +312,6 @@ socket.on('groupsList', (groupArray) => {
     grpItem.dataset.groupId = groupObj.id;
 
     grpItem.addEventListener('click', () => {
-      // Sunucuya => joinGroup (listeden)
       socket.emit('joinGroup', groupObj.id);
     });
 
@@ -339,20 +338,15 @@ copyGroupIdBtn.addEventListener('click', () => {
 });
 
 /* ----------------------------------
-   Bir gruba (listeden) girince script tarafında
-   currentGroup güncellenir, server odaları yollar.
+   joinGroup => server sonra roomsList döndürüyor
 -------------------------------------*/
 socket.on('roomsList', (roomsArray) => {
-  // O grup server tarafından joinGroup => roomsList
-  // currentGroup'i server event'inden bilmiyorsanız => bir parametre geçirtmeniz gerekebilir.
   roomListDiv.innerHTML = '';
-
   roomsArray.forEach(roomObj => {
     const roomItem = document.createElement('div');
     roomItem.className = 'channel-item';
     roomItem.dataset.roomId = roomObj.id;
-    
-    // Kanal başlık (icon + isim)
+
     const channelHeader = document.createElement('div');
     channelHeader.className = 'channel-header';
 
@@ -363,7 +357,6 @@ socket.on('roomsList', (roomsArray) => {
     channelHeader.appendChild(icon);
     channelHeader.appendChild(textSpan);
 
-    // Kanal altına eklenecek kullanıcı listesi
     const channelUsers = document.createElement('div');
     channelUsers.className = 'channel-users';
     channelUsers.id = `channel-users-${roomObj.id}`;
@@ -371,23 +364,18 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Odaya tıklayınca => oda değişimi akışı
+    // Odaya tıklayınca
     roomItem.addEventListener('click', () => {
-      // "Kanal Değiştirme Akışı":
       if (currentRoom && currentRoom !== roomObj.id) {
-        // 1) Eski odadan çık
         console.log("Leaving old room =>", currentRoom);
         socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
         closeAllPeers();
 
-        // 2) Kısa bir gecikme => Sonra yeni odaya gir
         setTimeout(() => {
           console.log("Joining new room =>", roomObj.id);
           joinRoom(currentGroup, roomObj.id, roomObj.name);
         }, 300);
-
       } else {
-        // Eğer aynı oda değilse direkt gir
         joinRoom(currentGroup, roomObj.id, roomObj.name);
       }
     });
@@ -397,12 +385,53 @@ socket.on('roomsList', (roomsArray) => {
 });
 
 /* ----------------------------------
-   joinRoom => Belirli odaya bağlan
+   Oda oluşturma butonları
+-------------------------------------*/
+// 1) "Oda Oluştur" Butonu (soldaki +)
+createRoomButton.addEventListener('click', () => {
+  if (!currentGroup) {
+    alert("Önce bir gruba katılın veya oluşturun!");
+    return;
+  }
+  roomModal.style.display = 'flex';
+  modalRoomName.value = '';
+  modalRoomName.focus();
+});
+
+// 2) "Kanal Oluştur" Butonu (grup dropdown)
+createChannelBtn.addEventListener('click', () => {
+  // Menüyü kapat
+  groupDropdownMenu.style.display = 'none';
+
+  if (!currentGroup) {
+    alert("Önce bir gruba katılın veya oluşturun!");
+    return;
+  }
+  roomModal.style.display = 'flex';
+  modalRoomName.value = '';
+  modalRoomName.focus();
+});
+
+// Modal’da "Oluştur" tıklanınca
+modalCreateRoomBtn.addEventListener('click', () => {
+  const rName = modalRoomName.value.trim();
+  if (!rName) {
+    alert("Lütfen bir oda adı girin");
+    return;
+  }
+  socket.emit('createRoom', { groupId: currentGroup, roomName: rName });
+  roomModal.style.display = 'none';
+});
+modalCloseRoomBtn.addEventListener('click', () => {
+  roomModal.style.display = 'none';
+});
+
+/* ----------------------------------
+   joinRoom
 -------------------------------------*/
 function joinRoom(groupId, roomId, roomName) {
-  currentGroup = groupId; // sunucudan da alabilirsiniz
+  currentGroup = groupId;
   currentRoom = roomId;
-
   socket.emit('joinRoom', { groupId, roomId });
   leaveButton.style.display = 'flex';
 }
@@ -421,8 +450,7 @@ leaveButton.addEventListener('click', () => {
 });
 
 /* ----------------------------------
-   roomUsers => kullanıcıları listele
-   + Peer init
+   roomUsers => kullanıcıları listele + Peer init
 -------------------------------------*/
 socket.on('roomUsers', (usersInRoom) => {
   updateUserList(usersInRoom);
@@ -433,7 +461,7 @@ socket.on('roomUsers', (usersInRoom) => {
     .map(u => u.id)
     .filter(id => !peers[id]);
 
-  // Mikrofon izni henüz alınmadıysa:
+  // Mikrofon izni yoksa ilk defa al
   if (!audioPermissionGranted || !localStream) {
     requestMicrophoneAccess().then(() => {
       otherUserIds.forEach(userId => {
@@ -451,7 +479,6 @@ socket.on('roomUsers', (usersInRoom) => {
       console.error("Mikrofon izni alınamadı:", err);
     });
   } else {
-    // Mikrofon izni varsa direkt peer başlat
     otherUserIds.forEach(userId => {
       if (!peers[userId]) {
         initPeer(userId, true);
@@ -460,9 +487,9 @@ socket.on('roomUsers', (usersInRoom) => {
   }
 });
 
-/* ----------------------------------
-   Kullanıcı listesi (sağ panel)
--------------------------------------*/
+/* 
+   Sağ panel kullanıcı listesi
+*/
 function updateUserList(usersInRoom) {
   userListDiv.innerHTML = ''; 
   usersInRoom.forEach(user => {
@@ -500,9 +527,9 @@ function updateUserList(usersInRoom) {
   });
 }
 
-/* ----------------------------------
-   Kanal altındaki kullanıcı listesi
--------------------------------------*/
+/*
+   Kanal altındaki kullanıcı listesi (Discord benzeri)
+*/
 function updateChannelUserList(roomId, usersInRoom) {
   if (!roomId) return;
   const channelUsersDiv = document.getElementById(`channel-users-${roomId}`);
@@ -527,7 +554,7 @@ function updateChannelUserList(roomId, usersInRoom) {
 }
 
 /* ----------------------------------
-   Mikrofon Erişimi (Discord usulü: Tek sefer aç)
+   Mikrofon Erişimi
 -------------------------------------*/
 async function requestMicrophoneAccess() {
   try {
@@ -714,7 +741,6 @@ function closeAllPeers() {
       delete peers[userId];
     }
   }
-  // Bu verileri de sıfırlayalım:
   remoteAudios = [];
   pendingCandidates = {};
   sessionUfrag = {};
@@ -788,7 +814,7 @@ function parseIceUfrag(sdp) {
 }
 
 /* ----------------------------------
-  Socket Durum
+   Socket Durum
 -------------------------------------*/
 socket.on("connect", () => {
   console.log("WebSocket bağlandı:", socket.id);
@@ -804,11 +830,6 @@ groupDropdownIcon.addEventListener('click', () => {
 });
 renameGroupBtn.addEventListener('click', () => {
   alert("Grup ismi değiştirme işlemi henüz tanımlanmadı.");
-  groupDropdownMenu.style.display = 'none';
-  dropdownOpen = false;
-});
-createChannelBtn.addEventListener('click', () => {
-  alert("Kanal oluşturma işlemi henüz tanımlanmadı.");
   groupDropdownMenu.style.display = 'none';
   dropdownOpen = false;
 });
