@@ -38,11 +38,11 @@ const backToLoginButton = document.getElementById('backToLoginButton');
 const showRegisterScreen = document.getElementById('showRegisterScreen');
 const showLoginScreen = document.getElementById('showLoginScreen');
 
-// Gruplar (sol sidebar)
+// Gruplar (soldaki yuvarlak ikonlar)
 const groupListDiv = document.getElementById('groupList');
 const createGroupButton = document.getElementById('createGroupButton');
 
-// Kanallar (oda)
+// Odalar (kanallar)
 const roomListDiv = document.getElementById('roomList');
 const createRoomButton = document.getElementById('createRoomButton');
 const groupTitle = document.getElementById('groupTitle');
@@ -181,6 +181,7 @@ socket.on('loginResult', (data) => {
     callScreen.style.display = 'flex';
     socket.emit('set-username', username);
     leftUserName.textContent = username;
+
     applyAudioStates();
   } else {
     alert("Giriş başarısız: " + data.message);
@@ -298,7 +299,7 @@ closeJoinGroupModal.addEventListener('click', () => {
    Sunucudan güncel grup listesi
 -------------------------------------*/
 socket.on('groupsList', (groupArray) => {
-  // Sadece bu kullanıcının (veya katıldığı) gruplar
+  // Sadece bu kullanıcıya ait / katıldığı gruplar
   groupListDiv.innerHTML = '';
   groupArray.forEach(groupObj => {
     const grpItem = document.createElement('div');
@@ -375,9 +376,6 @@ modalCloseRoomBtn.addEventListener('click', () => {
   roomModal.style.display = 'none';
 });
 
-/* ----------------------------------
-   Sunucudan Odalar Listesi
--------------------------------------*/
 socket.on('roomsList', (roomsArray) => {
   roomListDiv.innerHTML = '';
   roomsArray.forEach(roomObj => {
@@ -668,13 +666,11 @@ function applyAudioStates() {
   }
   // micOnSVG / micOffSVG
   micToggleButton.innerHTML = (micEnabled && !selfDeafened) ? micOnSVG : micOffSVG;
-  // Deafen
-  applyDeafenState();
   // headphoneOffSVG / headphoneOnSVG
+  applyDeafenState();
   deafenToggleButton.innerHTML = selfDeafened ? headphoneOnSVG : headphoneOffSVG;
 }
 
-// Sesi kapat (remoteAudios) => Deaf
 function applyDeafenState() {
   remoteAudios.forEach(audio => {
     audio.muted = selfDeafened;
@@ -695,4 +691,19 @@ let dropdownOpen = false;
 groupDropdownIcon.addEventListener('click', () => {
   dropdownOpen = !dropdownOpen;
   groupDropdownMenu.style.display = dropdownOpen ? 'flex' : 'none';
+});
+renameGroupBtn.addEventListener('click', () => {
+  alert("Grup ismi değiştirme işlemi henüz tanımlanmadı.");
+  groupDropdownMenu.style.display = 'none';
+  dropdownOpen = false;
+});
+createChannelBtn.addEventListener('click', () => {
+  alert("Kanal oluşturma işlemi henüz tanımlanmadı.");
+  groupDropdownMenu.style.display = 'none';
+  dropdownOpen = false;
+});
+deleteGroupBtn.addEventListener('click', () => {
+  alert("Grubu silme işlemi henüz tanımlanmadı.");
+  groupDropdownMenu.style.display = 'none';
+  dropdownOpen = false;
 });
