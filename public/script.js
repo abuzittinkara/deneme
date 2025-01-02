@@ -312,7 +312,8 @@ socket.on('groupsList', (groupArray) => {
     grpItem.dataset.groupId = groupObj.id;
 
     grpItem.addEventListener('click', () => {
-      joinGroup(groupObj.id, groupObj.name);
+      // Sunucuya => joinGroup (listeden)
+      socket.emit('joinGroup', groupObj.id);
     });
 
     groupListDiv.appendChild(grpItem);
@@ -338,50 +339,12 @@ copyGroupIdBtn.addEventListener('click', () => {
 });
 
 /* ----------------------------------
-   Bir gruba ID ile veya listeden
--------------------------------------*/
-function joinGroup(groupId, groupName) {
-  if (currentGroup && currentGroup !== groupId) {
-    closeAllPeers();
-    audioPermissionGranted = false;
-    localStream = null;
-  }
-  currentGroup = groupId;
-  currentRoom = null;
-  roomListDiv.innerHTML = '';
-  groupTitle.textContent = groupName;
-  socket.emit('joinGroup', groupId);
-}
-
-/* ----------------------------------
-   Oda Oluşturma
--------------------------------------*/
-createRoomButton.addEventListener('click', () => {
-  if (!currentGroup) {
-    alert("Önce bir gruba katılın veya oluşturun!");
-    return;
-  }
-  roomModal.style.display = 'flex';
-  modalRoomName.value = '';
-  modalRoomName.focus();
-});
-modalCreateRoomBtn.addEventListener('click', () => {
-  const rName = modalRoomName.value.trim();
-  if (!rName) {
-    alert("Lütfen bir oda adı girin");
-    return;
-  }
-  socket.emit('createRoom', { groupId: currentGroup, roomName: rName });
-  roomModal.style.display = 'none';
-});
-modalCloseRoomBtn.addEventListener('click', () => {
-  roomModal.style.display = 'none';
-});
-
-/* ----------------------------------
-   roomsList Event => Odaları listele
+   Bir gruba (listeden) girince script tarafında
+   currentGroup güncellenir, server odaları yollar.
 -------------------------------------*/
 socket.on('roomsList', (roomsArray) => {
+  // O grup server tarafından joinGroup => roomsList
+  // currentGroup'i server event'inden bilmiyorsanız => bir parametre geçirtmeniz gerekebilir.
   roomListDiv.innerHTML = '';
 
   roomsArray.forEach(roomObj => {
@@ -393,7 +356,7 @@ socket.on('roomsList', (roomsArray) => {
     const channelHeader = document.createElement('div');
     channelHeader.className = 'channel-header';
 
-    const icon = createWaveIcon(); // dalga icon fonksiyonu
+    const icon = createWaveIcon();
     const textSpan = document.createElement('span');
     textSpan.textContent = roomObj.name;
 
@@ -405,13 +368,28 @@ socket.on('roomsList', (roomsArray) => {
     channelUsers.className = 'channel-users';
     channelUsers.id = `channel-users-${roomObj.id}`;
 
-    // Yapıyı ekle
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Tıklayınca odaya katıl
+    // Odaya tıklayınca => oda değişimi akışı
     roomItem.addEventListener('click', () => {
-      joinRoom(currentGroup, roomObj.id, roomObj.name);
+      // "Kanal Değiştirme Akışı":
+      if (currentRoom && currentRoom !== roomObj.id) {
+        // 1) Eski odadan çık
+        console.log("Leaving old room =>", currentRoom);
+        socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
+        closeAllPeers();
+
+        // 2) Kısa bir gecikme => Sonra yeni odaya gir
+        setTimeout(() => {
+          console.log("Joining new room =>", roomObj.id);
+          joinRoom(currentGroup, roomObj.id, roomObj.name);
+        }, 300);
+
+      } else {
+        // Eğer aynı oda değilse direkt gir
+        joinRoom(currentGroup, roomObj.id, roomObj.name);
+      }
     });
 
     roomListDiv.appendChild(roomItem);
@@ -422,15 +400,10 @@ socket.on('roomsList', (roomsArray) => {
    joinRoom => Belirli odaya bağlan
 -------------------------------------*/
 function joinRoom(groupId, roomId, roomName) {
-  if (currentRoom && currentRoom !== roomId) {
-    closeAllPeers();
-    audioPermissionGranted = false;
-    localStream = null;
-  }
+  currentGroup = groupId; // sunucudan da alabilirsiniz
   currentRoom = roomId;
-  socket.emit('joinRoom', { groupId, roomId });
 
-  // Kanala katıldık, Ayrıl butonu görünsün
+  socket.emit('joinRoom', { groupId, roomId });
   leaveButton.style.display = 'flex';
 }
 
@@ -444,18 +417,15 @@ leaveButton.addEventListener('click', () => {
   currentRoom = null;
   userListDiv.innerHTML = '';
   leaveButton.style.display = 'none';
-  console.log("Kanaldan ayrıldınız.");
+  console.log("Kanaldan ayrıldınız (Ayrıl Butonu).");
 });
 
 /* ----------------------------------
-   Kullanıcıları sağ panelde listele
-   + Kanal altına listele (Discord benzeri)
+   roomUsers => kullanıcıları listele
+   + Peer init
 -------------------------------------*/
 socket.on('roomUsers', (usersInRoom) => {
-  // Sağ paneli güncelle
   updateUserList(usersInRoom);
-
-  // Kanal altı listeyi güncelle
   updateChannelUserList(currentRoom, usersInRoom);
 
   const otherUserIds = usersInRoom
@@ -490,9 +460,9 @@ socket.on('roomUsers', (usersInRoom) => {
   }
 });
 
-/* 
-   Sağ paneldeki kullanıcı listesi (varolan fonksiyon)
-*/
+/* ----------------------------------
+   Kullanıcı listesi (sağ panel)
+-------------------------------------*/
 function updateUserList(usersInRoom) {
   userListDiv.innerHTML = ''; 
   usersInRoom.forEach(user => {
@@ -530,16 +500,15 @@ function updateUserList(usersInRoom) {
   });
 }
 
-/*
-   Kanal altındaki kullanıcı listesi (Discord benzeri)
-*/
+/* ----------------------------------
+   Kanal altındaki kullanıcı listesi
+-------------------------------------*/
 function updateChannelUserList(roomId, usersInRoom) {
+  if (!roomId) return;
   const channelUsersDiv = document.getElementById(`channel-users-${roomId}`);
   if (!channelUsersDiv) return;
   
-  // Temizle
   channelUsersDiv.innerHTML = '';
-
   usersInRoom.forEach(user => {
     const userDiv = document.createElement('div');
     userDiv.classList.add('channel-user');
@@ -558,7 +527,7 @@ function updateChannelUserList(roomId, usersInRoom) {
 }
 
 /* ----------------------------------
-   Mikrofon Erişimi
+   Mikrofon Erişimi (Discord usulü: Tek sefer aç)
 -------------------------------------*/
 async function requestMicrophoneAccess() {
   try {
@@ -580,7 +549,6 @@ async function requestMicrophoneAccess() {
    WebRTC Sinyal (Offer/Answer/ICE)
 -------------------------------------*/
 socket.on("signal", async (data) => {
-  // Kendimizin gönderdiği sinyal mi?
   if (data.from === socket.id) {
     return;
   }
@@ -588,7 +556,6 @@ socket.on("signal", async (data) => {
   const { from, signal } = data;
   let peer = peers[from];
 
-  // Bu peer yoksa => yeni init (non-initiator)
   if (!peer) {
     if (!localStream) {
       console.warn("localStream yok, sinyal bekletiliyor -> user push:", from);
@@ -601,7 +568,6 @@ socket.on("signal", async (data) => {
   // Offer
   if (signal.type === "offer") {
     await peer.setRemoteDescription(new RTCSessionDescription(signal));
-    // Artık remoteDescription içindeki ice-ufrag'ı parse edip sessionUfrag[from] kayıt edebiliriz
     sessionUfrag[from] = parseIceUfrag(signal.sdp);
 
     const answer = await peer.createAnswer();
@@ -609,10 +575,8 @@ socket.on("signal", async (data) => {
     console.log("Answer gönderiliyor:", answer);
     socket.emit("signal", { to: from, signal: peer.localDescription });
 
-    // pending candidates ekle
     if (pendingCandidates[from]) {
       for (const c of pendingCandidates[from]) {
-        // Ufrag check
         if (sessionUfrag[from] && sessionUfrag[from] !== c.usernameFragment) {
           console.warn("Candidate ufrag doesn't match current session. Dropping candidate:", c);
           continue;
@@ -635,13 +599,10 @@ socket.on("signal", async (data) => {
       return;
     }
     await peer.setRemoteDescription(new RTCSessionDescription(signal));
-    // Kaydet
     sessionUfrag[from] = parseIceUfrag(signal.sdp);
 
-    // pending candidate
     if (pendingCandidates[from]) {
       for (const c of pendingCandidates[from]) {
-        // ufrag check
         if (sessionUfrag[from] && sessionUfrag[from] !== c.usernameFragment) {
           console.warn("Candidate ufrag doesn't match current session. Dropping candidate:", c);
           continue;
@@ -659,7 +620,6 @@ socket.on("signal", async (data) => {
   }
   // ICE Candidate
   else if (signal.candidate) {
-    // eğer remoteDescription boşsa => pending
     if (!peer.remoteDescription || peer.remoteDescription.type === "") {
       console.log("Henüz remoteDescription yok, candidate pending'e alınıyor:", signal);
       if (!pendingCandidates[from]) {
@@ -667,12 +627,10 @@ socket.on("signal", async (data) => {
       }
       pendingCandidates[from].push(signal);
     } else {
-      // varsa, ufrag check
       if (sessionUfrag[from] && sessionUfrag[from] !== signal.usernameFragment) {
         console.warn("Candidate ufrag doesn't match current session. Dropping candidate:", signal);
         return;
       }
-      // normal ekle
       try {
         await peer.addIceCandidate(new RTCIceCandidate(signal));
         console.log("ICE Candidate eklendi:", signal);
@@ -710,7 +668,6 @@ function initPeer(userId, isInitiator) {
   });
   peers[userId] = peer;
 
-  // local tracks
   localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
 
   peer.onicecandidate = (event) => {
@@ -750,12 +707,14 @@ async function createOffer(peer, userId) {
 }
 
 function closeAllPeers() {
+  console.log("CLOSING ALL PEERS!");
   for (const userId in peers) {
     if (peers[userId]) {
       peers[userId].close();
       delete peers[userId];
     }
   }
+  // Bu verileri de sıfırlayalım:
   remoteAudios = [];
   pendingCandidates = {};
   sessionUfrag = {};
@@ -817,7 +776,6 @@ function applyDeafenState() {
 
 /* ----------------------------------
    Ufak Yardımcı: parseIceUfrag
-   => SDP içinde "a=ice-ufrag:xxxx" kısmını bul
 -------------------------------------*/
 function parseIceUfrag(sdp) {
   const lines = sdp.split('\n');

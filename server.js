@@ -5,7 +5,7 @@ const http = require("http");
 const express = require("express");
 const socketIO = require("socket.io");
 const mongoose = require('mongoose');
-const bcrypt = require("bcryptjs");
+const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid'); // UUID
 
 const User = require('./models/User');   // Kullanıcı modeli
@@ -16,7 +16,7 @@ const server = http.createServer(app);
 const io = socketIO(server);
 
 // MongoDB bağlantı ayarları
-const uri = process.env.MONGODB_URI || "mongodb+srv://abuzorttin:19070480019Mg.@cluster0.vdrdy.mongodb.net/myappdb?retryWrites=true&w=majority";
+const uri = process.env.MONGODB_URI || "mongodb+srv://kullanici:parola@cluster0.vdrdy.mongodb.net/myappdb?retryWrites=true&w=majority";
 mongoose.connect(uri)
   .then(() => console.log("MongoDB bağlantısı başarılı!"))
   .catch(err => console.error("MongoDB bağlantı hatası:", err));
@@ -32,13 +32,11 @@ app.use(express.static("public"));
 
 /* 
   Sunucu başlarken DB'deki grupları belleğe ekliyoruz.
-  Böylece sunucu restart olsa da eski gruplar “groups” içine yüklenir.
 */
 async function loadGroupsFromDB() {
   try {
     const allGroups = await Group.find({});
     allGroups.forEach(gDoc => {
-      // Bellekte o groupId yoksa ekle
       if (!groups[gDoc.groupId]) {
         groups[gDoc.groupId] = {
           owner: gDoc.owner ? gDoc.owner.toString() : null,
@@ -53,7 +51,6 @@ async function loadGroupsFromDB() {
     console.error("loadGroupsFromDB hatası:", err);
   }
 }
-// Sunucu ilk açıldığında DB'den grupları çek
 loadGroupsFromDB();
 
 /* 
@@ -75,7 +72,7 @@ async function sendGroupsListToUser(socketId) {
 }
 
 /* 
-  Odalar listesi: Bu hâlâ bellek içi "groups" üzerinde çalışıyor.
+  Odalar listesi: Bellek içi "groups" üzerinden çalışıyor.
 */
 function sendRoomsListToUser(socketId, groupId) {
   const groupObj = groups[groupId];
@@ -296,6 +293,7 @@ io.on("connection", (socket) => {
   //  => Bellek içinde var mı kontrolü
   // ---------------------
   socket.on('joinGroup', (groupId) => {
+    console.log(`joinGroup event: user=${socket.id}, groupId=${groupId}`);
     if (!groups[groupId]) {
       console.log("Geçersiz grup ID (in-memory):", groupId);
       return;
@@ -362,6 +360,7 @@ io.on("connection", (socket) => {
   // joinRoom
   // ---------------------
   socket.on('joinRoom', ({ groupId, roomId }) => {
+    console.log(`joinRoom event: user=${socket.id}, groupId=${groupId}, roomId=${roomId}`);
     const groupObj = groups[groupId];
     if (!groupObj) {
       console.log(`Grup bulunamadı: ${groupId}`);
@@ -396,6 +395,7 @@ io.on("connection", (socket) => {
   // leaveRoom
   // ---------------------
   socket.on('leaveRoom', ({ groupId, roomId }) => {
+    console.log(`leaveRoom event: user=${socket.id}, groupId=${groupId}, roomId=${roomId}`);
     const groupObj = groups[groupId];
     if (!groupObj) return;
     if (!groupObj.rooms[roomId]) return;
@@ -403,7 +403,12 @@ io.on("connection", (socket) => {
     groupObj.rooms[roomId].users = groupObj.rooms[roomId].users.filter(u => u.id !== socket.id);
     io.to(`${groupId}::${roomId}`).emit('roomUsers', groupObj.rooms[roomId].users);
     socket.leave(`${groupId}::${roomId}`);
-    users[socket.id].currentRoom = null;
+
+    // currentRoom sıfırla
+    if (users[socket.id]) {
+      users[socket.id].currentRoom = null;
+    }
+
     console.log(`User ${socket.id} => left room => [${groupId}/${roomId}]`);
   });
 
@@ -439,7 +444,7 @@ io.on("connection", (socket) => {
   // Disconnect
   // ---------------------
   socket.on("disconnect", () => {
-    console.log("Kullanıcı ayrıldı:", socket.id);
+    console.log("Kullanıcı ayrıldı (disconnect):", socket.id);
     const userData = users[socket.id];
     if (userData && userData.currentGroup) {
       const gId = userData.currentGroup;
