@@ -132,7 +132,10 @@ body {
   gap: 1rem;
 }
 
-/* grp-item => yuvarlak, animasyon, seçili hâl */
+/* 
+  Yuvarlak => .grp-item
+  Animasyon => .grp-item.selected
+*/
 .grp-item {
   width: 48px;
   height: 48px;
@@ -442,7 +445,6 @@ body {
 }
 
 @media (max-width: 600px) {
-  /* ufak responsive ayarlar */
   .left-panels { width:65px; }
   .rooms-panel { width:200px; }
   .user-panel { width:200px; }
