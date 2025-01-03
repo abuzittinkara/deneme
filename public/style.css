@@ -133,8 +133,8 @@ body {
 }
 
 /* 
-  ~~~~ ANİMASYON KAYMASI ÖNLEMİ ~~~~
-  => default border: 2px solid transparent
+  Seçili Grup Kayması Önlenir:
+  => border:2px solid transparent
 */
 .grp-item {
   width: 48px;
@@ -146,22 +146,15 @@ body {
   justify-content: center;
   align-items: center;
   cursor: pointer;
-
-  /* animasyon */
   transition: all 0.3s ease;
-
-  /* Burada: 2px transparent border => 
-     Seçili olduğunda rengi değiştiririz 
-     => kayma olmaz
-  */
-  border: 2px solid transparent;
+  border: 2px solid transparent; /* sabit border => kayma yok */
 }
 .grp-item:hover {
   background: #666;
 }
 .grp-item.selected {
-  border: 2px solid #c61884; /* Pembe stroke */
-  border-radius: 10px;       /* Hafif köşe */
+  border: 2px solid #c61884; /* pembe stroke */
+  border-radius: 10px;       /* hafif köşe */
 }
 
 /* Grup Oluştur Butonu */

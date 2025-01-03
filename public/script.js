@@ -1,11 +1,5 @@
 /**************************************
- * script.js: 
- * - createWaveIcon (artık tanımlı)
- * - candidate pending 
- * - stable check 
- * - short delay 
- * - selected grp anim
- * - “Candidate ufrag doesn't match => drop” log
+ * script.js
  **************************************/
 
 const socket = io();
@@ -15,15 +9,18 @@ let audioPermissionGranted = false;
 let remoteAudios = [];
 let username = null;
 
+// Gruplar/Odalar
+let currentGroup = null;
+let currentRoom = null;
+
 let pendingUsers = [];
 let pendingNewUsers = [];
 
-// Aşağıdaki objeler:
-// pendingCandidates[from] = [ICE obj], sessionUfrag[from] = string (en son sdp'den parse)
+// ICE "ufrag" ve candidate pending
 let pendingCandidates = {};
 let sessionUfrag = {};
 
-/* createWaveIcon fix */
+/* ~~~~~ createWaveIcon ~~~~~ */
 function createWaveIcon() {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 24 24");
@@ -43,7 +40,7 @@ function createWaveIcon() {
   return svg;
 }
 
-// DOM Elements
+// DOM
 const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
 const callScreen = document.getElementById('callScreen');
@@ -65,6 +62,7 @@ const regPasswordConfirmInput = document.getElementById('regPasswordConfirmInput
 const registerButton = document.getElementById('registerButton');
 const backToLoginButton = document.getElementById('backToLoginButton');
 
+// Ekran değiştirme linkleri
 const showRegisterScreen = document.getElementById('showRegisterScreen');
 const showLoginScreen = document.getElementById('showLoginScreen');
 
@@ -96,24 +94,21 @@ const userListDiv = document.getElementById('userList');
 // Ayrıl Butonu
 const leaveButton = document.getElementById('leaveButton');
 
-// Modal: Grup
+// Modallar
 const groupModal = document.getElementById('groupModal');
 const modalGroupCreateBtn = document.getElementById('modalGroupCreateBtn');
 const modalGroupJoinBtn = document.getElementById('modalGroupJoinBtn');
 
-// Modal: Grup Kur
 const actualGroupCreateModal = document.getElementById('actualGroupCreateModal');
 const actualGroupName = document.getElementById('actualGroupName');
 const actualGroupNameBtn = document.getElementById('actualGroupNameBtn');
 const closeCreateGroupModal = document.getElementById('closeCreateGroupModal');
 
-// Modal: Gruba Katıl
 const joinGroupModal = document.getElementById('joinGroupModal');
 const joinGroupIdInput = document.getElementById('joinGroupIdInput');
 const joinGroupIdBtn = document.getElementById('joinGroupIdBtn');
 const closeJoinGroupModal = document.getElementById('closeJoinGroupModal');
 
-// Modal: Oda
 const roomModal = document.getElementById('roomModal');
 const modalRoomName = document.getElementById('modalRoomName');
 const modalCreateRoomBtn = document.getElementById('modalCreateRoomBtn');
@@ -127,9 +122,7 @@ const deafenToggleButton = document.getElementById('deafenToggleButton');
 let micEnabled = true;
 let selfDeafened = false;
 
-/* 
-   Ekran Geçişleri
-*/
+/* Ekran Geçişleri */
 showRegisterScreen.addEventListener('click', () => {
   loginScreen.style.display = 'none';
   registerScreen.style.display = 'block';
@@ -143,9 +136,7 @@ backToLoginButton.addEventListener('click', () => {
   loginScreen.style.display = 'block';
 });
 
-/* 
-   Login
-*/
+/* Login */
 loginButton.addEventListener('click', () => {
   const usernameVal = loginUsernameInput.value.trim();
   const passwordVal = loginPasswordInput.value.trim();
@@ -168,9 +159,7 @@ socket.on('loginResult', (data) => {
   }
 });
 
-/* 
-   Register
-*/
+/* Register */
 registerButton.addEventListener('click', () => {
   const userData = {
     username: regUsernameInput.value.trim(),
@@ -212,9 +201,7 @@ socket.on('registerResult', (data) => {
   }
 });
 
-/* 
-   DM paneli
-*/
+/* DM paneli */
 toggleDMButton.addEventListener('click', () => {
   isDMMode = true;
   groupsAndRooms.style.display = 'none';
@@ -226,9 +213,7 @@ closeDMButton.addEventListener('click', () => {
   groupsAndRooms.style.display = 'flex';
 });
 
-/* 
-   Grup Oluştur / Seçenekleri
-*/
+/* Grup Oluştur / Seçenekleri */
 createGroupButton.addEventListener('click', () => {
   groupModal.style.display = 'flex';
 });
@@ -269,9 +254,7 @@ closeJoinGroupModal.addEventListener('click', () => {
   joinGroupModal.style.display = 'none';
 });
 
-/* 
-   Sunucudan grup listesi
-*/
+/* Sunucudan güncel grup listesi */
 socket.on('groupsList', (groupArray) => {
   groupListDiv.innerHTML = '';
   groupArray.forEach(groupObj => {
@@ -280,7 +263,7 @@ socket.on('groupsList', (groupArray) => {
     grpItem.innerText = groupObj.name[0].toUpperCase();
     grpItem.title = groupObj.name + " (" + groupObj.id + ")";
 
-    // Seçili (animasyon)
+    // Seçili grup => .selected
     grpItem.addEventListener('click', () => {
       document.querySelectorAll('.grp-item').forEach(el => el.classList.remove('selected'));
       grpItem.classList.add('selected');
@@ -306,9 +289,7 @@ copyGroupIdBtn.addEventListener('click', () => {
   groupDropdownMenu.style.display = 'none';
 });
 
-/* 
-   roomsList => Kanallar
-*/
+/* roomsList => Kanallar */
 socket.on('roomsList', (roomsArray) => {
   roomListDiv.innerHTML = '';
   roomsArray.forEach(roomObj => {
@@ -319,7 +300,6 @@ socket.on('roomsList', (roomsArray) => {
     const channelHeader = document.createElement('div');
     channelHeader.className = 'channel-header';
 
-    /* createWaveIcon => fix */
     const icon = createWaveIcon();
     const textSpan = document.createElement('span');
     textSpan.textContent = roomObj.name;
@@ -355,9 +335,7 @@ socket.on('roomsList', (roomsArray) => {
   });
 });
 
-/* 
-   allChannelsData => Her kanalda kim var
-*/
+/* allChannelsData => Her kanalda kim var */
 socket.on('allChannelsData', (channelsObj) => {
   Object.keys(channelsObj).forEach(roomId => {
     const cData = channelsObj[roomId];
@@ -382,9 +360,7 @@ socket.on('allChannelsData', (channelsObj) => {
   });
 });
 
-/* 
-   roomUsers => Odadaki kullanıcı listesi (WebRTC)
-*/
+/* roomUsers => Odadaki kullanıcılar (WebRTC) */
 socket.on('roomUsers', (usersInRoom) => {
   updateUserList(usersInRoom);
 
@@ -409,14 +385,14 @@ socket.on('roomUsers', (usersInRoom) => {
     });
   } else {
     otherUserIds.forEach(userId => {
-      if (!peers[userId]) initPeer(userId, true);
+      if (!peers[userId]) {
+        initPeer(userId, true);
+      }
     });
   }
 });
 
-/* 
-   Oda Oluşturma
-*/
+/* Oda Oluşturma */
 createRoomButton.addEventListener('click', () => {
   if (!currentGroup) {
     alert("Önce bir gruba katılın!");
@@ -449,9 +425,7 @@ modalCloseRoomBtn.addEventListener('click', () => {
   roomModal.style.display = 'none';
 });
 
-/* 
-   joinRoom
-*/
+/* joinRoom */
 function joinRoom(groupId, roomId, roomName) {
   currentGroup = groupId;
   currentRoom = roomId;
@@ -459,9 +433,7 @@ function joinRoom(groupId, roomId, roomName) {
   leaveButton.style.display = 'flex';
 }
 
-/* 
-   Ayrıl Butonu
-*/
+/* Ayrıl Butonu */
 leaveButton.addEventListener('click', () => {
   if (!currentRoom) return;
   socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
@@ -472,7 +444,7 @@ leaveButton.addEventListener('click', () => {
   console.log("Kanaldan ayrıldınız.");
 });
 
-/* Sağ panel kullanıcı listesi */
+/* Sağ panel => kullanıcı listesi */
 function updateUserList(usersInRoom) {
   userListDiv.innerHTML = '';
   usersInRoom.forEach(user => {
@@ -512,20 +484,36 @@ function updateUserList(usersInRoom) {
 async function requestMicrophoneAccess() {
   try {
     console.log("Mikrofon izni isteniyor...");
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    /* 
+       Ek Constraint: echoCancellation vb. kapat 
+       => bazen her zaman izinle 
+          tarayıcı default device switch yapıyor.
+    */
+    const constraints = {
+      audio: {
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false
+      }
+    };
+
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
     console.log("Mikrofon erişimi verildi:", stream);
+
     localStream = stream;
     audioPermissionGranted = true;
     applyAudioStates();
-    remoteAudios.forEach(a => a.play().catch(err => console.error("Ses oynatılamadı:", err)));
+
+    remoteAudios.forEach(audioEl => {
+      audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
+    });
   } catch(err) {
     console.error("Mikrofon izni alınamadı:", err);
   }
 }
 
-/* 
-   WebRTC Sinyal => Offer/Answer/ICE
-*/
+/* WebRTC Sinyal => Offer/Answer/ICE */
 socket.on("signal", async (data) => {
   if (data.from === socket.id) return;
 
@@ -541,6 +529,7 @@ socket.on("signal", async (data) => {
     peer = initPeer(from, false);
   }
 
+  // Offer
   if (signal.type === "offer") {
     await peer.setRemoteDescription(new RTCSessionDescription(signal));
     sessionUfrag[from] = parseIceUfrag(signal.sdp);
@@ -550,10 +539,8 @@ socket.on("signal", async (data) => {
     console.log("Answer gönderiliyor:", answer);
     socket.emit("signal", { to: from, signal: peer.localDescription });
 
-    // pending candidate
     if (pendingCandidates[from]) {
       for (const c of pendingCandidates[from]) {
-        // ufrag check
         if (sessionUfrag[from] && sessionUfrag[from] !== c.usernameFragment) {
           console.warn("Candidate ufrag doesn't match => drop:", c);
           continue;
@@ -568,7 +555,9 @@ socket.on("signal", async (data) => {
       pendingCandidates[from] = [];
     }
 
-  } else if (signal.type === "answer") {
+  }
+  // Answer
+  else if (signal.type === "answer") {
     if (peer.signalingState === "stable") {
       console.warn("PeerConnection already stable. Second answer ignored.");
       return;
@@ -591,10 +580,11 @@ socket.on("signal", async (data) => {
       }
       pendingCandidates[from] = [];
     }
-
-  } else if (signal.candidate) {
+  }
+  // ICE candidate
+  else if (signal.candidate) {
     if (!peer.remoteDescription || peer.remoteDescription.type === "") {
-      console.log("remoteDescription yok => pending candidate:", signal);
+      console.log("Henüz remoteDescription yok => pending candidate:", signal);
       if (!pendingCandidates[from]) {
         pendingCandidates[from] = [];
       }
@@ -614,9 +604,7 @@ socket.on("signal", async (data) => {
   }
 });
 
-/* 
-   Peer init
-*/
+/* Peer Başlat */
 function initPeer(userId, isInitiator) {
   if (!localStream || !audioPermissionGranted) {
     console.warn("localStream yok => initPeer bekle:", userId);
@@ -735,7 +723,7 @@ function applyDeafenState() {
   });
 }
 
-/* parseIceUfrag => sdp'den a=ice-ufrag satırını çekiyoruz */
+/* parseIceUfrag => a=ice-ufrag:... */
 function parseIceUfrag(sdp) {
   const lines = sdp.split('\n');
   for (const line of lines) {
@@ -753,7 +741,3 @@ socket.on("connect", () => {
 socket.on("disconnect", () => {
   console.log("WebSocket bağlantısı koptu.");
 });
-
-// Gruplar / Odalar
-let currentGroup = null;
-let currentRoom = null;
