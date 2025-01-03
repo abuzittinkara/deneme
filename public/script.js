@@ -266,7 +266,14 @@ socket.on('groupsList', (groupArray) => {
     grpItem.innerText = groupObj.name[0].toUpperCase();
     grpItem.title = groupObj.name + " (" + groupObj.id + ")";
 
+    // -- YENİ: tıklanınca bu .grp-item "selected" olsun
     grpItem.addEventListener('click', () => {
+      // Tüm grp-item'lardan selected kaldır
+      document.querySelectorAll('.grp-item').forEach(el => el.classList.remove('selected'));
+      // Bu elemana ekle
+      grpItem.classList.add('selected');
+
+      // Mevcut mantık:
       currentGroup = groupObj.id;
       groupTitle.textContent = groupObj.name;
       socket.emit('joinGroup', groupObj.id);
@@ -314,7 +321,6 @@ socket.on('roomsList', (roomsArray) => {
     channelHeader.appendChild(icon);
     channelHeader.appendChild(textSpan);
 
-    // Kanal altına eklenecek kullanıcılar
     const channelUsers = document.createElement('div');
     channelUsers.className = 'channel-users';
     channelUsers.id = `channel-users-${roomObj.id}`;
@@ -322,7 +328,6 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Odaya tıklayınca => kısa gecikme
     roomItem.addEventListener('click', () => {
       if (currentRoom && currentRoom !== roomObj.id) {
         console.log("Leaving old room =>", currentRoom);
