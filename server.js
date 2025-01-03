@@ -5,7 +5,7 @@ const http = require("http");
 const express = require("express");
 const socketIO = require("socket.io");
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid'); // UUID
 
 const User = require('./models/User');   // Kullanıcı modeli
