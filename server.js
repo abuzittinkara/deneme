@@ -5,18 +5,19 @@ const http = require("http");
 const express = require("express");
 const socketIO = require("socket.io");
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid'); // UUID
 
 const User = require('./models/User');   // Kullanıcı modeli
-const Group = require('./models/Group'); // Grup modeli (daha önce eklediyseniz)
+const Group = require('./models/Group'); // Grup modeli
+const Channel = require('./models/Channel'); // Kanal modeli (yeni eklendi)
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
 // MongoDB bağlantı ayarları
-const uri = process.env.MONGODB_URI || "mongodb+srv://abuzorttin:19070480019Mg.@cluster0.vdrdy.mongodb.net/myappdb?retryWrites=true&w=majority"
+const uri = process.env.MONGODB_URI || "mongodb+srv://kullanici:parola@cluster0.vdrdy.mongodb.net/myappdb?retryWrites=true&w=majority";
 mongoose.connect(uri)
   .then(() => console.log("MongoDB bağlantısı başarılı!"))
   .catch(err => console.error("MongoDB bağlantı hatası:", err));
@@ -25,13 +26,14 @@ mongoose.connect(uri)
 // users[socket.id] = { username, currentGroup, currentRoom }
 const users = {};
 // groups[groupId] = { owner, name, users:[], rooms:{} }
+// rooms => { roomId: { name, users:[] } } 
 const groups = {};
 
 // Statik dosyalar
 app.use(express.static("public"));
 
 /* 
-  Sunucu başlarken DB'deki grupları belleğe ekliyoruz.
+  1) Sunucu başlarken DB'deki grupları belleğe ekliyoruz.
 */
 async function loadGroupsFromDB() {
   try {
@@ -46,16 +48,50 @@ async function loadGroupsFromDB() {
         };
       }
     });
-    console.log("loadGroupsFromDB tamamlandı. in-memory groups:", groups);
+    console.log("loadGroupsFromDB tamamlandı. in-memory groups:", Object.keys(groups));
   } catch (err) {
     console.error("loadGroupsFromDB hatası:", err);
   }
 }
-loadGroupsFromDB();
+
+/* 
+  2) Sunucu başlarken DB'deki kanalları (Channel) da çekiyoruz.
+     Hangi group'a aitse groups[groupId].rooms içine ekliyoruz.
+*/
+async function loadChannelsFromDB() {
+  try {
+    const allChannels = await Channel.find({}).populate('group');
+    allChannels.forEach(ch => {
+      // ch.group => Group dokümanı
+      // Bellekteki groups dizisinde de odaları ekleyelim
+      // groupId => ch.group.groupId (string)
+      if (!ch.group) return; // Boş olmamalı
+      const gId = ch.group.groupId; // DB'deki groupId
+      if (!groups[gId]) {
+        // O group bellek yoksa atla
+        return;
+      }
+      // Bellekte rooms => { roomId => { name, users:[] } }
+      if (!groups[gId].rooms[ch.channelId]) {
+        groups[gId].rooms[ch.channelId] = {
+          name: ch.name,
+          users: []
+        };
+      }
+    });
+    console.log("loadChannelsFromDB tamamlandı. in-memory channels eklendi.");
+  } catch (err) {
+    console.error("loadChannelsFromDB hatası:", err);
+  }
+}
+
+// Sunucu ilk açılırken DB'den grupları ve kanalları yükle
+loadGroupsFromDB().then(() => loadChannelsFromDB());
 
 /* 
   Örnek fonksiyon: Bu, kullanıcıya DB'den group listesini çekip
-  (populate yoluyla) gönderiyorsa kullanabilirsiniz. 
+  (populate yoluyla) gönderiyor, script.js'te 'groupsList' event'iyle 
+  yakalanıyor.
 */
 async function sendGroupsListToUser(socketId) {
   const userData = users[socketId];
@@ -72,7 +108,7 @@ async function sendGroupsListToUser(socketId) {
 }
 
 /* 
-  Odalar listesi: Bellek içi "groups" üzerinden çalışıyor.
+  Odalar listesi: Bellek içi "groups" üzerinden.
 */
 function sendRoomsListToUser(socketId, groupId) {
   const groupObj = groups[groupId];
@@ -331,29 +367,53 @@ io.on("connection", (socket) => {
 
   // ---------------------
   // createRoom
+  // (Kanalları DB'ye kaydediyoruz)
   // ---------------------
-  socket.on('createRoom', ({ groupId, roomName }) => {
-    if (!groups[groupId]) {
-      console.log("Grup yok:", groupId);
-      return;
-    }
-    if (!roomName || typeof roomName !== 'string') {
-      console.log("Geçersiz oda adı:", roomName);
-      return;
-    }
+  socket.on('createRoom', async ({ groupId, roomName }) => {
+    try {
+      if (!groups[groupId]) {
+        console.log("Grup yok:", groupId);
+        return;
+      }
+      if (!roomName || typeof roomName !== 'string') {
+        console.log("Geçersiz oda adı:", roomName);
+        return;
+      }
+      const trimmedRoomName = roomName.trim();
+      const roomId = uuidv4();
 
-    const trimmedRoomName = roomName.trim();
-    const roomId = uuidv4();
-    groups[groupId].rooms[roomId] = {
-      name: trimmedRoomName,
-      users: []
-    };
-    console.log(`Yeni oda oluşturuldu: Grup=${groupId}, Oda=${roomId}, Ad=${trimmedRoomName}`);
+      // 1) DB'ye Channel dokümanı ekle
+      //   => groupDoc'u bulmak için groupId => Group koleksiyonundan
+      const groupDoc = await Group.findOne({ groupId });
+      if (!groupDoc) {
+        console.log("createRoom: DB'de group yok, groupId=", groupId);
+        return;
+      }
+      const newChannel = new Channel({
+        channelId: roomId,
+        name: trimmedRoomName,
+        group: groupDoc._id,
+        users: [] // isteğe bağlı
+      });
+      await newChannel.save();
 
-    // O gruptaki tüm kullanıcıların => roomsList güncellensin
-    groups[groupId].users.forEach(u => {
-      sendRoomsListToUser(u.id, groupId);
-    });
+      // 2) Bellekte de ekle
+      if (!groups[groupId].rooms) {
+        groups[groupId].rooms = {};
+      }
+      groups[groupId].rooms[roomId] = {
+        name: trimmedRoomName,
+        users: []
+      };
+      console.log(`Yeni oda (kanal) oluşturuldu: Grup=${groupId}, Oda=${roomId}, Ad=${trimmedRoomName}`);
+
+      // O gruptaki tüm kullanıcıların => roomsList güncellensin
+      groups[groupId].users.forEach(u => {
+        sendRoomsListToUser(u.id, groupId);
+      });
+    } catch (err) {
+      console.error("createRoom hata:", err);
+    }
   });
 
   // ---------------------
@@ -367,7 +427,7 @@ io.on("connection", (socket) => {
       return;
     }
     if (!groupObj.rooms[roomId]) {
-      console.log(`Oda bulunamadı: ${roomId}`);
+      console.log(`Oda (channel) bulunamadı: ${roomId}`);
       return;
     }
 
