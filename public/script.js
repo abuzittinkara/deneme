@@ -15,9 +15,6 @@ let audioPermissionGranted = false;
 let remoteAudios = [];
 let username = null;
 
-let currentGroup = null;
-let currentRoom = null;
-
 let pendingUsers = [];
 let pendingNewUsers = [];
 
@@ -756,3 +753,7 @@ socket.on("connect", () => {
 socket.on("disconnect", () => {
   console.log("WebSocket bağlantısı koptu.");
 });
+
+// Gruplar / Odalar
+let currentGroup = null;
+let currentRoom = null;
