@@ -1,7 +1,11 @@
 /**************************************
- * script.js: createWaveIcon fix + 
- * pendingCandidates + stable check + 
- * short delay + selected grp anim
+ * script.js: 
+ * - createWaveIcon (artık tanımlı)
+ * - candidate pending 
+ * - stable check 
+ * - short delay 
+ * - selected grp anim
+ * - “Candidate ufrag doesn't match => drop” log
  **************************************/
 
 const socket = io();
@@ -17,15 +21,12 @@ let currentRoom = null;
 let pendingUsers = [];
 let pendingNewUsers = [];
 
-// Yeni: pendingCandidates[from] = dizi, sessionUfrag[from] = string
+// Aşağıdaki objeler:
+// pendingCandidates[from] = [ICE obj], sessionUfrag[from] = string (en son sdp'den parse)
 let pendingCandidates = {};
 let sessionUfrag = {};
 
-/* createWaveIcon() - 
-   Kanallar oluşturulurken 
-   "icon = createWaveIcon()" çağrısında 
-   tanımlı olmalı!
-*/
+/* createWaveIcon fix */
 function createWaveIcon() {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 24 24");
@@ -34,7 +35,6 @@ function createWaveIcon() {
   svg.setAttribute("class", "channel-icon");
 
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  // basit ses dalgası
   path.setAttribute("d", "M2,12 C4,8 8,4 12,12 16,20 20,16 22,12");
   path.setAttribute("stroke", "currentColor");
   path.setAttribute("stroke-width", "2");
@@ -46,7 +46,7 @@ function createWaveIcon() {
   return svg;
 }
 
-// DOM
+// DOM Elements
 const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
 const callScreen = document.getElementById('callScreen');
@@ -68,7 +68,6 @@ const regPasswordConfirmInput = document.getElementById('regPasswordConfirmInput
 const registerButton = document.getElementById('registerButton');
 const backToLoginButton = document.getElementById('backToLoginButton');
 
-// Ekran değiştirme
 const showRegisterScreen = document.getElementById('showRegisterScreen');
 const showLoginScreen = document.getElementById('showLoginScreen');
 
@@ -128,15 +127,12 @@ const leftUserName = document.getElementById('leftUserName');
 const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
 
-// Mikrofon & Kulaklık durumu
 let micEnabled = true;
 let selfDeafened = false;
 
-/* SVG (mikrofon, kulaklık) 
-   ... kısaltılmış ...
+/* 
+   Ekran Geçişleri
 */
-
-/* Ekran geçişleri */
 showRegisterScreen.addEventListener('click', () => {
   loginScreen.style.display = 'none';
   registerScreen.style.display = 'block';
@@ -150,7 +146,9 @@ backToLoginButton.addEventListener('click', () => {
   loginScreen.style.display = 'block';
 });
 
-/* Login */
+/* 
+   Login
+*/
 loginButton.addEventListener('click', () => {
   const usernameVal = loginUsernameInput.value.trim();
   const passwordVal = loginPasswordInput.value.trim();
@@ -173,7 +171,9 @@ socket.on('loginResult', (data) => {
   }
 });
 
-/* Register */
+/* 
+   Register
+*/
 registerButton.addEventListener('click', () => {
   const userData = {
     username: regUsernameInput.value.trim(),
@@ -186,7 +186,7 @@ registerButton.addEventListener('click', () => {
     passwordConfirm: regPasswordConfirmInput.value.trim()
   };
 
-  if (!userData.username || !userData.name || !userData.surname || 
+  if (!userData.username || !userData.name || !userData.surname ||
       !userData.birthdate || !userData.email || !userData.phone ||
       !userData.password || !userData.passwordConfirm) {
     alert("Lütfen tüm alanları doldurun.");
@@ -215,7 +215,9 @@ socket.on('registerResult', (data) => {
   }
 });
 
-/* DM paneli */
+/* 
+   DM paneli
+*/
 toggleDMButton.addEventListener('click', () => {
   isDMMode = true;
   groupsAndRooms.style.display = 'none';
@@ -227,7 +229,9 @@ closeDMButton.addEventListener('click', () => {
   groupsAndRooms.style.display = 'flex';
 });
 
-/* Grup Oluştur / Seçenekleri */
+/* 
+   Grup Oluştur / Seçenekleri
+*/
 createGroupButton.addEventListener('click', () => {
   groupModal.style.display = 'flex';
 });
@@ -268,7 +272,9 @@ closeJoinGroupModal.addEventListener('click', () => {
   joinGroupModal.style.display = 'none';
 });
 
-/* Sunucudan güncel grup listesi */
+/* 
+   Sunucudan grup listesi
+*/
 socket.on('groupsList', (groupArray) => {
   groupListDiv.innerHTML = '';
   groupArray.forEach(groupObj => {
@@ -277,14 +283,11 @@ socket.on('groupsList', (groupArray) => {
     grpItem.innerText = groupObj.name[0].toUpperCase();
     grpItem.title = groupObj.name + " (" + groupObj.id + ")";
 
-    // Tıkla => .selected
+    // Seçili (animasyon)
     grpItem.addEventListener('click', () => {
-      // Tüm grp-item'lardan selected kaldır
       document.querySelectorAll('.grp-item').forEach(el => el.classList.remove('selected'));
-      // Bu elemana ekle
       grpItem.classList.add('selected');
 
-      // Normal mantık
       currentGroup = groupObj.id;
       groupTitle.textContent = groupObj.name;
       socket.emit('joinGroup', groupObj.id);
@@ -306,7 +309,9 @@ copyGroupIdBtn.addEventListener('click', () => {
   groupDropdownMenu.style.display = 'none';
 });
 
-/* roomsList => Kanallar listesi */
+/* 
+   roomsList => Kanallar
+*/
 socket.on('roomsList', (roomsArray) => {
   roomListDiv.innerHTML = '';
   roomsArray.forEach(roomObj => {
@@ -317,7 +322,7 @@ socket.on('roomsList', (roomsArray) => {
     const channelHeader = document.createElement('div');
     channelHeader.className = 'channel-header';
 
-    /* BURASI => createWaveIcon() */
+    /* createWaveIcon => fix */
     const icon = createWaveIcon();
     const textSpan = document.createElement('span');
     textSpan.textContent = roomObj.name;
@@ -332,7 +337,7 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Odaya tıklayınca => 300ms delay
+    // Odaya tıklayınca => 300ms gecikme
     roomItem.addEventListener('click', () => {
       if (currentRoom && currentRoom !== roomObj.id) {
         console.log("Leaving old room =>", currentRoom);
@@ -353,7 +358,9 @@ socket.on('roomsList', (roomsArray) => {
   });
 });
 
-/* allChannelsData => Her kanalda kim var */
+/* 
+   allChannelsData => Her kanalda kim var
+*/
 socket.on('allChannelsData', (channelsObj) => {
   Object.keys(channelsObj).forEach(roomId => {
     const cData = channelsObj[roomId];
@@ -378,7 +385,9 @@ socket.on('allChannelsData', (channelsObj) => {
   });
 });
 
-/* roomUsers => O odadaki kullanıcılar (WebRTC) */
+/* 
+   roomUsers => Odadaki kullanıcı listesi (WebRTC)
+*/
 socket.on('roomUsers', (usersInRoom) => {
   updateUserList(usersInRoom);
 
@@ -408,7 +417,9 @@ socket.on('roomUsers', (usersInRoom) => {
   }
 });
 
-/* Oda Oluşturma */
+/* 
+   Oda Oluşturma
+*/
 createRoomButton.addEventListener('click', () => {
   if (!currentGroup) {
     alert("Önce bir gruba katılın!");
@@ -441,7 +452,9 @@ modalCloseRoomBtn.addEventListener('click', () => {
   roomModal.style.display = 'none';
 });
 
-/* joinRoom */
+/* 
+   joinRoom
+*/
 function joinRoom(groupId, roomId, roomName) {
   currentGroup = groupId;
   currentRoom = roomId;
@@ -449,7 +462,9 @@ function joinRoom(groupId, roomId, roomName) {
   leaveButton.style.display = 'flex';
 }
 
-/* Ayrıl Butonu */
+/* 
+   Ayrıl Butonu
+*/
 leaveButton.addEventListener('click', () => {
   if (!currentRoom) return;
   socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
@@ -511,7 +526,9 @@ async function requestMicrophoneAccess() {
   }
 }
 
-/* WebRTC Sinyal */
+/* 
+   WebRTC Sinyal => Offer/Answer/ICE
+*/
 socket.on("signal", async (data) => {
   if (data.from === socket.id) return;
 
@@ -527,7 +544,6 @@ socket.on("signal", async (data) => {
     peer = initPeer(from, false);
   }
 
-  // Offer
   if (signal.type === "offer") {
     await peer.setRemoteDescription(new RTCSessionDescription(signal));
     sessionUfrag[from] = parseIceUfrag(signal.sdp);
@@ -537,24 +553,25 @@ socket.on("signal", async (data) => {
     console.log("Answer gönderiliyor:", answer);
     socket.emit("signal", { to: from, signal: peer.localDescription });
 
+    // pending candidate
     if (pendingCandidates[from]) {
       for (const c of pendingCandidates[from]) {
+        // ufrag check
         if (sessionUfrag[from] && sessionUfrag[from] !== c.usernameFragment) {
-          console.warn("Candidate ufrag mismatch => drop:", c);
+          console.warn("Candidate ufrag doesn't match => drop:", c);
           continue;
         }
         try {
           await peer.addIceCandidate(new RTCIceCandidate(c));
           console.log("ICE Candidate eklendi (pending):", c);
         } catch (err) {
-          console.warn("Candidate eklerken hata:", err);
+          console.warn("Candidate eklenirken hata:", err);
         }
       }
       pendingCandidates[from] = [];
     }
-  }
-  // Answer
-  else if (signal.type === "answer") {
+
+  } else if (signal.type === "answer") {
     if (peer.signalingState === "stable") {
       console.warn("PeerConnection already stable. Second answer ignored.");
       return;
@@ -565,21 +582,20 @@ socket.on("signal", async (data) => {
     if (pendingCandidates[from]) {
       for (const c of pendingCandidates[from]) {
         if (sessionUfrag[from] && sessionUfrag[from] !== c.usernameFragment) {
-          console.warn("Candidate ufrag mismatch => drop:", c);
+          console.warn("Candidate ufrag doesn't match => drop:", c);
           continue;
         }
         try {
           await peer.addIceCandidate(new RTCIceCandidate(c));
           console.log("ICE Candidate eklendi (pending):", c);
         } catch (err) {
-          console.warn("Candidate eklerken hata:", err);
+          console.warn("Candidate eklenirken hata:", err);
         }
       }
       pendingCandidates[from] = [];
     }
-  }
-  // ICE
-  else if (signal.candidate) {
+
+  } else if (signal.candidate) {
     if (!peer.remoteDescription || peer.remoteDescription.type === "") {
       console.log("remoteDescription yok => pending candidate:", signal);
       if (!pendingCandidates[from]) {
@@ -601,7 +617,9 @@ socket.on("signal", async (data) => {
   }
 });
 
-/* Peer Başlat */
+/* 
+   Peer init
+*/
 function initPeer(userId, isInitiator) {
   if (!localStream || !audioPermissionGranted) {
     console.warn("localStream yok => initPeer bekle:", userId);
@@ -709,7 +727,7 @@ function applyAudioStates() {
       track.enabled = micEnabled && !selfDeafened;
     });
   }
-  micToggleButton.innerHTML = (micEnabled && !selfDeafened) ? "MIC ON" : "MIC OFF"; 
+  micToggleButton.innerHTML = micEnabled && !selfDeafened ? "MIC ON" : "MIC OFF";
   applyDeafenState();
   deafenToggleButton.innerHTML = selfDeafened ? "DEAF ON" : "DEAF OFF";
 }
@@ -720,7 +738,7 @@ function applyDeafenState() {
   });
 }
 
-/* parseIceUfrag */
+/* parseIceUfrag => sdp'den a=ice-ufrag satırını çekiyoruz */
 function parseIceUfrag(sdp) {
   const lines = sdp.split('\n');
   for (const line of lines) {

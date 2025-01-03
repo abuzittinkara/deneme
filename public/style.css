@@ -17,13 +17,13 @@ body {
 }
 
 .card {
-  background: #2d2d2d; 
+  background: #2d2d2d;
   padding: 2rem;
   border-radius: 8px;
   min-width: 320px;
   text-align: center;
-  border: none; 
-  box-shadow: none; 
+  border: none;
+  box-shadow: none;
 }
 
 .app-title {
@@ -34,8 +34,8 @@ body {
 .input-text {
   width: 100%;
   padding: 0.75rem;
-  background: #444;  
-  color: #fff;       
+  background: #444;
+  color: #fff;
   border: 1px solid #666;
   border-radius: 6px;
   font-size: 1rem;
@@ -54,7 +54,7 @@ body {
   transition: background 0.3s ease;
 }
 .btn.primary {
-  background: #c61884; 
+  background: #c61884;
   color: #fff;
 }
 .btn.primary:hover {
@@ -115,13 +115,13 @@ body {
 
 /* Sidebar (Gruplar) => 65px */
 .sidebar {
-  background: #1a1a1a; 
-  width: 65px;  
+  background: #1a1a1a;
+  width: 65px;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 1rem 0;
-  position: relative; 
+  position: relative;
 }
 .dm-toggle-btn {
   margin-bottom: 1rem;
@@ -132,10 +132,7 @@ body {
   gap: 1rem;
 }
 
-/* 
-  Yuvarlak => .grp-item
-  Animasyon => .grp-item.selected
-*/
+/* Seçili grup (animasyon) */
 .grp-item {
   width: 48px;
   height: 48px;
@@ -154,14 +151,14 @@ body {
   background: #666;
 }
 .grp-item.selected {
-  border: 2px solid #c61884;  /* pembe stroke */
-  border-radius: 10px;        /* hafif köşe */
+  border: 2px solid #c61884;
+  border-radius: 10px;
 }
 
 /* Grup Oluştur Butonu */
 .create-group-btn {
   position: absolute;
-  bottom: 70px; 
+  bottom: 70px;
   left: 50%;
   transform: translateX(-50%);
 }
@@ -173,7 +170,7 @@ body {
   height: 48px;
   border-radius: 50%;
   border: none;
-  font-size: 1.5rem; 
+  font-size: 1.5rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -186,7 +183,7 @@ body {
 /* Odalar paneli => 200px */
 .rooms-panel {
   background: #1f1f1f;
-  width: 200px; 
+  width: 200px;
   display: flex;
   flex-direction: column;
   padding: 1rem;
@@ -206,7 +203,7 @@ body {
 }
 .dropdown-icon {
   cursor: pointer;
-  font-size: 1.2rem; 
+  font-size: 1.2rem;
   color: #ccc;
   margin-left: auto;
 }
@@ -238,7 +235,7 @@ body {
 }
 .create-room-btn {
   position: absolute;
-  bottom: 70px; 
+  bottom: 70px;
   right: 10px;
 }
 
@@ -412,9 +409,9 @@ body {
 /* Modal Stil */
 .modal {
   position: fixed;
-  top: 0; 
+  top: 0;
   left: 0;
-  width: 100%; 
+  width: 100%;
   height: 100%;
   background: rgba(0,0,0,0.6);
   display: flex;
