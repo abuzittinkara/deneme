@@ -9,7 +9,6 @@ let audioPermissionGranted = false;
 let remoteAudios = [];
 let username = null;
 
-// Gruplar / Odalar
 let currentGroup = null;
 let currentRoom = null;
 
