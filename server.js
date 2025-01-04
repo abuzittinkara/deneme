@@ -17,7 +17,7 @@ const server = http.createServer(app);
 const io = socketIO(server);
 
 // MongoDB bağlantı ayarları
-const uri = process.env.MONGODB_URI || "mongodb+srv://abuzorttin:19070480019Mg.@cluster0.vdrdy.mongodb.net/myappdb?retryWrites=true&w=majority";
+const uri = process.env.MONGODB_URI || "mongodb+srv://abuzorttin:19070480019Mg.@cluster0.vdrdy.mongodb.net/myappdb?retryWrites=true&w=majority"; 
 mongoose.connect(uri)
   .then(() => console.log("MongoDB bağlantısı başarılı!"))
   .catch(err => console.error("MongoDB bağlantı hatası:", err));
@@ -32,7 +32,7 @@ const groups = {};
 app.use(express.static("public"));
 
 /* 
-  1) DB'den grupları çek => groups
+  1) DB'den grupları yükle => groups
 */
 async function loadGroupsFromDB() {
   try {
@@ -47,14 +47,14 @@ async function loadGroupsFromDB() {
         };
       }
     });
-    console.log("loadGroupsFromDB tamam: ", Object.keys(groups));
+    console.log("loadGroupsFromDB tamamlandı. in-memory groups:", Object.keys(groups));
   } catch (err) {
     console.error("loadGroupsFromDB hatası:", err);
   }
 }
 
 /* 
-  2) DB'den kanalları çek => groups[groupId].rooms
+  2) DB'den kanalları yükle => groups[groupId].rooms
 */
 async function loadChannelsFromDB() {
   try {
@@ -70,16 +70,15 @@ async function loadChannelsFromDB() {
         };
       }
     });
-    console.log("loadChannelsFromDB tamam.");
+    console.log("loadChannelsFromDB tamamlandı.");
   } catch (err) {
     console.error("loadChannelsFromDB hatası:", err);
   }
 }
-
 loadGroupsFromDB().then(() => loadChannelsFromDB());
 
 /* 
-  Bir gruptaki tüm kanalları + kullanıcıları => "allChannelsData" ile yay
+  allChannelsData => groupId içindeki tüm kanallar + users
 */
 function broadcastAllChannelsData(groupId) {
   if (!groups[groupId]) return;
@@ -88,23 +87,24 @@ function broadcastAllChannelsData(groupId) {
     const rm = groups[groupId].rooms[roomId];
     channelsObj[roomId] = {
       name: rm.name,
-      users: rm.users.map(u => ({ id: u.id, username: u.username }))
+      users: rm.users.map(u => ({
+        id: u.id,
+        username: u.username
+      }))
     };
   });
   io.to(groupId).emit('allChannelsData', channelsObj);
 }
 
 /* 
-  DB'den groupId'ye ait user listesi => groupUsers event
+  groupUsers => bu gruptaki (DB) users
 */
 async function broadcastGroupUsers(groupId) {
   if (!groupId) return;
   try {
     const groupDoc = await Group.findOne({ groupId }).populate('users');
     if (!groupDoc) return;
-    const userArray = groupDoc.users.map(u => ({
-      username: u.username
-    }));
+    const userArray = groupDoc.users.map(u => ({ username: u.username }));
     io.to(groupId).emit('groupUsers', userArray);
   } catch (err) {
     console.error("broadcastGroupUsers hata:", err);
@@ -112,7 +112,7 @@ async function broadcastGroupUsers(groupId) {
 }
 
 /* 
-  Kullanıcıya => groupsList event
+  Kullanıcıya => groupsList
 */
 async function sendGroupsListToUser(socketId) {
   const userData = users[socketId];
@@ -128,7 +128,7 @@ async function sendGroupsListToUser(socketId) {
 }
 
 /* 
-  roomsList => groupId
+  roomsList => { id, name } array
 */
 function sendRoomsListToUser(socketId, groupId) {
   const groupObj = groups[groupId];
@@ -226,8 +226,6 @@ io.on("connection", (socket) => {
     if (usernameVal && typeof usernameVal === 'string') {
       users[socket.id].username = usernameVal.trim();
       console.log(`User ${socket.id} => set-username => ${usernameVal}`);
-
-      // Giriş sonrası => DB'den grup listesini gönder
       try {
         await sendGroupsListToUser(socket.id);
       } catch (err) {
@@ -248,10 +246,7 @@ io.on("connection", (socket) => {
     const userName = users[socket.id].username || `(User ${socket.id})`;
 
     const userDoc = await User.findOne({ username: userName });
-    if (!userDoc) {
-      console.log("createGroup: Kullanıcı DB'de bulunamadı:", userName);
-      return;
-    }
+    if (!userDoc) return;
 
     const newGroup = new Group({
       groupId,
@@ -267,12 +262,10 @@ io.on("connection", (socket) => {
     groups[groupId] = {
       owner: socket.id,
       name: trimmed,
-      users: [
-        { id: socket.id, username: userName }
-      ],
+      users: [ { id: socket.id, username: userName } ],
       rooms: {}
     };
-    console.log(`Yeni grup oluştur: ${trimmed} (ID=${groupId})`);
+    console.log(`Yeni grup oluştur: ${trimmed} (ID=${groupId}), owner=${socket.id}`);
 
     await sendGroupsListToUser(socket.id);
   });
@@ -293,6 +286,7 @@ io.on("connection", (socket) => {
         socket.emit('errorMessage', "Böyle bir grup yok (DB).");
         return;
       }
+
       if (!groupDoc.users.includes(userDoc._id)) {
         groupDoc.users.push(userDoc._id);
         await groupDoc.save();
@@ -309,7 +303,9 @@ io.on("connection", (socket) => {
           rooms: {}
         };
       }
+
       users[socket.id].currentGroup = groupId;
+      // Herhangi bir kanal yoksa => currentRoom yok
       users[socket.id].currentRoom = null;
       if (!groups[groupId].users.some(u => u.id === socket.id)) {
         groups[groupId].users.push({ id: socket.id, username: userName });
@@ -326,8 +322,7 @@ io.on("connection", (socket) => {
 
   // ---------------------
   // joinGroup (listeden)
-  // => Sadece gruba "göz atma"
-  // => Eski kanaldan çıkma yok
+  // => Eski kanaldan çık => ama eski gruptan çıkarma yok
   // ---------------------
   socket.on('joinGroup', async (groupId) => {
     console.log(`joinGroup event: user=${socket.id}, groupId=${groupId}`);
@@ -335,18 +330,34 @@ io.on("connection", (socket) => {
       console.log("Geçersiz grup ID:", groupId);
       return;
     }
-    // Eski group => dokunmuyoruz
-    // Eski channel => dokunmuyoruz
-
-    // Sadece bu gruba da eklensin (göz atabilsin)
+    const oldGroup = users[socket.id].currentGroup;
+    const oldRoom = users[socket.id].currentRoom;
     const userName = users[socket.id].username || `(User ${socket.id})`;
+
+    // 1) Eğer kullanıcı bir kanalda ise => o kanaldan çıkar
+    if (oldGroup && groups[oldGroup]) {
+      if (oldRoom && groups[oldGroup].rooms[oldRoom]) {
+        groups[oldGroup].rooms[oldRoom].users =
+          groups[oldGroup].rooms[oldRoom].users.filter(u => u.id !== socket.id);
+        io.to(`${oldGroup}::${oldRoom}`).emit('roomUsers', groups[oldGroup].rooms[oldRoom].users);
+        socket.leave(`${oldGroup}::${oldRoom}`);
+      }
+      // Eski gruptan => "groups[oldGroup].users" içinden silme => İSTEMİYORUZ
+      // (Böylece grup üyesi kalır)
+      // socket.leave(oldGroup); // Yine "grup"tan çıkmıyoruz
+      broadcastAllChannelsData(oldGroup);
+    }
+
+    // 2) Bu gruba "göz at"
     if (!groups[groupId].users.some(u => u.id === socket.id)) {
       groups[groupId].users.push({ id: socket.id, username: userName });
     }
-    users[socket.id].currentGroup = groupId; 
-    // currentRoom => bozmuyoruz
+    users[socket.id].currentGroup = groupId;
+    // Kullanıcı henüz channel'da değil => null
+    users[socket.id].currentRoom = null;
     socket.join(groupId);
 
+    // roomsList, allChannelsData, groupUsers
     sendRoomsListToUser(socket.id, groupId);
     broadcastAllChannelsData(groupId);
     await broadcastGroupUsers(groupId);
@@ -359,26 +370,25 @@ io.on("connection", (socket) => {
     try {
       if (!groups[groupId]) return;
       if (!roomName || typeof roomName !== 'string') return;
-      const trimmedRoomName = roomName.trim();
-      if (!trimmedRoomName) return;
-
-      const groupDoc = await Group.findOne({ groupId });
-      if (!groupDoc) return;
+      const trimmed = roomName.trim();
+      if (!trimmed) return;
 
       const roomId = uuidv4();
+      const groupDoc = await Group.findOne({ groupId });
+      if (!groupDoc) return;
       const newChannel = new Channel({
         channelId: roomId,
-        name: trimmedRoomName,
+        name: trimmed,
         group: groupDoc._id,
         users: []
       });
       await newChannel.save();
 
       groups[groupId].rooms[roomId] = {
-        name: trimmedRoomName,
+        name: trimmed,
         users: []
       };
-      console.log(`Yeni oda oluştur: Grup=${groupId}, Oda=${roomId}, Ad=${trimmedRoomName}`);
+      console.log(`Yeni oda: Grup=${groupId}, Oda=${roomId}, Ad=${trimmed}`);
 
       groups[groupId].users.forEach(u => {
         sendRoomsListToUser(u.id, groupId);
@@ -391,70 +401,30 @@ io.on("connection", (socket) => {
 
   // ---------------------
   // joinRoom
-  // => Burada: FARKLI bir group'a ait kanala girerse,
-  //    eski group + kanaldan çıkarmak gerekir.
   // ---------------------
   socket.on('joinRoom', ({ groupId, roomId }) => {
     console.log(`joinRoom event: user=${socket.id}, groupId=${groupId}, roomId=${roomId}`);
     const groupObj = groups[groupId];
-    if (!groupObj) {
-      console.log("Grup yok:", groupId);
-      return;
-    }
-    if (!groupObj.rooms[roomId]) {
-      console.log("Oda yok:", roomId);
-      return;
-    }
+    if (!groupObj) return;
+    if (!groupObj.rooms[roomId]) return;
 
     const userName = users[socket.id].username || `(User ${socket.id})`;
 
-    // ESKI GROUP => Eger farkli bir groupdaysa => cikar
-    const oldGroup = users[socket.id].currentGroup;
+    // Eski odadan çık
     const oldRoom = users[socket.id].currentRoom;
-    if (oldGroup && oldGroup !== groupId) {
-      // Eski group'se => odadan cikar
-      if (groups[oldGroup]) {
-        if (oldRoom && groups[oldGroup].rooms[oldRoom]) {
-          groups[oldGroup].rooms[oldRoom].users =
-            groups[oldGroup].rooms[oldRoom].users.filter(u => u.id !== socket.id);
-          io.to(`${oldGroup}::${oldRoom}`).emit('roomUsers', groups[oldGroup].rooms[oldRoom].users);
-          socket.leave(`${oldGroup}::${oldRoom}`);
-        }
-        // Eski group'tan da cikar
-        groups[oldGroup].users = groups[oldGroup].users.filter(u => u.id !== socket.id);
-        socket.leave(oldGroup);
-
-        // Broadcast => o eski group da guncellensin
-        broadcastAllChannelsData(oldGroup);
-      }
-    }
-
-    // Bu group'a gir
-    users[socket.id].currentGroup = groupId;
-
-    // Eski kanaldan cikar (Ayni group'ta farkli oda)
-    if (oldGroup === groupId && oldRoom && groupObj.rooms[oldRoom]) {
+    if (oldRoom && groupObj.rooms[oldRoom]) {
       groupObj.rooms[oldRoom].users =
         groupObj.rooms[oldRoom].users.filter(u => u.id !== socket.id);
       io.to(`${groupId}::${oldRoom}`).emit('roomUsers', groupObj.rooms[oldRoom].users);
       socket.leave(`${groupId}::${oldRoom}`);
     }
 
-    // Bu group'ta user kaydi yoksa ekle
-    if (!groupObj.users.some(u => u.id === socket.id)) {
-      groupObj.users.push({ id: socket.id, username: userName });
-    }
-
     // Yeni odaya ekle
     groupObj.rooms[roomId].users.push({ id: socket.id, username: userName });
     users[socket.id].currentRoom = roomId;
-
-    socket.join(groupId);
     socket.join(`${groupId}::${roomId}`);
 
-    // O odadaki herkese => 'roomUsers'
     io.to(`${groupId}::${roomId}`).emit('roomUsers', groupObj.rooms[roomId].users);
-
     broadcastAllChannelsData(groupId);
   });
 
@@ -462,13 +432,12 @@ io.on("connection", (socket) => {
   // leaveRoom
   // ---------------------
   socket.on('leaveRoom', ({ groupId, roomId }) => {
-    console.log(`leaveRoom event: user=${socket.id}, groupId=${groupId}, roomId=${roomId}`);
+    console.log(`leaveRoom: user=${socket.id}, groupId=${groupId}, roomId=${roomId}`);
     const groupObj = groups[groupId];
     if (!groupObj) return;
     if (!groupObj.rooms[roomId]) return;
 
-    groupObj.rooms[roomId].users =
-      groupObj.rooms[roomId].users.filter(u => u.id !== socket.id);
+    groupObj.rooms[roomId].users = groupObj.rooms[roomId].users.filter(u => u.id !== socket.id);
     io.to(`${groupId}::${roomId}`).emit('roomUsers', groupObj.rooms[roomId].users);
     socket.leave(`${groupId}::${roomId}`);
 
@@ -481,7 +450,7 @@ io.on("connection", (socket) => {
   // ---------------------
   socket.on("signal", (data) => {
     const targetId = data.to;
-    if (socket.id === targetId) return;
+    if (socket.id === targetId) return; 
     if (!users[targetId]) return;
 
     const sG = users[socket.id].currentGroup;
@@ -489,7 +458,6 @@ io.on("connection", (socket) => {
     const sR = users[socket.id].currentRoom;
     const tR = users[targetId].currentRoom;
 
-    // Aynı group + aynı room => sinyal
     if (sG && sG === tG && sR && sR === tR) {
       io.to(targetId).emit("signal", {
         from: socket.id,
@@ -502,7 +470,7 @@ io.on("connection", (socket) => {
   // Disconnect
   // ---------------------
   socket.on("disconnect", async () => {
-    console.log("Kullanıcı ayrıldı (disconnect):", socket.id);
+    console.log("Kullanıcı ayrıldı:", socket.id);
     const userData = users[socket.id];
     if (userData && userData.currentGroup) {
       const gId = userData.currentGroup;
