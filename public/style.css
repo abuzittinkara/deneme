@@ -143,8 +143,6 @@ body {
   justify-content: center;
   align-items: center;
   cursor: pointer;
-
-  /* animasyon */
   transition: all 0.3s ease;
   border: 2px solid transparent; /* sabit border => kayma yok */
 }
@@ -240,14 +238,13 @@ body {
   right: 10px;
 }
 
-/* Kanal item (Düzeltme: kullanıcılar daha sola) */
+/* Kanal item => Artık çerçeve yok, border-radius satırı kaldırıldı */
 .channel-item {
   display: flex;
   flex-direction: column;
   background: #2d2d2d;
   padding: 0.5rem;
-  border-radius: 4px;
-  cursor: pointer;
+  cursor: pointer;  /* border-radius: 4px; satırı silindi */
   margin-bottom: 0.4rem;
 }
 .channel-item:hover {
@@ -262,7 +259,7 @@ body {
   width: 16px;
   height: 16px;
 }
-/* Kullanıcıların margin-left'ini azalttık => 0.5rem */
+/* margin-left => 0.5rem (önceden 1.5rem) */
 .channel-users {
   margin-top: 0.5rem;
   margin-left: 0.5rem; 
