@@ -132,10 +132,7 @@ body {
   gap: 1rem;
 }
 
-/* 
-  Seçili Grup Kayması Önlenir:
-  => border:2px solid transparent
-*/
+/* grp-item => yuvarlak, animasyon, seçili hâl */
 .grp-item {
   width: 48px;
   height: 48px;
@@ -146,6 +143,8 @@ body {
   justify-content: center;
   align-items: center;
   cursor: pointer;
+
+  /* animasyon */
   transition: all 0.3s ease;
   border: 2px solid transparent; /* sabit border => kayma yok */
 }
@@ -241,7 +240,7 @@ body {
   right: 10px;
 }
 
-/* Kanal item */
+/* Kanal item (Düzeltme: kullanıcılar daha sola) */
 .channel-item {
   display: flex;
   flex-direction: column;
@@ -263,9 +262,10 @@ body {
   width: 16px;
   height: 16px;
 }
+/* Kullanıcıların margin-left'ini azalttık => 0.5rem */
 .channel-users {
   margin-top: 0.5rem;
-  margin-left: 1.5rem;
+  margin-left: 0.5rem; 
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
@@ -444,7 +444,6 @@ body {
 }
 
 @media (max-width: 600px) {
-  /* ufak responsive ayarlar */
   .left-panels { width:65px; }
   .rooms-panel { width:200px; }
   .user-panel { width:200px; }
