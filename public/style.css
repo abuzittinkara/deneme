@@ -144,14 +144,14 @@ body {
   align-items: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 2px solid transparent; /* sabit border => kayma yok */
+  border: 2px solid transparent; 
 }
 .grp-item:hover {
   background: #666;
 }
 .grp-item.selected {
-  border: 2px solid #c61884; 
-  border-radius: 10px;       
+  border: 2px solid #c61884;
+  border-radius: 10px; 
 }
 
 /* Grup Oluştur Butonu */
@@ -242,13 +242,11 @@ body {
 .channel-item {
   display: flex;
   flex-direction: column;
-  /* background: #2d2d2d;   <-- KALDIRILDI */
-  /* border-radius: 4px;    <-- KALDIRILDI */
   cursor: pointer;
   margin-bottom: 0.4rem;
 }
 .channel-item:hover {
-  /* background: #444;  <-- KALDIRILDI */
+  /* no background */
 }
 .channel-header {
   display: flex;
@@ -259,7 +257,6 @@ body {
   width: 16px;
   height: 16px;
 }
-/* channel-users => margin-left düşürüldü => 0.5rem */
 .channel-users {
   margin-top: 0.5rem;
   margin-left: 0.5rem; 

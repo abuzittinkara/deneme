@@ -15,27 +15,35 @@ let currentRoom = null;
 let pendingUsers = [];
 let pendingNewUsers = [];
 
-// ICE candidate mismatch => yumuşatılan mantık
 let pendingCandidates = {};
 let sessionUfrag = {};
 
-/* createWaveIcon */
+/* createWaveIcon => volume-up-fill ikonuna dönüştürüldü */
 function createWaveIcon() {
+  // volume-up-fill (Bootstrap Icons)
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("viewBox", "0 0 24 24");
   svg.setAttribute("width", "16");
   svg.setAttribute("height", "16");
-  svg.setAttribute("class", "channel-icon");
+  svg.setAttribute("fill", "currentColor");
+  svg.setAttribute("class", "channel-icon bi bi-volume-up-fill");
+  svg.setAttribute("viewBox", "0 0 16 16");
 
-  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path.setAttribute("d", "M2,12 C4,8 8,4 12,12 16,20 20,16 22,12");
-  path.setAttribute("stroke", "currentColor");
-  path.setAttribute("stroke-width", "2");
-  path.setAttribute("fill", "none");
-  path.setAttribute("stroke-linecap", "round");
-  path.setAttribute("stroke-linejoin", "round");
+  // path #1
+  const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path1.setAttribute("d", "M9.717.55A.5.5 0 0 1 10 .999v14a.5.5 0 0 1-.783.409L5.825 12H3.5A1.5 1.5 0 0 1 2 10.5v-5A1.5 1.5 0 0 1 3.5 4h2.325l3.392-2.409a.5.5 0 0 1 .5-.041z");
+  
+  // path #2
+  const path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path2.setAttribute("d", "M13.493 1.957a.5.5 0 0 1 .014.706 7.979 7.979 0 0 1 0 10.674.5.5 0 1 1-.72-.694 6.979 6.979 0 0 0 0-9.286.5.5 0 0 1 .706-.014z");
 
-  svg.appendChild(path);
+  // path #3
+  const path3 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path3.setAttribute("d", "M11.534 3.16a.5.5 0 0 1 .12.7 4.978 4.978 0 0 1 0 5.281.5.5 0 1 1-.82-.574 3.978 3.978 0 0 0 0-4.133.5.5 0 0 1 .7-.12z");
+
+  svg.appendChild(path1);
+  svg.appendChild(path2);
+  svg.appendChild(path3);
+
   return svg;
 }
 
@@ -254,7 +262,7 @@ closeJoinGroupModal.addEventListener('click', () => {
   joinGroupModal.style.display = 'none';
 });
 
-/* groupsList */
+/* groupsList => sol sidebar */
 socket.on('groupsList', (groupArray) => {
   groupListDiv.innerHTML = '';
   groupArray.forEach(groupObj => {
@@ -276,7 +284,7 @@ socket.on('groupsList', (groupArray) => {
   });
 });
 
-/* roomsList => Kanallar */
+/* roomsList => kanallar */
 socket.on('roomsList', (roomsArray) => {
   roomListDiv.innerHTML = '';
   roomsArray.forEach(roomObj => {
@@ -286,6 +294,8 @@ socket.on('roomsList', (roomsArray) => {
     const channelHeader = document.createElement('div');
     channelHeader.className = 'channel-header';
 
+    // volume-up-fill yerine createWaveIcon() => 
+    // createWaveIcon() fonksiyonunda volume-up-fill svg dönecek
     const icon = createWaveIcon();
     const textSpan = document.createElement('span');
     textSpan.textContent = roomObj.name;
@@ -319,7 +329,7 @@ socket.on('roomsList', (roomsArray) => {
   });
 });
 
-/* allChannelsData => Kanallarda kim var */
+/* allChannelsData => kanallarda kim var */
 socket.on('allChannelsData', (channelsObj) => {
   Object.keys(channelsObj).forEach(roomId => {
     const cData = channelsObj[roomId];
@@ -344,20 +354,16 @@ socket.on('allChannelsData', (channelsObj) => {
   });
 });
 
-/* groupUsers => sağ panel (group üyeleri) */
+/* groupUsers => sağ panel (grup üyeleri) */
 socket.on('groupUsers', (dbUsersArray) => {
   console.log("groupUsers event alındı:", dbUsersArray);
   updateUserList(dbUsersArray);
 });
 
-/* 
-  roomUsers => odadaki kullanıcılar 
-  => WebRTC devreye girsin
-*/
+/* roomUsers => odadaki kullanıcılar => WebRTC init */
 socket.on('roomUsers', (usersInRoom) => {
   console.log("roomUsers => odadaki kisiler:", usersInRoom);
 
-  // WebRTC init
   const otherUserIds = usersInRoom
     .filter(u => u.id !== socket.id)
     .map(u => u.id)
@@ -379,7 +385,9 @@ socket.on('roomUsers', (usersInRoom) => {
     });
   } else {
     otherUserIds.forEach(userId => {
-      if (!peers[userId]) initPeer(userId, true);
+      if (!peers[userId]) {
+        initPeer(userId, true);
+      }
     });
   }
 });
@@ -497,7 +505,7 @@ async function requestMicrophoneAccess() {
   }
 }
 
-/* WebRTC Sinyal => Offer/Answer/ICE */
+/* WebRTC => Offer/Answer/ICE */
 socket.on("signal", async (data) => {
   if (data.from === socket.id) return;
 
@@ -524,7 +532,6 @@ socket.on("signal", async (data) => {
 
     if (pendingCandidates[from]) {
       for (const c of pendingCandidates[from]) {
-        // YENİ: usernameFragment null ise => droplama
         if (sessionUfrag[from] 
             && sessionUfrag[from] !== c.usernameFragment 
             && c.usernameFragment !== null) {
@@ -540,8 +547,8 @@ socket.on("signal", async (data) => {
       }
       pendingCandidates[from] = [];
     }
-  }
-  else if (signal.type === "answer") {
+
+  } else if (signal.type === "answer") {
     if (peer.signalingState === "stable") {
       console.warn("PeerConnection already stable. Second answer ignored.");
       return;
@@ -575,7 +582,6 @@ socket.on("signal", async (data) => {
       }
       pendingCandidates[from].push(signal);
     } else {
-      // YENİ => usernameFragment null => droplamayız
       if (sessionUfrag[from] 
           && sessionUfrag[from] !== signal.usernameFragment 
           && signal.usernameFragment !== null) {
@@ -640,7 +646,6 @@ function initPeer(userId, isInitiator) {
   };
 
   if (isInitiator) createOffer(peer, userId);
-
   return peer;
 }
 
@@ -707,7 +712,7 @@ function applyDeafenState() {
   });
 }
 
-/* parseIceUfrag => a=ice-ufrag:... satırı */
+/* parseIceUfrag => a=ice-ufrag:... */
 function parseIceUfrag(sdp) {
   const lines = sdp.split('\n');
   for (const line of lines) {
