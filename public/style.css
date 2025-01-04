@@ -151,7 +151,7 @@ body {
 }
 .grp-item.selected {
   border: 2px solid #c61884;
-  border-radius: 10px; 
+  border-radius: 18px; 
 }
 
 /* Grup Oluştur Butonu */
