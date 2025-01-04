@@ -305,7 +305,6 @@ io.on("connection", (socket) => {
       }
 
       users[socket.id].currentGroup = groupId;
-      // Herhangi bir kanal yoksa => currentRoom yok
       users[socket.id].currentRoom = null;
       if (!groups[groupId].users.some(u => u.id === socket.id)) {
         groups[groupId].users.push({ id: socket.id, username: userName });
@@ -322,7 +321,8 @@ io.on("connection", (socket) => {
 
   // ---------------------
   // joinGroup (listeden)
-  // => Eski kanaldan çık => ama eski gruptan çıkarma yok
+  // => "Sadece" gruba geçiş => Kanaldan AYRILMAMAK 
+  // => Yani currentRoom korunur
   // ---------------------
   socket.on('joinGroup', async (groupId) => {
     console.log(`joinGroup event: user=${socket.id}, groupId=${groupId}`);
@@ -331,30 +331,17 @@ io.on("connection", (socket) => {
       return;
     }
     const oldGroup = users[socket.id].currentGroup;
-    const oldRoom = users[socket.id].currentRoom;
+    // => eski gruptaki oldRoom => DEĞİŞMEDİ, user kalmaya devam eder
+    // => bu sayede "başka gruba bakarken" eski kanalda kalacak
+
     const userName = users[socket.id].username || `(User ${socket.id})`;
 
-    // 1) Eğer kullanıcı bir kanalda ise => o kanaldan çıkar
-    if (oldGroup && groups[oldGroup]) {
-      if (oldRoom && groups[oldGroup].rooms[oldRoom]) {
-        groups[oldGroup].rooms[oldRoom].users =
-          groups[oldGroup].rooms[oldRoom].users.filter(u => u.id !== socket.id);
-        io.to(`${oldGroup}::${oldRoom}`).emit('roomUsers', groups[oldGroup].rooms[oldRoom].users);
-        socket.leave(`${oldGroup}::${oldRoom}`);
-      }
-      // Eski gruptan => "groups[oldGroup].users" içinden silme => İSTEMİYORUZ
-      // (Böylece grup üyesi kalır)
-      // socket.leave(oldGroup); // Yine "grup"tan çıkmıyoruz
-      broadcastAllChannelsData(oldGroup);
-    }
-
-    // 2) Bu gruba "göz at"
+    // Sadece groups tarafında user'ı ekliyoruz (grup user list'e):
     if (!groups[groupId].users.some(u => u.id === socket.id)) {
       groups[groupId].users.push({ id: socket.id, username: userName });
     }
     users[socket.id].currentGroup = groupId;
-    // Kullanıcı henüz channel'da değil => null
-    users[socket.id].currentRoom = null;
+    // currentRoom'ü dokunmuyoruz => user orada kalsın
     socket.join(groupId);
 
     // roomsList, allChannelsData, groupUsers
@@ -401,6 +388,8 @@ io.on("connection", (socket) => {
 
   // ---------------------
   // joinRoom
+  // => Farklı kanala tıklayınca => Eski kanaldan AYRIL => Yeni kanala GİR
+  // => Bu, ister aynı grupta olsun ister farklı grupta
   // ---------------------
   socket.on('joinRoom', ({ groupId, roomId }) => {
     console.log(`joinRoom event: user=${socket.id}, groupId=${groupId}, roomId=${roomId}`);
@@ -412,15 +401,22 @@ io.on("connection", (socket) => {
 
     // Eski odadan çık
     const oldRoom = users[socket.id].currentRoom;
-    if (oldRoom && groupObj.rooms[oldRoom]) {
-      groupObj.rooms[oldRoom].users =
-        groupObj.rooms[oldRoom].users.filter(u => u.id !== socket.id);
-      io.to(`${groupId}::${oldRoom}`).emit('roomUsers', groupObj.rooms[oldRoom].users);
-      socket.leave(`${groupId}::${oldRoom}`);
+    const oldGroup = users[socket.id].currentGroup;
+
+    // Eski grubu bile farketmez => her halükârda eski kanal/oda user'ı sil
+    if (oldGroup && groups[oldGroup]) {
+      if (oldRoom && groups[oldGroup].rooms[oldRoom]) {
+        groups[oldGroup].rooms[oldRoom].users =
+          groups[oldGroup].rooms[oldRoom].users.filter(u => u.id !== socket.id);
+        io.to(`${oldGroup}::${oldRoom}`).emit('roomUsers', groups[oldGroup].rooms[oldRoom].users);
+        socket.leave(`${oldGroup}::${oldRoom}`);
+        broadcastAllChannelsData(oldGroup);
+      }
     }
 
-    // Yeni odaya ekle
+    // Şimdi bu gruptaki bu odaya ekle
     groupObj.rooms[roomId].users.push({ id: socket.id, username: userName });
+    users[socket.id].currentGroup = groupId; // => Artık bu grup "aktif" oluyor
     users[socket.id].currentRoom = roomId;
     socket.join(`${groupId}::${roomId}`);
 
