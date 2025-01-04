@@ -26,6 +26,114 @@ body {
   box-shadow: none; 
 }
 
+/* Figma’dan gelen container sınıfları */
+.container--0- {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1920px;
+  height: 1080px;
+  background-color: #ffffff;
+  justify-content: start;
+  align-items: start;
+}
+.container-0-1-0 {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  width: 1920px;
+  height: 1080px;
+  justify-content: start;
+  align-items: start;
+}
+/* Bu kısım login kutusu */
+.container-1-2-1 {
+  position: relative;
+  width: 464px;
+  height: 482px;
+  background-color: #1f2937;
+  max-width: 464px;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 8px;
+  gap: 32px;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 32px 48px 32px;
+}
+
+.container-2-3-0 {
+  position: relative;
+  width: auto;
+  height: auto;
+  justify-content: start;
+  align-items: center;
+  gap: 21.4px;
+  display: flex;
+  flex-direction: column;
+}
+.container-2-3-1 {
+  position: relative;
+  width: auto;
+  height: auto;
+  justify-content: start;
+  align-items: start;
+  gap: 16px;
+  display: flex;
+  flex-direction: column;
+}
+.container-3-4-0 {
+  position: relative;
+  width: auto;
+  height: auto;
+  justify-content: start;
+  align-items: start;
+  gap: 1px;
+  display: flex;
+  flex-direction: column;
+}
+.container-3-4-1 {
+  position: relative;
+  width: auto;
+  height: auto;
+  justify-content: start;
+  align-items: start;
+  gap: 1px;
+  display: flex;
+  flex-direction: column;
+}
+.container-3-4-2 {
+  position: relative;
+  width: auto;
+  height: auto;
+  background-color: #4f46e5;
+  justify-content: start;
+  align-items: start;
+  border-radius: 4px;
+  display: flex;
+  padding: 8px 182px;
+}
+.container-3-4-3 {
+  position: relative;
+  width: auto;
+  height: auto;
+  justify-content: start;
+  align-items: start;
+  display: flex;
+  flex-direction: column;
+  padding: 0 0 1px 0;
+}
+/* Bu .text-4-5-0 => Figma'da text */
+.text-4-5-0 {
+  width: auto;
+  height: auto;
+  font-size: 16px;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
+  text-align: left;
+  vertical-align: center;
+  color: #fff;
+}
 .app-title {
   margin: 0 0 1rem;
   font-size: 1.5rem;
