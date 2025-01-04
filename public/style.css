@@ -144,14 +144,14 @@ body {
   align-items: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 2px solid transparent;
+  border: 2px solid transparent; 
 }
 .grp-item:hover {
   background: #666;
 }
 .grp-item.selected {
   border: 2px solid #c61884;
-  border-radius: 10px;
+  border-radius: 10px; 
 }
 
 /* Grup Oluştur Butonu */
@@ -338,7 +338,7 @@ body {
   color: #fff;
 }
 
-/* --- Ayarlar Paneli --- */
+/* --- Ayarlar Paneli (Settings) --- */
 .settings-panel {
   position: absolute;
   top: 0; 
@@ -347,10 +347,11 @@ body {
   height: 100%;
   background: #222;
   color: #fff;
-  display: none; 
+  display: none; /* gizli */
   flex-direction: column;
   padding: 1rem;
   box-sizing: border-box;
+  z-index: 999; /* Önemli: DM panel vs. üstte olsun */
 }
 .settings-panel-header {
   display: flex;
@@ -375,6 +376,7 @@ body {
   margin-top: 2rem;
   flex: 1; 
   overflow: auto; 
+  /* Örnek ayarlar alanı */
 }
 
 /* Ortadaki ana içerik */

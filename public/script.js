@@ -18,9 +18,8 @@ let pendingNewUsers = [];
 let pendingCandidates = {};
 let sessionUfrag = {};
 
-/* createWaveIcon => volume-up-fill ikonuna dönüştürüldü */
+/* volume-up-fill ikonu */
 function createWaveIcon() {
-  // volume-up-fill (Bootstrap Icons)
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("width", "16");
   svg.setAttribute("height", "16");
@@ -28,15 +27,12 @@ function createWaveIcon() {
   svg.setAttribute("class", "channel-icon bi bi-volume-up-fill");
   svg.setAttribute("viewBox", "0 0 16 16");
 
-  // path #1
   const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path1.setAttribute("d", "M9.717.55A.5.5 0 0 1 10 .999v14a.5.5 0 0 1-.783.409L5.825 12H3.5A1.5 1.5 0 0 1 2 10.5v-5A1.5 1.5 0 0 1 3.5 4h2.325l3.392-2.409a.5.5 0 0 1 .5-.041z");
-  
-  // path #2
+
   const path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path2.setAttribute("d", "M13.493 1.957a.5.5 0 0 1 .014.706 7.979 7.979 0 0 1 0 10.674.5.5 0 1 1-.72-.694 6.979 6.979 0 0 0 0-9.286.5.5 0 0 1 .706-.014z");
 
-  // path #3
   const path3 = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path3.setAttribute("d", "M11.534 3.16a.5.5 0 0 1 .12.7 4.978 4.978 0 0 1 0 5.281.5.5 0 1 1-.82-.574 3.978 3.978 0 0 0 0-4.133.5.5 0 0 1 .7-.12z");
 
@@ -100,38 +96,97 @@ const userListDiv = document.getElementById('userList');
 // Ayrıl Butonu
 const leaveButton = document.getElementById('leaveButton');
 
-// Modal: Grup
+/* --- AYARLAR Paneli --- */
+const settingsPanel = document.createElement('div');
+settingsPanel.classList.add('settings-panel');
+settingsPanel.id = 'settingsPanel';
+settingsPanel.innerHTML = `
+  <div class="settings-panel-header">
+    <h2 class="settings-title">Ayarlar</h2>
+    <button id="settingsBackBtn" class="settings-close-btn">&lt; Geri</button>
+  </div>
+  <div class="settings-content">
+    <p>Burada kullanıcı ayarları olabilir.</p>
+    <p>Örneğin profil bilgileri, tema seçimi vs.</p>
+  </div>
+`;
+document.body.appendChild(settingsPanel);
+
+// Sol alt kullanıcı paneli => user-panel-buttons
+const userPanelButtons = document.querySelector('.user-panel-buttons');
+
+// Ayarlar Butonu
+const settingsButton = document.createElement('button');
+settingsButton.id = 'settingsButton';
+settingsButton.classList.add('user-panel-btn');
+settingsButton.title = 'Ayarlar';
+settingsButton.innerHTML = `
+  <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="3"></circle>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06
+      a2 2 0 0 1-2.83 2.83l-.06-.06
+      a1.65 1.65 0 0 0-1.82-.33
+      1.65 1.65 0 0 0-1 1.51v.28
+      a2 2 0 0 1-2 2h-0.5
+      a2 2 0 0 1-2-2v-.28
+      a1.65 1.65 0 0 0-1-1.51
+      1.65 1.65 0 0 0-1.82.33l-.06.06
+      a2 2 0 0 1-2.83-2.83l.06-.06
+      a1.65 1.65 0 0 0 .33-1.82
+      1.65 1.65 0 0 0-1-1.51h-.28
+      a2 2 0 0 1-2-2v-0.5
+      a2 2 0 0 1 2-2h.28
+      a1.65 1.65 0 0 0 1-1.51
+      1.65 1.65 0 0 0-.33-1.82l-.06-.06
+      a2 2 0 0 1 2.83-2.83l.06.06
+      a1.65 1.65 0 0 0 1.82.33h0
+      a1.65 1.65 0 0 0 1-1.51v-.28
+      a2 2 0 0 1 2-2h0.5
+      a2 2 0 0 1 2 2v.28
+      a1.65 1.65 0 0 0 1 1.51h0
+      a1.65 1.65 0 0 0 1.82-.33l.06-.06
+      a2 2 0 0 1 2.83 2.83l-.06.06
+      a1.65 1.65 0 0 0-.33 1.82v0
+      a1.65 1.65 0 0 0 1 1.51h.28
+      a2 2 0 0 1 2 2v0.5
+      a2 2 0 0 1-2 2h-.28
+      a1.65 1.65 0 0 0-1.51 1z"></path>
+  </svg>
+`;
+userPanelButtons.appendChild(settingsButton);
+
+// Geri (settingsBackBtn) => kapat
+document.getElementById('settingsBackBtn').addEventListener('click', () => {
+  settingsPanel.style.display = 'none';
+});
+
+// Settings butonu => paneli aç
+settingsButton.addEventListener('click', () => {
+  settingsPanel.style.display = 'flex';
+});
+
+/* Modals... (groupModal, etc.) */
 const groupModal = document.getElementById('groupModal');
 const modalGroupCreateBtn = document.getElementById('modalGroupCreateBtn');
 const modalGroupJoinBtn = document.getElementById('modalGroupJoinBtn');
 
-// Modal: Grup Kur
 const actualGroupCreateModal = document.getElementById('actualGroupCreateModal');
 const actualGroupName = document.getElementById('actualGroupName');
 const actualGroupNameBtn = document.getElementById('actualGroupNameBtn');
 const closeCreateGroupModal = document.getElementById('closeCreateGroupModal');
 
-// Modal: Gruba Katıl
 const joinGroupModal = document.getElementById('joinGroupModal');
 const joinGroupIdInput = document.getElementById('joinGroupIdInput');
 const joinGroupIdBtn = document.getElementById('joinGroupIdBtn');
 const closeJoinGroupModal = document.getElementById('closeJoinGroupModal');
 
-// Modal: Oda
 const roomModal = document.getElementById('roomModal');
 const modalRoomName = document.getElementById('modalRoomName');
 const modalCreateRoomBtn = document.getElementById('modalCreateRoomBtn');
 const modalCloseRoomBtn = document.getElementById('modalCloseRoomBtn');
 
-// Sol alt
-const leftUserName = document.getElementById('leftUserName');
-const micToggleButton = document.getElementById('micToggleButton');
-const deafenToggleButton = document.getElementById('deafenToggleButton');
-
-let micEnabled = true;
-let selfDeafened = false;
-
-/* Ekran Geçişleri */
+/* Ekran Geçişleri (login, register) */
 showRegisterScreen.addEventListener('click', () => {
   loginScreen.style.display = 'none';
   registerScreen.style.display = 'block';
@@ -209,18 +264,6 @@ socket.on('registerResult', (data) => {
   }
 });
 
-/* DM paneli */
-toggleDMButton.addEventListener('click', () => {
-  isDMMode = true;
-  groupsAndRooms.style.display = 'none';
-  dmPanel.style.display = 'block';
-});
-closeDMButton.addEventListener('click', () => {
-  isDMMode = false;
-  dmPanel.style.display = 'none';
-  groupsAndRooms.style.display = 'flex';
-});
-
 /* Grup Oluştur / Seçenekleri */
 createGroupButton.addEventListener('click', () => {
   groupModal.style.display = 'flex';
@@ -294,8 +337,6 @@ socket.on('roomsList', (roomsArray) => {
     const channelHeader = document.createElement('div');
     channelHeader.className = 'channel-header';
 
-    // volume-up-fill yerine createWaveIcon() => 
-    // createWaveIcon() fonksiyonunda volume-up-fill svg dönecek
     const icon = createWaveIcon();
     const textSpan = document.createElement('span');
     textSpan.textContent = roomObj.name;
@@ -310,6 +351,7 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
+    // Odaya tıklayınca
     roomItem.addEventListener('click', () => {
       if (currentRoom && currentRoom !== roomObj.id) {
         console.log("Leaving old room =>", currentRoom);
@@ -602,8 +644,11 @@ socket.on("signal", async (data) => {
 function initPeer(userId, isInitiator) {
   if (!localStream || !audioPermissionGranted) {
     console.warn("localStream yok => initPeer bekle:", userId);
-    if (isInitiator) pendingUsers.push(userId);
-    else pendingNewUsers.push(userId);
+    if (isInitiator) {
+      pendingUsers.push(userId);
+    } else {
+      pendingNewUsers.push(userId);
+    }
     return;
   }
   if (peers[userId]) {
