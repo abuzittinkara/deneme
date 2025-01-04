@@ -9,12 +9,18 @@ let audioPermissionGranted = false;
 let remoteAudios = [];
 let username = null;
 
+// micEnabled / selfDeafened => global scope
+let micEnabled = true;
+let selfDeafened = false;
+
+// Mevcut group/room
 let currentGroup = null;
 let currentRoom = null;
 
 let pendingUsers = [];
 let pendingNewUsers = [];
 
+// ICE Candidate / session
 let pendingCandidates = {};
 let sessionUfrag = {};
 
@@ -43,7 +49,7 @@ function createWaveIcon() {
   return svg;
 }
 
-// DOM
+// DOM Ekranları
 const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
 const callScreen = document.getElementById('callScreen');
@@ -65,6 +71,7 @@ const regPasswordConfirmInput = document.getElementById('regPasswordConfirmInput
 const registerButton = document.getElementById('registerButton');
 const backToLoginButton = document.getElementById('backToLoginButton');
 
+// Ekran geçiş linkleri
 const showRegisterScreen = document.getElementById('showRegisterScreen');
 const showLoginScreen = document.getElementById('showLoginScreen');
 
@@ -83,14 +90,14 @@ const renameGroupBtn = document.getElementById('renameGroupBtn');
 const createChannelBtn = document.getElementById('createChannelBtn');
 const deleteGroupBtn = document.getElementById('deleteGroupBtn');
 
-// DM
+// DM panel
 const toggleDMButton = document.getElementById('toggleDMButton');
 const closeDMButton = document.getElementById('closeDMButton');
 const dmPanel = document.getElementById('dmPanel');
 const groupsAndRooms = document.getElementById('groupsAndRooms');
 let isDMMode = false;
 
-// Sağ panel (grup kullanıcıları)
+// Sağ panel (kullanıcı listesi)
 const userListDiv = document.getElementById('userList');
 
 // Ayrıl Butonu
@@ -112,10 +119,8 @@ settingsPanel.innerHTML = `
 `;
 document.body.appendChild(settingsPanel);
 
-// Sol alt kullanıcı paneli => user-panel-buttons
+// Sol alt user panel => buton ekle
 const userPanelButtons = document.querySelector('.user-panel-buttons');
-
-// Ayarlar Butonu
 const settingsButton = document.createElement('button');
 settingsButton.id = 'settingsButton';
 settingsButton.classList.add('user-panel-btn');
@@ -156,17 +161,16 @@ settingsButton.innerHTML = `
 `;
 userPanelButtons.appendChild(settingsButton);
 
-// Geri (settingsBackBtn) => kapat
+// Geri butonu => kapat
 document.getElementById('settingsBackBtn').addEventListener('click', () => {
   settingsPanel.style.display = 'none';
 });
-
-// Settings butonu => paneli aç
+// Ayarlar butonu => aç
 settingsButton.addEventListener('click', () => {
   settingsPanel.style.display = 'flex';
 });
 
-/* Modals... (groupModal, etc.) */
+/* Modal referansları */
 const groupModal = document.getElementById('groupModal');
 const modalGroupCreateBtn = document.getElementById('modalGroupCreateBtn');
 const modalGroupJoinBtn = document.getElementById('modalGroupJoinBtn');
@@ -186,7 +190,7 @@ const modalRoomName = document.getElementById('modalRoomName');
 const modalCreateRoomBtn = document.getElementById('modalCreateRoomBtn');
 const modalCloseRoomBtn = document.getElementById('modalCloseRoomBtn');
 
-/* Ekran Geçişleri (login, register) */
+/* Ekran geçişleri (login <-> register) */
 showRegisterScreen.addEventListener('click', () => {
   loginScreen.style.display = 'none';
   registerScreen.style.display = 'block';
@@ -205,7 +209,7 @@ loginButton.addEventListener('click', () => {
   const usernameVal = loginUsernameInput.value.trim();
   const passwordVal = loginPasswordInput.value.trim();
   if (!usernameVal || !passwordVal) {
-    alert("Kullanıcı adı/parola eksik!");
+    alert("Lütfen kullanıcı adı ve parola girin.");
     return;
   }
   socket.emit('login', { username: usernameVal, password: passwordVal });
@@ -218,6 +222,7 @@ socket.on('loginResult', (data) => {
     callScreen.style.display = 'flex';
     socket.emit('set-username', username);
     leftUserName.textContent = username;
+    // micEnabled var, set edelim
     applyAudioStates();
   } else {
     alert("Giriş başarısız: " + data.message);
@@ -243,8 +248,9 @@ registerButton.addEventListener('click', () => {
     alert("Tüm alanları doldurun.");
     return;
   }
+
   if (userData.username !== userData.username.toLowerCase()) {
-    alert("Kullanıcı adı küçük harf olmalı.");
+    alert("Kullanıcı adı sadece küçük harf olmalı.");
     return;
   }
   if (userData.password !== userData.passwordConfirm) {
@@ -256,7 +262,7 @@ registerButton.addEventListener('click', () => {
 });
 socket.on('registerResult', (data) => {
   if (data.success) {
-    alert("Kayıt başarılı! Giriş yapabilirsiniz.");
+    alert("Kayıt başarılı! Şimdi giriş yapabilirsiniz.");
     registerScreen.style.display = 'none';
     loginScreen.style.display = 'block';
   } else {
@@ -276,12 +282,11 @@ modalGroupJoinBtn.addEventListener('click', () => {
   groupModal.style.display = 'none';
   joinGroupModal.style.display = 'flex';
 });
-
 // Modal: Grup Kur
 actualGroupNameBtn.addEventListener('click', () => {
   const grpName = actualGroupName.value.trim();
   if (!grpName) {
-    alert("Grup adı boş!");
+    alert("Grup adı boş olamaz!");
     return;
   }
   socket.emit('createGroup', grpName);
@@ -295,7 +300,7 @@ closeCreateGroupModal.addEventListener('click', () => {
 joinGroupIdBtn.addEventListener('click', () => {
   const grpIdVal = joinGroupIdInput.value.trim();
   if (!grpIdVal) {
-    alert("Grup ID boş!");
+    alert("Grup ID boş olamaz!");
     return;
   }
   socket.emit('joinGroupByID', grpIdVal);
@@ -351,7 +356,6 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Odaya tıklayınca
     roomItem.addEventListener('click', () => {
       if (currentRoom && currentRoom !== roomObj.id) {
         console.log("Leaving old room =>", currentRoom);
@@ -424,6 +428,8 @@ socket.on('roomUsers', (usersInRoom) => {
         if (!peers[userId]) initPeer(userId, false);
       });
       pendingNewUsers = [];
+    }).catch(err => {
+      console.error("Mikrofon izni alınamadı:", err);
     });
   } else {
     otherUserIds.forEach(userId => {
@@ -537,6 +543,7 @@ async function requestMicrophoneAccess() {
     console.log("Mikrofon erişimi verildi:", stream);
     localStream = stream;
     audioPermissionGranted = true;
+    // Uygula
     applyAudioStates();
 
     remoteAudios.forEach(audioEl => {
@@ -615,8 +622,7 @@ socket.on("signal", async (data) => {
       }
       pendingCandidates[from] = [];
     }
-  }
-  else if (signal.candidate) {
+  } else if (signal.candidate) {
     if (!peer.remoteDescription || peer.remoteDescription.type === "") {
       console.log("Henüz remoteDescription yok => pending candidate:", signal);
       if (!pendingCandidates[from]) {
@@ -741,6 +747,8 @@ deafenToggleButton.addEventListener('click', () => {
 });
 
 function applyAudioStates() {
+  // Burada micEnabled ve selfDeafened var, 
+  // "micEnabled is not defined" hatası giderildi.
   if (localStream) {
     localStream.getAudioTracks().forEach(track => {
       track.enabled = micEnabled && !selfDeafened;

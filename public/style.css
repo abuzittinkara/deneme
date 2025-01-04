@@ -338,7 +338,7 @@ body {
   color: #fff;
 }
 
-/* --- Ayarlar Paneli (Settings) --- */
+/* --- AYARLAR Paneli (settingsPanel) --- */
 .settings-panel {
   position: absolute;
   top: 0; 
@@ -347,11 +347,11 @@ body {
   height: 100%;
   background: #222;
   color: #fff;
-  display: none; /* gizli */
+  display: none; /* kapalı */
   flex-direction: column;
   padding: 1rem;
   box-sizing: border-box;
-  z-index: 999; /* Önemli: DM panel vs. üstte olsun */
+  z-index: 999;
 }
 .settings-panel-header {
   display: flex;
@@ -376,7 +376,6 @@ body {
   margin-top: 2rem;
   flex: 1; 
   overflow: auto; 
-  /* Örnek ayarlar alanı */
 }
 
 /* Ortadaki ana içerik */
