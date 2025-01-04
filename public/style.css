@@ -144,14 +144,14 @@ body {
   align-items: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 2px solid transparent; 
+  border: 2px solid transparent;
 }
 .grp-item:hover {
   background: #666;
 }
 .grp-item.selected {
   border: 2px solid #c61884;
-  border-radius: 1px; 
+  border-radius: 10px;
 }
 
 /* Grup Oluştur Butonu */
@@ -238,7 +238,7 @@ body {
   right: 10px;
 }
 
-/* Kanal item => border/arka plan kaldırıldı */
+/* Kanal item => volume-up-fill ikonu, no border/arka plan */
 .channel-item {
   display: flex;
   flex-direction: column;
@@ -336,6 +336,45 @@ body {
   background: #a3156f;
   border-color: #a3156f;
   color: #fff;
+}
+
+/* --- Ayarlar Paneli --- */
+.settings-panel {
+  position: absolute;
+  top: 0; 
+  right: 0;
+  width: 300px;
+  height: 100%;
+  background: #222;
+  color: #fff;
+  display: none; 
+  flex-direction: column;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+.settings-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.settings-title {
+  font-size: 1.2rem;
+  margin: 0;
+}
+.settings-close-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.settings-close-btn:hover {
+  color: #c61884;
+}
+.settings-content {
+  margin-top: 2rem;
+  flex: 1; 
+  overflow: auto; 
 }
 
 /* Ortadaki ana içerik */
