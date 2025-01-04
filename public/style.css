@@ -3,12 +3,11 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Roboto', sans-serif;
-  background: #141414; /* SVG'de .st0 => #141414 */
+  background: #2d2d2d;
   color: #fff;
   font-size: 16px;
 }
 
-/* Ekran boyutu */
 .screen-container {
   width: 100vw;
   height: 100vh;
@@ -16,6 +15,7 @@ body {
   align-items: center;
   justify-content: center;
 }
+
 .card {
   background: #2d2d2d; 
   padding: 2rem;
@@ -25,10 +25,12 @@ body {
   border: none; 
   box-shadow: none; 
 }
+
 .app-title {
   margin: 0 0 1rem;
   font-size: 1.5rem;
 }
+
 .input-text {
   width: 100%;
   padding: 0.75rem;
@@ -40,6 +42,7 @@ body {
   margin-bottom: 1rem;
   box-sizing: border-box;
 }
+
 /* Butonlar */
 .btn {
   padding: 0.75rem 1.25rem;
@@ -51,7 +54,7 @@ body {
   transition: background 0.3s ease;
 }
 .btn.primary {
-  background: #c61884;
+  background: #c61884; 
   color: #fff;
 }
 .btn.primary:hover {
@@ -71,32 +74,54 @@ body {
   flex-direction: row;
   align-items: stretch;
   justify-content: flex-start;
+  background: #2d2d2d;
   width: 100vw;
   height: 100vh;
-  background: #111111; /* st1 => #111111, ana arkaplan */
-  position: relative;
 }
 
-/* Arka plan / ana SVG holder (isteğe bağlı) */
-.main-svg-background {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%;
+/* Sol taraftaki paneller */
+.left-panels {
+  display: flex;
+  flex-direction: row;
   height: 100%;
-  background: #2d2d2d; /* st2 => #2d2d2d, opsiyonel */
-  z-index: 0;
+  position: relative;
+  width: 65px;
+}
+.groups-rooms {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  width: 265px;
 }
 
-/* Left Panel (SVG'deki sol panel) */
-.left-svg-panel {
-  width: 65px;
-  background: #1a1a1a; /* st1 or st2 */
-  z-index: 1;
+/* DM paneli */
+.dm-panel {
+  width: 265px;
+  background: #222;
+  color: #fff;
+  padding: 1rem;
+  box-sizing: border-box;
+  overflow: auto;
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+}
+.dm-close-btn {
+  position: absolute;
+  top: 1rem;
+  left: 0.55rem;
+}
+
+/* Sidebar (Gruplar) => 65px */
+.sidebar {
+  background: #1a1a1a; 
+  width: 65px;  
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 1rem 0;
-  position: relative;
+  position: relative; 
 }
 .dm-toggle-btn {
   margin-bottom: 1rem;
@@ -106,7 +131,11 @@ body {
   flex-direction: column;
   gap: 1rem;
 }
-/* .grp-item => daire (kayma engeli => border:2px) */
+
+/* 
+  Seçili Grup Kayması Önlenir:
+  => border:2px solid transparent
+*/
 .grp-item {
   width: 48px;
   height: 48px;
@@ -118,21 +147,24 @@ body {
   align-items: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 2px solid transparent;
+  border: 2px solid transparent; /* sabit border => kayma yok */
 }
 .grp-item:hover {
   background: #666;
 }
 .grp-item.selected {
-  border: 2px solid #c61884;
-  border-radius: 10px;
+  border: 2px solid #c61884; /* pembe stroke */
+  border-radius: 10px;       /* hafif köşe */
 }
+
+/* Grup Oluştur Butonu */
 .create-group-btn {
   position: absolute;
   bottom: 70px; 
   left: 50%;
   transform: translateX(-50%);
 }
+
 .circle-btn {
   background-color: #c61884;
   color: #fff;
@@ -150,18 +182,21 @@ body {
   background-color: #a3156f;
 }
 
-/* Üst bar (SVG => st1 ) */
-.top-svg-bar {
-  position: absolute;
-  top: 0; left: 65px;
-  right: 0; 
-  height: 68px; /* st1, st2 => ~68.83 */
-  background: #2d2d2d;
+/* Odalar paneli => 200px */
+.rooms-panel {
+  background: #1f1f1f;
+  width: 200px; 
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  box-sizing: border-box;
+  gap: 1rem;
+}
+.room-panel-header {
   display: flex;
   align-items: center;
-  padding: 0 1rem;
-  box-sizing: border-box;
-  z-index: 2;
+  gap: 0.5rem;
+  position: relative;
 }
 .panel-title {
   margin: 0;
@@ -176,15 +211,14 @@ body {
 }
 .dropdown-menu {
   position: absolute;
-  top: 2.5rem;
-  right: 1rem;
+  top: 2rem;
+  right: 0;
   background: #2d2d2d;
   border: 1px solid #444;
   border-radius: 6px;
   min-width: 140px;
-  display: none;
+  display: flex;
   flex-direction: column;
-  z-index: 999;
 }
 .dropdown-item {
   padding: 0.75rem;
@@ -196,35 +230,6 @@ body {
 .dropdown-item:hover {
   background: #444;
 }
-
-/* Sağ panel (SVG'deki 1687.2? => ~232px) opsiyonel 
-   AMA genelde ~200px => #rightPanel */
-.right-svg-panel {
-  position: absolute;
-  top: 68px;
-  right: 0;
-  width: 232px;
-  bottom: 68px;
-  background: #1f1f1f;
-  z-index: 2;
-  /* optional scroll, etc. */
-}
-
-/* Rooms panel => st2 => #1f1f1f */
-.rooms-panel {
-  background: #1f1f1f;
-  width: 200px; 
-  display: flex;
-  flex-direction: column;
-  padding: 1rem;
-  box-sizing: border-box;
-  gap: 1rem;
-  position: relative;
-  z-index: 2;
-  margin-left: 65px; /* left panel offset */
-  margin-top: 68px;  /* top bar offset */
-  margin-bottom: 68px; /* bottom bar offset */
-}
 .room-list {
   display: flex;
   flex-direction: column;
@@ -232,48 +237,61 @@ body {
 }
 .create-room-btn {
   position: absolute;
-  bottom: 10px;
+  bottom: 70px; 
   right: 10px;
 }
 
-/* main-content => st2 => #2d2d2d? */
-.main-content {
-  flex: 1;
-  padding: 5rem; 
-  overflow: auto;
-  color: #fff;
-  position: absolute;
-  top: 68px;
-  left: 265px; /* 65 + 200? Adjust if needed. */
-  right: 232px; 
-  bottom: 68px;
-  background: #111111;
-  z-index: 1;
+/* Kanal item */
+.channel-item {
+  display: flex;
+  flex-direction: column;
+  background: #2d2d2d;
+  padding: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 0.4rem;
 }
-.app-title {
-  margin: 0 0 1rem;
-  font-size: 1.4rem;
+.channel-item:hover {
+  background: #444;
+}
+.channel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.channel-icon {
+  width: 16px;
+  height: 16px;
+}
+.channel-users {
+  margin-top: 0.5rem;
+  margin-left: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.channel-user {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+.channel-user-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #666;
 }
 
-/* Alt bar (SVG alt panel) */
-.bottom-svg-bar {
-  position: absolute;
-  bottom: 0; left:65px;
-  right: 0;
-  height: 68px; /* st2 => ~68.83 */
-  background: #2d2d2d;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  padding: 0 1rem;
-  box-sizing: border-box;
-  z-index: 2;
-}
+/* Sol Alt Kullanıcı Paneli => 265px */
 .user-panel {
-  background: none;
-  position: relative;
-  width: auto;
-  padding: 0;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 265px;
+  background: #1a1a1a;
+  padding: 0.5rem;
+  box-sizing: border-box;
 }
 .user-panel-content {
   display: flex;
@@ -312,8 +330,8 @@ body {
   border: 2px solid #c61884;
   color: #c61884;
   cursor: pointer;
-  width: 32px;
-  height: 32px;
+  width: 25px;
+  height: 25px;
   padding: 0;
   border-radius: 5px;
   display: flex;
@@ -326,20 +344,27 @@ body {
   color: #fff;
 }
 
-/* Sağ panel => #rightPanel (Aktif kullanıcılar) */
+/* Ortadaki ana içerik */
+.main-content {
+  flex: 1;
+  padding: 15rem;
+  overflow: auto;
+  color: #fff;
+}
+.app-title {
+  margin: 0 0 1rem;
+  font-size: 1.4rem;
+}
+
+/* Sağ panel */
 .right-panel {
-  position: absolute;
-  top: 68px;
-  bottom: 68px;
-  right: 232px; /* ya da 232 => right side offset from .right-svg-panel? Adjust if needed */
-  width: 200px; 
+  width: 200px;
   background: #1f1f1f;
   padding: 1rem;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
   color: #fff;
-  z-index: 2;
 }
 .user-list {
   display: flex;
@@ -383,63 +408,46 @@ body {
   background: #777;
 }
 
-/* DM paneli */
-.dm-panel {
-  width: 265px;
-  background: #222;
-  color: #fff;
-  padding: 1rem;
-  box-sizing: border-box;
-  overflow: auto;
-  position: absolute;
-  left:0;
-  top:0;
-  height:100%;
-  z-index: 999;
-}
-.dm-close-btn {
-  position: absolute;
-  top: 1rem;
-  left: 0.55rem;
-}
-
 /* Modal Stil */
 .modal {
   position: fixed;
-  top: 0; left: 0;
-  width:100%; height:100%;
+  top: 0; 
+  left: 0;
+  width: 100%; 
+  height: 100%;
   background: rgba(0,0,0,0.6);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index:999;
+  z-index: 999;
 }
 .modal-content {
   background: #2d2d2d;
-  padding:2rem;
-  border-radius:8px;
-  min-width:300px;
-  box-shadow:0 2px 10px rgba(0,0,0,0.3);
-  color:#fff;
-  text-align:center;
+  padding: 2rem;
+  border-radius: 8px;
+  min-width: 300px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  color: #fff;
+  text-align: center;
 }
 .modal-buttons {
-  display:flex;
-  gap:1rem;
-  margin-top:1rem;
-  justify-content:center;
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  justify-content: center;
 }
 #groupModal,
 #roomModal,
 #actualGroupCreateModal,
 #joinGroupModal {
-  display:none;
+  display: none;
 }
 
-/* Responsive ufak vs. */
-@media (max-width:600px) {
-  .left-svg-panel { width: 65px; }
-  .rooms-panel { width:200px; margin-left:65px; }
-  .user-panel, .right-panel { width: 200px; }
+@media (max-width: 600px) {
+  /* ufak responsive ayarlar */
+  .left-panels { width:65px; }
+  .rooms-panel { width:200px; }
+  .user-panel { width:200px; }
   .app-title { font-size:1.2rem; }
+  .right-panel { width:200px; }
 }
