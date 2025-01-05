@@ -2,36 +2,12 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: var(--font-roboto), sans-serif;
+  font-family: 'Roboto', sans-serif;
   background: #2d2d2d;
   color: #fff;
-  font-size: var(--font-size-base);
+  font-size: 16px;
 }
 
-body {
-  margin: 0;
-  line-height: normal;
-}
-
-/* Variables (renkler, fontlar) */
-:root {
-  /* fonts */
-  --font-roboto: Roboto;
-  --font-inter: Inter;
-
-  /* font sizes */
-  --font-size-base: 16px;
-
-  /* Colors */
-  --color-white: #fff;
-  --color-gray-100: #111827;
-  --color-dimgray: #4b5563;
-
-  /* Border radiuses */
-  --br-9xs: 4px;
-}
-
-/* Ekran Container */
 .screen-container {
   width: 100vw;
   height: 100vh;
@@ -40,186 +16,36 @@ body {
   justify-content: center;
 }
 
-/* login-card => Giriş Ekranı (Welcome back) */
-.login-card {
-  background-color: #2c2f3b;
-  width: 360px;
+.card {
+  background: #2d2d2d; 
   padding: 2rem;
   border-radius: 8px;
+  min-width: 320px;
   text-align: center;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  position: relative;
-}
-.login-icon {
-  color: #fff;
-  margin: 0 auto 0.5rem;
-}
-.welcome-title {
-  margin: 0;
-  font-size: 1.4rem;
-}
-.welcome-subtitle {
-  margin: 0;
-  color: #ccc;
-  font-size: 0.95rem;
-}
-.login-footer-text {
-  margin-top: 1rem;
-  font-size: 0.9rem;
-  color: #ccc;
-}
-.login-register-link {
-  color: #5865F2;
-  cursor: pointer;
-  text-decoration: underline;
+  border: none; 
+  box-shadow: none; 
 }
 
-/* Kayt-ol Tasarımı => registerScreen */
-.kayt-ol {
-  position: relative;
-  background-color: var(--color-white);
+
+
+.app-title {
+  margin: 0 0 1rem;
+  font-size: 1.5rem;
+}
+
+.input-text {
   width: 100%;
-  height: 1080px; /* Sabitlenmiş, isterseniz auto yapabilirsiniz */
-  text-align: left;
-  font-size: var(--font-size-base);
-  color: var(--color-white);
-  font-family: var(--font-roboto);
-  display: none; /* Başlangıçta gizli, script ile açılacak */
+  padding: 0.75rem;
+  background: #444;  
+  color: #fff;       
+  border: 1px solid #666;
+  border-radius: 6px;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
 }
 
-.kayt-ol-child {
-  position: absolute;
-  top: 0;
-  left: 0;
-  background-color: #283547;
-  width: 1920px;
-  height: 1080px;
-}
-.background-frame-background {
-  position: absolute;
-  top: 285px;
-  left: 728px;
-  border-radius: 8px;
-  background-color: #1f2937;
-  width: 464px;
-  height: 509.4px;
-}
-.vector-icon {
-  position: absolute;
-  top: 321px;
-  left: 940px;
-  width: 40px;
-  height: 42.8px;
-}
-.create-an-account {
-  position: absolute;
-  top: 386.44px;
-  left: 821.28px;
-  font-size: 32px;
-  line-height: 37px;
-  text-align: center;
-  width: 278px;
-}
-.label-email {
-  position: absolute;
-  top: 457.44px;
-  left: 760px;
-  line-height: 19px;
-  width: 41px;
-}
-.input-frame-background {
-  position: absolute;
-  top: 477.44px;
-  left: 760px;
-  border-radius: var(--br-9xs);
-  background-color: var(--color-gray-100);
-  border: 1px solid var(--color-dimgray);
-  box-sizing: border-box;
-  width: 400px;
-  height: 33px;
-}
-.label-username {
-  position: absolute;
-  top: 526.44px;
-  left: 760px;
-  line-height: 19px;
-  width: 74px;
-}
-.input-frame-background1 {
-  position: absolute;
-  top: 546.44px;
-  left: 760px;
-  border-radius: var(--br-9xs);
-  background-color: var(--color-gray-100);
-  border: 1px solid var(--color-dimgray);
-  box-sizing: border-box;
-  width: 400px;
-  height: 33px;
-}
-.label-password {
-  position: absolute;
-  top: 595.44px;
-  left: 760px;
-  font-size: 15.88px;
-  line-height: 19px;
-  width: 72px;
-}
-.input-frame-background2 {
-  position: absolute;
-  top: 615.44px;
-  left: 760px;
-  border-radius: var(--br-9xs);
-  background-color: var(--color-gray-100);
-  border: 1px solid var(--color-dimgray);
-  box-sizing: border-box;
-  width: 400px;
-  height: 33px;
-}
-.button-frame-background {
-  position: absolute;
-  top: 664.44px;
-  left: 760px;
-  border-radius: var(--br-9xs);
-  background-color: #4f46e5;
-  width: 400px;
-  height: 46px;
-}
-.sign-up {
-  position: absolute;
-  top: 672.44px;
-  left: 937.39px;
-  font-size: 12.78px;
-  line-height: 15px;
-  font-family: var(--font-inter);
-  text-align: center;
-  width: 46px;
-}
-.already-have-an-container {
-  position: absolute;
-  top: 726.44px;
-  left: 760px;
-  line-height: 19px;
-  width: 401px;
-  color: #fff;
-}
-.log-in {
-  text-decoration: underline;
-  color: #00e;
-  cursor: pointer;
-}
-.kayt-ol-reference {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 1920px;
-  height: 1080px;
-  object-fit: cover;
-}
-
-/* Butonlar vs. (Sizin projenizdeki .btn, .primary vb.) */
+/* Butonlar */
 .btn {
   padding: 0.75rem 1.25rem;
   border: none;
@@ -230,11 +56,11 @@ body {
   transition: background 0.3s ease;
 }
 .btn.primary {
-  background: #5865F2;
+  background: #c61884; 
   color: #fff;
 }
 .btn.primary:hover {
-  background: #4652c8;
+  background: #a3156f;
 }
 .btn.secondary {
   background: #444;
@@ -244,7 +70,7 @@ body {
   background: #666;
 }
 
-/* callScreen, user-panel, vs. => Mevcut Kodlar */
+/* callScreen */
 #callScreen.screen-container {
   display: flex;
   flex-direction: row;
@@ -254,6 +80,8 @@ body {
   width: 100vw;
   height: 100vh;
 }
+
+/* Sol taraftaki paneller */
 .left-panels {
   display: flex;
   flex-direction: row;
@@ -267,6 +95,8 @@ body {
   position: relative;
   width: 265px;
 }
+
+/* DM paneli */
 .dm-panel {
   width: 265px;
   background: #222;
@@ -284,14 +114,16 @@ body {
   top: 1rem;
   left: 0.55rem;
 }
+
+/* Sidebar (Gruplar) => 65px */
 .sidebar {
-  background: #1a1a1a;
-  width: 65px;
+  background: #1a1a1a; 
+  width: 65px;  
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 1rem 0;
-  position: relative;
+  position: relative; 
 }
 .dm-toggle-btn {
   margin-bottom: 1rem;
@@ -301,7 +133,8 @@ body {
   flex-direction: column;
   gap: 1rem;
 }
-/* Artık border-radius: 18px */
+
+/* grp-item => yuvarlak, animasyon, seçili hâl */
 .grp-item {
   width: 48px;
   height: 48px;
@@ -313,40 +146,45 @@ body {
   align-items: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 2px solid transparent;
+  border: 2px solid transparent; 
 }
 .grp-item:hover {
   background: #666;
 }
 .grp-item.selected {
   border: 2px solid #c61884;
-  border-radius: 18px; /* 10px => 18px */
+  border-radius: 18px; 
 }
+
+/* Grup Oluştur Butonu */
 .create-group-btn {
   position: absolute;
-  bottom: 70px;
+  bottom: 70px; 
   left: 50%;
   transform: translateX(-50%);
 }
+
 .circle-btn {
-  background-color: #5865F2;
+  background-color: #c61884;
   color: #fff;
   width: 48px;
   height: 48px;
   border-radius: 50%;
   border: none;
-  font-size: 1.5rem;
+  font-size: 1.5rem; 
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .circle-btn:hover {
-  background-color: #4652c8;
+  background-color: #a3156f;
 }
+
+/* Odalar paneli => 200px */
 .rooms-panel {
   background: #1f1f1f;
-  width: 200px;
+  width: 200px; 
   display: flex;
   flex-direction: column;
   padding: 1rem;
@@ -366,13 +204,9 @@ body {
 }
 .dropdown-icon {
   cursor: pointer;
-  user-select: none;
-  font-size: 1.2rem;
+  font-size: 1.2rem; 
   color: #ccc;
   margin-left: auto;
-}
-.dropdown-icon:hover {
-  color: #fff;
 }
 .dropdown-menu {
   position: absolute;
@@ -402,9 +236,11 @@ body {
 }
 .create-room-btn {
   position: absolute;
-  bottom: 70px;
+  bottom: 70px; 
   right: 10px;
 }
+
+/* Kanal item => volume-up-fill ikonu, no border/arka plan */
 .channel-item {
   display: flex;
   flex-direction: column;
@@ -425,7 +261,7 @@ body {
 }
 .channel-users {
   margin-top: 0.5rem;
-  margin-left: 0.5rem;
+  margin-left: 0.5rem; 
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
@@ -440,8 +276,10 @@ body {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: #666;
+  background-color: #666;
 }
+
+/* Sol Alt Kullanıcı Paneli => 265px */
 .user-panel {
   position: absolute;
   bottom: 0;
@@ -502,12 +340,116 @@ body {
   color: #fff;
 }
 
-/* Modal */
+/* --- AYARLAR Paneli (settingsPanel) --- */
+.settings-panel {
+  position: absolute;
+  top: 0; 
+  right: 0;
+  width: 300px;
+  height: 100%;
+  background: #222;
+  color: #fff;
+  display: none; /* kapalı */
+  flex-direction: column;
+  padding: 1rem;
+  box-sizing: border-box;
+  z-index: 999;
+}
+.settings-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.settings-title {
+  font-size: 1.2rem;
+  margin: 0;
+}
+.settings-close-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.settings-close-btn:hover {
+  color: #c61884;
+}
+.settings-content {
+  margin-top: 2rem;
+  flex: 1; 
+  overflow: auto; 
+}
+
+/* Ortadaki ana içerik */
+.main-content {
+  flex: 1;
+  padding: 15rem;
+  overflow: auto;
+  color: #fff;
+}
+.app-title {
+  margin: 0 0 1rem;
+  font-size: 1.4rem;
+}
+
+/* Sağ panel */
+.right-panel {
+  width: 200px;
+  background: #1f1f1f;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  color: #fff;
+}
+.user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.user-item {
+  background: #2d2d2d;
+  padding: 0.1rem;
+  border-radius: 0px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.user-item:hover {
+  background: #444;
+}
+.profile-thumb {
+  width: 40px;
+  height: 40px;
+  background: #666;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.user-name {
+  flex: 1;
+  font-weight: 500;
+  color: #fff;
+}
+.copy-id-btn {
+  background: #555;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.3s ease;
+}
+.copy-id-btn:hover {
+  background: #777;
+}
+
+/* Modal Stil */
 .modal {
   position: fixed;
-  top: 0;
+  top: 0; 
   left: 0;
-  width: 100%;
+  width: 100%; 
   height: 100%;
   background: rgba(0,0,0,0.6);
   display: flex;
@@ -544,4 +486,3 @@ body {
   .app-title { font-size:1.2rem; }
   .right-panel { width:200px; }
 }
-

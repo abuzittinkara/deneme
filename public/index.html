@@ -1,119 +1,132 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sesli Görüşme Uygulaması</title>
-
-  <!-- Mevcut CSS dosyalarınız -->
-  <link rel="stylesheet" href="global.css" />
-  <link rel="stylesheet" href="style.css" />
-
-  <!-- Google Fonts (Roboto, Inter) -->
-  <link
-    rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
-  />
-  <link
-    rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400&display=swap"
-  />
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-
-  <!-- Giriş Ekranı (loginScreen) -->
-  <div id="loginScreen" class="screen-container" style="display:block;">
-    <div class="login-card">
-      <div class="login-icon">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" 
-             stroke="currentColor" stroke-width="2" stroke-linecap="round" 
-             stroke-linejoin="round">
-          <path d="M21 15a2 2 0 0 1-2 
-                   2H7l-4 4V5a2 2 0 0 1 2-2h14
-                   a2 2 0 0 1 2 2z"></path>
-        </svg>
-      </div>
-      <h1 class="welcome-title">Welcome back!</h1>
-      <p class="welcome-subtitle">We’re excited to see you again!</p>
-      
-      <input
-        type="text"
-        id="loginUsernameInput"
-        placeholder="Email"
-        class="input-text"
-      />
-      <input
-        type="password"
-        id="loginPasswordInput"
-        placeholder="Password"
-        class="input-text"
-      />
-      <button id="loginButton" class="btn primary">Log in</button>
-
-      <p class="login-footer-text">
-        Need an account?
-        <span id="showRegisterScreen" class="login-register-link">Register</span>
+  <!-- Giriş Ekranı -->
+  <div id="loginScreen" class="screen-container" style="display: block;">
+    <div class="card">
+      <h1 class="app-title">Oturum Aç</h1>
+      <input type="text" id="loginUsernameInput" placeholder="Kullanıcı Adı" class="input-text">
+      <input type="password" id="loginPasswordInput" placeholder="Parola" class="input-text">
+      <button id="loginButton" class="btn primary">Giriş Yap</button>
+      <p style="margin-top: 1rem;">
+        Hesabın yok mu?
+        <span id="showRegisterScreen" style="color:#fff; cursor:pointer; text-decoration:underline;">
+          Yeni Hesap Oluştur
+        </span>
       </p>
     </div>
   </div>
 
-  <!-- Kayıt Ekranı (Adobe XD’den gelen tasarım) -->
-  <div id="registerScreen" class="kayt-ol" style="display: none;">
-    <!-- Arka plan kutusu -->
-    <div class="kayt-ol-child"></div>
-
-    <!-- Ortadaki koyu panel -->
-    <div class="background-frame-background"></div>
-
-    <!-- Üstteki ikon (./public/vector.svg) -->
-    <img class="vector-icon" alt="" src="./public/vector.svg" />
-
-    <!-- Başlık -->
-    <b class="create-an-account">Create an account</b>
-
-    <!-- Email label + input -->
-    <div class="label-email">Email</div>
-    <div class="input-frame-background"></div>
-    
-    <!-- Username label + input -->
-    <div class="label-username">Username</div>
-    <div class="input-frame-background1"></div>
-    
-    <!-- Password label + input -->
-    <div class="label-password">Password</div>
-    <div class="input-frame-background2"></div>
-    
-    <!-- Button arka plan -->
-    <div class="button-frame-background"></div>
-    <div class="sign-up">Sign up</div>
-
-    <!-- Already have an account? -->
-    <div class="already-have-an-container">
-      <span>Already have an account? </span>
-      <span id="showLoginScreen" class="log-in">Log in</span>
+  <!-- Kayıt Ekranı -->
+  <div id="registerScreen" class="screen-container" style="display:none;">
+    <div class="card">
+      <h1 class="app-title">Kayıt Ol</h1>
+      <input type="text" id="regUsernameInput" placeholder="Kullanıcı Adı (küçük harf)" class="input-text">
+      <input type="text" id="regNameInput" placeholder="İsim" class="input-text">
+      <input type="text" id="regSurnameInput" placeholder="Soyisim" class="input-text">
+      <input type="date" id="regBirthdateInput" class="input-text">
+      <input type="email" id="regEmailInput" placeholder="E-Posta" class="input-text">
+      <input type="tel" id="regPhoneInput" placeholder="Telefon Numarası" class="input-text">
+      <input type="password" id="regPasswordInput" placeholder="Parola" class="input-text">
+      <input type="password" id="regPasswordConfirmInput" placeholder="Parola (Tekrar)" class="input-text">
+      <button id="registerButton" class="btn primary">Kayıt Ol ve Başla</button>
+      <button id="backToLoginButton" class="btn secondary">Geri Gel</button>
+      <p style="margin-top: 1rem;">
+        Zaten hesabın var mı?
+        <span id="showLoginScreen" style="color:#fff; cursor:pointer; text-decoration:underline;">
+          Oturum Aç
+        </span>
+      </p>
     </div>
-
-    <!-- Bu resim arka planda (opsiyonel) -->
-    <img
-      class="kayt-ol-reference"
-      alt=""
-      src="./public/kayt-ol-reference@2x.png"
-    />
   </div>
 
   <!-- Görüşme Ekranı -->
   <div id="callScreen" class="screen-container" style="display:none;">
-    <!-- ... (buradaki callScreen kodlarınız aynen duruyor) ... -->
-
-    <!-- Örnek: Gruplar + Rooms -->
     <div id="leftPanels" class="left-panels">
-      <!-- ... Kodlar aynen ... -->
+      <div id="groupsAndRooms" class="groups-rooms">
+        <!-- Sidebar (Gruplar) -->
+        <div class="sidebar" id="sidebar">
+          <button id="toggleDMButton" class="circle-btn dm-toggle-btn">
+            <!-- Zarf ikonu -->
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" 
+                 stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 
+                       1.1-.9 2-2 2H4c-1.1 
+                       0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+          </button>
+          <!-- Gruplar listesi -->
+          <div id="groupList" class="group-list"></div>
+          <!-- Grup Oluştur Butonu -->
+          <button id="createGroupButton" class="circle-btn create-group-btn">+</button>
+        </div>
+
+        <!-- Odalar Paneli -->
+        <div id="roomPanel" class="rooms-panel">
+          <div class="room-panel-header">
+            <h2 id="groupTitle" class="panel-title">Seçili Grup</h2>
+            <span id="groupDropdownIcon" class="dropdown-icon">⌄</span>
+            <div id="groupDropdownMenu" class="dropdown-menu" style="display: none;">
+              <div class="dropdown-item" id="copyGroupIdBtn">Grup ID Kopyala</div>
+              <div class="dropdown-item" id="renameGroupBtn">Grup ismi değiştir</div>
+              <div class="dropdown-item" id="createChannelBtn">Kanal Oluştur</div>
+              <div class="dropdown-item" id="deleteGroupBtn">Grubu Sil</div>
+            </div>
+          </div>
+          <div id="roomList" class="room-list"></div>
+          <button id="createRoomButton" class="circle-btn create-room-btn">+</button>
+        </div>
+      </div>
+
+      <!-- DM paneli -->
+      <div id="dmPanel" class="dm-panel" style="display:none;">
+        <button id="closeDMButton" class="circle-btn dm-close-btn">
+          <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+               stroke-linejoin="round" viewBox="0 0 24 24" width="24" height="24">
+            <line x1="19" y1="12" x2="5" y2="12"/>
+            <polyline points="12 19 5 12 12 5"/>
+          </svg>
+        </button>
+        <h3 style="margin-top:2.5rem;">DM Mesajları</h3>
+        <p>Birebir mesajlar buraya gelecek.</p>
+      </div>
+
+      <!-- Sol Alt Kullanıcı Paneli -->
+      <div id="leftUserPanel" class="user-panel">
+        <div class="user-panel-content">
+          <div class="user-profile-pic"></div>
+          <div class="user-panel-info">
+            <span id="leftUserName" class="left-username">(Kullanıcı)</span>
+          </div>
+          <div class="user-panel-buttons">
+            <button id="micToggleButton" class="user-panel-btn" title="Mikrofon Aç/Kapa" style="width:22px;height:22px;"></button>
+            <button id="deafenToggleButton" class="user-panel-btn" title="Kendini Sağırlaştır" style="width:22px;height:22px;"></button>
+            <button id="leaveButton" class="leave-btn" style="display:none;">
+              <svg width="18" height="18" viewBox="0 0 24 24" stroke="#c61884" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2c-3.22-.34-6.23-1.61-8.6-3.53s-3.19-5.38-3.53-8.6A2 
+                         2 0 0 1 6.08 8h3a2 2 0 0 1 2 
+                         1.72l.22 1.56a16 
+                         16 0 0 0 5.56 5.56l1.56.22A2 
+                         2 0 0 1 22 16.92z">
+                </path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="main-content">
       <h1 class="app-title">Sesli Görüşme</h1>
-      <p>Grup seçin ve soldan bir oda oluşturup katılın.</p>
-      <p>Katıldığınız odadaki kullanıcılarla sesli görüşme yapabilirsiniz.</p>
+      <p>Bir grup seçin, ardından oda (kanal) oluşturup katılın.</p>
     </div>
 
     <div class="right-panel" id="rightPanel">
@@ -123,43 +136,40 @@
   </div>
 
   <!-- Modal: Grup Seçenekleri -->
-  <div id="groupModal" class="modal" style="display:none;">
+  <div id="groupModal" class="modal">
     <div class="modal-content">
       <h2>Grup Seçenekleri</h2>
       <button id="modalGroupCreateBtn" class="btn primary">Grup Kur</button>
       <button id="modalGroupJoinBtn" class="btn secondary">Gruba Katıl</button>
     </div>
   </div>
-
   <!-- Modal: Grup Kurma -->
-  <div id="actualGroupCreateModal" class="modal" style="display:none;">
+  <div id="actualGroupCreateModal" class="modal">
     <div class="modal-content">
       <h2>Yeni Grup Kur</h2>
-      <input type="text" id="actualGroupName" class="input-text" placeholder="Grup Adı" />
+      <input type="text" id="actualGroupName" class="input-text" placeholder="Grup Adı">
       <div class="modal-buttons">
         <button id="actualGroupNameBtn" class="btn primary">Oluştur</button>
         <button id="closeCreateGroupModal" class="btn secondary">Kapat</button>
       </div>
     </div>
   </div>
-
   <!-- Modal: Gruba Katıl -->
-  <div id="joinGroupModal" class="modal" style="display:none;">
+  <div id="joinGroupModal" class="modal">
     <div class="modal-content">
       <h2>Gruba Katıl</h2>
-      <input type="text" id="joinGroupIdInput" class="input-text" placeholder="Grup ID" />
+      <input type="text" id="joinGroupIdInput" class="input-text" placeholder="Grup ID">
       <div class="modal-buttons">
         <button id="joinGroupIdBtn" class="btn primary">Gruba Katıl</button>
         <button id="closeJoinGroupModal" class="btn secondary">Kapat</button>
       </div>
     </div>
   </div>
-
   <!-- Modal: Oda Oluşturma -->
-  <div id="roomModal" class="modal" style="display:none;">
+  <div id="roomModal" class="modal">
     <div class="modal-content">
       <h2>Oda Oluştur</h2>
-      <input type="text" id="modalRoomName" class="input-text" placeholder="Oda Adı" />
+      <input type="text" id="modalRoomName" class="input-text" placeholder="Oda Adı">
       <div class="modal-buttons">
         <button id="modalCreateRoomBtn" class="btn primary">Oluştur</button>
         <button id="modalCloseRoomBtn" class="btn secondary">Kapat</button>
@@ -167,7 +177,6 @@
     </div>
   </div>
 
-  <!-- Socket + script -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="script.js"></script>
 </body>
