@@ -222,7 +222,6 @@ socket.on('loginResult', (data) => {
     callScreen.style.display = 'flex';
     socket.emit('set-username', username);
     leftUserName.textContent = username;
-    // micEnabled var, set edelim
     applyAudioStates();
   } else {
     alert("Giriş başarısız: " + data.message);
@@ -270,6 +269,18 @@ socket.on('registerResult', (data) => {
   }
 });
 
+/* DM paneli */
+toggleDMButton.addEventListener('click', () => {
+  isDMMode = true;
+  groupsAndRooms.style.display = 'none';
+  dmPanel.style.display = 'block';
+});
+closeDMButton.addEventListener('click', () => {
+  isDMMode = false;
+  dmPanel.style.display = 'none';
+  groupsAndRooms.style.display = 'flex';
+});
+
 /* Grup Oluştur / Seçenekleri */
 createGroupButton.addEventListener('click', () => {
   groupModal.style.display = 'flex';
@@ -282,6 +293,7 @@ modalGroupJoinBtn.addEventListener('click', () => {
   groupModal.style.display = 'none';
   joinGroupModal.style.display = 'flex';
 });
+
 // Modal: Grup Kur
 actualGroupNameBtn.addEventListener('click', () => {
   const grpName = actualGroupName.value.trim();
@@ -356,6 +368,7 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
+    // Odaya tıklayınca
     roomItem.addEventListener('click', () => {
       if (currentRoom && currentRoom !== roomObj.id) {
         console.log("Leaving old room =>", currentRoom);
@@ -747,8 +760,6 @@ deafenToggleButton.addEventListener('click', () => {
 });
 
 function applyAudioStates() {
-  // Burada micEnabled ve selfDeafened var, 
-  // "micEnabled is not defined" hatası giderildi.
   if (localStream) {
     localStream.getAudioTracks().forEach(track => {
       track.enabled = micEnabled && !selfDeafened;
@@ -782,4 +793,11 @@ socket.on("connect", () => {
 });
 socket.on("disconnect", () => {
   console.log("WebSocket bağlantısı koptu.");
+});
+
+/* --- YENİ: Drop-down menü aç/kapa --- */
+let dropdownOpen = false;
+groupDropdownIcon.addEventListener('click', () => {
+  dropdownOpen = !dropdownOpen;
+  groupDropdownMenu.style.display = dropdownOpen ? 'block' : 'none';
 });
