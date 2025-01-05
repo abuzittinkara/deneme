@@ -795,9 +795,61 @@ socket.on("disconnect", () => {
   console.log("WebSocket bağlantısı koptu.");
 });
 
-/* --- YENİ: Drop-down menü aç/kapa --- */
+/* --- Drop-down menü aç/kapa --- */
 let dropdownOpen = false;
 groupDropdownIcon.addEventListener('click', () => {
   dropdownOpen = !dropdownOpen;
   groupDropdownMenu.style.display = dropdownOpen ? 'block' : 'none';
+});
+
+/* --- Drop-down menü butonları --- */
+
+// 1) Grup ID Kopyala
+copyGroupIdBtn.addEventListener('click', () => {
+  if (!currentGroup) {
+    alert("Şu an geçerli bir grup yok!");
+    return;
+  }
+  navigator.clipboard.writeText(currentGroup)
+    .then(() => {
+      alert("Grup ID kopyalandı: " + currentGroup);
+    })
+    .catch(err => {
+      console.error("Grup ID kopyalanamadı:", err);
+    });
+  groupDropdownMenu.style.display = 'none';
+  dropdownOpen = false;
+});
+
+// 2) Grup ismi değiştir
+renameGroupBtn.addEventListener('click', () => {
+  if (!currentGroup) {
+    alert("Şu an geçerli bir grup yok!");
+    return;
+  }
+  const newName = prompt("Yeni grup ismi:");
+  if (!newName) return;
+
+  socket.emit("renameGroup", {
+    groupId: currentGroup,
+    newName: newName.trim()
+  });
+  groupDropdownMenu.style.display = 'none';
+  dropdownOpen = false;
+});
+
+// 3) Grubu sil
+deleteGroupBtn.addEventListener('click', () => {
+  if (!currentGroup) {
+    alert("Şu an geçerli bir grup yok!");
+    return;
+  }
+  const sure = confirm("Bu grubu silmek istediğinizden emin misiniz?");
+  if (!sure) return;
+
+  socket.emit("deleteGroup", {
+    groupId: currentGroup
+  });
+  groupDropdownMenu.style.display = 'none';
+  dropdownOpen = false;
 });
