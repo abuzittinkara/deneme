@@ -22,9 +22,11 @@ mongoose.connect(uri)
   .then(() => console.log("MongoDB bağlantısı başarılı!"))
   .catch(err => console.error("MongoDB bağlantı hatası:", err));
 
-// Bellek içi tablo
-const users = {};   // users[socket.id] = { username, currentGroup, currentRoom }
-const groups = {};  // groups[groupId] = { owner, name, users:[], rooms:{} }
+// Bellek içi tablolar:
+// users[socket.id] = { username, currentGroup, currentRoom }
+// groups[groupId] = { owner, name, users:[], rooms:{} }
+const users = {};
+const groups = {};
 
 app.use(express.static("public"));
 
@@ -68,10 +70,13 @@ async function loadChannelsFromDB() {
     console.error("loadChannelsFromDB hatası:", err);
   }
 }
+// Sunucu başlarken:
 loadGroupsFromDB().then(() => loadChannelsFromDB());
 
 /* ----------------------------------
    broadcastAllChannelsData(groupId)
+   => Bu gruptaki tüm kanalları & kullanıcıları 
+      group'taki herkese gönderir
 -------------------------------------*/
 function broadcastAllChannelsData(groupId) {
   if (!groups[groupId]) return;
@@ -91,6 +96,7 @@ function broadcastAllChannelsData(groupId) {
 
 /* ----------------------------------
    broadcastGroupUsers(groupId)
+   => DB'den users çek, groupUsers event'i at
 -------------------------------------*/
 async function broadcastGroupUsers(groupId) {
   try {
@@ -314,30 +320,23 @@ io.on("connection", (socket) => {
   // ---------------------
   // joinGroup (listeden)
   // => Kullanıcı başka bir gruba "göz atıyor"
-  // => Sadece eğer kullanıcı "farklı bir kanalda" ise => Kal
-  // => Eski grup, user'ı silmiyoruz
-  // => Eski kanal => user'ı çıkarmıyoruz
+  // => Kanaldan ÇIKARMIYORUZ
   // ---------------------
   socket.on('joinGroup', async (groupId) => {
     console.log(`joinGroup: user=${socket.id}, groupId=${groupId}`);
     if (!groups[groupId]) return;
     const oldGroup = users[socket.id].currentGroup;
-    // "Eski kanaldan" => Artık ÇIKARMIYORUZ
-    // Bu istek => "başka bir gruba" tıklamayı 
-    // "kanaldan çıkma" şeklinde YAPMIYORUZ.
-    // Sadece => bu grubu "göz atma"
+    // Burada => "eski kanaldan" çıkmıyoruz. 
+    // Yalnızca bu gruba tıklamak => "göz atmak" mantığı.
 
-    // 1) Sadece => user'ı bu group'a ekle (in-memory)
     const userName = users[socket.id].username || `(User ${socket.id})`;
     if (!groups[groupId].users.some(u => u.id === socket.id)) {
       groups[groupId].users.push({ id: socket.id, username: userName });
     }
     users[socket.id].currentGroup = groupId;
-    // Kanaldan çıkmıyoruz => oldRoom kalabilir
-    // Gruptan => socket.join
+    // currentRoom => dokunmuyoruz (kanal üyeliği bozulmuyor)
     socket.join(groupId);
 
-    // 2) Rooms List + channelsData + groupUsers
     sendRoomsListToUser(socket.id, groupId);
     broadcastAllChannelsData(groupId);
     await broadcastGroupUsers(groupId);
@@ -377,8 +376,7 @@ io.on("connection", (socket) => {
 
   // ---------------------
   // joinRoom
-  // => Sadece bu noktada => Eski kanaldan çık
-  // => Sonra yeni kanala gir
+  // => Eski kanaldan ayrıl => Yeni kanala gir
   // ---------------------
   socket.on('joinRoom', ({ groupId, roomId }) => {
     console.log(`joinRoom: user=${socket.id}, groupId=${groupId}, roomId=${roomId}`);
@@ -396,7 +394,7 @@ io.on("connection", (socket) => {
       socket.leave(`${groupId}::${oldR}`);
     }
 
-    // Yeni odaya gir
+    // Yeni odaya ekle
     groups[groupId].rooms[roomId].users.push({ id: socket.id, username: userName });
     users[socket.id].currentRoom = roomId;
     socket.join(`${groupId}::${roomId}`);
@@ -423,7 +421,7 @@ io.on("connection", (socket) => {
   });
 
   // ---------------------
-  // WebRTC Sinyal
+  // WebRTC sinyal
   // ---------------------
   socket.on("signal", (data) => {
     const targetId = data.to;
