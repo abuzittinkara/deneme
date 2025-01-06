@@ -337,6 +337,7 @@ socket.on('groupsList', (groupArray) => {
 
       currentGroup = groupObj.id;
       groupTitle.textContent = groupObj.name;
+
       socket.emit('joinGroup', groupObj.id);
     });
 
