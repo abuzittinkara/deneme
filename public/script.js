@@ -338,7 +338,7 @@ socket.on('groupsList', (groupArray) => {
       currentGroup = groupObj.id;
       groupTitle.textContent = groupObj.name;
 
-      // Gruba tıklayınca => user sanki "göz atma" => joinGroup
+      // gruba tıklayınca => joinGroup
       socket.emit('joinGroup', groupObj.id);
     });
 
