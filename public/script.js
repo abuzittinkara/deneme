@@ -338,6 +338,7 @@ socket.on('groupsList', (groupArray) => {
       currentGroup = groupObj.id;
       groupTitle.textContent = groupObj.name;
 
+      // Gruba tıklayınca => user sanki "göz atma" => joinGroup
       socket.emit('joinGroup', groupObj.id);
     });
 
@@ -369,7 +370,7 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Odaya tıklayınca
+    // Odaya tıklayınca => joinRoom
     roomItem.addEventListener('click', () => {
       if (currentRoom && currentRoom !== roomObj.id) {
         console.log("Leaving old room =>", currentRoom);
