@@ -9,20 +9,17 @@ let audioPermissionGranted = false;
 let remoteAudios = [];
 let username = null;
 
-// Mikrofon & Deaf
 let micEnabled = true;
 let selfDeafened = false;
 
-let currentGroup = null;
+let currentGroup = null; 
 let currentRoom = null;
 
 let pendingUsers = [];
-let pendingNewUsers = {};
-
+let pendingNewUsers = {}; 
 let pendingCandidates = {};
 let sessionUfrag = {};
 
-// volume-up-fill ikonu (Discord benzeri)
 function createWaveIcon() {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("width", "16");
@@ -30,17 +27,17 @@ function createWaveIcon() {
   svg.setAttribute("fill", "currentColor");
   svg.setAttribute("class", "channel-icon bi bi-volume-up-fill");
   svg.setAttribute("viewBox", "0 0 16 16");
-  // path’ler
+  // path’ler (kısaltılmış)
   const p1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  p1.setAttribute("d", "M9.717.55A.5.5 0 0 1 10 .999v14a.5.5 0 0 1-.783.409L5.825 12H3.5...");
+  p1.setAttribute("d", "M9.717.55A.5...");
   const p2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  p2.setAttribute("d", "M13.493 1.957a.5.5 0 0 1...");
+  p2.setAttribute("d", "M13.493 1.957a.5...");
   svg.appendChild(p1);
   svg.appendChild(p2);
   return svg;
 }
 
-// DOM
+// DOM ekranları
 const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
 const callScreen = document.getElementById('callScreen');
@@ -80,12 +77,12 @@ const toggleDMButton = document.getElementById('toggleDMButton');
 const closeDMButton = document.getElementById('closeDMButton');
 const dmPanel = document.getElementById('dmPanel');
 const groupsAndRooms = document.getElementById('groupsAndRooms');
+
 let isDMMode = false;
 
 // Sağ panel
 const userListDiv = document.getElementById('userList');
 const leaveButton = document.getElementById('leaveButton');
-
 
 // Ekran geçiş
 showRegisterScreen.addEventListener('click', () => {
@@ -103,9 +100,10 @@ backToLoginButton.addEventListener('click', () => {
 
 /* Login */
 loginButton.addEventListener('click', () => {
-  const usernameVal = loginUsernameInput.value.trim();
-  const passwordVal = loginPasswordInput.value.trim();
-  socket.emit('login', { username: usernameVal, password: passwordVal });
+  socket.emit('login', {
+    username: loginUsernameInput.value.trim(),
+    password: loginPasswordInput.value.trim()
+  });
 });
 socket.on('loginResult', (data) => {
   if (data.success) {
@@ -116,7 +114,7 @@ socket.on('loginResult', (data) => {
     leftUserName.textContent = username;
     applyAudioStates();
   } else {
-    alert("Giriş başarısız: " + data.message);
+    alert("Giriş hatası: " + data.message);
   }
 });
 
@@ -136,7 +134,7 @@ registerButton.addEventListener('click', () => {
 });
 socket.on('registerResult', (data) => {
   if (data.success) {
-    alert("Kayıt başarılı! Artık giriş yapabilirsiniz.");
+    alert("Kayıt başarılı! Giriş yapabilirsiniz.");
     registerScreen.style.display = 'none';
     loginScreen.style.display = 'block';
   } else {
@@ -156,7 +154,7 @@ closeDMButton.addEventListener('click', () => {
   groupsAndRooms.style.display = 'flex';
 });
 
-/* Grup Oluştur / Seçenekleri */
+/* Grup Oluştur Seçenekleri */
 createGroupButton.addEventListener('click', () => {
   groupModal.style.display = 'flex';
 });
@@ -168,23 +166,19 @@ modalGroupJoinBtn.addEventListener('click', () => {
   groupModal.style.display = 'none';
   joinGroupModal.style.display = 'flex';
 });
-
-// Modal: Grup Kur
 actualGroupNameBtn.addEventListener('click', () => {
-  const grpName = actualGroupName.value.trim();
-  if (!grpName) return;
-  socket.emit('createGroup', grpName);
+  const val = actualGroupName.value.trim();
+  if (!val) return;
+  socket.emit('createGroup', val);
   actualGroupCreateModal.style.display = 'none';
 });
 closeCreateGroupModal.addEventListener('click', () => {
   actualGroupCreateModal.style.display = 'none';
 });
-
-// Modal: Gruba Katıl
 joinGroupIdBtn.addEventListener('click', () => {
-  const val = joinGroupIdInput.value.trim();
-  if (!val) return;
-  socket.emit('joinGroupByID', val);
+  const v = joinGroupIdInput.value.trim();
+  if (!v) return;
+  socket.emit('joinGroupByID', v);
   joinGroupModal.style.display = 'none';
 });
 closeJoinGroupModal.addEventListener('click', () => {
@@ -192,144 +186,134 @@ closeJoinGroupModal.addEventListener('click', () => {
 });
 
 /* groupsList => sol sidebar */
-socket.on('groupsList', (groupArray) => {
+socket.on('groupsList', (groupArr) => {
   groupListDiv.innerHTML = '';
-  groupArray.forEach(gObj => {
-    const grpItem = document.createElement('div');
-    grpItem.className = 'grp-item';
-    grpItem.innerText = gObj.name[0].toUpperCase();
-    grpItem.title = gObj.name + "(" + gObj.id + ")";
-
-    grpItem.addEventListener('click', () => {
+  groupArr.forEach(gObj => {
+    const d = document.createElement('div');
+    d.className = 'grp-item';
+    d.innerText = gObj.name[0].toUpperCase();
+    d.title = gObj.name + "(" + gObj.id + ")";
+    d.addEventListener('click', () => {
       document.querySelectorAll('.grp-item').forEach(x => x.classList.remove('selected'));
-      grpItem.classList.add('selected');
+      d.classList.add('selected');
       groupTitle.textContent = gObj.name;
-      // Sadece "browseGroup" => user => Eski kanaldan çıkmaz 
+      // Sadece "browseGroup"
       socket.emit('browseGroup', gObj.id);
-      // NOT: currentGroup vs. “voice” => joinRoom event
     });
-
-    groupListDiv.appendChild(grpItem);
+    groupListDiv.appendChild(d);
   });
 });
 
 /* roomsList => kanallar */
 socket.on('roomsList', (roomsArray) => {
   roomListDiv.innerHTML = '';
-  roomsArray.forEach(rObj => {
-    const item = createChannelDOM(currentGroup, rObj.id, rObj.name);
+  roomsArray.forEach(r => {
+    const item = createChannelDOM(currentGroup, r.id, r.name);
     roomListDiv.appendChild(item);
   });
 });
 
-/* Kanal DOM oluşturma */
+/* Kanal DOM */
 function createChannelDOM(gId, rId, rName) {
-  const uniqueId = `channel-${gId}-${rId}`;
-  let existing = document.getElementById(uniqueId);
-  if (existing) {
-    existing.querySelector('.channel-header span').textContent = rName;
-    return existing;
+  const uniq = `channel-${gId}-${rId}`;
+  let ex = document.getElementById(uniq);
+  if (ex) {
+    ex.querySelector('.channel-header span').textContent = rName;
+    return ex;
   }
+  const item = document.createElement('div');
+  item.className = 'channel-item';
+  item.id = uniq;
 
-  const roomItem = document.createElement('div');
-  roomItem.className = 'channel-item';
-  roomItem.id = uniqueId;
+  const head = document.createElement('div');
+  head.className = 'channel-header';
 
-  const headerDiv = document.createElement('div');
-  headerDiv.className = 'channel-header';
   const icon = createWaveIcon();
-  const nameSpan = document.createElement('span');
-  nameSpan.textContent = rName;
+  const sp = document.createElement('span');
+  sp.textContent = rName;
 
-  headerDiv.appendChild(icon);
-  headerDiv.appendChild(nameSpan);
+  head.appendChild(icon);
+  head.appendChild(sp);
 
   const usersDiv = document.createElement('div');
   usersDiv.className = 'channel-users';
   usersDiv.id = `channel-users-${gId}-${rId}`;
 
-  roomItem.appendChild(headerDiv);
-  roomItem.appendChild(usersDiv);
+  item.appendChild(head);
+  item.appendChild(usersDiv);
 
-  // Kanala tıklayınca => "joinRoom"
-  // Eski kanaldan => leaveRoom, closeAllPeers
-  roomItem.addEventListener('click', () => {
+  // Kanala tıklayınca => voice
+  item.addEventListener('click', () => {
     closeAllPeers();
     if (currentRoom && currentRoom !== rId) {
       socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
     }
-    // Voice kanalı => join
-    currentGroup = gId; 
+    currentGroup = gId;
     joinChannelWithMic(rId);
   });
-  return roomItem;
+  return item;
 }
 
-/* allChannelsData => tüm kanallarda kim var */
-socket.on('allChannelsData', (channelsObj) => {
-  Object.keys(channelsObj).forEach(rId => {
-    const cData = channelsObj[rId];
+/* allChannelsData */
+socket.on('allChannelsData', (chObj) => {
+  Object.keys(chObj).forEach(rId => {
+    const cd = chObj[rId];
     const uniq = `channel-${currentGroup}-${rId}`;
-    let cDiv = document.getElementById(uniq);
-    if (!cDiv) {
-      cDiv = createChannelDOM(currentGroup, rId, cData.name);
-      roomListDiv.appendChild(cDiv);
+    let cEl = document.getElementById(uniq);
+    if (!cEl) {
+      cEl = createChannelDOM(currentGroup, rId, cd.name);
+      roomListDiv.appendChild(cEl);
     }
-    const cuDiv = document.getElementById(`channel-users-${currentGroup}-${rId}`);
-    if (!cuDiv) return;
-    cuDiv.innerHTML = '';
-    cData.users.forEach(u => {
-      const ud = document.createElement('div');
-      ud.classList.add('channel-user');
+    const usDiv = document.getElementById(`channel-users-${currentGroup}-${rId}`);
+    if (!usDiv) return;
+    usDiv.innerHTML = '';
+    cd.users.forEach(u => {
+      const uD = document.createElement('div');
+      uD.classList.add('channel-user');
       const av = document.createElement('div');
       av.classList.add('channel-user-avatar');
-      const sp = document.createElement('span');
-      sp.textContent = u.username || '(İsimsiz)';
-
-      ud.appendChild(av);
-      ud.appendChild(sp);
-      cuDiv.appendChild(ud);
+      const s = document.createElement('span');
+      s.textContent = u.username;
+      uD.appendChild(av);
+      uD.appendChild(s);
+      usDiv.appendChild(uD);
     });
   });
 });
 
 /* groupUsers => sağ panel */
-socket.on('groupUsers', (dbUsersArray) => {
-  console.log("groupUsers =>", dbUsersArray);
-  updateUserList(dbUsersArray);
+socket.on('groupUsers', (dbArr) => {
+  console.log("groupUsers =>", dbArr);
+  updateUserList(dbArr);
 });
 
-/* roomUsers => voice room’daki kisiler */
-socket.on('roomUsers', (usersInRoom) => {
-  console.log("roomUsers =>", usersInRoom);
+/* roomUsers => o voice kanaldaki kişiler => WebRTC */
+socket.on('roomUsers', (arr) => {
+  console.log("roomUsers =>", arr);
 
   if (!currentGroup || !currentRoom) return;
   const cUsersId = `channel-users-${currentGroup}-${currentRoom}`;
   const cUsersDiv = document.getElementById(cUsersId);
   if (cUsersDiv) {
     cUsersDiv.innerHTML = '';
-    usersInRoom.forEach(u => {
-      const ud = document.createElement('div');
-      ud.classList.add('channel-user');
+    arr.forEach(u => {
+      const d = document.createElement('div');
+      d.classList.add('channel-user');
       const av = document.createElement('div');
       av.classList.add('channel-user-avatar');
-      const sp = document.createElement('span');
-      sp.textContent = u.username;
-      ud.appendChild(av);
-      ud.appendChild(sp);
-      cUsersDiv.appendChild(ud);
+      const s = document.createElement('span');
+      s.textContent = u.username;
+      d.appendChild(av);
+      d.appendChild(s);
+      cUsersDiv.appendChild(d);
     });
   }
 
   // WebRTC
-  const otherUserIds = usersInRoom
-    .filter(u => u.id !== socket.id)
-    .map(u => u.id)
-    .filter(i => !peers[i]);
-
+  const otherIds = arr.filter(x => x.id !== socket.id).map(x => x.id).filter(i => !peers[i]);
   if (!audioPermissionGranted || !localStream) {
     requestMicrophoneAccess().then(() => {
-      otherUserIds.forEach(uid => {
+      otherIds.forEach(uid => {
         if (!peers[uid]) initPeer(uid, true);
       });
       pendingUsers.forEach(uid => {
@@ -342,30 +326,27 @@ socket.on('roomUsers', (usersInRoom) => {
       pendingNewUsers = {};
     });
   } else {
-    otherUserIds.forEach(uid => {
+    otherIds.forEach(uid => {
       if (!peers[uid]) initPeer(uid, true);
     });
   }
 });
 
-/* joinChannelWithMic => mic => joinRoom */
+/* joinChannelWithMic */
 function joinChannelWithMic(rId) {
-  requestMicrophoneAccess()
-    .then(() => {
-      currentRoom = rId;
-      socket.emit('joinRoom', { groupId: currentGroup, roomId: rId });
-      leaveButton.style.display = 'flex';
-    })
-    .catch(err => {
-      console.error("Mikrofon açılamadı =>", err);
-      alert("Mikrofon açılamadı!");
-    });
+  requestMicrophoneAccess().then(() => {
+    currentRoom = rId;
+    socket.emit('joinRoom', { groupId: currentGroup, roomId: rId });
+    leaveButton.style.display = 'flex';
+  }).catch(err => {
+    alert("Mikrofon açılmadı: " + err);
+  });
 }
 
-/* Oda oluştur */
+/* createRoom */
 createRoomButton.addEventListener('click', () => {
   if (!currentGroup) {
-    alert("Önce bir gruba göz at!");
+    alert("Önce gruba göz at!");
     return;
   }
   roomModal.style.display = 'flex';
@@ -375,7 +356,7 @@ createRoomButton.addEventListener('click', () => {
 createChannelBtn.addEventListener('click', () => {
   groupDropdownMenu.style.display = 'none';
   if (!currentGroup) {
-    alert("Önce bir gruba göz at!");
+    alert("Önce gruba göz at!");
     return;
   }
   roomModal.style.display = 'flex';
@@ -383,16 +364,16 @@ createChannelBtn.addEventListener('click', () => {
   modalRoomName.focus();
 });
 modalCreateRoomBtn.addEventListener('click', () => {
-  const rName = modalRoomName.value.trim();
-  if (!rName) return;
-  socket.emit('createRoom', { groupId: currentGroup, roomName: rName });
+  const val = modalRoomName.value.trim();
+  if (!val) return;
+  socket.emit('createRoom', { groupId: currentGroup, roomName: val });
   roomModal.style.display = 'none';
 });
 modalCloseRoomBtn.addEventListener('click', () => {
   roomModal.style.display = 'none';
 });
 
-/* Ayrıl Butonu => odadan çık */
+/* leaveButton => voice kanaldan ayrıl */
 leaveButton.addEventListener('click', () => {
   if (!currentRoom) return;
   socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
@@ -400,20 +381,20 @@ leaveButton.addEventListener('click', () => {
   currentRoom = null;
   userListDiv.innerHTML = '';
   leaveButton.style.display = 'none';
-  console.log("Kanaldan ayrıldınız.");
+  console.log("Kanaldan ayrıldınız");
 });
 
-/* Sağ panel => groupUsers => updateUserList */
-function updateUserList(dbUsersArray) {
+/* sağ panel => groupUsers => updateUserList */
+function updateUserList(dbArr) {
   userListDiv.innerHTML = '';
-  dbUsersArray.forEach(u => {
-    const item = document.createElement('div');
-    item.classList.add('user-item');
-    const thumb = document.createElement('div');
-    thumb.classList.add('profile-thumb');
-    const nameSp = document.createElement('span');
-    nameSp.classList.add('user-name');
-    nameSp.textContent = u.username;
+  dbArr.forEach(u => {
+    const d = document.createElement('div');
+    d.classList.add('user-item');
+    const pr = document.createElement('div');
+    pr.classList.add('profile-thumb');
+    const s = document.createElement('span');
+    s.classList.add('user-name');
+    s.textContent = u.username;
 
     const copyBtn = document.createElement('button');
     copyBtn.classList.add('copy-id-btn');
@@ -421,19 +402,15 @@ function updateUserList(dbUsersArray) {
     copyBtn.dataset.userid = u.username;
     copyBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const val = e.target.dataset.userid;
-      navigator.clipboard.writeText(val)
-        .then(() => alert("Kullanıcı kopyalandı: " + val))
-        .catch(er => {
-          console.error("Kopyalama hatası:", er);
-          alert("Kopyalama başarısız!");
-        });
+      navigator.clipboard.writeText(e.target.dataset.userid)
+        .then(() => alert("Kullanıcı kopyalandı!"))
+        .catch(er => alert("Kopyalama hatası"));
     });
 
-    item.appendChild(thumb);
-    item.appendChild(nameSp);
-    item.appendChild(copyBtn);
-    userListDiv.appendChild(item);
+    d.appendChild(pr);
+    d.appendChild(s);
+    d.appendChild(copyBtn);
+    userListDiv.appendChild(d);
   });
 }
 
@@ -442,17 +419,16 @@ async function requestMicrophoneAccess() {
   try {
     console.log("Mikrofon izni isteniyor...");
     const constraints = { audio: true };
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-    console.log("Mikrofon izni verildi:", stream);
-    localStream = stream;
+    const st = await navigator.mediaDevices.getUserMedia(constraints);
+    console.log("Mikrofon izni verildi:", st);
+    localStream = st;
     audioPermissionGranted = true;
     applyAudioStates();
-
     remoteAudios.forEach(a => {
-      a.play().catch(e => console.error("Ses oynatılamadı:", e));
+      a.play().catch(e => console.error("Ses oynatılamadı =>", e));
     });
   } catch(err) {
-    console.error("Mikrofon request hata =>", err);
+    console.error("Mikrofon izni hata =>", err);
     throw err;
   }
 }
@@ -461,23 +437,22 @@ async function requestMicrophoneAccess() {
 socket.on("signal", async (data) => {
   if (data.from === socket.id) return;
   const { from, signal } = data;
-  let peer = peers[from];
-  if (!peer) {
+  let p = peers[from];
+  if (!p) {
     if (!localStream) {
-      console.warn("localStream yok => push user:", from);
       pendingNewUsers[from] = true;
       return;
     }
-    peer = initPeer(from, false);
+    p = initPeer(from, false);
   }
-
   if (signal.type === "offer") {
-    await peer.setRemoteDescription(new RTCSessionDescription(signal));
+    await p.setRemoteDescription(new RTCSessionDescription(signal));
     sessionUfrag[from] = parseIceUfrag(signal.sdp);
-    const answer = await peer.createAnswer();
-    await peer.setLocalDescription(answer);
+
+    const answer = await p.createAnswer();
+    await p.setLocalDescription(answer);
     console.log("Answer gönderiliyor:", answer);
-    socket.emit("signal", { to: from, signal: peer.localDescription });
+    socket.emit("signal", { to: from, signal: p.localDescription });
 
     if (pendingCandidates[from]) {
       for (const c of pendingCandidates[from]) {
@@ -485,30 +460,23 @@ socket.on("signal", async (data) => {
           console.warn("Candidate mismatch => drop:", c);
           continue;
         }
-        try {
-          await peer.addIceCandidate(new RTCIceCandidate(c));
-          console.log("ICE Candidate eklendi (pending):", c);
-        } catch (er) {
-          console.warn("Candidate eklenirken hata:", er);
-        }
+        await p.addIceCandidate(new RTCIceCandidate(c));
+        console.log("ICE Candidate eklendi(pending):", c);
       }
       pendingCandidates[from] = [];
     }
-
   } else if (signal.type === "answer") {
     console.log("Answer geldi => setRemoteDescription");
-    // stable => second answer => ignore
-    if (peer.signalingState === "stable") {
+    if (p.signalingState === "stable") {
       console.warn("signalingState === stable => 2. answer ignored");
       return;
     }
     try {
-      await peer.setRemoteDescription(new RTCSessionDescription(signal));
-    } catch (rx) {
-      console.error("setRemoteDesc(answer) hata =>", rx);
+      await p.setRemoteDescription(new RTCSessionDescription(signal));
+    } catch(x) {
+      console.error("setRemoteDescription(answer) hata =>", x);
       return;
     }
-
     sessionUfrag[from] = parseIceUfrag(signal.sdp);
 
     if (pendingCandidates[from]) {
@@ -517,18 +485,13 @@ socket.on("signal", async (data) => {
           console.warn("Candidate mismatch => drop =>", c);
           continue;
         }
-        try {
-          await peer.addIceCandidate(new RTCIceCandidate(c));
-          console.log("ICE Candidate eklendi (pending2):", c);
-        } catch (er) {
-          console.warn("Candidate eklenirken hata:", er);
-        }
+        await p.addIceCandidate(new RTCIceCandidate(c));
+        console.log("ICE Candidate eklendi(pending2):", c);
       }
       pendingCandidates[from] = [];
     }
-
   } else if (signal.candidate) {
-    if (!peer.remoteDescription || peer.remoteDescription.type === "") {
+    if (!p.remoteDescription || p.remoteDescription.type === "") {
       console.log("Henüz remoteDescription yok => candidate pending:", signal);
       if (!pendingCandidates[from]) pendingCandidates[from] = [];
       pendingCandidates[from].push(signal);
@@ -538,10 +501,10 @@ socket.on("signal", async (data) => {
         return;
       }
       try {
-        await peer.addIceCandidate(new RTCIceCandidate(signal));
+        await p.addIceCandidate(new RTCIceCandidate(signal));
         console.log("ICE Candidate eklendi:", signal);
-      } catch (er) {
-        console.warn("ICE addCandidate hata =>", er);
+      } catch(e) {
+        console.warn("ICE addCandidate hata =>", e);
       }
     }
   }
@@ -550,17 +513,14 @@ socket.on("signal", async (data) => {
 /* Peer Başlat => WebRTC */
 function initPeer(userId, isInitiator) {
   if (!localStream || !audioPermissionGranted) {
-    if (isInitiator) {
-      pendingUsers.push(userId);
-    } else {
-      pendingNewUsers[userId] = true;
-    }
+    if (isInitiator) pendingUsers.push(userId);
+    else pendingNewUsers[userId] = true;
     return;
   }
   if (peers[userId]) return peers[userId];
 
   console.log("initPeer => userId:", userId, " isInitiator:", isInitiator);
-  const peer = new RTCPeerConnection({
+  const pc = new RTCPeerConnection({
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
       {
@@ -570,69 +530,67 @@ function initPeer(userId, isInitiator) {
       }
     ]
   });
-  peers[userId] = peer;
+  peers[userId] = pc;
 
-  localStream.getTracks().forEach(t => peer.addTrack(t, localStream));
+  localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
 
-  peer.onicecandidate = (ev) => {
+  pc.onicecandidate = (ev) => {
     if (ev.candidate) {
       socket.emit("signal", { to: userId, signal: ev.candidate });
     }
   };
-  peer.oniceconnectionstatechange = () => {
-    console.log("ICE state =>", peer.iceConnectionState);
+  pc.oniceconnectionstatechange = () => {
+    console.log("ICE state =>", pc.iceConnectionState);
   };
-  peer.onconnectionstatechange = () => {
-    console.log("Peer state =>", peer.connectionState);
+  pc.onconnectionstatechange = () => {
+    console.log("Peer state =>", pc.connectionState);
   };
-  peer.ontrack = (evt) => {
+  pc.ontrack = (evt) => {
     console.log("Remote track =>", evt.streams[0]);
-    const audio = new Audio();
-    audio.srcObject = evt.streams[0];
-    audio.autoplay = false;
-    audio.muted = false;
-    remoteAudios.push(audio);
+    const au = new Audio();
+    au.srcObject = evt.streams[0];
+    au.autoplay = false;
+    au.muted = false;
+    remoteAudios.push(au);
     applyDeafenState();
     if (audioPermissionGranted) {
-      audio.play().catch(e => console.error("Ses oynatılamadı:", e));
+      au.play().catch(e => console.error("Ses oynatılamadı =>", e));
     }
   };
 
-  if (isInitiator) {
-    createOffer(peer, userId);
-  }
-  return peer;
+  if (isInitiator) createOffer(pc, userId);
+  return pc;
 }
 
-/* createOffer => stable check => 50ms bekleme */
-async function createOffer(peer, userId) {
-  if (peer.signalingState !== "stable") {
+/* createOffer => stable check => 50ms bekle */
+async function createOffer(pc, userId) {
+  if (pc.signalingState !== "stable") {
     console.log("signalingState not stable => 50ms bekle => createOffer");
     setTimeout(() => {
-      if (peer.signalingState === "stable") {
-        doOffer(peer, userId);
+      if (pc.signalingState === "stable") {
+        doOffer(pc, userId);
       } else {
         console.warn("Hâlâ stable değil => second offer ignored");
       }
     }, 50);
     return;
   }
-  doOffer(peer, userId);
+  doOffer(pc, userId);
 }
-async function doOffer(peer, userId) {
+async function doOffer(pc, userId) {
   console.log("doOffer => creating offer");
-  const offer = await peer.createOffer();
-  await peer.setLocalDescription(offer);
-  socket.emit("signal", { to: userId, signal: peer.localDescription });
+  const off = await pc.createOffer();
+  await pc.setLocalDescription(off);
+  socket.emit("signal", { to: userId, signal: pc.localDescription });
 }
 
 /* closeAllPeers */
 function closeAllPeers() {
   console.log("CLOSING ALL PEERS =>");
-  for (const uid in peers) {
+  Object.keys(peers).forEach(uid => {
     peers[uid].close();
     delete peers[uid];
-  }
+  });
   remoteAudios = [];
   pendingCandidates = {};
   sessionUfrag = {};
@@ -648,36 +606,32 @@ deafenToggleButton.addEventListener('click', () => {
   if (selfDeafened) micEnabled = false;
   applyAudioStates();
 });
-
 function applyAudioStates() {
   if (localStream) {
-    localStream.getAudioTracks().forEach(track => {
-      track.enabled = micEnabled && !selfDeafened;
+    localStream.getAudioTracks().forEach(t => {
+      t.enabled = micEnabled && !selfDeafened;
     });
   }
   micToggleButton.innerHTML = (micEnabled && !selfDeafened) ? "MIC ON" : "MIC OFF";
   applyDeafenState();
   deafenToggleButton.innerHTML = selfDeafened ? "DEAF ON" : "DEAF OFF";
 }
-
 function applyDeafenState() {
   remoteAudios.forEach(a => {
     a.muted = selfDeafened;
   });
 }
 
-/* parseIceUfrag => a=ice-ufrag: */
+/* parseIceUfrag */
 function parseIceUfrag(sdp) {
   const lines = sdp.split('\n');
   for (const l of lines) {
-    if (l.startsWith('a=ice-ufrag:')) {
-      return l.split(':')[1].trim();
-    }
+    if (l.startsWith('a=ice-ufrag:')) return l.split(':')[1].trim();
   }
   return null;
 }
 
-/* Soket connect/disconnect */
+/* Socket connect/disconnect */
 socket.on("connect", () => {
   console.log("WebSocket bağlandı =>", socket.id);
 });
@@ -685,32 +639,29 @@ socket.on("disconnect", () => {
   console.log("WS bağlantısı koptu.");
 });
 
-/* Drop-down menü */
+/* drop-down menü */
 let dropdownOpen = false;
 groupDropdownIcon.addEventListener('click', () => {
   dropdownOpen = !dropdownOpen;
   groupDropdownMenu.style.display = dropdownOpen ? 'block' : 'none';
 });
-
-/* copyGroupId, renameGroup, deleteGroup */
 copyGroupIdBtn.addEventListener('click', () => {
   if (!currentGroup) return;
-  navigator.clipboard.writeText(currentGroup)
-    .then(() => alert("Grup ID kopyalandı!"));
+  navigator.clipboard.writeText(currentGroup).then(() => alert("Grup ID kopyalandı"));
   groupDropdownMenu.style.display = 'none';
   dropdownOpen = false;
 });
 renameGroupBtn.addEventListener('click', () => {
   if (!currentGroup) return;
-  const newN = prompt("Yeni grup ismi:");
-  if (!newN) return;
-  socket.emit("renameGroup", { groupId: currentGroup, newName: newN.trim() });
+  const n = prompt("Yeni grup ismi?");
+  if (!n) return;
+  socket.emit("renameGroup", { groupId: currentGroup, newName: n.trim() });
   groupDropdownMenu.style.display = 'none';
   dropdownOpen = false;
 });
 deleteGroupBtn.addEventListener('click', () => {
   if (!currentGroup) return;
-  if (!confirm("Bu grubu silmek istediğine emin misin?")) return;
+  if (!confirm("Bu grubu silmek istiyor musun?")) return;
   socket.emit("deleteGroup", { groupId: currentGroup });
   groupDropdownMenu.style.display = 'none';
   dropdownOpen = false;
