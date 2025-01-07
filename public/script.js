@@ -13,9 +13,12 @@ let username = null;
 let micEnabled = true;
 let selfDeafened = false;
 
-// Mevcut group/room
+// Mevcut group/room => Artık currentGroup sadece gerçekten girdiğimiz grubu temsil edecek
 let currentGroup = null;
 let currentRoom = null;
+
+// Yeni ekledik: “seçili” (göz atılan) grup
+let selectedGroup = null;
 
 let pendingUsers = [];
 let pendingNewUsers = [];
@@ -319,13 +322,16 @@ socket.on('groupsList', (groupArray) => {
     grpItem.innerText = groupObj.name[0].toUpperCase();
     grpItem.title = groupObj.name + " (" + groupObj.id + ")";
 
+    // Değiştirildi: sadece “browseGroup” yapıyoruz, “joinGroup” değil
     grpItem.addEventListener('click', () => {
       document.querySelectorAll('.grp-item').forEach(el => el.classList.remove('selected'));
       grpItem.classList.add('selected');
 
-      currentGroup = groupObj.id;
+      selectedGroup = groupObj.id;
       groupTitle.textContent = groupObj.name;
-      socket.emit('joinGroup', groupObj.id);
+
+      // Sunucuya bu grubun kanallarını “görmek” istediğimizi söylüyoruz
+      socket.emit('browseGroup', groupObj.id);
     });
 
     groupListDiv.appendChild(grpItem);
@@ -356,18 +362,21 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
+    // Tıklayınca => eğer başka gruptaysak “joinGroup” + “joinRoom”
     roomItem.addEventListener('click', () => {
-      if (currentRoom && currentRoom !== roomObj.id) {
-        console.log("Leaving old room =>", currentRoom);
-        socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
-        closeAllPeers();
+      if (currentGroup !== selectedGroup) {
+        // Farklı grupta isek önce joinGroup yapalım
+        socket.emit('joinGroup', selectedGroup);
 
+        // Sunucu tarafında joinGroup tamamlanınca
+        // doğrudan joinRoom çağrısının senkron tutarlı olması için
+        // bir küçük gecikme kullanabiliriz:
         setTimeout(() => {
-          console.log("Joining new room =>", roomObj.id);
-          joinRoom(currentGroup, roomObj.id, roomObj.name);
+          joinRoom(selectedGroup, roomObj.id, roomObj.name);
         }, 300);
       } else {
-        joinRoom(currentGroup, roomObj.id, roomObj.name);
+        // Aynı gruptaysak direkt o kanala geçiş
+        joinRoom(selectedGroup, roomObj.id, roomObj.name);
       }
     });
 
@@ -443,7 +452,7 @@ socket.on('roomUsers', (usersInRoom) => {
 /* Oda Oluşturma */
 createRoomButton.addEventListener('click', () => {
   if (!currentGroup) {
-    alert("Önce bir gruba katılın!");
+    alert("Önce bir gruba (ve kanala) katılın!");
     return;
   }
   roomModal.style.display = 'flex';
@@ -475,6 +484,7 @@ modalCloseRoomBtn.addEventListener('click', () => {
 
 /* joinRoom => WebRTC */
 function joinRoom(groupId, roomId, roomName) {
+  // Artık gerçekten o gruba girdiğimizi varsayıyoruz
   currentGroup = groupId;
   currentRoom = roomId;
   socket.emit('joinRoom', { groupId, roomId });
@@ -747,8 +757,6 @@ deafenToggleButton.addEventListener('click', () => {
 });
 
 function applyAudioStates() {
-  // Burada micEnabled ve selfDeafened var, 
-  // "micEnabled is not defined" hatası giderildi.
   if (localStream) {
     localStream.getAudioTracks().forEach(track => {
       track.enabled = micEnabled && !selfDeafened;

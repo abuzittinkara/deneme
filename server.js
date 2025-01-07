@@ -290,14 +290,20 @@ io.on("connection", (socket) => {
     }
   });
 
-  // joinGroup
+  // Yeni eklendi: Sadece grubu “gez” => roomsList döndür
+  socket.on('browseGroup', (groupId) => {
+    if (!groups[groupId]) return;
+    sendRoomsListToUser(socket.id, groupId);
+  });
+
+  // joinGroup => gerçekten o gruba geç (eski gruptan çık)
   socket.on('joinGroup', async (groupId) => {
     if (!groups[groupId]) return;
     const oldGroup = users[socket.id].currentGroup;
     const oldRoom = users[socket.id].currentRoom;
     const userName = users[socket.id].username || `(User ${socket.id})`;
 
-    // Eski
+    // Eski gruptan, odadan çık
     if (oldGroup && groups[oldGroup]) {
       if (oldRoom && groups[oldGroup].rooms[oldRoom]) {
         groups[oldGroup].rooms[oldRoom].users =
@@ -319,6 +325,7 @@ io.on("connection", (socket) => {
     users[socket.id].currentRoom = null;
     socket.join(groupId);
 
+    // Yeni gruba geçince odalar listesi client'a gönderelim
     sendRoomsListToUser(socket.id, groupId);
     broadcastAllChannelsData(groupId);
     await broadcastGroupUsers(groupId);
@@ -406,6 +413,7 @@ io.on("connection", (socket) => {
     const sR = users[socket.id].currentRoom;
     const tR = users[targetId].currentRoom;
 
+    // İki taraf da aynı group/room içinde ise
     if (sG && sG === tG && sR && sR === tR) {
       io.to(targetId).emit("signal", {
         from: socket.id,
