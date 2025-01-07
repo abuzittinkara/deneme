@@ -300,9 +300,7 @@ socket.on('groupsList', (groupArray) => {
       grpItem.classList.add('selected');
 
       groupTitle.textContent = groupObj.name;
-
-      // Sadece "browseGroup" => kanalları görmek
-      currentGroup = groupObj.id; // Bu gruba "bakıyoruz"
+      currentGroup = groupObj.id; 
       socket.emit('browseGroup', groupObj.id);
     });
 
@@ -314,71 +312,87 @@ socket.on('groupsList', (groupArray) => {
 socket.on('roomsList', (roomsArray) => {
   roomListDiv.innerHTML = '';
   roomsArray.forEach(roomObj => {
-    const roomItem = document.createElement('div');
-    roomItem.className = 'channel-item';
-
-    const channelHeader = document.createElement('div');
-    channelHeader.className = 'channel-header';
-
-    const icon = createWaveIcon();
-    const textSpan = document.createElement('span');
-    textSpan.textContent = roomObj.name;
-
-    channelHeader.appendChild(icon);
-    channelHeader.appendChild(textSpan);
-
-    const channelUsers = document.createElement('div');
-    channelUsers.className = 'channel-users';
-    channelUsers.id = `channel-users-${roomObj.id}`;
-
-    roomItem.appendChild(channelHeader);
-    roomItem.appendChild(channelUsers);
-
-    // Kanala gir => joinRoom
-    roomItem.addEventListener('click', () => {
-      // 1) Mevcut odadan çık + peers kapat
-      if (currentRoom && currentRoom !== roomObj.id) {
-        console.log("Leaving old room =>", currentRoom);
-        socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
-        closeAllPeers();
-
-        setTimeout(() => {
-          console.log("Joining new room =>", roomObj.id);
-          joinChannelWithMic(roomObj.id);
-        }, 300);
-      } else {
-        joinChannelWithMic(roomObj.id);
-      }
-    });
-
+    // Her bir oda için => createChannelDOM
+    const roomItem = createChannelDOM(roomObj.id, roomObj.name);
     roomListDiv.appendChild(roomItem);
   });
 });
 
 /* 
-   Kanala girerken => önce mikrofon izni al => 
-   sonrasında joinRoom emit. 
+  Kanal DOM'u dinamik oluşturma:
+  (Aynı ID'de kanal yoksa => oluştur)
 */
-function joinChannelWithMic(newRoomId) {
-  requestMicrophoneAccess()
-    .then(() => {
-      socket.emit('joinRoom', { groupId: currentGroup, roomId: newRoomId });
-      currentRoom = newRoomId;
-      leaveButton.style.display = 'flex';
-    })
-    .catch(err => {
-      console.error("Mikrofon alınamadı:", err);
-      alert("Mikrofona erişilemedi. Sesli sohbet başlatılamadı!");
-    });
+function createChannelDOM(roomId, roomName) {
+  // Var mı?
+  let existing = document.getElementById(`channel-${roomId}`);
+  if (existing) {
+    // Zaten var => ismini vs. güncelle
+    existing.querySelector('.channel-header span').textContent = roomName;
+    return existing;
+  }
+
+  const roomItem = document.createElement('div');
+  roomItem.className = 'channel-item';
+  roomItem.id = `channel-${roomId}`;
+
+  const channelHeader = document.createElement('div');
+  channelHeader.className = 'channel-header';
+
+  const icon = createWaveIcon();
+  const textSpan = document.createElement('span');
+  textSpan.textContent = roomName;
+
+  channelHeader.appendChild(icon);
+  channelHeader.appendChild(textSpan);
+
+  const channelUsers = document.createElement('div');
+  channelUsers.className = 'channel-users';
+  channelUsers.id = `channel-users-${roomId}`;
+
+  roomItem.appendChild(channelHeader);
+  roomItem.appendChild(channelUsers);
+
+  // Tıklayınca => join
+  roomItem.addEventListener('click', () => {
+    if (currentRoom && currentRoom !== roomId) {
+      console.log("Leaving old room =>", currentRoom);
+      socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
+      closeAllPeers();
+
+      setTimeout(() => {
+        console.log("Joining new room =>", roomId);
+        joinChannelWithMic(roomId);
+      }, 300);
+    } else {
+      joinChannelWithMic(roomId);
+    }
+  });
+
+  return roomItem;
 }
 
-/* allChannelsData => bu group'taki odalarda kimler var */
+/* allChannelsData => bu group'taki odalarda kimler var (avatar) */
 socket.on('allChannelsData', (channelsObj) => {
+  // YENİ: eğer DOM'da o kanal yoksa => createChannelDOM
   Object.keys(channelsObj).forEach(roomId => {
+    // Oda verisi
     const cData = channelsObj[roomId];
-    const channelDiv = document.getElementById(`channel-users-${roomId}`);
-    if (!channelDiv) return;
-    channelDiv.innerHTML = '';
+
+    // Kanal DOM var mı? Yoksa oluştur
+    let channelDiv = document.getElementById(`channel-${roomId}`);
+    if (!channelDiv) {
+      // Dinamik oluştur
+      console.log("Dinamik kanal oluştur:", roomId, cData.name);
+      const newItem = createChannelDOM(roomId, cData.name);
+      roomListDiv.appendChild(newItem);
+      channelDiv = newItem; 
+    }
+
+    // Şimdi altındaki .channel-users güncelle
+    const channelUsersDiv = document.getElementById(`channel-users-${roomId}`);
+    if (!channelUsersDiv) return;
+
+    channelUsersDiv.innerHTML = '';
     cData.users.forEach(u => {
       const userDiv = document.createElement('div');
       userDiv.classList.add('channel-user');
@@ -387,16 +401,16 @@ socket.on('allChannelsData', (channelsObj) => {
       avatarDiv.classList.add('channel-user-avatar');
 
       const nameSpan = document.createElement('span');
-      nameSpan.textContent = u.username;
+      nameSpan.textContent = u.username || '(İsimsiz)';
 
       userDiv.appendChild(avatarDiv);
       userDiv.appendChild(nameSpan);
-      channelDiv.appendChild(userDiv);
+      channelUsersDiv.appendChild(userDiv);
     });
   });
 });
 
-/* groupUsers => sağ panel */
+/* groupUsers => sağ panel (kullanıcı listesi) */
 socket.on('groupUsers', (dbUsersArray) => {
   console.log("groupUsers event:", dbUsersArray);
   updateUserList(dbUsersArray);
@@ -411,9 +425,6 @@ socket.on('roomUsers', (usersInRoom) => {
     .map(u => u.id)
     .filter(id => !peers[id]);
 
-  // Kişi odaya girince => "otherUserIds" ile peer başlat
-  // fallback => requestMicrophoneAccess (zaten joinChannelWithMic'te çağrıldı ama
-  // yine de odadaki event tetiklensin)
   if (!audioPermissionGranted || !localStream) {
     requestMicrophoneAccess().then(() => {
       otherUserIds.forEach(userId => {
@@ -436,6 +447,20 @@ socket.on('roomUsers', (usersInRoom) => {
     });
   }
 });
+
+/* Kanala girerken => önce mikrofon izni al => room emit */
+function joinChannelWithMic(newRoomId) {
+  requestMicrophoneAccess()
+    .then(() => {
+      socket.emit('joinRoom', { groupId: currentGroup, roomId: newRoomId });
+      currentRoom = newRoomId;
+      leaveButton.style.display = 'flex';
+    })
+    .catch(err => {
+      console.error("Mikrofon alınamadı:", err);
+      alert("Mikrofona erişilemedi. Sesli sohbet başlatılamadı!");
+    });
+}
 
 /* Oda oluşturma butonu */
 createRoomButton.addEventListener('click', () => {
@@ -539,7 +564,7 @@ async function requestMicrophoneAccess() {
     });
   } catch(err) {
     console.error("Mikrofon izni alınamadı:", err);
-    throw err;  // Önemli: hata yakalayıp "joinChannelWithMic" vs. engelle
+    throw err; 
   }
 }
 
@@ -610,6 +635,7 @@ socket.on("signal", async (data) => {
       }
       pendingCandidates[from] = [];
     }
+
   } else if (signal.candidate) {
     if (!peer.remoteDescription || peer.remoteDescription.type === "") {
       console.log("Henüz remoteDescription yok => pending candidate:", signal);
