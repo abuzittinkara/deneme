@@ -306,7 +306,7 @@ joinGroupIdBtn.addEventListener('click', () => {
     alert("Grup ID boş olamaz!");
     return;
   }
-  // Bu fonksiyon *gerçekten* gruba katılma mantığında
+  // Gerçekten gruba katılmak için
   socket.emit('joinGroupByID', grpIdVal);
   joinGroupModal.style.display = 'none';
 });
@@ -323,8 +323,13 @@ socket.on('groupsList', (groupArray) => {
     grpItem.innerText = groupObj.name[0].toUpperCase();
     grpItem.title = groupObj.name + " (" + groupObj.id + ")";
 
-    // Grup tıklanınca => sadece "browse" (göz at)
+    // Grup tıklayınca => sadece "browse" (göz at), eğer o grup zaten selectedGroup ise bir daha browse etme
     grpItem.addEventListener('click', () => {
+      if (selectedGroup === groupObj.id) {
+        // Zaten bu grup seçili => "tekrar browse" bile etme
+        return;
+      }
+
       document.querySelectorAll('.grp-item').forEach(el => el.classList.remove('selected'));
       grpItem.classList.add('selected');
 
@@ -363,11 +368,17 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Kanala tıklayınca => eğer farklı gruptaysa önce joinGroup + sonra joinRoom
+    // Kanala tıklayınca => eğer farklı gruptaysa joinGroup + sonra joinRoom
     roomItem.addEventListener('click', () => {
-      // Eğer "gerçekten" başka gruptaysak
+      // Önce: Aynı odadaysak => hiçbir şey yapma
+      if (currentGroup === selectedGroup && currentRoom === roomObj.id) {
+        // Zaten o kanaldayız
+        return;
+      }
+
+      // Eğer "gerçekten" başka gruptaysa
       if (currentGroup !== selectedGroup) {
-        // joinGroup => eski kanaldan çıkılır, bu gruba girilir
+        // joinGroup => eski kanaldan çıkar, bu gruba gir
         socket.emit('joinGroup', selectedGroup);
 
         // Ardından, bir küçük gecikmeyle odasına gir
@@ -590,9 +601,11 @@ socket.on("signal", async (data) => {
 
     if (pendingCandidates[from]) {
       for (const c of pendingCandidates[from]) {
-        if (sessionUfrag[from] 
-            && sessionUfrag[from] !== c.usernameFragment 
-            && c.usernameFragment !== null) {
+        if (
+          sessionUfrag[from] &&
+          sessionUfrag[from] !== c.usernameFragment &&
+          c.usernameFragment !== null
+        ) {
           console.warn("Candidate mismatch => drop:", c);
           continue;
         }
@@ -616,9 +629,11 @@ socket.on("signal", async (data) => {
 
     if (pendingCandidates[from]) {
       for (const c of pendingCandidates[from]) {
-        if (sessionUfrag[from] 
-            && sessionUfrag[from] !== c.usernameFragment 
-            && c.usernameFragment !== null) {
+        if (
+          sessionUfrag[from] &&
+          sessionUfrag[from] !== c.usernameFragment &&
+          c.usernameFragment !== null
+        ) {
           console.warn("Candidate mismatch => drop:", c);
           continue;
         }
@@ -639,9 +654,11 @@ socket.on("signal", async (data) => {
       }
       pendingCandidates[from].push(signal);
     } else {
-      if (sessionUfrag[from] 
-          && sessionUfrag[from] !== signal.usernameFragment 
-          && signal.usernameFragment !== null) {
+      if (
+        sessionUfrag[from] &&
+        sessionUfrag[from] !== signal.usernameFragment &&
+        signal.usernameFragment !== null
+      ) {
         console.warn("Candidate mismatch => drop:", signal);
         return;
       }
