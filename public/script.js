@@ -13,11 +13,11 @@ let username = null;
 let micEnabled = true;
 let selfDeafened = false;
 
-// Mevcut group/room => Artık currentGroup sadece gerçekten girdiğimiz grubu temsil edecek
+// Mevcut group/room (gerçekte sesli olarak katıldığımız yer)
 let currentGroup = null;
 let currentRoom = null;
 
-// Yeni ekledik: “seçili” (göz atılan) grup
+// “Seçili” (sadece göz atılan) grup
 let selectedGroup = null;
 
 let pendingUsers = [];
@@ -306,6 +306,7 @@ joinGroupIdBtn.addEventListener('click', () => {
     alert("Grup ID boş olamaz!");
     return;
   }
+  // Bu fonksiyon *gerçekten* gruba katılma mantığında
   socket.emit('joinGroupByID', grpIdVal);
   joinGroupModal.style.display = 'none';
 });
@@ -322,7 +323,7 @@ socket.on('groupsList', (groupArray) => {
     grpItem.innerText = groupObj.name[0].toUpperCase();
     grpItem.title = groupObj.name + " (" + groupObj.id + ")";
 
-    // Değiştirildi: sadece “browseGroup” yapıyoruz, “joinGroup” değil
+    // Grup tıklanınca => sadece "browse" (göz at)
     grpItem.addEventListener('click', () => {
       document.querySelectorAll('.grp-item').forEach(el => el.classList.remove('selected'));
       grpItem.classList.add('selected');
@@ -330,7 +331,7 @@ socket.on('groupsList', (groupArray) => {
       selectedGroup = groupObj.id;
       groupTitle.textContent = groupObj.name;
 
-      // Sunucuya bu grubun kanallarını “görmek” istediğimizi söylüyoruz
+      // Yalnızca odalarını görmek için => browseGroup
       socket.emit('browseGroup', groupObj.id);
     });
 
@@ -362,15 +363,14 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Tıklayınca => eğer başka gruptaysak “joinGroup” + “joinRoom”
+    // Kanala tıklayınca => eğer farklı gruptaysa önce joinGroup + sonra joinRoom
     roomItem.addEventListener('click', () => {
+      // Eğer "gerçekten" başka gruptaysak
       if (currentGroup !== selectedGroup) {
-        // Farklı grupta isek önce joinGroup yapalım
+        // joinGroup => eski kanaldan çıkılır, bu gruba girilir
         socket.emit('joinGroup', selectedGroup);
 
-        // Sunucu tarafında joinGroup tamamlanınca
-        // doğrudan joinRoom çağrısının senkron tutarlı olması için
-        // bir küçük gecikme kullanabiliriz:
+        // Ardından, bir küçük gecikmeyle odasına gir
         setTimeout(() => {
           joinRoom(selectedGroup, roomObj.id, roomObj.name);
         }, 300);
@@ -452,7 +452,7 @@ socket.on('roomUsers', (usersInRoom) => {
 /* Oda Oluşturma */
 createRoomButton.addEventListener('click', () => {
   if (!currentGroup) {
-    alert("Önce bir gruba (ve kanala) katılın!");
+    alert("Önce bir grupta kanala katılın!");
     return;
   }
   roomModal.style.display = 'flex';
@@ -484,7 +484,6 @@ modalCloseRoomBtn.addEventListener('click', () => {
 
 /* joinRoom => WebRTC */
 function joinRoom(groupId, roomId, roomName) {
-  // Artık gerçekten o gruba girdiğimizi varsayıyoruz
   currentGroup = groupId;
   currentRoom = roomId;
   socket.emit('joinRoom', { groupId, roomId });
