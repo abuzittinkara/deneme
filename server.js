@@ -1,5 +1,5 @@
 /**************************************
- * server.js
+ * server.js (GÜNCELLENMİŞ TAM HÂL)
  **************************************/
 const http = require("http");
 const express = require("express");
@@ -135,13 +135,6 @@ function sendRoomsListToUser(socketId, groupId) {
   io.to(socketId).emit('roomsList', roomArray);
 }
 
-/* ----------------------------------
-    Mantık
-    - browseGroup: kullanıcı sadece kanalları görmek istiyor
-      => eski kanaldan çıkma yok
-    - joinRoom: farklı gruptaki odaya girerse => eski gruptan/kanaldan çıkar
--------------------------------------*/
-
 // Socket.IO
 io.on("connection", (socket) => {
   console.log("Kullanıcı bağlandı:", socket.id);
@@ -275,9 +268,9 @@ io.on("connection", (socket) => {
   });
 
   // ---------------------
-  // browseGroup (yeni event)
-  //  => sadece odaları görmek,
-  //     eski kanaldan çıkarmayacağız
+  // browseGroup
+  // => sadece odaları görmek, 
+  //    eski kanaldan çıkarmıyoruz
   // ---------------------
   socket.on('browseGroup', (groupId) => {
     console.log(`browseGroup: user=${socket.id}, groupId=${groupId}`);
@@ -288,8 +281,66 @@ io.on("connection", (socket) => {
     // Sadece => roomsList & allChannels => user'a gönder
     sendRoomsListToUser(socket.id, groupId);
     broadcastAllChannelsData(groupId);
-    // groupUsers => opsiyonel, ister gösterilsin
-    broadcastGroupUsers(groupId);
+    broadcastGroupUsers(groupId); 
+  });
+
+  // ---------------------
+  // joinGroupByID
+  //  => DB tarafında gruba ekleme 
+  //  => Bu user'a => roomsList ve allChannelsData da gönder
+  // ---------------------
+  socket.on('joinGroupByID', async (groupId) => {
+    try {
+      const userName = users[socket.id].username || `(User ${socket.id})`;
+      const userDoc = await User.findOne({ username: userName });
+      if (!userDoc) {
+        socket.emit('errorMessage', "Kullanıcı yok (DB).");
+        return;
+      }
+      const groupDoc = await Group.findOne({ groupId });
+      if (!groupDoc) {
+        socket.emit('errorMessage', "Böyle bir grup yok (DB).");
+        return;
+      }
+
+      // DB: groupDoc.users
+      if (!groupDoc.users.includes(userDoc._id)) {
+        groupDoc.users.push(userDoc._id);
+        await groupDoc.save();
+      }
+      if (!userDoc.groups.includes(groupDoc._id)) {
+        userDoc.groups.push(groupDoc._id);
+        await userDoc.save();
+      }
+
+      if (!groups[groupId]) {
+        groups[groupId] = {
+          owner: groupDoc.owner ? groupDoc.owner.toString() : null,
+          name: groupDoc.name,
+          users: [],
+          rooms: {}
+        };
+      }
+
+      // Sadece => user DB'ye eklendi, 
+      // Bellekte bu group'a user ekliyoruz (isterse)
+      // Fakat bir kanalda değil => "browse" mantığı
+      // (Eski kanaldan çıkarmayalım, Discord benzeri)
+      if (!groups[groupId].users.some(u => u.id === socket.id)) {
+        groups[groupId].users.push({ id: socket.id, username: userName });
+      }
+
+      console.log(`User ${socket.id} => joinGroupByID => ${groupId}`);
+
+      // => Bu user'a => groupsList + roomsList + allChannels
+      await sendGroupsListToUser(socket.id);
+      sendRoomsListToUser(socket.id, groupId);
+      broadcastAllChannelsData(groupId);
+      await broadcastGroupUsers(groupId);
+
+    } catch (err) {
+      console.error("joinGroupByID hata:", err);
+    }
   });
 
   // ---------------------
