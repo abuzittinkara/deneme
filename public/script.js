@@ -312,21 +312,16 @@ socket.on('groupsList', (groupArray) => {
 socket.on('roomsList', (roomsArray) => {
   roomListDiv.innerHTML = '';
   roomsArray.forEach(roomObj => {
-    // Her bir oda için => createChannelDOM
     const roomItem = createChannelDOM(roomObj.id, roomObj.name);
     roomListDiv.appendChild(roomItem);
   });
 });
 
-/* 
-  Kanal DOM'u dinamik oluşturma:
-  (Aynı ID'de kanal yoksa => oluştur)
-*/
+/* Kanal DOM oluşturma veya güncelleme */
 function createChannelDOM(roomId, roomName) {
-  // Var mı?
   let existing = document.getElementById(`channel-${roomId}`);
   if (existing) {
-    // Zaten var => ismini vs. güncelle
+    // Güncelle
     existing.querySelector('.channel-header span').textContent = roomName;
     return existing;
   }
@@ -352,7 +347,7 @@ function createChannelDOM(roomId, roomName) {
   roomItem.appendChild(channelHeader);
   roomItem.appendChild(channelUsers);
 
-  // Tıklayınca => join
+  // Tıklayınca => joinRoom
   roomItem.addEventListener('click', () => {
     if (currentRoom && currentRoom !== roomId) {
       console.log("Leaving old room =>", currentRoom);
@@ -371,21 +366,16 @@ function createChannelDOM(roomId, roomName) {
   return roomItem;
 }
 
-/* allChannelsData => bu group'taki odalarda kimler var (avatar) */
+/* allChannelsData => bu group'taki odalarda kimler var */
 socket.on('allChannelsData', (channelsObj) => {
-  // YENİ: eğer DOM'da o kanal yoksa => createChannelDOM
   Object.keys(channelsObj).forEach(roomId => {
-    // Oda verisi
     const cData = channelsObj[roomId];
-
-    // Kanal DOM var mı? Yoksa oluştur
     let channelDiv = document.getElementById(`channel-${roomId}`);
     if (!channelDiv) {
-      // Dinamik oluştur
       console.log("Dinamik kanal oluştur:", roomId, cData.name);
       const newItem = createChannelDOM(roomId, cData.name);
       roomListDiv.appendChild(newItem);
-      channelDiv = newItem; 
+      channelDiv = newItem;
     }
 
     // Şimdi altındaki .channel-users güncelle
@@ -416,10 +406,40 @@ socket.on('groupUsers', (dbUsersArray) => {
   updateUserList(dbUsersArray);
 });
 
-/* roomUsers => WebRTC akışı */
+/* roomUsers => odadaki kullanıcılar */
 socket.on('roomUsers', (usersInRoom) => {
   console.log("roomUsers => ", usersInRoom);
 
+  // 1) Kanal DOM var mı? (currentRoom baz alarak)
+  //    eğer yoksa => create
+  if (currentRoom) {
+    let channelDiv = document.getElementById(`channel-${currentRoom}`);
+    if (!channelDiv) {
+      // "Kanal oluşturma"
+      channelDiv = createChannelDOM(currentRoom, "(Room?)");
+      roomListDiv.appendChild(channelDiv);
+    }
+    const channelUsersDiv = document.getElementById(`channel-users-${currentRoom}`);
+    if (channelUsersDiv) {
+      channelUsersDiv.innerHTML = '';
+      usersInRoom.forEach(u => {
+        const userDiv = document.createElement('div');
+        userDiv.classList.add('channel-user');
+
+        const avatarDiv = document.createElement('div');
+        avatarDiv.classList.add('channel-user-avatar');
+
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = u.username || '(İsimsiz)';
+
+        userDiv.appendChild(avatarDiv);
+        userDiv.appendChild(nameSpan);
+        channelUsersDiv.appendChild(userDiv);
+      });
+    }
+  }
+
+  // 2) WebRTC init
   const otherUserIds = usersInRoom
     .filter(u => u.id !== socket.id)
     .map(u => u.id)
