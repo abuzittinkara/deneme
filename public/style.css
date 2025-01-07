@@ -26,8 +26,6 @@ body {
   box-shadow: none; 
 }
 
-
-
 .app-title {
   margin: 0 0 1rem;
   font-size: 1.5rem;
@@ -153,7 +151,7 @@ body {
 }
 .grp-item.selected {
   border: 2px solid #c61884;
-  border-radius: 18px; 
+  border-radius: 10px; 
 }
 
 /* Grup Oluştur Butonu */
