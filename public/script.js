@@ -1,5 +1,5 @@
 /**************************************
- * script.js
+ * script.js (GÜNCELLENMİŞ TAM HÂL)
  **************************************/
 
 const socket = io();
@@ -20,7 +20,7 @@ let currentRoom = null;
 let pendingUsers = [];
 let pendingNewUsers = [];
 
-// ICE things
+// ICE Candidate / session
 let pendingCandidates = {};
 let sessionUfrag = {};
 
@@ -54,10 +54,12 @@ const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
 const callScreen = document.getElementById('callScreen');
 
+// Login
 const loginUsernameInput = document.getElementById('loginUsernameInput');
 const loginPasswordInput = document.getElementById('loginPasswordInput');
 const loginButton = document.getElementById('loginButton');
 
+// Register
 const regUsernameInput = document.getElementById('regUsernameInput');
 const regNameInput = document.getElementById('regNameInput');
 const regSurnameInput = document.getElementById('regSurnameInput');
@@ -72,9 +74,11 @@ const backToLoginButton = document.getElementById('backToLoginButton');
 const showRegisterScreen = document.getElementById('showRegisterScreen');
 const showLoginScreen = document.getElementById('showLoginScreen');
 
+// Gruplar
 const groupListDiv = document.getElementById('groupList');
 const createGroupButton = document.getElementById('createGroupButton');
 
+// Odalar
 const roomListDiv = document.getElementById('roomList');
 const createRoomButton = document.getElementById('createRoomButton');
 const groupTitle = document.getElementById('groupTitle');
@@ -85,13 +89,17 @@ const renameGroupBtn = document.getElementById('renameGroupBtn');
 const createChannelBtn = document.getElementById('createChannelBtn');
 const deleteGroupBtn = document.getElementById('deleteGroupBtn');
 
+// DM panel
 const toggleDMButton = document.getElementById('toggleDMButton');
 const closeDMButton = document.getElementById('closeDMButton');
 const dmPanel = document.getElementById('dmPanel');
 const groupsAndRooms = document.getElementById('groupsAndRooms');
 let isDMMode = false;
 
+// Sağ panel (kullanıcı listesi)
 const userListDiv = document.getElementById('userList');
+
+// Ayrıl Butonu
 const leaveButton = document.getElementById('leaveButton');
 
 /* AYARLAR Paneli */
@@ -268,8 +276,6 @@ joinGroupIdBtn.addEventListener('click', () => {
     alert("Grup ID boş olamaz!");
     return;
   }
-  // Bu => server'da => old gruptan çıkarmayacak
-  //  ama "browse" da değil => server'da "joinGroupByID"
   socket.emit('joinGroupByID', grpIdVal);
   joinGroupModal.style.display = 'none';
 });
@@ -279,9 +285,7 @@ closeJoinGroupModal.addEventListener('click', () => {
 
 /* ----------------------------------
    groupsList => sol sidebar
-   Ama biz "joinGroup" demek yerine
-   "browseGroup" => 
-   => Sadece odaları göstersin
+   => gruba tıklayınca => browseGroup
 -------------------------------------*/
 socket.on('groupsList', (groupArray) => {
   groupListDiv.innerHTML = '';
@@ -291,15 +295,14 @@ socket.on('groupsList', (groupArray) => {
     grpItem.innerText = groupObj.name[0].toUpperCase();
     grpItem.title = groupObj.name + " (" + groupObj.id + ")";
 
-    // Artık => Sadece "browseGroup"
     grpItem.addEventListener('click', () => {
       document.querySelectorAll('.grp-item').forEach(el => el.classList.remove('selected'));
       grpItem.classList.add('selected');
 
-      // Ekranda hangi group'a bakıyoruz => 
       groupTitle.textContent = groupObj.name;
 
-      // Sadece => server'a "browseGroup"
+      // Sadece "browseGroup" => kanalları görmek
+      currentGroup = groupObj.id; // Bu gruba "bakıyoruz"
       socket.emit('browseGroup', groupObj.id);
     });
 
@@ -331,10 +334,9 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Bu odaya gir => "joinRoom"
+    // Kanala gir => joinRoom
     roomItem.addEventListener('click', () => {
-      // Eski odadan çık + new odada peer
-      // closeAllPeers() => sonra join
+      // 1) Mevcut odadan çık + peers kapat
       if (currentRoom && currentRoom !== roomObj.id) {
         console.log("Leaving old room =>", currentRoom);
         socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
@@ -342,10 +344,10 @@ socket.on('roomsList', (roomsArray) => {
 
         setTimeout(() => {
           console.log("Joining new room =>", roomObj.id);
-          doJoinRoom(roomObj.id);
+          joinChannelWithMic(roomObj.id);
         }, 300);
       } else {
-        doJoinRoom(roomObj.id);
+        joinChannelWithMic(roomObj.id);
       }
     });
 
@@ -353,26 +355,21 @@ socket.on('roomsList', (roomsArray) => {
   });
 });
 
-function doJoinRoom(newRoomId) {
-  // Mesela => groupTitle'dan currentGroup'ı anlarız
-  // Veya client'ta store => "En son 'browseGroup' kimiydi"
-  // currentGroup'ta "browseGroup" yok => o an?
-  // => Biz groupTitle ile track edebiliriz
-  const gName = groupTitle.textContent; 
-  // Not: Bunu ID'ye çevirmenin yolunu client'ta tutmak lazım
-  //  Biz basitçe => currentGroup'ı da set'leyebiliriz
-  // => Ekran => groupTitle vs. "Sadece gösterim"
-  // client'ta => "browseGroup" => currentGroup = ?
-
-  // O an "browseGroup" => biz client'ta store edelim
-  // => currentGroup -> set => 
-  // Değişik senaryo => Basit olmak adına:
-  // => "currentGroup" = ID'sini "browseGroup" eventinde store
-  //    (Scriptte groupItem'a => data-id)
-
-  socket.emit('joinRoom', { groupId: currentGroup, roomId: newRoomId });
-  currentRoom = newRoomId;
-  leaveButton.style.display = 'flex';
+/* 
+   Kanala girerken => önce mikrofon izni al => 
+   sonrasında joinRoom emit. 
+*/
+function joinChannelWithMic(newRoomId) {
+  requestMicrophoneAccess()
+    .then(() => {
+      socket.emit('joinRoom', { groupId: currentGroup, roomId: newRoomId });
+      currentRoom = newRoomId;
+      leaveButton.style.display = 'flex';
+    })
+    .catch(err => {
+      console.error("Mikrofon alınamadı:", err);
+      alert("Mikrofona erişilemedi. Sesli sohbet başlatılamadı!");
+    });
 }
 
 /* allChannelsData => bu group'taki odalarda kimler var */
@@ -414,6 +411,9 @@ socket.on('roomUsers', (usersInRoom) => {
     .map(u => u.id)
     .filter(id => !peers[id]);
 
+  // Kişi odaya girince => "otherUserIds" ile peer başlat
+  // fallback => requestMicrophoneAccess (zaten joinChannelWithMic'te çağrıldı ama
+  // yine de odadaki event tetiklensin)
   if (!audioPermissionGranted || !localStream) {
     requestMicrophoneAccess().then(() => {
       otherUserIds.forEach(userId => {
@@ -430,7 +430,9 @@ socket.on('roomUsers', (usersInRoom) => {
     });
   } else {
     otherUserIds.forEach(userId => {
-      if (!peers[userId]) initPeer(userId, true);
+      if (!peers[userId]) {
+        initPeer(userId, true);
+      }
     });
   }
 });
@@ -479,7 +481,7 @@ leaveButton.addEventListener('click', () => {
   console.log("Kanaldan ayrıldınız.");
 });
 
-/* Sağ panel => groupUsers => updateUserList */
+/* sağ panel => groupUsers => updateUserList */
 function updateUserList(dbUsersArray) {
   userListDiv.innerHTML = '';
   dbUsersArray.forEach(u => {
@@ -537,6 +539,7 @@ async function requestMicrophoneAccess() {
     });
   } catch(err) {
     console.error("Mikrofon izni alınamadı:", err);
+    throw err;  // Önemli: hata yakalayıp "joinChannelWithMic" vs. engelle
   }
 }
 
