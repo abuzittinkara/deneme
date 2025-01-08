@@ -34,13 +34,23 @@ function createWaveIcon() {
   svg.setAttribute("viewBox", "0 0 16 16");
 
   const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path1.setAttribute("d", "M9.717.55A.5.5 0 0 1 10 .999v14a.5.5 0 0 1-.783.409L5.825 12H3.5A1.5 1.5 0 0 1 2 10.5v-5A1.5 1.5 0 0 1 3.5 4h2.325l3.392-2.409a.5.5 0 0 1 .5-.041z");
+  path1.setAttribute("d", "M9.717.55A.5.5 0 0 1 10 .999v14a.5.5 0 0 1-.783.409L5.825 12H3.5A1.5 
+    1.5 0 0 1 2 10.5v-5A1.5 
+    1.5 0 0 1 3.5 4h2.325l3.392-2.409a.5.5 
+    0 0 1 .5-.041z");
 
   const path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path2.setAttribute("d", "M13.493 1.957a.5.5 0 0 1 .014.706 7.979 7.979 0 0 1 0 10.674.5.5 0 1 1-.72-.694 6.979 6.979 0 0 0 0-9.286.5.5 0 0 1 .706-.014z");
+  path2.setAttribute("d", "M13.493 1.957a.5.5 0 0 1 .014.706 
+    7.979 7.979 0 0 1 0 10.674.5.5 
+    0 1 1-.72-.694 6.979 6.979 0 
+    0 0 0-9.286.5.5 0 0 1 .706-.014z");
 
   const path3 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path3.setAttribute("d", "M11.534 3.16a.5.5 0 0 1 .12.7 4.978 4.978 0 0 1 0 5.281.5.5 0 1 1-.82-.574 3.978 3.978 0 0 0 0-4.133.5.5 0 0 1 .7-.12z");
+  path3.setAttribute("d", "M11.534 3.16a.5.5 0 0 1 .12.7 4.978 
+    4.978 0 0 1 0 5.281.5.5 0 
+    1 1-.82-.574 3.978 3.978 
+    0 0 0 0-4.133.5.5 0 0 
+    1 .7-.12z");
 
   svg.appendChild(path1);
   svg.appendChild(path2);
@@ -103,15 +113,36 @@ const userListDiv = document.getElementById('userList');
 // Ayrıl Butonu
 const leaveButton = document.getElementById('leaveButton');
 
-// Ayarlar butonu => Yeni sayfaya yönlendirecek
+/* AYARLAR => Artık side-panel açma YOK, 
+   onun yerine "settings.html" sayfasına gidilecek. */
 const settingsButton = document.getElementById('settingsButton');
-
-// Tıklayınca side-bar açmak yerine => yeni sayfa
 settingsButton.addEventListener('click', () => {
-  window.location.href = "settings.html"; 
+  // Aynı sekmede yeni sayfaya geçebiliriz:
+  window.location.href = "settings.html";
+  // Eğer yeni sekmede açmak isterseniz => window.open("settings.html", "_blank");
 });
 
-// Ekran geçişleri (login <-> register)
+/* Modal referansları */
+const groupModal = document.getElementById('groupModal');
+const modalGroupCreateBtn = document.getElementById('modalGroupCreateBtn');
+const modalGroupJoinBtn = document.getElementById('modalGroupJoinBtn');
+
+const actualGroupCreateModal = document.getElementById('actualGroupCreateModal');
+const actualGroupName = document.getElementById('actualGroupName');
+const actualGroupNameBtn = document.getElementById('actualGroupNameBtn');
+const closeCreateGroupModal = document.getElementById('closeCreateGroupModal');
+
+const joinGroupModal = document.getElementById('joinGroupModal');
+const joinGroupIdInput = document.getElementById('joinGroupIdInput');
+const joinGroupIdBtn = document.getElementById('joinGroupIdBtn');
+const closeJoinGroupModal = document.getElementById('closeJoinGroupModal');
+
+const roomModal = document.getElementById('roomModal');
+const modalRoomName = document.getElementById('modalRoomName');
+const modalCreateRoomBtn = document.getElementById('modalCreateRoomBtn');
+const modalCloseRoomBtn = document.getElementById('modalCloseRoomBtn');
+
+/* Ekran geçişleri (login <-> register) */
 showRegisterScreen.addEventListener('click', () => {
   loginScreen.style.display = 'none';
   registerScreen.style.display = 'block';
@@ -244,7 +275,7 @@ socket.on('groupsList', (groupArray) => {
       document.querySelectorAll('.grp-item').forEach(el => el.classList.remove('selected'));
       grpItem.classList.add('selected');
 
-      currentGroup = null; // “browse” mod
+      currentGroup = null;
       groupTitle.textContent = groupObj.name;
       socket.emit('browseGroup', groupObj.id);
     });
@@ -279,9 +310,7 @@ socket.on('roomsList', (roomsArray) => {
 
     roomItem.addEventListener('click', () => {
       if (currentGroup !== roomObj.id) {
-        // Join group
         socket.emit('joinGroup', roomObj.id);
-
         setTimeout(() => {
           joinRoom(roomObj.id, roomObj.id, roomObj.name);
         }, 300);
@@ -294,7 +323,7 @@ socket.on('roomsList', (roomsArray) => {
   });
 });
 
-/* allChannelsData => kanallarda kim var */
+/* allChannelsData => ... */
 socket.on('allChannelsData', (channelsObj) => {
   Object.keys(channelsObj).forEach(roomId => {
     const cData = channelsObj[roomId];
@@ -319,15 +348,15 @@ socket.on('allChannelsData', (channelsObj) => {
   });
 });
 
-/* groupUsers => sağ panel => updateUserList */
-socket.on('groupUsers', (dbUsersArray) => {
-  console.log("groupUsers event alındı:", dbUsersArray);
-  updateUserList(dbUsersArray);
+/* groupUsers => sağ panel (mesela online/offline) */
+socket.on('groupUsers', (data) => {
+  console.log("groupUsers =>", data);
+  updateUserList(data);
 });
 
-/* roomUsers => odadaki kullanıcılar => WebRTC init */
+/* roomUsers => WebRTC init */
 socket.on('roomUsers', (usersInRoom) => {
-  console.log("roomUsers => odadaki kisiler:", usersInRoom);
+  console.log("roomUsers =>", usersInRoom);
 
   const otherUserIds = usersInRoom
     .filter(u => u.id !== socket.id)
@@ -343,6 +372,9 @@ socket.on('roomUsers', (usersInRoom) => {
         if (!peers[userId]) initPeer(userId, true);
       });
       pendingUsers = [];
+      pendingNewUsers.forEach(userId => {
+        if (!peers[userId]) initPeer(userId, false);
+      });
       pendingNewUsers = [];
     }).catch(err => {
       console.error("Mikrofon izni alınamadı:", err);
@@ -408,24 +440,25 @@ leaveButton.addEventListener('click', () => {
   console.log("Kanaldan ayrıldınız.");
 });
 
-/* sağ panel => groupUsers => updateUserList */
-function updateUserList(dbUsersArray) {
-  // Örneğin => { online: [...], offline: [...] }
+/* Kullanıcı listesini gösteren fonksiyon */
+function updateUserList(data) {
+  // data => { online: [...], offline: [...] }
+  // Burayı kendinize göre uyarlayabilirsiniz.
   userListDiv.innerHTML = '';
 
   const onlineTitle = document.createElement('h3');
   onlineTitle.textContent = 'Çevrimiçi';
   userListDiv.appendChild(onlineTitle);
 
-  if (dbUsersArray.online && dbUsersArray.online.length > 0) {
-    dbUsersArray.online.forEach(u => {
+  if (data.online && data.online.length > 0) {
+    data.online.forEach(u => {
       userListDiv.appendChild(createUserItem(u.username, true));
     });
   } else {
-    const pNoOneOnline = document.createElement('p');
-    pNoOneOnline.textContent = '(Kimse yok)';
-    pNoOneOnline.style.fontSize = '0.8rem';
-    userListDiv.appendChild(pNoOneOnline);
+    const p = document.createElement('p');
+    p.textContent = '(Kimse yok)';
+    p.style.fontSize = '0.8rem';
+    userListDiv.appendChild(p);
   }
 
   const offlineTitle = document.createElement('h3');
@@ -433,18 +466,19 @@ function updateUserList(dbUsersArray) {
   offlineTitle.style.marginTop = '1rem';
   userListDiv.appendChild(offlineTitle);
 
-  if (dbUsersArray.offline && dbUsersArray.offline.length > 0) {
-    dbUsersArray.offline.forEach(u => {
+  if (data.offline && data.offline.length > 0) {
+    data.offline.forEach(u => {
       userListDiv.appendChild(createUserItem(u.username, false));
     });
   } else {
-    const pNoOneOffline = document.createElement('p');
-    pNoOneOffline.textContent = '(Kimse yok)';
-    pNoOneOffline.style.fontSize = '0.8rem';
-    userListDiv.appendChild(pNoOneOffline);
+    const p2 = document.createElement('p');
+    p2.textContent = '(Kimse yok)';
+    p2.style.fontSize = '0.8rem';
+    userListDiv.appendChild(p2);
   }
 }
 
+/* Bir kullanıcı item'i oluştur */
 function createUserItem(username, isOnline) {
   const userItem = document.createElement('div');
   userItem.classList.add('user-item');
@@ -685,6 +719,16 @@ function closeAllPeers() {
 }
 
 /* Mikrofon & Kulaklık */
+micToggleButton.addEventListener('click', () => {
+  micEnabled = !micEnabled;
+  applyAudioStates();
+});
+deafenToggleButton.addEventListener('click', () => {
+  selfDeafened = !selfDeafened;
+  if (selfDeafened) micEnabled = false;
+  applyAudioStates();
+});
+
 function applyAudioStates() {
   if (localStream) {
     localStream.getAudioTracks().forEach(track => {
