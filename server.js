@@ -26,8 +26,7 @@ mongoose.connect(uri)
 const users = {};   // socket.id -> { username, currentGroup, currentRoom }
 const groups = {};  // groupId -> { owner, name, users:[], rooms:{} }
 
-// Şu an çevrimiçi (online) olan kullanıcı adlarını tutuyoruz
-// (usernames düzeyinde)
+// Çevrimiçi (online) olan kullanıcı adlarını tutuyoruz
 const onlineUsernames = new Set();
 
 app.use(express.static("public"));
@@ -75,32 +74,54 @@ async function loadChannelsFromDB() {
 loadGroupsFromDB().then(() => loadChannelsFromDB());
 
 /**
- * Bir gruba üye (DB'de) olan kullanıcıları çekiyoruz,
- * sonra her kullanıcı için "onlineUsernames" set'inde var mı yok mu bakarak
- * online / offline ayrımı yapıyoruz.
- * Ardından bu sonucu => { online: [...], offline: [...] } şeklinde emit ediyoruz.
+ * DB'den bu gruba üye kullanıcıları çekip,
+ * online/offline listesi çıkarıyoruz.
+ * Geri dönüş: { online: [...], offline: [...] }
+ */
+async function getOnlineOfflineDataForGroup(groupId) {
+  const groupDoc = await Group.findOne({ groupId }).populate('users');
+  if (!groupDoc) return { online: [], offline: [] };
+
+  const online = [];
+  const offline = [];
+
+  groupDoc.users.forEach(u => {
+    if (onlineUsernames.has(u.username)) {
+      online.push({ username: u.username });
+    } else {
+      offline.push({ username: u.username });
+    }
+  });
+
+  return { online, offline };
+}
+
+/**
+ * broadcastGroupUsers => Tüm gruba (groupId) gönderir
+ * (Kullanıcı o grupta joined olsa da, yayını görecektir.)
  */
 async function broadcastGroupUsers(groupId) {
   if (!groupId) return;
   try {
-    const groupDoc = await Group.findOne({ groupId }).populate('users');
-    if (!groupDoc) return;
-
-    const online = [];
-    const offline = [];
-
-    groupDoc.users.forEach(u => {
-      // u.username => eğer onlineUsernames'te varsa online, yoksa offline
-      if (onlineUsernames.has(u.username)) {
-        online.push({ username: u.username });
-      } else {
-        offline.push({ username: u.username });
-      }
-    });
-
+    const { online, offline } = await getOnlineOfflineDataForGroup(groupId);
     io.to(groupId).emit('groupUsers', { online, offline });
   } catch (err) {
     console.error("broadcastGroupUsers hata:", err);
+  }
+}
+
+/**
+ * Yalnızca TEK kullanıcının socket.id'sine,
+ * "grupta kimler var (online/offline)" verisini gönderir.
+ * (browseGroup sırasında henüz join etmemiş olsa bile,
+ *  direkt socket'e emit edilecek.)
+ */
+async function sendGroupUsersToOneUser(socketId, groupId) {
+  try {
+    const { online, offline } = await getOnlineOfflineDataForGroup(groupId);
+    io.to(socketId).emit('groupUsers', { online, offline });
+  } catch (err) {
+    console.error("sendGroupUsersToOneUser hata:", err);
   }
 }
 
@@ -126,8 +147,7 @@ function broadcastAllChannelsData(groupId) {
 }
 
 /**
- * Aynı 'allChannelsData' bilgisini, sadece tek bir kullanıcıya gönderir
- * (ör. browseGroup çağrısı sonrasında istemciye göstermek için).
+ * Sadece tek kullanıcıya, "kanallarda kim var" verisini gönderir
  */
 function sendAllChannelsDataToOneUser(socketId, groupId) {
   if (!groups[groupId]) return;
@@ -142,7 +162,6 @@ function sendAllChannelsDataToOneUser(socketId, groupId) {
       }))
     };
   });
-  // Sadece tek socket'e gönder
   io.to(socketId).emit('allChannelsData', channelsObj);
 }
 
@@ -203,7 +222,6 @@ io.on("connection", (socket) => {
         socket.emit('loginResult', { success: false, message: 'Yanlış parola.' });
         return;
       }
-      // Giriş başarılı => client'a bildir
       socket.emit('loginResult', { success: true, username: user.username });
     } catch (err) {
       console.error(err);
@@ -253,10 +271,7 @@ io.on("connection", (socket) => {
   });
 
   /**
-   * set-username => kullanıcı adını belirleme
-   * Burada user "online" olmuş oluyor => onlineUsernames'e ekliyoruz.
-   * Ardından, bu kullanıcının üye olduğu tüm gruplar için broadcastGroupUsers yaparak
-   * bu user "online" duruma geldiğini yansıtacağız.
+   * set-username => kullanıcı adını belirleme => user online
    */
   socket.on('set-username', async (usernameVal) => {
     if (usernameVal && typeof usernameVal === 'string') {
@@ -274,14 +289,11 @@ io.on("connection", (socket) => {
         console.error("sendGroupsListToUser hata:", err);
       }
 
-      // Bu user DB'de hangi gruplara üye ise, o gruplara "groupUsers" broadcast edelim
+      // Bu user DB'de hangi gruplara üye ise, o gruplara => broadcastGroupUsers (online duruma geçti)
       try {
         const userDoc = await User.findOne({ username: trimmedName }).populate('groups');
         if (userDoc && userDoc.groups.length > 0) {
-          // Her grup için broadcastGroupUsers
           for (const gDoc of userDoc.groups) {
-            // Bu user henüz fiilen "groups[gDoc.groupId].users" listesine girmemiş olabilir,
-            // ama biz "online / offline" mantığı için groupUsers yayını yapacağız.
             broadcastGroupUsers(gDoc.groupId);
           }
         }
@@ -323,7 +335,7 @@ io.on("connection", (socket) => {
 
     await sendGroupsListToUser(socket.id);
 
-    // Bu user online ise (kesin online), groupUsers yayını
+    // broadcast => bu user online => groupUsers
     broadcastGroupUsers(groupId);
   });
 
@@ -342,7 +354,6 @@ io.on("connection", (socket) => {
         return;
       }
 
-      // DB'de user <-> group ilişkisini güncelle
       if (!groupDoc.users.includes(userDoc._id)) {
         groupDoc.users.push(userDoc._id);
         await groupDoc.save();
@@ -363,7 +374,7 @@ io.on("connection", (socket) => {
       const oldGroup = users[socket.id].currentGroup;
       const oldRoom = users[socket.id].currentRoom;
 
-      // Eski gruptan çık
+      // Eski gruptan/odadan çık
       if (oldGroup && groups[oldGroup]) {
         if (oldRoom && groups[oldGroup].rooms[oldRoom]) {
           groups[oldGroup].rooms[oldRoom].users =
@@ -396,13 +407,18 @@ io.on("connection", (socket) => {
     }
   });
 
-  // browseGroup
+  /**
+   * browseGroup => henüz gruba katılmadan sadece o gruptaki odalar ve kullanıcıları görmek istediğinde
+   *  1) roomsList
+   *  2) allChannelsData
+   *  3) groupUsers => TEK kullanıcıya (online/offline listesi)
+   */
   socket.on('browseGroup', async (groupId) => {
     if (!groups[groupId]) return;
     sendRoomsListToUser(socket.id, groupId);
     sendAllChannelsDataToOneUser(socket.id, groupId);
-    // groupUsers da user'a tek seferlik gönderelim
-    await broadcastGroupUsers(groupId);
+    // => Kullanıcı henüz joinGroup yapmadıysa bile, gruptaki online/offline kullanıcıları görebilsin
+    await sendGroupUsersToOneUser(socket.id, groupId);
   });
 
   // joinGroup
@@ -536,25 +552,25 @@ io.on("connection", (socket) => {
     if (userData) {
       const { username, currentGroup, currentRoom } = userData;
       if (username) {
-        // Bu kullanıcı artık offline
         onlineUsernames.delete(username);
 
-        // DB'de bu kullanıcının üye olduğu tüm gruplar için "offline" yansıması
+        // DB'de bu kullanıcının üye olduğu tüm gruplar => offline
         try {
           const userDoc = await User.findOne({ username }).populate('groups');
           if (userDoc && userDoc.groups.length > 0) {
             for (const gDoc of userDoc.groups) {
-              // eğer bu user, bellek tablo groups[gDoc.groupId].users içinde varsa => oradan da sil
+              // bellek tablo => eski group + room'dan çıkar
               if (groups[gDoc.groupId]) {
-                // eğer user orada "socket bazında" kayıtlıysa
                 if (currentRoom && groups[gDoc.groupId].rooms[currentRoom]) {
                   groups[gDoc.groupId].rooms[currentRoom].users =
                     groups[gDoc.groupId].rooms[currentRoom].users.filter(u => u.id !== socket.id);
-                  io.to(`${gDoc.groupId}::${currentRoom}`).emit('roomUsers', groups[gDoc.groupId].rooms[currentRoom].users);
+                  io.to(`${gDoc.groupId}::${currentRoom}`).emit(
+                    'roomUsers',
+                    groups[gDoc.groupId].rooms[currentRoom].users
+                  );
                 }
                 groups[gDoc.groupId].users = groups[gDoc.groupId].users.filter(u => u.id !== socket.id);
 
-                // broadcast
                 broadcastAllChannelsData(gDoc.groupId);
                 await broadcastGroupUsers(gDoc.groupId);
               }
