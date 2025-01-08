@@ -307,6 +307,7 @@ joinGroupIdBtn.addEventListener('click', () => {
     return;
   }
   // Gerçekten gruba katılmak için
+  // => Sunucu tarafında eski grup/odadan ayrılıp bu gruba girecek
   socket.emit('joinGroupByID', grpIdVal);
   joinGroupModal.style.display = 'none';
 });
@@ -370,23 +371,31 @@ socket.on('roomsList', (roomsArray) => {
 
     // Kanala tıklayınca => eğer farklı gruptaysa joinGroup + sonra joinRoom
     roomItem.addEventListener('click', () => {
-      // Önce: Aynı odadaysak => hiçbir şey yapma
+      // Aynı odadaysak => hiçbir şey yapma
       if (currentGroup === selectedGroup && currentRoom === roomObj.id) {
-        // Zaten o kanaldayız
         return;
       }
 
-      // Eğer "gerçekten" başka gruptaysa
+      // Eğer "gerçekten" başka gruptaysa (büyük değişiklik)
       if (currentGroup !== selectedGroup) {
-        // joinGroup => eski kanaldan çıkar, bu gruba gir
+        // Eski P2P bağlantıları kapat => diğer kanallardaki kişiler seni duymasın
+        if (currentGroup) {
+          closeAllPeers();
+        }
+        // joinGroup => sunucu tarafında eski gruptan çıkar, bu gruba gir
         socket.emit('joinGroup', selectedGroup);
 
-        // Ardından, bir küçük gecikmeyle odasına gir
+        // Ardından, küçük bir gecikmeyle odasına gir
         setTimeout(() => {
           joinRoom(selectedGroup, roomObj.id, roomObj.name);
         }, 300);
       } else {
-        // Aynı gruptaysak direkt o kanala geçiş
+        // Aynı grupta farklı kanala geçiliyor
+        // Eski P2P bağlantıları kapat
+        if (currentRoom && currentRoom !== roomObj.id) {
+          closeAllPeers();
+        }
+        // Yeni kanala katıl
         joinRoom(selectedGroup, roomObj.id, roomObj.name);
       }
     });
@@ -397,6 +406,7 @@ socket.on('roomsList', (roomsArray) => {
 
 /* allChannelsData => kanallarda kim var */
 socket.on('allChannelsData', (channelsObj) => {
+  // Her odanın içindeki kullanıcıları DOM'da güncelle
   Object.keys(channelsObj).forEach(roomId => {
     const cData = channelsObj[roomId];
     const channelDiv = document.getElementById(`channel-users-${roomId}`);
@@ -430,6 +440,7 @@ socket.on('groupUsers', (dbUsersArray) => {
 socket.on('roomUsers', (usersInRoom) => {
   console.log("roomUsers => odadaki kisiler:", usersInRoom);
 
+  // Bu dizi, yalnızca o anki oda kullanıcılarını içeriyor
   const otherUserIds = usersInRoom
     .filter(u => u.id !== socket.id)
     .map(u => u.id)
@@ -493,7 +504,11 @@ modalCloseRoomBtn.addEventListener('click', () => {
   roomModal.style.display = 'none';
 });
 
-/* joinRoom => WebRTC */
+/**
+ * joinRoom => WebRTC için yeni oda.
+ * Burada, "odalar arasında geçerken" eski PeerConnection'ları kapatıyoruz
+ * (Kodun yukarısında da "farklı kanala tıklandığında" closeAllPeers() yapılır.)
+ */
 function joinRoom(groupId, roomId, roomName) {
   currentGroup = groupId;
   currentRoom = roomId;
@@ -601,11 +616,9 @@ socket.on("signal", async (data) => {
 
     if (pendingCandidates[from]) {
       for (const c of pendingCandidates[from]) {
-        if (
-          sessionUfrag[from] &&
-          sessionUfrag[from] !== c.usernameFragment &&
-          c.usernameFragment !== null
-        ) {
+        if (sessionUfrag[from] 
+            && sessionUfrag[from] !== c.usernameFragment 
+            && c.usernameFragment !== null) {
           console.warn("Candidate mismatch => drop:", c);
           continue;
         }
@@ -629,11 +642,9 @@ socket.on("signal", async (data) => {
 
     if (pendingCandidates[from]) {
       for (const c of pendingCandidates[from]) {
-        if (
-          sessionUfrag[from] &&
-          sessionUfrag[from] !== c.usernameFragment &&
-          c.usernameFragment !== null
-        ) {
+        if (sessionUfrag[from] 
+            && sessionUfrag[from] !== c.usernameFragment 
+            && c.usernameFragment !== null) {
           console.warn("Candidate mismatch => drop:", c);
           continue;
         }
@@ -654,11 +665,9 @@ socket.on("signal", async (data) => {
       }
       pendingCandidates[from].push(signal);
     } else {
-      if (
-        sessionUfrag[from] &&
-        sessionUfrag[from] !== signal.usernameFragment &&
-        signal.usernameFragment !== null
-      ) {
+      if (sessionUfrag[from] 
+          && sessionUfrag[from] !== signal.usernameFragment 
+          && signal.usernameFragment !== null) {
         console.warn("Candidate mismatch => drop:", signal);
         return;
       }
@@ -747,7 +756,7 @@ async function createOffer(peer, userId) {
   socket.emit("signal", { to: userId, signal: peer.localDescription });
 }
 
-/* closeAllPeers */
+/* closeAllPeers => Tüm RTCPeerConnection'ları kapat */
 function closeAllPeers() {
   console.log("CLOSING ALL PEERS!");
   for (const userId in peers) {
