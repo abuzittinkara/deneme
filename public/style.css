@@ -400,12 +400,10 @@ body {
   box-sizing: border-box;
   color: #fff;
 }
-
-/* Kullanıcı listesi => gap daha az (0.2rem) */
 .user-list {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem; 
+  gap: 1rem;
 }
 
 /* user-item => çerçeve yok, hover yok */
