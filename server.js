@@ -132,6 +132,23 @@ function sendAllChannelsDataToOneUser(socketId, groupId) {
 }
 
 /**
+ * Yalnızca tek kullanıcıya, o gruba ait kullanıcı listesini gönderir.
+ * (Gruba üye olmuş kullanıcıları görmek için.)
+ */
+async function sendGroupUsersToOneUser(socketId, groupId) {
+  try {
+    const groupDoc = await Group.findOne({ groupId }).populate('users');
+    if (!groupDoc) return;
+    const userArray = groupDoc.users.map(u => ({
+      username: u.username
+    }));
+    io.to(socketId).emit('groupUsers', userArray);
+  } catch (err) {
+    console.error("sendGroupUsersToOneUser hata:", err);
+  }
+}
+
+/**
  * Kullanıcının (socketId) DB'de üye olduğu grupları bulup
  * 'groupsList' event'iyle geri gönderir.
  */
@@ -378,14 +395,16 @@ io.on("connection", (socket) => {
 
   /**
    * browseGroup => Yalnızca o grubun kanallarını (roomsList) + "kanallarda kim var" verisini gönderir.
-   * Sesli olarak katılma, ayrılma vs. olmaz.
+   * Artık ek olarak o gruba üye olmuş kullanıcılar listesi de sadece bu kullanıcıya gönderilecek.
    */
-  socket.on('browseGroup', (groupId) => {
+  socket.on('browseGroup', async (groupId) => {
     if (!groups[groupId]) return;
-    // Sadece oda listesini gönder
+    // Oda listesini gönder
     sendRoomsListToUser(socket.id, groupId);
     // Kanallarda kim var bilgisi de tek seferde gönderilsin
     sendAllChannelsDataToOneUser(socket.id, groupId);
+    // Yeni eklenen: Grup üyelerini (o gruba katılmış kullanıcıları) sadece bu kullanıcıya gönder
+    await sendGroupUsersToOneUser(socket.id, groupId);
   });
 
   /**
@@ -425,7 +444,7 @@ io.on("connection", (socket) => {
     sendRoomsListToUser(socket.id, groupId);
     // Kanallardaki güncel veri
     broadcastAllChannelsData(groupId);
-    // DB'den grup üyeleri listesi
+    // DB'den grup üyeleri listesi => 'groupUsers'
     await broadcastGroupUsers(groupId);
   });
 
