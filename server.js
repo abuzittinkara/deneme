@@ -26,6 +26,10 @@ mongoose.connect(uri)
 const users = {};   // socket.id -> { username, currentGroup, currentRoom }
 const groups = {};  // groupId -> { owner, name, users:[], rooms:{} }
 
+// Şu an çevrimiçi (online) olan kullanıcı adlarını tutuyoruz
+// (usernames düzeyinde)
+const onlineUsernames = new Set();
+
 app.use(express.static("public"));
 
 async function loadGroupsFromDB() {
@@ -71,19 +75,30 @@ async function loadChannelsFromDB() {
 loadGroupsFromDB().then(() => loadChannelsFromDB());
 
 /**
- * Belirli bir gruba (groupId) ait kullanıcıları (DB'den) çekip
- * o gruba bağlı tüm socket'lere 'groupUsers' event'iyle gönderir.
+ * Bir gruba üye (DB'de) olan kullanıcıları çekiyoruz,
+ * sonra her kullanıcı için "onlineUsernames" set'inde var mı yok mu bakarak
+ * online / offline ayrımı yapıyoruz.
+ * Ardından bu sonucu => { online: [...], offline: [...] } şeklinde emit ediyoruz.
  */
 async function broadcastGroupUsers(groupId) {
   if (!groupId) return;
   try {
     const groupDoc = await Group.findOne({ groupId }).populate('users');
     if (!groupDoc) return;
-    const userArray = groupDoc.users.map(u => ({
-      username: u.username
-    }));
-    // Aynı groupId odasına bağlı herkese gönder
-    io.to(groupId).emit('groupUsers', userArray);
+
+    const online = [];
+    const offline = [];
+
+    groupDoc.users.forEach(u => {
+      // u.username => eğer onlineUsernames'te varsa online, yoksa offline
+      if (onlineUsernames.has(u.username)) {
+        online.push({ username: u.username });
+      } else {
+        offline.push({ username: u.username });
+      }
+    });
+
+    io.to(groupId).emit('groupUsers', { online, offline });
   } catch (err) {
     console.error("broadcastGroupUsers hata:", err);
   }
@@ -132,23 +147,6 @@ function sendAllChannelsDataToOneUser(socketId, groupId) {
 }
 
 /**
- * Yalnızca tek kullanıcıya, o gruba ait kullanıcı listesini gönderir.
- * (Gruba üye olmuş kullanıcıları görmek için.)
- */
-async function sendGroupUsersToOneUser(socketId, groupId) {
-  try {
-    const groupDoc = await Group.findOne({ groupId }).populate('users');
-    if (!groupDoc) return;
-    const userArray = groupDoc.users.map(u => ({
-      username: u.username
-    }));
-    io.to(socketId).emit('groupUsers', userArray);
-  } catch (err) {
-    console.error("sendGroupUsersToOneUser hata:", err);
-  }
-}
-
-/**
  * Kullanıcının (socketId) DB'de üye olduğu grupları bulup
  * 'groupsList' event'iyle geri gönderir.
  */
@@ -178,22 +176,17 @@ function sendRoomsListToUser(socketId, groupId) {
   io.to(socketId).emit('roomsList', roomArray);
 }
 
-/**
- * Socket.IO ana bağlantı noktası
- */
+// Socket.IO
 io.on("connection", (socket) => {
   console.log("Kullanıcı bağlandı:", socket.id);
 
-  // Bağlanan kullanıcı için bellek tablosuna başlangıç kaydı
   users[socket.id] = {
     username: null,
     currentGroup: null,
     currentRoom: null
   };
 
-  /**
-   * LOGIN
-   */
+  // LOGIN
   socket.on('login', async ({ username, password }) => {
     try {
       if (!username || !password) {
@@ -210,6 +203,7 @@ io.on("connection", (socket) => {
         socket.emit('loginResult', { success: false, message: 'Yanlış parola.' });
         return;
       }
+      // Giriş başarılı => client'a bildir
       socket.emit('loginResult', { success: true, username: user.username });
     } catch (err) {
       console.error(err);
@@ -217,9 +211,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  /**
-   * REGISTER (yeni kullanıcı oluşturma)
-   */
+  // REGISTER
   socket.on('register', async (userData) => {
     const { username, name, surname, birthdate, email, phone, password, passwordConfirm } = userData;
     if (!username || !name || !surname || !birthdate || !email || !phone ||
@@ -261,36 +253,55 @@ io.on("connection", (socket) => {
   });
 
   /**
-   * Kullanıcı, front-end'de 'set-username' emit edince
-   * bellek tablosunda username kaydedip,
-   * bu kullanıcıya ait grupların listesini gönderiyoruz.
+   * set-username => kullanıcı adını belirleme
+   * Burada user "online" olmuş oluyor => onlineUsernames'e ekliyoruz.
+   * Ardından, bu kullanıcının üye olduğu tüm gruplar için broadcastGroupUsers yaparak
+   * bu user "online" duruma geldiğini yansıtacağız.
    */
   socket.on('set-username', async (usernameVal) => {
     if (usernameVal && typeof usernameVal === 'string') {
-      users[socket.id].username = usernameVal.trim();
-      console.log(`User ${socket.id} => set-username => ${usernameVal}`);
+      const trimmedName = usernameVal.trim();
+      users[socket.id].username = trimmedName;
+      console.log(`User ${socket.id} => set-username => ${trimmedName}`);
+
+      // Bu kullanıcı artık online
+      onlineUsernames.add(trimmedName);
+
+      // Kullanıcıya gruplarını gönder
       try {
         await sendGroupsListToUser(socket.id);
       } catch (err) {
         console.error("sendGroupsListToUser hata:", err);
       }
+
+      // Bu user DB'de hangi gruplara üye ise, o gruplara "groupUsers" broadcast edelim
+      try {
+        const userDoc = await User.findOne({ username: trimmedName }).populate('groups');
+        if (userDoc && userDoc.groups.length > 0) {
+          // Her grup için broadcastGroupUsers
+          for (const gDoc of userDoc.groups) {
+            // Bu user henüz fiilen "groups[gDoc.groupId].users" listesine girmemiş olabilir,
+            // ama biz "online / offline" mantığı için groupUsers yayını yapacağız.
+            broadcastGroupUsers(gDoc.groupId);
+          }
+        }
+      } catch (err) {
+        console.error("userDoc groups fetch hata:", err);
+      }
     }
   });
 
-  /**
-   * Grup oluştur
-   */
+  // createGroup
   socket.on('createGroup', async (groupName) => {
     if (!groupName) return;
     const trimmed = groupName.trim();
     if (!trimmed) return;
 
-    const groupId = uuidv4();
     const userName = users[socket.id].username || `(User ${socket.id})`;
     const userDoc = await User.findOne({ username: userName });
     if (!userDoc) return;
 
-    // DB'ye kaydet
+    const groupId = uuidv4();
     const newGroup = new Group({
       groupId,
       name: trimmed,
@@ -299,11 +310,9 @@ io.on("connection", (socket) => {
     });
     await newGroup.save();
 
-    // User'ın grup listesine ekle
     userDoc.groups.push(newGroup._id);
     await userDoc.save();
 
-    // Bellek içi tabloya ekle
     groups[groupId] = {
       owner: socket.id,
       name: trimmed,
@@ -312,14 +321,13 @@ io.on("connection", (socket) => {
     };
     console.log(`Yeni grup: ${trimmed} (ID=${groupId}), owner=${socket.id}`);
 
-    // Bu kullanıcıya güncel grup listesini gönder
     await sendGroupsListToUser(socket.id);
+
+    // Bu user online ise (kesin online), groupUsers yayını
+    broadcastGroupUsers(groupId);
   });
 
-  /**
-   * joinGroupByID => Örneğin bir "invite link" gibi, ID ile gruba katılmak istenirse
-   * (gerçekten bu gruba "join" edilecek, eski gruptan çıkılır)
-   */
+  // joinGroupByID
   socket.on('joinGroupByID', async (groupId) => {
     try {
       const userName = users[socket.id].username || `(User ${socket.id})`;
@@ -352,11 +360,10 @@ io.on("connection", (socket) => {
         };
       }
 
-      // Sunucu tarafında da "joinGroup" mantığını uygulayalım:
       const oldGroup = users[socket.id].currentGroup;
       const oldRoom = users[socket.id].currentRoom;
 
-      // Eski gruptan/odadan çık
+      // Eski gruptan çık
       if (oldGroup && groups[oldGroup]) {
         if (oldRoom && groups[oldGroup].rooms[oldRoom]) {
           groups[oldGroup].rooms[oldRoom].users =
@@ -371,7 +378,6 @@ io.on("connection", (socket) => {
         await broadcastGroupUsers(oldGroup);
       }
 
-      // Yeni gruba ekle
       if (!groups[groupId].users.some(u => u.id === socket.id)) {
         groups[groupId].users.push({ id: socket.id, username: userName });
       }
@@ -381,11 +387,8 @@ io.on("connection", (socket) => {
 
       console.log(`User ${socket.id} => joinGroupByID => ${groupId}`);
 
-      // Bu kullanıcıya odalar listesini gönder
       sendRoomsListToUser(socket.id, groupId);
-      // Tüm kanallardaki güncel kullanıcı listesini gönder
       broadcastAllChannelsData(groupId);
-      // DB'den çekilen user listesi => 'groupUsers'
       await broadcastGroupUsers(groupId);
 
     } catch (err) {
@@ -393,31 +396,22 @@ io.on("connection", (socket) => {
     }
   });
 
-  /**
-   * browseGroup => Yalnızca o grubun kanallarını (roomsList) + "kanallarda kim var" verisini gönderir.
-   * Artık ek olarak o gruba üye olmuş kullanıcılar listesi de sadece bu kullanıcıya gönderilecek.
-   */
+  // browseGroup
   socket.on('browseGroup', async (groupId) => {
     if (!groups[groupId]) return;
-    // Oda listesini gönder
     sendRoomsListToUser(socket.id, groupId);
-    // Kanallarda kim var bilgisi de tek seferde gönderilsin
     sendAllChannelsDataToOneUser(socket.id, groupId);
-    // Yeni eklenen: Grup üyelerini (o gruba katılmış kullanıcıları) sadece bu kullanıcıya gönder
-    await sendGroupUsersToOneUser(socket.id, groupId);
+    // groupUsers da user'a tek seferlik gönderelim
+    await broadcastGroupUsers(groupId);
   });
 
-  /**
-   * joinGroup => gerçekten bu gruba geç,
-   * eğer eski grupta isen oradan çık.
-   */
+  // joinGroup
   socket.on('joinGroup', async (groupId) => {
     if (!groups[groupId]) return;
     const oldGroup = users[socket.id].currentGroup;
     const oldRoom = users[socket.id].currentRoom;
     const userName = users[socket.id].username || `(User ${socket.id})`;
 
-    // Eski gruptan / kanaldan ayrılma
     if (oldGroup && groups[oldGroup]) {
       if (oldRoom && groups[oldGroup].rooms[oldRoom]) {
         groups[oldGroup].rooms[oldRoom].users =
@@ -432,7 +426,6 @@ io.on("connection", (socket) => {
       await broadcastGroupUsers(oldGroup);
     }
 
-    // Yeni gruba ekle
     if (!groups[groupId].users.some(u => u.id === socket.id)) {
       groups[groupId].users.push({ id: socket.id, username: userName });
     }
@@ -440,17 +433,12 @@ io.on("connection", (socket) => {
     users[socket.id].currentRoom = null;
     socket.join(groupId);
 
-    // Kullanıcıya odalar listesi gönder
     sendRoomsListToUser(socket.id, groupId);
-    // Kanallardaki güncel veri
     broadcastAllChannelsData(groupId);
-    // DB'den grup üyeleri listesi => 'groupUsers'
     await broadcastGroupUsers(groupId);
   });
 
-  /**
-   * createRoom => Bir grup içinde yeni oda (channel) açar, DB'ye de kaydeder
-   */
+  // createRoom
   socket.on('createRoom', async ({ groupId, roomName }) => {
     try {
       if (!groups[groupId]) return;
@@ -458,11 +446,10 @@ io.on("connection", (socket) => {
       const trimmed = roomName.trim();
       if (!trimmed) return;
 
-      const roomId = uuidv4();
       const groupDoc = await Group.findOne({ groupId });
       if (!groupDoc) return;
 
-      // DB'ye Channel dokümanı ekle
+      const roomId = uuidv4();
       const newChannel = new Channel({
         channelId: roomId,
         name: trimmed,
@@ -471,14 +458,12 @@ io.on("connection", (socket) => {
       });
       await newChannel.save();
 
-      // Bellek içi tabloya ekle
       groups[groupId].rooms[roomId] = {
         name: trimmed,
         users: []
       };
       console.log(`Yeni oda: group=${groupId}, room=${roomId}, name=${trimmed}`);
 
-      // Gruba bağlı tüm kullanıcılara odalar listesini güncelle
       groups[groupId].users.forEach(u => {
         sendRoomsListToUser(u.id, groupId);
       });
@@ -488,17 +473,12 @@ io.on("connection", (socket) => {
     }
   });
 
-  /**
-   * joinRoom => Seçili gruptaki belirli bir odaya gir,
-   * o odada kim varsa => 'roomUsers' event'iyle herkese gönder
-   */
+  // joinRoom
   socket.on('joinRoom', ({ groupId, roomId }) => {
     if (!groups[groupId]) return;
     if (!groups[groupId].rooms[roomId]) return;
-
     const userName = users[socket.id].username || `(User ${socket.id})`;
 
-    // Eski odadan çık
     const oldRoom = users[socket.id].currentRoom;
     if (oldRoom && groups[groupId].rooms[oldRoom]) {
       groups[groupId].rooms[oldRoom].users =
@@ -507,21 +487,16 @@ io.on("connection", (socket) => {
       socket.leave(`${groupId}::${oldRoom}`);
     }
 
-    // Yeni odaya ekle
     groups[groupId].rooms[roomId].users.push({ id: socket.id, username: userName });
     users[socket.id].currentRoom = roomId;
     socket.join(`${groupId}::${roomId}`);
 
-    // Odadaki herkese kimler var diye bildir
     io.to(`${groupId}::${roomId}`).emit('roomUsers', groups[groupId].rooms[roomId].users);
 
-    // Kanallardaki veriyi güncelle
     broadcastAllChannelsData(groupId);
   });
 
-  /**
-   * leaveRoom => Odadan ayrıl, peer bağlantıları client tarafında kapatılır
-   */
+  // leaveRoom
   socket.on('leaveRoom', ({ groupId, roomId }) => {
     if (!groups[groupId]) return;
     if (!groups[groupId].rooms[roomId]) return;
@@ -535,10 +510,7 @@ io.on("connection", (socket) => {
     broadcastAllChannelsData(groupId);
   });
 
-  /**
-   * WebRTC "signal" => Tek kullanıcıdan gelen offer/answer/ice'i,
-   * hedef kullanıcıya yönlendirir
-   */
+  // WebRTC (signal)
   socket.on("signal", (data) => {
     const targetId = data.to;
     if (socket.id === targetId) return;
@@ -549,7 +521,6 @@ io.on("connection", (socket) => {
     const sR = users[socket.id].currentRoom;
     const tR = users[targetId].currentRoom;
 
-    // İki tarafta aynı grup ve aynı odada iseler => sinyal ilet
     if (sG && sG === tG && sR && sR === tR) {
       io.to(targetId).emit("signal", {
         from: socket.id,
@@ -558,35 +529,47 @@ io.on("connection", (socket) => {
     }
   });
 
-  /**
-   * socket.disconnect => Kullanıcı tarayıcıdan çıktı/yeniden yüklendi vs.
-   */
+  // Disconnect
   socket.on("disconnect", async () => {
     console.log("disconnect:", socket.id);
     const userData = users[socket.id];
-    if (userData && userData.currentGroup) {
-      const gId = userData.currentGroup;
-      const rId = userData.currentRoom;
-      if (groups[gId]) {
-        // Odadaysa odadan çıkar
-        if (rId && groups[gId].rooms[rId]) {
-          groups[gId].rooms[rId].users =
-            groups[gId].rooms[rId].users.filter(u => u.id !== socket.id);
-          io.to(`${gId}::${rId}`).emit('roomUsers', groups[gId].rooms[rId].users);
-        }
-        // Gruptan çıkar
-        groups[gId].users = groups[gId].users.filter(u => u.id !== socket.id);
+    if (userData) {
+      const { username, currentGroup, currentRoom } = userData;
+      if (username) {
+        // Bu kullanıcı artık offline
+        onlineUsernames.delete(username);
 
-        // Güncel veriler
-        broadcastAllChannelsData(gId);
-        await broadcastGroupUsers(gId);
+        // DB'de bu kullanıcının üye olduğu tüm gruplar için "offline" yansıması
+        try {
+          const userDoc = await User.findOne({ username }).populate('groups');
+          if (userDoc && userDoc.groups.length > 0) {
+            for (const gDoc of userDoc.groups) {
+              // eğer bu user, bellek tablo groups[gDoc.groupId].users içinde varsa => oradan da sil
+              if (groups[gDoc.groupId]) {
+                // eğer user orada "socket bazında" kayıtlıysa
+                if (currentRoom && groups[gDoc.groupId].rooms[currentRoom]) {
+                  groups[gDoc.groupId].rooms[currentRoom].users =
+                    groups[gDoc.groupId].rooms[currentRoom].users.filter(u => u.id !== socket.id);
+                  io.to(`${gDoc.groupId}::${currentRoom}`).emit('roomUsers', groups[gDoc.groupId].rooms[currentRoom].users);
+                }
+                groups[gDoc.groupId].users = groups[gDoc.groupId].users.filter(u => u.id !== socket.id);
+
+                // broadcast
+                broadcastAllChannelsData(gDoc.groupId);
+                await broadcastGroupUsers(gDoc.groupId);
+              }
+            }
+          }
+        } catch (err) {
+          console.error("disconnect => userDoc fetch hata:", err);
+        }
       }
     }
     delete users[socket.id];
   });
 });
 
-// Sunucuyu başlat
+// Start
 const PORT = process.env.PORT || 10000;
 server.listen(PORT, () => {
   console.log(`Sunucu çalışıyor: http://localhost:${PORT}`);
