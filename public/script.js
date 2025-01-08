@@ -17,6 +17,9 @@ let selfDeafened = false;
 let currentGroup = null;
 let currentRoom = null;
 
+// Göz atılan (browse edilen) grup
+let selectedGroup = null;
+
 let pendingUsers = [];
 let pendingNewUsers = [];
 
@@ -227,6 +230,7 @@ socket.on('loginResult', (data) => {
     callScreen.style.display = 'flex';
     socket.emit('set-username', username);
     leftUserName.textContent = username;
+    // micEnabled var, set edelim
     applyAudioStates();
   } else {
     alert("Giriş başarısız: " + data.message);
@@ -314,7 +318,7 @@ closeJoinGroupModal.addEventListener('click', () => {
   joinGroupModal.style.display = 'none';
 });
 
-/* groupsList => sol sidebar */
+/* groupsList => sol sidebar (browse) */
 socket.on('groupsList', (groupArray) => {
   groupListDiv.innerHTML = '';
   groupArray.forEach(groupObj => {
@@ -327,8 +331,11 @@ socket.on('groupsList', (groupArray) => {
       document.querySelectorAll('.grp-item').forEach(el => el.classList.remove('selected'));
       grpItem.classList.add('selected');
 
-      currentGroup = null; // sadece “browseGroup” aşaması
+      // Göz atılacak grup => selectedGroup
+      selectedGroup = groupObj.id;
+      currentGroup = null; // henüz join edilmedi
       groupTitle.textContent = groupObj.name;
+      // Sadece browse
       socket.emit('browseGroup', groupObj.id);
     });
 
@@ -360,13 +367,17 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
+    /* Kanal tıklayınca => eğer farklı gruptaysak önce joinGroup, sonra joinRoom */
     roomItem.addEventListener('click', () => {
-      if (currentGroup !== roomObj.id) {
-        socket.emit('joinGroup', roomObj.id);
+      if (currentGroup !== selectedGroup) {
+        // Önce gruba tam olarak join
+        socket.emit('joinGroup', selectedGroup);
+
         setTimeout(() => {
-          joinRoom(roomObj.id, roomObj.id, roomObj.name);
+          joinRoom(selectedGroup, roomObj.id, roomObj.name);
         }, 300);
       } else {
+        // Zaten o gruptayız
         joinRoom(currentGroup, roomObj.id, roomObj.name);
       }
     });
