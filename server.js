@@ -568,7 +568,7 @@ io.on("connection", (socket) => {
 });
 
 // Sunucuyu başlat
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 server.listen(PORT, () => {
   console.log(`Sunucu çalışıyor: http://localhost:${PORT}`);
 });
