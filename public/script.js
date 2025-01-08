@@ -33,24 +33,33 @@ function createWaveIcon() {
   svg.setAttribute("class", "channel-icon bi bi-volume-up-fill");
   svg.setAttribute("viewBox", "0 0 16 16");
 
+  // path1
   const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path1.setAttribute("d", "M9.717.55A.5.5 0 0 1 10 .999v14a.5.5 0 0 1-.783.409L5.825 12H3.5A1.5 
-    1.5 0 0 1 2 10.5v-5A1.5 
-    1.5 0 0 1 3.5 4h2.325l3.392-2.409a.5.5 
-    0 0 1 .5-.041z");
+  // Tek satıra (veya + birleştirme) indirgedik => hatayı önler
+  path1.setAttribute(
+    "d",
+    "M9.717.55A.5.5 0 0 1 10 .999v14a.5.5 0 0 1-.783.409L5.825 12H3.5" +
+    "A1.5 1.5 0 0 1 2 10.5v-5A1.5 1.5 0 0 1 3.5 4h2.325l3.392-2.409" +
+    "a.5.5 0 0 1 .5-.041z"
+  );
 
+  // path2
   const path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path2.setAttribute("d", "M13.493 1.957a.5.5 0 0 1 .014.706 
-    7.979 7.979 0 0 1 0 10.674.5.5 
-    0 1 1-.72-.694 6.979 6.979 0 
-    0 0 0-9.286.5.5 0 0 1 .706-.014z");
+  path2.setAttribute(
+    "d",
+    "M13.493 1.957a.5.5 0 0 1 .014.706 7.979 7.979 0 0 1 0 10.674" +
+    ".5.5 0 1 1-.72-.694 6.979 6.979 0 0 0 0-9.286" +
+    ".5.5 0 0 1 .706-.014z"
+  );
 
+  // path3
   const path3 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path3.setAttribute("d", "M11.534 3.16a.5.5 0 0 1 .12.7 4.978 
-    4.978 0 0 1 0 5.281.5.5 0 
-    1 1-.82-.574 3.978 3.978 
-    0 0 0 0-4.133.5.5 0 0 
-    1 .7-.12z");
+  path3.setAttribute(
+    "d",
+    "M11.534 3.16a.5.5 0 0 1 .12.7 4.978 4.978 0 0 1 0 5.281" +
+    ".5.5 0 1 1-.82-.574 3.978 3.978 0 0 0 0-4.133" +
+    ".5.5 0 0 1 .7-.12z"
+  );
 
   svg.appendChild(path1);
   svg.appendChild(path2);
@@ -113,14 +122,13 @@ const userListDiv = document.getElementById('userList');
 // Ayrıl Butonu
 const leaveButton = document.getElementById('leaveButton');
 
-/* AYARLAR => Artık side-panel açma YOK, 
-   onun yerine "settings.html" sayfasına gidilecek. */
-const settingsButton = document.getElementById('settingsButton');
-settingsButton.addEventListener('click', () => {
-  // Aynı sekmede yeni sayfaya geçebiliriz:
-  window.location.href = "settings.html";
-  // Eğer yeni sekmede açmak isterseniz => window.open("settings.html", "_blank");
-});
+/* Ayarlar Butonu => side-panel yerine yeni sayfa ise ayarlayabilirsiniz 
+   (örnek: window.location.href = 'settings.html') 
+   veya side-panel vs. bu kodda yoksa devre dışı. */
+// const settingsButton = document.getElementById('settingsButton');
+// settingsButton.addEventListener('click', () => {
+//   window.location.href = "settings.html";
+// });
 
 /* Modal referansları */
 const groupModal = document.getElementById('groupModal');
@@ -173,8 +181,11 @@ socket.on('loginResult', (data) => {
     loginScreen.style.display = 'none';
     callScreen.style.display = 'flex';
     socket.emit('set-username', username);
-    leftUserName.textContent = username;
-    // micEnabled var, set edelim
+    // Ekrana yaz
+    const leftUserName = document.getElementById('leftUserName');
+    if (leftUserName) {
+      leftUserName.textContent = username;
+    }
     applyAudioStates();
   } else {
     alert("Giriş başarısız: " + data.message);
@@ -275,7 +286,7 @@ socket.on('groupsList', (groupArray) => {
       document.querySelectorAll('.grp-item').forEach(el => el.classList.remove('selected'));
       grpItem.classList.add('selected');
 
-      currentGroup = null;
+      currentGroup = groupObj.id;
       groupTitle.textContent = groupObj.name;
       socket.emit('browseGroup', groupObj.id);
     });
@@ -309,21 +320,17 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelUsers);
 
     roomItem.addEventListener('click', () => {
-      if (currentGroup !== roomObj.id) {
-        socket.emit('joinGroup', roomObj.id);
-        setTimeout(() => {
-          joinRoom(roomObj.id, roomObj.id, roomObj.name);
-        }, 300);
-      } else {
-        joinRoom(currentGroup, roomObj.id, roomObj.name);
+      if (currentRoom && currentRoom !== roomObj.id) {
+        socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
       }
+      joinRoom(currentGroup, roomObj.id, roomObj.name);
     });
 
     roomListDiv.appendChild(roomItem);
   });
 });
 
-/* allChannelsData => ... */
+/* allChannelsData => kanallarda kim var */
 socket.on('allChannelsData', (channelsObj) => {
   Object.keys(channelsObj).forEach(roomId => {
     const cData = channelsObj[roomId];
@@ -348,15 +355,15 @@ socket.on('allChannelsData', (channelsObj) => {
   });
 });
 
-/* groupUsers => sağ panel (mesela online/offline) */
-socket.on('groupUsers', (data) => {
-  console.log("groupUsers =>", data);
-  updateUserList(data);
+/* groupUsers => sağ panel => updateUserList */
+socket.on('groupUsers', (usersData) => {
+  console.log("groupUsers event =>", usersData);
+  updateUserList(usersData);
 });
 
-/* roomUsers => WebRTC init */
+/* roomUsers => odadaki kullanıcılar => WebRTC init */
 socket.on('roomUsers', (usersInRoom) => {
-  console.log("roomUsers =>", usersInRoom);
+  console.log("roomUsers => odadaki kisiler:", usersInRoom);
 
   const otherUserIds = usersInRoom
     .filter(u => u.id !== socket.id)
@@ -398,20 +405,11 @@ createRoomButton.addEventListener('click', () => {
   modalRoomName.value = '';
   modalRoomName.focus();
 });
-createChannelBtn.addEventListener('click', () => {
-  groupDropdownMenu.style.display = 'none';
-  if (!currentGroup) {
-    alert("Önce bir gruba katılın!");
-    return;
-  }
-  roomModal.style.display = 'flex';
-  modalRoomName.value = '';
-  modalRoomName.focus();
-});
+
 modalCreateRoomBtn.addEventListener('click', () => {
   const rName = modalRoomName.value.trim();
   if (!rName) {
-    alert("Oda adı girin!");
+    alert("Oda adı boş olamaz!");
     return;
   }
   socket.emit('createRoom', { groupId: currentGroup, roomName: rName });
@@ -426,7 +424,7 @@ function joinRoom(groupId, roomId, roomName) {
   currentGroup = groupId;
   currentRoom = roomId;
   socket.emit('joinRoom', { groupId, roomId });
-  leaveButton.style.display = 'flex';
+  leaveButton.style.display = 'block';
 }
 
 /* Ayrıl Butonu => odadan çık */
@@ -440,10 +438,9 @@ leaveButton.addEventListener('click', () => {
   console.log("Kanaldan ayrıldınız.");
 });
 
-/* Kullanıcı listesini gösteren fonksiyon */
+/* Sağ panel => userList => updateUserList */
 function updateUserList(data) {
-  // data => { online: [...], offline: [...] }
-  // Burayı kendinize göre uyarlayabilirsiniz.
+  // Örnek => data: { online: [...], offline: [...] }
   userListDiv.innerHTML = '';
 
   const onlineTitle = document.createElement('h3');
@@ -463,7 +460,7 @@ function updateUserList(data) {
 
   const offlineTitle = document.createElement('h3');
   offlineTitle.textContent = 'Çevrimdışı';
-  offlineTitle.style.marginTop = '1rem';
+  offlineTitle.style.marginTop = '0.8rem';
   userListDiv.appendChild(offlineTitle);
 
   if (data.offline && data.offline.length > 0) {
@@ -478,13 +475,13 @@ function updateUserList(data) {
   }
 }
 
-/* Bir kullanıcı item'i oluştur */
 function createUserItem(username, isOnline) {
   const userItem = document.createElement('div');
   userItem.classList.add('user-item');
 
   const profileThumb = document.createElement('div');
   profileThumb.classList.add('profile-thumb');
+  // Online => yeşil, offline => gri
   profileThumb.style.backgroundColor = isOnline ? '#2dbf2d' : '#777';
 
   const userNameSpan = document.createElement('span');
@@ -719,25 +716,21 @@ function closeAllPeers() {
 }
 
 /* Mikrofon & Kulaklık */
-micToggleButton.addEventListener('click', () => {
-  micEnabled = !micEnabled;
-  applyAudioStates();
-});
-deafenToggleButton.addEventListener('click', () => {
-  selfDeafened = !selfDeafened;
-  if (selfDeafened) micEnabled = false;
-  applyAudioStates();
-});
-
 function applyAudioStates() {
   if (localStream) {
     localStream.getAudioTracks().forEach(track => {
       track.enabled = micEnabled && !selfDeafened;
     });
   }
-  micToggleButton.innerHTML = (micEnabled && !selfDeafened) ? "MIC ON" : "MIC OFF";
+  const micToggleButton = document.getElementById('micToggleButton');
+  const deafenToggleButton = document.getElementById('deafenToggleButton');
+  if (micToggleButton) {
+    micToggleButton.innerHTML = (micEnabled && !selfDeafened) ? "MIC ON" : "MIC OFF";
+  }
   applyDeafenState();
-  deafenToggleButton.innerHTML = selfDeafened ? "DEAF ON" : "DEAF OFF";
+  if (deafenToggleButton) {
+    deafenToggleButton.innerHTML = selfDeafened ? "DEAF ON" : "DEAF OFF";
+  }
 }
 
 function applyDeafenState() {
