@@ -13,12 +13,9 @@ let username = null;
 let micEnabled = true;
 let selfDeafened = false;
 
-// Mevcut group/room (gerçekte sesli olarak katıldığımız yer)
+// Mevcut group/room
 let currentGroup = null;
 let currentRoom = null;
-
-// “Seçili” (sadece göz atılan) grup
-let selectedGroup = null;
 
 let pendingUsers = [];
 let pendingNewUsers = [];
@@ -36,33 +33,14 @@ function createWaveIcon() {
   svg.setAttribute("class", "channel-icon bi bi-volume-up-fill");
   svg.setAttribute("viewBox", "0 0 16 16");
 
-  // path1
   const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  // Tek satıra indirdik (örnek)
-  path1.setAttribute(
-    "d",
-    "M9.717.55A.5.5 0 0 1 10 .999v14a.5.5 0 0 1-.783.409L5.825 12H3.5"
-    + "A1.5 1.5 0 0 1 2 10.5v-5A1.5 1.5 0 0 1 3.5 4h2.325l3.392-2.409"
-    + "a.5.5 0 0 1 .5-.041z"
-  );
+  path1.setAttribute("d", "M9.717.55A.5.5 0 0 1 10 .999v14a.5.5 0 0 1-.783.409L5.825 12H3.5A1.5 1.5 0 0 1 2 10.5v-5A1.5 1.5 0 0 1 3.5 4h2.325l3.392-2.409a.5.5 0 0 1 .5-.041z");
 
-  // path2
   const path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path2.setAttribute(
-    "d",
-    "M13.493 1.957a.5.5 0 0 1 .014.706 7.979 7.979 0 0 1 0 10.674"
-    + ".5.5 0 1 1-.72-.694 6.979 6.979 0 0 0 0-9.286"
-    + ".5.5 0 0 1 .706-.014z"
-  );
+  path2.setAttribute("d", "M13.493 1.957a.5.5 0 0 1 .014.706 7.979 7.979 0 0 1 0 10.674.5.5 0 1 1-.72-.694 6.979 6.979 0 0 0 0-9.286.5.5 0 0 1 .706-.014z");
 
-  // path3
   const path3 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path3.setAttribute(
-    "d",
-    "M11.534 3.16a.5.5 0 0 1 .12.7 4.978 4.978 0 0 1 0 5.281"
-    + ".5.5 0 1 1-.82-.574 3.978 3.978 0 0 0 0-4.133"
-    + ".5.5 0 0 1 .7-.12z"
-  );
+  path3.setAttribute("d", "M11.534 3.16a.5.5 0 0 1 .12.7 4.978 4.978 0 0 1 0 5.281.5.5 0 1 1-.82-.574 3.978 3.978 0 0 0 0-4.133.5.5 0 0 1 .7-.12z");
 
   svg.appendChild(path1);
   svg.appendChild(path2);
@@ -125,7 +103,7 @@ const userListDiv = document.getElementById('userList');
 // Ayrıl Butonu
 const leaveButton = document.getElementById('leaveButton');
 
-/* --- AYARLAR Paneli --- */
+/* AYARLAR Paneli => div oluşturma */
 const settingsPanel = document.createElement('div');
 settingsPanel.classList.add('settings-panel');
 settingsPanel.id = 'settingsPanel';
@@ -153,18 +131,13 @@ settingsButton.innerHTML = `
     <circle cx="12" cy="12" r="3"></circle>
     <path d="M19.4 15a1.65 1.65 0 0 
       0 .33 1.82l.06.06
-      a2 2 0 0 1-2.83 
-      2.83l-.06-.06
-      a1.65 1.65 0 0 
-      0-1.82-.33
-      1.65 1.65 0 0 
-      0-1 1.51v.28
+      a2 2 0 0 1-2.83 2.83l-.06-.06
+      a1.65 1.65 0 0 0-1.82-.33
+      1.65 1.65 0 0 0-1 1.51v.28
       a2 2 0 0 1-2 2h-0.5
       a2 2 0 0 1-2-2v-.28
-      a1.65 1.65 0 0 
-      0-1-1.51
-      1.65 1.65 0 0 
-      0-1.82.33l-.06.06
+      a1.65 1.65 0 0 0-1-1.51
+      1.65 1.65 0 0 0-1.82.33l-.06.06
       a2 2 0 0 1-2.83-2.83l.06-.06
       a1.65 1.65 0 0 
       0 .33-1.82
@@ -176,23 +149,16 @@ settingsButton.innerHTML = `
       0 1-1.51
       1.65 1.65 0 0 
       0-.33-1.82l-.06-.06
-      a2 2 0 0 1 
-      2.83-2.83l.06.06
-      a1.65 1.65 0 0 
-      0 1.82.33h0
-      a1.65 1.65 0 0 
-      0 1-1.51v-.28
+      a2 2 0 0 1 2.83-2.83l.06.06
+      a1.65 1.65 0 0 0 1.82.33h0
+      a1.65 1.65 0 0 0 1-1.51v-.28
       a2 2 0 0 1 2-2h0.5
       a2 2 0 0 1 2 2v.28
-      a1.65 1.65 0 0 
-      0 1 1.51h0
-      a1.65 1.65 0 0 
-      0 1.82-.33l.06-.06
+      a1.65 1.65 0 0 0 1 1.51h0
+      a1.65 1.65 0 0 0 1.82-.33l.06-.06
       a2 2 0 0 1 2.83 2.83l-.06.06
-      a1.65 1.65 0 0 0-.33 
-      1.82v0
-      a1.65 1.65 0 0 
-      0 1 1.51h.28
+      a1.65 1.65 0 0 0-.33 1.82v0
+      a1.65 1.65 0 0 0 1 1.51h.28
       a2 2 0 0 1 2 2v0.5
       a2 2 0 0 1-2 2h-.28
       a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -261,6 +227,7 @@ socket.on('loginResult', (data) => {
     callScreen.style.display = 'flex';
     socket.emit('set-username', username);
     leftUserName.textContent = username;
+    // micEnabled var, set edelim
     applyAudioStates();
   } else {
     alert("Giriş başarısız: " + data.message);
@@ -320,6 +287,7 @@ modalGroupJoinBtn.addEventListener('click', () => {
   groupModal.style.display = 'none';
   joinGroupModal.style.display = 'flex';
 });
+// Modal: Grup Kur
 actualGroupNameBtn.addEventListener('click', () => {
   const grpName = actualGroupName.value.trim();
   if (!grpName) {
@@ -332,7 +300,8 @@ actualGroupNameBtn.addEventListener('click', () => {
 closeCreateGroupModal.addEventListener('click', () => {
   actualGroupCreateModal.style.display = 'none';
 });
-// Gruba Katıl
+
+// Modal: Gruba Katıl
 joinGroupIdBtn.addEventListener('click', () => {
   const grpIdVal = joinGroupIdInput.value.trim();
   if (!grpIdVal) {
@@ -359,9 +328,8 @@ socket.on('groupsList', (groupArray) => {
       document.querySelectorAll('.grp-item').forEach(el => el.classList.remove('selected'));
       grpItem.classList.add('selected');
 
-      selectedGroup = groupObj.id;
+      currentGroup = null; // Sadece “browse” aşaması
       groupTitle.textContent = groupObj.name;
-      // Yalnızca odalarını görmek için => browseGroup
       socket.emit('browseGroup', groupObj.id);
     });
 
@@ -394,17 +362,15 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelUsers);
 
     roomItem.addEventListener('click', () => {
-      if (currentGroup !== selectedGroup) {
-        closeAllPeers();
-        socket.emit('joinGroup', selectedGroup);
+      if (currentGroup !== groupObj.id) {
+        // Join group
+        socket.emit('joinGroup', groupObj.id);
+
         setTimeout(() => {
-          joinRoom(selectedGroup, roomObj.id, roomObj.name);
+          joinRoom(groupObj.id, roomObj.id, roomObj.name);
         }, 300);
       } else {
-        if (currentRoom && currentRoom !== roomObj.id) {
-          closeAllPeers();
-        }
-        joinRoom(selectedGroup, roomObj.id, roomObj.name);
+        joinRoom(currentGroup, roomObj.id, roomObj.name);
       }
     });
 
@@ -437,17 +403,12 @@ socket.on('allChannelsData', (channelsObj) => {
   });
 });
 
-/**
- * groupUsers => Artık data.online & data.offline şeklinde geliyor.
- * Örneğin:
- * {
- *   online: [ { username: 'a' }, { username: 'b' } ],
- *   offline: [ { username: 'z' }, ... ]
- * }
- */
-socket.on('groupUsers', (data) => {
-  console.log("groupUsers event alındı:", data);
-  updateUserList(data);
+/* groupUsers => sağ panel (Çevrimiçi / Çevrimdışı) */
+socket.on('groupUsers', (dbUsersArray) => {
+  // Örnek: dbUsersArray => { online: [...], offline: [...] }
+  // (script'te formatlamanız buna göre olabilir.)
+  console.log("groupUsers event alındı:", dbUsersArray);
+  updateUserList(dbUsersArray);
 });
 
 /* roomUsers => odadaki kullanıcılar => WebRTC init */
@@ -536,71 +497,59 @@ leaveButton.addEventListener('click', () => {
   console.log("Kanaldan ayrıldınız.");
 });
 
-/**
- * Sağ panel => groupUsers => updateUserList
- * data => { online: [...], offline: [...] }
- */
+/* Sağ panel => groupUsers => updateUserList */
 function updateUserList(data) {
+  // Beklenen format => data.online, data.offline
+  // Bu kısım dilediğiniz gibi düzenlenebilir.
   userListDiv.innerHTML = '';
 
-  // 1) "Çevrimiçi" başlığı
+  // Çevrimiçi başlık
   const onlineTitle = document.createElement('h3');
   onlineTitle.textContent = 'Çevrimiçi';
   userListDiv.appendChild(onlineTitle);
 
   if (data.online && data.online.length > 0) {
     data.online.forEach(u => {
-      const userItem = createUserItem(u.username, true);
-      userListDiv.appendChild(userItem);
+      userListDiv.appendChild(createUserItem(u.username, true));
     });
   } else {
-    // Hiç çevrimiçi yok
-    const noneMsg = document.createElement('p');
-    noneMsg.style.fontSize = '0.9rem';
-    noneMsg.textContent = '(Kimse yok)';
-    userListDiv.appendChild(noneMsg);
+    const noneP = document.createElement('p');
+    noneP.textContent = '(Kimse yok)';
+    noneP.style.fontSize = '0.8rem';
+    userListDiv.appendChild(noneP);
   }
 
-  // 2) "Çevrimdışı" başlığı
+  // Çevrimdışı başlık
   const offlineTitle = document.createElement('h3');
   offlineTitle.textContent = 'Çevrimdışı';
+  offlineTitle.style.marginTop = '1rem';
   userListDiv.appendChild(offlineTitle);
 
   if (data.offline && data.offline.length > 0) {
     data.offline.forEach(u => {
-      const userItem = createUserItem(u.username, false);
-      userListDiv.appendChild(userItem);
+      userListDiv.appendChild(createUserItem(u.username, false));
     });
   } else {
-    // Hiç çevrimdışı yok
-    const noneMsg = document.createElement('p');
-    noneMsg.style.fontSize = '0.9rem';
-    noneMsg.textContent = '(Kimse yok)';
-    userListDiv.appendChild(noneMsg);
+    const noneP2 = document.createElement('p');
+    noneP2.textContent = '(Kimse yok)';
+    noneP2.style.fontSize = '0.8rem';
+    userListDiv.appendChild(noneP2);
   }
 }
 
-/**
- * Yardımcı fonksiyon => bir kullanıcı öğesi yaratır
- * online => true/false
- */
+/* Kullanıcı öğesi oluşturma */
 function createUserItem(username, isOnline) {
   const userItem = document.createElement('div');
   userItem.classList.add('user-item');
 
   const profileThumb = document.createElement('div');
   profileThumb.classList.add('profile-thumb');
-
-  // online => yeşil, offline => gri ton
-  if (isOnline) {
-    profileThumb.style.backgroundColor = '#2dbf2d'; // yeşil
-  } else {
-    profileThumb.style.backgroundColor = '#777'; 
-  }
+  // Renk => online/ offline
+  profileThumb.style.backgroundColor = isOnline ? '#2dbf2d' : '#777';
 
   const userNameSpan = document.createElement('span');
   userNameSpan.classList.add('user-name');
-  userNameSpan.textContent = username || '(İsimsiz)';
+  userNameSpan.textContent = username;
 
   const copyIdBtn = document.createElement('button');
   copyIdBtn.classList.add('copy-id-btn');
@@ -608,9 +557,8 @@ function createUserItem(username, isOnline) {
   copyIdBtn.dataset.userid = username;
   copyIdBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    const val = e.target.dataset.userid;
-    navigator.clipboard.writeText(val)
-      .then(() => alert("Kullanıcı kopyalandı: " + val))
+    navigator.clipboard.writeText(username)
+      .then(() => alert("Kullanıcı kopyalandı: " + username))
       .catch(err => {
         console.error("Kopyalama hatası:", err);
         alert("Kopyalama başarısız!");
@@ -816,7 +764,7 @@ async function createOffer(peer, userId) {
   socket.emit("signal", { to: userId, signal: peer.localDescription });
 }
 
-/* closeAllPeers => Tüm RTCPeerConnection'ları kapat */
+/* closeAllPeers */
 function closeAllPeers() {
   console.log("CLOSING ALL PEERS!");
   for (const userId in peers) {
