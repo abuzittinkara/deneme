@@ -405,17 +405,24 @@ body {
   flex-direction: column;
   gap: 1rem;
 }
+
+/* BURADA DEĞİŞİKLİK YAPILDI:
+   user-item etrafındaki çerçeve/arka plan KALDIRILDI.
+   Ayrıca hover durumu da kaldırıldı.
+*/
 .user-item {
-  background: #2d2d2d;
+  /* background: #2d2d2d;  <== KALDIRILDI */
   padding: 0.1rem;
-  border-radius: 0px;
+  /* border-radius: 0px; (zaten sıfırdı ama kalsın) */
+  border: none; /* Kutu çerçevesi yok */
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 .user-item:hover {
-  background: #444;
+  /* background: #444; <== KALDIRILDI */
 }
+/* Profil dairesi durabilir */
 .profile-thumb {
   width: 40px;
   height: 40px;
