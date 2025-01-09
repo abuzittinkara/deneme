@@ -334,8 +334,18 @@ socket.on('groupsList', (groupArray) => {
       selectedGroup = groupObj.id;
       currentGroup = null;
       groupTitle.textContent = groupObj.name;
-      // Sadece oda listesini ve user'ları göstermek için
+      // Sadece oda listesini + user'ları göstermek için
       socket.emit('browseGroup', groupObj.id);
+
+      // Sadece owner isen => "Grubu Sil" ve "Grup İsmi Değiştir" butonlarını göster
+      // Değilsen => gizle
+      if (groupObj.owner === username) {
+        deleteGroupBtn.style.display = 'block';
+        renameGroupBtn.style.display = 'block';
+      } else {
+        deleteGroupBtn.style.display = 'none';
+        renameGroupBtn.style.display = 'none';
+      }
     });
 
     groupListDiv.appendChild(grpItem);
@@ -351,8 +361,7 @@ groupDropdownIcon.addEventListener('click', () => {
   }
 });
 
-/* --- YENİ: drop-down menüdeki butonlar => event listener --- */
-
+/* Drop-down menü butonları */
 // Grup ID Kopyala
 copyGroupIdBtn.addEventListener('click', () => {
   groupDropdownMenu.style.display = 'none';
@@ -372,11 +381,11 @@ copyGroupIdBtn.addEventListener('click', () => {
 // Grup İsmi Değiştir
 renameGroupBtn.addEventListener('click', () => {
   groupDropdownMenu.style.display = 'none';
-  if (!currentGroup && !selectedGroup) {
+  const grp = currentGroup || selectedGroup;
+  if (!grp) {
     alert("Şu an bir grup seçili değil!");
     return;
   }
-  const grp = currentGroup || selectedGroup;
   const newName = prompt("Yeni grup ismini girin:");
   if (!newName || !newName.trim()) {
     alert("Grup ismi boş olamaz!");
@@ -388,14 +397,13 @@ renameGroupBtn.addEventListener('click', () => {
 // Grup Sil
 deleteGroupBtn.addEventListener('click', () => {
   groupDropdownMenu.style.display = 'none';
-  if (!currentGroup && !selectedGroup) {
+  const grp = currentGroup || selectedGroup;
+  if (!grp) {
     alert("Şu an bir grup seçili değil!");
     return;
   }
-  const grp = currentGroup || selectedGroup;
   const confirmDel = confirm("Bu grubu silmek istediğinize emin misiniz?");
   if (!confirmDel) return;
-
   socket.emit('deleteGroup', grp);
 });
 
@@ -426,9 +434,7 @@ socket.on('roomsList', (roomsArray) => {
     // Kanala tıklama
     roomItem.addEventListener('click', () => {
       if (currentGroup !== selectedGroup) {
-        // Join group
         socket.emit('joinGroup', selectedGroup);
-
         setTimeout(() => {
           joinRoom(selectedGroup, roomObj.id, roomObj.name);
         }, 300);
@@ -551,7 +557,6 @@ function joinRoom(groupId, roomId, roomName) {
 leaveButton.addEventListener('click', () => {
   if (!currentRoom) return;
 
-  // Odadan ayrıl => closeAllPeers => (ama gruptan çıkma)
   socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
   closeAllPeers();
 
@@ -559,7 +564,6 @@ leaveButton.addEventListener('click', () => {
   leaveButton.style.display = 'none';
   console.log("Kanaldan ayrıldınız.");
 
-  // Tekrar "browseGroup" => sağ panelde kullanıcıları görelim
   if (currentGroup) {
     socket.emit('browseGroup', currentGroup);
   }
@@ -567,8 +571,6 @@ leaveButton.addEventListener('click', () => {
 
 /* Sağ panel => Çevrimiçi / Çevrimdışı => Yazıları normal, küçük font */
 function updateUserList(data) {
-  // data => { online: [...], offline: [...] }
-
   userListDiv.innerHTML = '';
 
   // Çevrimiçi
@@ -887,6 +889,38 @@ function parseIceUfrag(sdp) {
   }
   return null;
 }
+
+/* --- YENİ: renameGroup / deleteGroup cevabı => rename => UI update, delete => group list update --- */
+socket.on('groupRenamed', (data) => {
+  const { groupId, newName } = data;
+  // Eğer bu group şu an ekrandaysa => güncelle
+  if (currentGroup === groupId || selectedGroup === groupId) {
+    groupTitle.textContent = newName;
+  }
+  // groupsList'i yeniden almak da bir opsiyon:
+  socket.emit('set-username', username);
+});
+
+socket.on('groupDeleted', (data) => {
+  const { groupId } = data;
+  // Eğer bu group => currentGroup / selectedGroup, 
+  // userList, roomList vs. sıfırlayalım
+  if (currentGroup === groupId) {
+    currentGroup = null;
+    currentRoom = null;
+    groupTitle.textContent = "Seçili Grup";
+    userListDiv.innerHTML = '';
+    roomListDiv.innerHTML = '';
+  }
+  if (selectedGroup === groupId) {
+    selectedGroup = null;
+    groupTitle.textContent = "Seçili Grup";
+    userListDiv.innerHTML = '';
+    roomListDiv.innerHTML = '';
+  }
+  // groupsList'i yeniden almak
+  socket.emit('set-username', username);
+});
 
 /* Socket Durum */
 socket.on("connect", () => {
