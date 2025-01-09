@@ -342,13 +342,61 @@ socket.on('groupsList', (groupArray) => {
   });
 });
 
-/* --- YENİ: groupDropdownIcon => menüyü aç/kapat --- */
+/* groupDropdownIcon => menüyü aç/kapat */
 groupDropdownIcon.addEventListener('click', () => {
   if (groupDropdownMenu.style.display === 'none' || groupDropdownMenu.style.display === '') {
     groupDropdownMenu.style.display = 'block';
   } else {
     groupDropdownMenu.style.display = 'none';
   }
+});
+
+/* --- YENİ: drop-down menüdeki butonlar => event listener --- */
+
+// Grup ID Kopyala
+copyGroupIdBtn.addEventListener('click', () => {
+  groupDropdownMenu.style.display = 'none';
+  if (!currentGroup && !selectedGroup) {
+    alert("Şu an bir grup seçili değil!");
+    return;
+  }
+  const grp = currentGroup || selectedGroup;
+  navigator.clipboard.writeText(grp)
+    .then(() => alert("Grup ID kopyalandı: " + grp))
+    .catch(err => {
+      console.error("Kopyalama hatası:", err);
+      alert("Kopyalama başarısız!");
+    });
+});
+
+// Grup İsmi Değiştir
+renameGroupBtn.addEventListener('click', () => {
+  groupDropdownMenu.style.display = 'none';
+  if (!currentGroup && !selectedGroup) {
+    alert("Şu an bir grup seçili değil!");
+    return;
+  }
+  const grp = currentGroup || selectedGroup;
+  const newName = prompt("Yeni grup ismini girin:");
+  if (!newName || !newName.trim()) {
+    alert("Grup ismi boş olamaz!");
+    return;
+  }
+  socket.emit('renameGroup', { groupId: grp, newName: newName.trim() });
+});
+
+// Grup Sil
+deleteGroupBtn.addEventListener('click', () => {
+  groupDropdownMenu.style.display = 'none';
+  if (!currentGroup && !selectedGroup) {
+    alert("Şu an bir grup seçili değil!");
+    return;
+  }
+  const grp = currentGroup || selectedGroup;
+  const confirmDel = confirm("Bu grubu silmek istediğinize emin misiniz?");
+  if (!confirmDel) return;
+
+  socket.emit('deleteGroup', grp);
 });
 
 /* roomsList => kanallar */
