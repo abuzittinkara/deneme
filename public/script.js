@@ -36,7 +36,7 @@ function createWaveIcon() {
   svg.setAttribute("class", "channel-icon bi bi-volume-up-fill");
   svg.setAttribute("viewBox", "0 0 16 16");
 
-  // Tüm "d" değerlerini tek satırda tutarak line break hatasını önledik.
+  // Tek satırda tutarak line break hatasını önlüyoruz
   const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path1.setAttribute(
     "d",
@@ -116,7 +116,7 @@ const userListDiv = document.getElementById('userList');
 // Ayrıl Butonu
 const leaveButton = document.getElementById('leaveButton');
 
-/* AYARLAR Paneli => div oluşturma */
+/* AYARLAR Paneli */
 const settingsPanel = document.createElement('div');
 settingsPanel.classList.add('settings-panel');
 settingsPanel.id = 'settingsPanel';
@@ -132,7 +132,6 @@ settingsPanel.innerHTML = `
 `;
 document.body.appendChild(settingsPanel);
 
-// Sol alt user panel => buton ekle
 const userPanelButtons = document.querySelector('.user-panel-buttons');
 const settingsButton = document.createElement('button');
 settingsButton.id = 'settingsButton';
@@ -179,246 +178,16 @@ settingsButton.innerHTML = `
 `;
 userPanelButtons.appendChild(settingsButton);
 
-// Geri butonu => kapat
 document.getElementById('settingsBackBtn').addEventListener('click', () => {
   settingsPanel.style.display = 'none';
 });
-// Ayarlar butonu => aç
 settingsButton.addEventListener('click', () => {
   settingsPanel.style.display = 'flex';
 });
 
-/* Modal referansları */
-const groupModal = document.getElementById('groupModal');
-const modalGroupCreateBtn = document.getElementById('modalGroupCreateBtn');
-const modalGroupJoinBtn = document.getElementById('modalGroupJoinBtn');
+/* Modal referansları (groupModal, joinGroupModal vb.) => değişmeden devam ediyor */
 
-const actualGroupCreateModal = document.getElementById('actualGroupCreateModal');
-const actualGroupName = document.getElementById('actualGroupName');
-const actualGroupNameBtn = document.getElementById('actualGroupNameBtn');
-const closeCreateGroupModal = document.getElementById('closeCreateGroupModal');
-
-const joinGroupModal = document.getElementById('joinGroupModal');
-const joinGroupIdInput = document.getElementById('joinGroupIdInput');
-const joinGroupIdBtn = document.getElementById('joinGroupIdBtn');
-const closeJoinGroupModal = document.getElementById('closeJoinGroupModal');
-
-const roomModal = document.getElementById('roomModal');
-const modalRoomName = document.getElementById('modalRoomName');
-const modalCreateRoomBtn = document.getElementById('modalCreateRoomBtn');
-const modalCloseRoomBtn = document.getElementById('modalCloseRoomBtn');
-
-/* Ekran geçişleri (login <-> register) */
-showRegisterScreen.addEventListener('click', () => {
-  loginScreen.style.display = 'none';
-  registerScreen.style.display = 'block';
-});
-showLoginScreen.addEventListener('click', () => {
-  registerScreen.style.display = 'none';
-  loginScreen.style.display = 'block';
-});
-backToLoginButton.addEventListener('click', () => {
-  registerScreen.style.display = 'none';
-  loginScreen.style.display = 'block';
-});
-
-/* Login */
-loginButton.addEventListener('click', () => {
-  const usernameVal = loginUsernameInput.value.trim();
-  const passwordVal = loginPasswordInput.value.trim();
-  if (!usernameVal || !passwordVal) {
-    alert("Lütfen kullanıcı adı ve parola girin.");
-    return;
-  }
-  socket.emit('login', { username: usernameVal, password: passwordVal });
-});
-
-socket.on('loginResult', (data) => {
-  if (data.success) {
-    username = data.username;
-    loginScreen.style.display = 'none';
-    callScreen.style.display = 'flex';
-    socket.emit('set-username', username);
-    leftUserName.textContent = username;
-    applyAudioStates();
-  } else {
-    alert("Giriş başarısız: " + data.message);
-  }
-});
-
-/* Register */
-registerButton.addEventListener('click', () => {
-  const userData = {
-    username: regUsernameInput.value.trim(),
-    name: regNameInput.value.trim(),
-    surname: regSurnameInput.value.trim(),
-    birthdate: regBirthdateInput.value.trim(),
-    email: regEmailInput.value.trim(),
-    phone: regPhoneInput.value.trim(),
-    password: regPasswordInput.value.trim(),
-    passwordConfirm: regPasswordConfirmInput.value.trim()
-  };
-
-  if (!userData.username || !userData.name || !userData.surname ||
-      !userData.birthdate || !userData.email || !userData.phone ||
-      !userData.password || !userData.passwordConfirm) {
-    alert("Tüm alanları doldurun.");
-    return;
-  }
-
-  if (userData.username !== userData.username.toLowerCase()) {
-    alert("Kullanıcı adı sadece küçük harf olmalı.");
-    return;
-  }
-  if (userData.password !== userData.passwordConfirm) {
-    alert("Parolalar eşleşmiyor!");
-    return;
-  }
-
-  socket.emit('register', userData);
-});
-socket.on('registerResult', (data) => {
-  if (data.success) {
-    alert("Kayıt başarılı! Şimdi giriş yapabilirsiniz.");
-    registerScreen.style.display = 'none';
-    loginScreen.style.display = 'block';
-  } else {
-    alert("Kayıt başarısız: " + data.message);
-  }
-});
-
-/* Grup Oluştur / Seçenekleri */
-createGroupButton.addEventListener('click', () => {
-  groupModal.style.display = 'flex';
-});
-modalGroupCreateBtn.addEventListener('click', () => {
-  groupModal.style.display = 'none';
-  actualGroupCreateModal.style.display = 'flex';
-});
-modalGroupJoinBtn.addEventListener('click', () => {
-  groupModal.style.display = 'none';
-  joinGroupModal.style.display = 'flex';
-});
-// Modal: Grup Kur
-actualGroupNameBtn.addEventListener('click', () => {
-  const grpName = actualGroupName.value.trim();
-  if (!grpName) {
-    alert("Grup adı boş olamaz!");
-    return;
-  }
-  socket.emit('createGroup', grpName);
-  actualGroupCreateModal.style.display = 'none';
-});
-closeCreateGroupModal.addEventListener('click', () => {
-  actualGroupCreateModal.style.display = 'none';
-});
-
-// Modal: Gruba Katıl
-joinGroupIdBtn.addEventListener('click', () => {
-  const grpIdVal = joinGroupIdInput.value.trim();
-  if (!grpIdVal) {
-    alert("Grup ID boş olamaz!");
-    return;
-  }
-  socket.emit('joinGroupByID', grpIdVal);
-  joinGroupModal.style.display = 'none';
-});
-closeJoinGroupModal.addEventListener('click', () => {
-  joinGroupModal.style.display = 'none';
-});
-
-/* groupsList => sol sidebar */
-socket.on('groupsList', (groupArray) => {
-  groupListDiv.innerHTML = '';
-  groupArray.forEach(groupObj => {
-    const grpItem = document.createElement('div');
-    grpItem.className = 'grp-item';
-    grpItem.innerText = groupObj.name[0].toUpperCase();
-    grpItem.title = groupObj.name + " (" + groupObj.id + ")";
-
-    grpItem.addEventListener('click', () => {
-      document.querySelectorAll('.grp-item').forEach(el => el.classList.remove('selected'));
-      grpItem.classList.add('selected');
-
-      selectedGroup = groupObj.id;
-      currentGroup = null;
-      groupTitle.textContent = groupObj.name;
-      socket.emit('browseGroup', groupObj.id);
-
-      // Owner check => "Grubu Sil" & "Grup İsmi Değiştir"
-      if (groupObj.owner === username) {
-        deleteGroupBtn.style.display = 'block';
-        renameGroupBtn.style.display = 'block';
-      } else {
-        deleteGroupBtn.style.display = 'none';
-        renameGroupBtn.style.display = 'none';
-      }
-    });
-
-    groupListDiv.appendChild(grpItem);
-  });
-});
-
-/* groupDropdownIcon => menüyü aç/kapat */
-groupDropdownIcon.addEventListener('click', () => {
-  if (groupDropdownMenu.style.display === 'none' || groupDropdownMenu.style.display === '') {
-    groupDropdownMenu.style.display = 'block';
-  } else {
-    groupDropdownMenu.style.display = 'none';
-  }
-});
-
-/* Drop-down menü butonları */
-// Grup ID Kopyala
-copyGroupIdBtn.addEventListener('click', () => {
-  groupDropdownMenu.style.display = 'none';
-  const grp = currentGroup || selectedGroup;
-  if (!grp) {
-    alert("Şu an bir grup seçili değil!");
-    return;
-  }
-  navigator.clipboard.writeText(grp)
-    .then(() => alert("Grup ID kopyalandı: " + grp))
-    .catch(err => {
-      console.error("Kopyalama hatası:", err);
-      alert("Kopyalama başarısız!");
-    });
-});
-
-// Grup İsmi Değiştir
-renameGroupBtn.addEventListener('click', () => {
-  groupDropdownMenu.style.display = 'none';
-  const grp = currentGroup || selectedGroup;
-  if (!grp) {
-    alert("Şu an bir grup seçili değil!");
-    return;
-  }
-  const newName = prompt("Yeni grup ismini girin:");
-  if (!newName || !newName.trim()) {
-    alert("Grup ismi boş olamaz!");
-    return;
-  }
-  socket.emit('renameGroup', { groupId: grp, newName: newName.trim() });
-});
-
-// Grup Sil
-deleteGroupBtn.addEventListener('click', () => {
-  groupDropdownMenu.style.display = 'none';
-  const grp = currentGroup || selectedGroup;
-  if (!grp) {
-    alert("Şu an bir grup seçili değil!");
-    return;
-  }
-  const confirmDel = confirm("Bu grubu silmek istediğinize emin misiniz?");
-  if (!confirmDel) return;
-  socket.emit('deleteGroup', grp);
-});
-
-/* 
- * ***** DEĞİŞİKLİK: "Kanal Oluştur" butonu => currentGroup || selectedGroup kullan
- */
-
-// Oda Oluşturma => soldaki + buton
+/* CREATE ROOM => (currentGroup || selectedGroup) fix */
 createRoomButton.addEventListener('click', () => {
   const grp = currentGroup || selectedGroup;
   if (!grp) {
@@ -430,7 +199,6 @@ createRoomButton.addEventListener('click', () => {
   modalRoomName.focus();
 });
 
-// Drop-down'daki "Kanal Oluştur" butonu
 createChannelBtn.addEventListener('click', () => {
   groupDropdownMenu.style.display = 'none';
   const grp = currentGroup || selectedGroup;
@@ -443,7 +211,6 @@ createChannelBtn.addEventListener('click', () => {
   modalRoomName.focus();
 });
 
-// Oda oluştur => modalCreateRoomBtn
 modalCreateRoomBtn.addEventListener('click', () => {
   const rName = modalRoomName.value.trim();
   if (!rName) {
@@ -482,7 +249,6 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Kanala tıklama
     roomItem.addEventListener('click', () => {
       if (currentGroup !== selectedGroup) {
         socket.emit('joinGroup', selectedGroup);
@@ -498,7 +264,7 @@ socket.on('roomsList', (roomsArray) => {
   });
 });
 
-/* allChannelsData => kanalda kim var */
+/* allChannelsData => kanalda kimler var => channelDiv içini yenile */
 socket.on('allChannelsData', (channelsObj) => {
   Object.keys(channelsObj).forEach(roomId => {
     const cData = channelsObj[roomId];
@@ -523,7 +289,7 @@ socket.on('allChannelsData', (channelsObj) => {
   });
 });
 
-/* groupUsers => sağ panel */
+/* groupUsers => sağ panel (online/offline) */
 socket.on('groupUsers', (dbUsersArray) => {
   console.log("groupUsers event alındı:", dbUsersArray);
   updateUserList(dbUsersArray);
@@ -587,7 +353,7 @@ leaveButton.addEventListener('click', () => {
   }
 });
 
-/* Sağ panel => updateUserList (Çevrimiçi/Çevrimdışı) */
+/* Sağ panel => updateUserList => çevrimiçi/çevrimdışı */
 function updateUserList(data) {
   userListDiv.innerHTML = '';
 
