@@ -230,7 +230,6 @@ socket.on('loginResult', (data) => {
     callScreen.style.display = 'flex';
     socket.emit('set-username', username);
     leftUserName.textContent = username;
-    // micEnabled var, set edelim
     applyAudioStates();
   } else {
     alert("Giriş başarısız: " + data.message);
@@ -256,7 +255,6 @@ registerButton.addEventListener('click', () => {
     alert("Tüm alanları doldurun.");
     return;
   }
-
   if (userData.username !== userData.username.toLowerCase()) {
     alert("Kullanıcı adı sadece küçük harf olmalı.");
     return;
@@ -334,11 +332,9 @@ socket.on('groupsList', (groupArray) => {
       selectedGroup = groupObj.id;
       currentGroup = null;
       groupTitle.textContent = groupObj.name;
-      // Sadece oda listesini + user'ları göstermek için
       socket.emit('browseGroup', groupObj.id);
 
-      // Sadece owner isen => "Grubu Sil" ve "Grup İsmi Değiştir" butonlarını göster
-      // Değilsen => gizle
+      // Sadece owner isen => sil / rename butonları görünür, değilse gizli
       if (groupObj.owner === username) {
         deleteGroupBtn.style.display = 'block';
         renameGroupBtn.style.display = 'block';
@@ -365,11 +361,11 @@ groupDropdownIcon.addEventListener('click', () => {
 // Grup ID Kopyala
 copyGroupIdBtn.addEventListener('click', () => {
   groupDropdownMenu.style.display = 'none';
-  if (!currentGroup && !selectedGroup) {
+  const grp = currentGroup || selectedGroup;
+  if (!grp) {
     alert("Şu an bir grup seçili değil!");
     return;
   }
-  const grp = currentGroup || selectedGroup;
   navigator.clipboard.writeText(grp)
     .then(() => alert("Grup ID kopyalandı: " + grp))
     .catch(err => {
@@ -447,7 +443,7 @@ socket.on('roomsList', (roomsArray) => {
   });
 });
 
-/* allChannelsData => kanallarda kim var */
+/* allChannelsData */
 socket.on('allChannelsData', (channelsObj) => {
   Object.keys(channelsObj).forEach(roomId => {
     const cData = channelsObj[roomId];
@@ -472,13 +468,13 @@ socket.on('allChannelsData', (channelsObj) => {
   });
 });
 
-/* groupUsers => sağ panel => updateUserList */
+/* groupUsers => sağ panel */
 socket.on('groupUsers', (dbUsersArray) => {
   console.log("groupUsers event alındı:", dbUsersArray);
   updateUserList(dbUsersArray);
 });
 
-/* roomUsers => odadaki kullanıcılar => WebRTC init */
+/* roomUsers => WebRTC init */
 socket.on('roomUsers', (usersInRoom) => {
   console.log("roomUsers => odadaki kisiler:", usersInRoom);
 
@@ -569,7 +565,7 @@ leaveButton.addEventListener('click', () => {
   }
 });
 
-/* Sağ panel => Çevrimiçi / Çevrimdışı => Yazıları normal, küçük font */
+/* Sağ panel => Çevrimiçi / Çevrimdışı */
 function updateUserList(data) {
   userListDiv.innerHTML = '';
 
@@ -697,9 +693,7 @@ socket.on("signal", async (data) => {
 
     if (pendingCandidates[from]) {
       for (const c of pendingCandidates[from]) {
-        if (sessionUfrag[from] 
-            && sessionUfrag[from] !== c.usernameFragment 
-            && c.usernameFragment !== null) {
+        if (sessionUfrag[from] && sessionUfrag[from] !== c.usernameFragment && c.usernameFragment !== null) {
           console.warn("Candidate mismatch => drop:", c);
           continue;
         }
@@ -723,9 +717,7 @@ socket.on("signal", async (data) => {
 
     if (pendingCandidates[from]) {
       for (const c of pendingCandidates[from]) {
-        if (sessionUfrag[from] 
-            && sessionUfrag[from] !== c.usernameFragment 
-            && c.usernameFragment !== null) {
+        if (sessionUfrag[from] && sessionUfrag[from] !== c.usernameFragment && c.usernameFragment !== null) {
           console.warn("Candidate mismatch => drop:", c);
           continue;
         }
@@ -746,9 +738,7 @@ socket.on("signal", async (data) => {
       }
       pendingCandidates[from].push(signal);
     } else {
-      if (sessionUfrag[from] 
-          && sessionUfrag[from] !== signal.usernameFragment 
-          && signal.usernameFragment !== null) {
+      if (sessionUfrag[from] && sessionUfrag[from] !== signal.usernameFragment && signal.usernameFragment !== null) {
         console.warn("Candidate mismatch => drop:", signal);
         return;
       }
@@ -879,7 +869,7 @@ function applyDeafenState() {
   });
 }
 
-/* parseIceUfrag => a=ice-ufrag:... */
+/* parseIceUfrag */
 function parseIceUfrag(sdp) {
   const lines = sdp.split('\n');
   for (const line of lines) {
@@ -890,21 +880,19 @@ function parseIceUfrag(sdp) {
   return null;
 }
 
-/* --- YENİ: renameGroup / deleteGroup cevabı => rename => UI update, delete => group list update --- */
+/* groupRenamed => isim güncelle => UI da yenile */
 socket.on('groupRenamed', (data) => {
   const { groupId, newName } = data;
-  // Eğer bu group şu an ekrandaysa => güncelle
   if (currentGroup === groupId || selectedGroup === groupId) {
     groupTitle.textContent = newName;
   }
-  // groupsList'i yeniden almak da bir opsiyon:
+  // Grupları tekrar çek => event => set-username
   socket.emit('set-username', username);
 });
 
+/* groupDeleted => eğer o grubun içindeysek UI sıfırla, list'i yenile */
 socket.on('groupDeleted', (data) => {
   const { groupId } = data;
-  // Eğer bu group => currentGroup / selectedGroup, 
-  // userList, roomList vs. sıfırlayalım
   if (currentGroup === groupId) {
     currentGroup = null;
     currentRoom = null;
@@ -918,7 +906,6 @@ socket.on('groupDeleted', (data) => {
     userListDiv.innerHTML = '';
     roomListDiv.innerHTML = '';
   }
-  // groupsList'i yeniden almak
   socket.emit('set-username', username);
 });
 
