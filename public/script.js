@@ -342,6 +342,15 @@ socket.on('groupsList', (groupArray) => {
   });
 });
 
+/* --- YENİ: groupDropdownIcon => menüyü aç/kapat --- */
+groupDropdownIcon.addEventListener('click', () => {
+  if (groupDropdownMenu.style.display === 'none' || groupDropdownMenu.style.display === '') {
+    groupDropdownMenu.style.display = 'block';
+  } else {
+    groupDropdownMenu.style.display = 'none';
+  }
+});
+
 /* roomsList => kanallar */
 socket.on('roomsList', (roomsArray) => {
   roomListDiv.innerHTML = '';
@@ -502,10 +511,8 @@ leaveButton.addEventListener('click', () => {
   leaveButton.style.display = 'none';
   console.log("Kanaldan ayrıldınız.");
 
-  // ÖNEMLİ: userListDiv.innerHTML = '' -> KALDIRILDI
-  // Onun yerine grubu hâlâ seçili tutuyoruz => re-browse
+  // Tekrar "browseGroup" => sağ panelde kullanıcıları görelim
   if (currentGroup) {
-    // Tekrar "browseGroup" => sağ panelde kullanıcıları görelim
     socket.emit('browseGroup', currentGroup);
   }
 });
