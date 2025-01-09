@@ -318,7 +318,7 @@ closeJoinGroupModal.addEventListener('click', () => {
   joinGroupModal.style.display = 'none';
 });
 
-/* groupsList => sol sidebar (browse) */
+/* groupsList => sol sidebar */
 socket.on('groupsList', (groupArray) => {
   groupListDiv.innerHTML = '';
   groupArray.forEach(groupObj => {
@@ -331,11 +331,10 @@ socket.on('groupsList', (groupArray) => {
       document.querySelectorAll('.grp-item').forEach(el => el.classList.remove('selected'));
       grpItem.classList.add('selected');
 
-      // Göz atılacak grup => selectedGroup
       selectedGroup = groupObj.id;
-      currentGroup = null; // henüz join edilmedi
+      currentGroup = null;
       groupTitle.textContent = groupObj.name;
-      // Sadece browse
+      // Sadece oda listesini ve user'ları göstermek için
       socket.emit('browseGroup', groupObj.id);
     });
 
@@ -367,17 +366,16 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    /* Kanal tıklayınca => eğer farklı gruptaysak önce joinGroup, sonra joinRoom */
+    // Kanala tıklama
     roomItem.addEventListener('click', () => {
       if (currentGroup !== selectedGroup) {
-        // Önce gruba tam olarak join
+        // Join group
         socket.emit('joinGroup', selectedGroup);
 
         setTimeout(() => {
           joinRoom(selectedGroup, roomObj.id, roomObj.name);
         }, 300);
       } else {
-        // Zaten o gruptayız
         joinRoom(currentGroup, roomObj.id, roomObj.name);
       }
     });
@@ -495,12 +493,21 @@ function joinRoom(groupId, roomId, roomName) {
 /* Ayrıl Butonu => odadan çık */
 leaveButton.addEventListener('click', () => {
   if (!currentRoom) return;
+
+  // Odadan ayrıl => closeAllPeers => (ama gruptan çıkma)
   socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
   closeAllPeers();
+
   currentRoom = null;
-  userListDiv.innerHTML = '';
   leaveButton.style.display = 'none';
   console.log("Kanaldan ayrıldınız.");
+
+  // ÖNEMLİ: userListDiv.innerHTML = '' -> KALDIRILDI
+  // Onun yerine grubu hâlâ seçili tutuyoruz => re-browse
+  if (currentGroup) {
+    // Tekrar "browseGroup" => sağ panelde kullanıcıları görelim
+    socket.emit('browseGroup', currentGroup);
+  }
 });
 
 /* Sağ panel => Çevrimiçi / Çevrimdışı => Yazıları normal, küçük font */
@@ -512,8 +519,8 @@ function updateUserList(data) {
   // Çevrimiçi
   const onlineTitle = document.createElement('div');
   onlineTitle.textContent = 'Çevrimiçi';
-  onlineTitle.style.fontWeight = 'normal';   // Bold yapma => normal
-  onlineTitle.style.fontSize = '0.85rem';    // Biraz küçült
+  onlineTitle.style.fontWeight = 'normal';
+  onlineTitle.style.fontSize = '0.85rem';
   userListDiv.appendChild(onlineTitle);
 
   if (data.online && data.online.length > 0) {
@@ -530,8 +537,8 @@ function updateUserList(data) {
   // Çevrimdışı
   const offlineTitle = document.createElement('div');
   offlineTitle.textContent = 'Çevrimdışı';
-  offlineTitle.style.fontWeight = 'normal';  // Bold yapma => normal
-  offlineTitle.style.fontSize = '0.85rem';   // Biraz küçült
+  offlineTitle.style.fontWeight = 'normal';
+  offlineTitle.style.fontSize = '0.85rem';
   offlineTitle.style.marginTop = '1rem';
   userListDiv.appendChild(offlineTitle);
 
@@ -773,7 +780,7 @@ async function createOffer(peer, userId) {
   socket.emit("signal", { to: userId, signal: peer.localDescription });
 }
 
-/* closeAllPeers */
+/* closeAllPeers => Tüm RTCPeerConnection'ları kapat */
 function closeAllPeers() {
   console.log("CLOSING ALL PEERS!");
   for (const userId in peers) {
