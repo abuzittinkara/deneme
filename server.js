@@ -16,33 +16,42 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
-// MongoDB URI
-const uri = process.env.MONGODB_URI || "mongodb+srv://abuzorttin:19070480019Mg.@cluster0.vdrdy.mongodb.net/myappdb?retryWrites=true&w=majority";
-mongoose.connect(uri)
+/** 
+ * ÖNEMLİ: MongoDB URI’nizi kontrol edin.
+ * Kullanıcı adı, parola, clusterName, dbName gibi değerlerin doğru olduğundan
+ * ve Atlas tarafında ip/beyazliste ayarlarının uygun olduğundan emin olun.
+ */
+const uri = process.env.MONGODB_URI || "mongodb+srv://abuzorttin:HWZe7uK5yEAE@cluster0.vdrdy.mongodb.net/myappdb?retryWrites=true&w=majority";
+
+/**
+ * Mongoose bağlantısı => useNewUrlParser, useUnifiedTopology,
+ * serverSelectionTimeoutMS => bekleme süresini arttır.
+ */
+mongoose.connect(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 30000, // 30 sn
+})
   .then(() => console.log("MongoDB bağlantısı başarılı!"))
   .catch(err => console.error("MongoDB bağlantı hatası:", err));
 
-// Bellek içi tablolar
+/** Bellek içi tablolar */
 const users = {};   // socket.id -> { username, currentGroup, currentRoom }
 const groups = {};  // groupId -> { owner: <username>, name, users:[], rooms:{} }
 
-// Çevrimiçi (online) kullanıcı adlarını tutuyoruz
+// Çevrimiçi kullanıcı adlarını tutuyoruz
 const onlineUsernames = new Set();
 
 app.use(express.static("public"));
 
-/**
- * Grupları DB’den çekip bellek ‘groups[]’ objesine yükler.
- * Burada DB’deki `owner` => User._id => gerçekte hangi username’e ait bulup
- * groups[groupId].owner = o user’ın username değerine set ediyoruz.
- */
+/** Grupları DB’den çek => bellek groups[] doldur. */
 async function loadGroupsFromDB() {
   try {
     const allGroups = await Group.find({});
     for (const gDoc of allGroups) {
       if (!groups[gDoc.groupId]) {
         groups[gDoc.groupId] = {
-          owner: null,  // Sonraki adımda bulacağız
+          owner: null, 
           name: gDoc.name,
           users: [],
           rooms: {}
@@ -52,7 +61,7 @@ async function loadGroupsFromDB() {
       if (gDoc.owner) {
         const ownerUser = await User.findById(gDoc.owner);
         if (ownerUser) {
-          groups[gDoc.groupId].owner = ownerUser.username; // kritik
+          groups[gDoc.groupId].owner = ownerUser.username;
         }
       }
     }
@@ -62,37 +71,32 @@ async function loadGroupsFromDB() {
   }
 }
 
-/**
- * Kanalları DB’den çekip bellek `groups[groupId].rooms` içerisine yükler.
- */
+/** Kanalları DB’den çek => bellek groups[groupId].rooms */
 async function loadChannelsFromDB() {
   try {
     const allChannels = await Channel.find({}).populate('group');
-    allChannels.forEach(ch => {
-      if (!ch.group) return;
+    for (const ch of allChannels) {
+      if (!ch.group) continue; 
       const gId = ch.group.groupId;
-      if (!groups[gId]) return;
+      if (!groups[gId]) continue;
       if (!groups[gId].rooms[ch.channelId]) {
         groups[gId].rooms[ch.channelId] = {
           name: ch.name,
           users: []
         };
       }
-    });
+    }
     console.log("loadChannelsFromDB tamam.");
   } catch (err) {
     console.error("loadChannelsFromDB hatası:", err);
   }
 }
 
-// Sunucu açılırken DB’deki grup ve kanalları yükle
-// (ÖNEMLİ: owner => username mapping yapıyoruz)
-loadGroupsFromDB().then(() => loadChannelsFromDB());
+// Uygulama başlarken => veritabanından grupları ve kanalları belleğe yükleyelim
+loadGroupsFromDB()
+  .then(() => loadChannelsFromDB());
 
-/**
- * groupId’deki tüm odaları ve içindeki kullanıcıları döndürür:
- * { roomId: { name, users:[...]}, ... }
- */
+/** groupId => odalar => { roomId: { name, users:[...] } } */
 function getAllChannelsData(groupId) {
   if (!groups[groupId]) return {};
   const channelsObj = {};
@@ -109,9 +113,7 @@ function getAllChannelsData(groupId) {
   return channelsObj;
 }
 
-/**
- * Bir kullanıcı (socket) hangi grup/oda vs. varsa hepsinden çıkar.
- */
+/** Bir kullanıcıyı tüm grup/odalardan çıkar. */
 function removeUserFromAllGroupsAndRooms(socket) {
   const socketId = socket.id;
   const userData = users[socketId];
@@ -121,14 +123,12 @@ function removeUserFromAllGroupsAndRooms(socket) {
     const grpObj = groups[gId];
     if (grpObj.users.some(u => u.id === socketId)) {
       grpObj.users = grpObj.users.filter(u => u.id !== socketId);
-      // Odalardan da çıkar
       Object.keys(grpObj.rooms).forEach(rId => {
         grpObj.rooms[rId].users = grpObj.rooms[rId].users.filter(u => u.id !== socketId);
         io.to(`${gId}::${rId}`).emit('roomUsers', grpObj.rooms[rId].users);
       });
       io.to(gId).emit('allChannelsData', getAllChannelsData(gId));
     }
-    // socket.leave => hepsinden
     Object.keys(grpObj.rooms).forEach(rId => {
       socket.leave(`${gId}::${rId}`);
     });
@@ -139,9 +139,7 @@ function removeUserFromAllGroupsAndRooms(socket) {
   users[socketId].currentRoom = null;
 }
 
-/**
- * DB’den gruba üye kullanıcıları alıp “online/offline” listesi yapıyoruz.
- */
+/** DB => o grubun kullanıcıları => online/offline */
 async function getOnlineOfflineDataForGroup(groupId) {
   const groupDoc = await Group.findOne({ groupId }).populate('users');
   if (!groupDoc) return { online: [], offline: [] };
@@ -159,9 +157,7 @@ async function getOnlineOfflineDataForGroup(groupId) {
   return { online, offline };
 }
 
-/**
- * Tüm group’a => groupUsers => { online, offline }
- */
+/** Tüm group’a => groupUsers */
 async function broadcastGroupUsers(groupId) {
   if (!groupId) return;
   try {
@@ -172,9 +168,7 @@ async function broadcastGroupUsers(groupId) {
   }
 }
 
-/**
- * Tek kullanıcıya => groupUsers => { online, offline }
- */
+/** Tek kullanıcıya => groupUsers */
 async function sendGroupUsersToOneUser(socketId, groupId) {
   try {
     const { online, offline } = await getOnlineOfflineDataForGroup(groupId);
@@ -184,27 +178,21 @@ async function sendGroupUsersToOneUser(socketId, groupId) {
   }
 }
 
-/**
- * Tüm group’a => allChannelsData
- */
+/** Tüm group’a => allChannelsData */
 function broadcastAllChannelsData(groupId) {
   if (!groups[groupId]) return;
   const channelsObj = getAllChannelsData(groupId);
   io.to(groupId).emit('allChannelsData', channelsObj);
 }
 
-/**
- * Tek user’a => allChannelsData
- */
+/** Tek kullanıcıya => allChannelsData */
 function sendAllChannelsDataToOneUser(socketId, groupId) {
   if (!groups[groupId]) return;
   const channelsObj = getAllChannelsData(groupId);
   io.to(socketId).emit('allChannelsData', channelsObj);
 }
 
-/**
- * Tek user’a => roomsList => oradaki odaların isimleri
- */
+/** Tek kullanıcıya => roomsList */
 function sendRoomsListToUser(socketId, groupId) {
   if (!groups[groupId]) return;
   const groupObj = groups[groupId];
@@ -215,10 +203,7 @@ function sendRoomsListToUser(socketId, groupId) {
   io.to(socketId).emit('roomsList', roomArray);
 }
 
-/**
- * Tek user’a => groupsList => her grup: { id, name, owner }
- * (owner => username)
- */
+/** Tek kullanıcıya => groupsList */
 async function sendGroupsListToUser(socketId) {
   const userData = users[socketId];
   if (!userData) return;
@@ -316,7 +301,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // set-username => kullanıcı adını belirleme
+  // set-username
   socket.on('set-username', async (usernameVal) => {
     if (usernameVal && typeof usernameVal === 'string') {
       const trimmedName = usernameVal.trim();
@@ -331,7 +316,6 @@ io.on("connection", (socket) => {
         console.error("sendGroupsListToUser hata:", err);
       }
 
-      // broadcastGroupUsers => bu user hangi gruplara üye ise orada online gözüksün
       try {
         const userDoc = await User.findOne({ username: trimmedName }).populate('groups');
         if (userDoc && userDoc.groups.length > 0) {
@@ -367,7 +351,6 @@ io.on("connection", (socket) => {
     userDoc.groups.push(newGroup._id);
     await userDoc.save();
 
-    // Bellek => owner: userName
     groups[groupId] = {
       owner: userName,
       name: trimmed,
@@ -395,7 +378,6 @@ io.on("connection", (socket) => {
         return;
       }
 
-      // DB relation ekle
       if (!groupDoc.users.includes(userDoc._id)) {
         groupDoc.users.push(userDoc._id);
         await groupDoc.save();
@@ -405,7 +387,6 @@ io.on("connection", (socket) => {
         await userDoc.save();
       }
 
-      // Bellekte yoksa ekle
       if (!groups[groupId]) {
         const ownerUser = await User.findById(groupDoc.owner);
         let ownerUsername = ownerUser ? ownerUser.username : null;
@@ -540,7 +521,7 @@ io.on("connection", (socket) => {
     broadcastAllChannelsData(groupId);
   });
 
-  // renameGroup => grup ismi değiştir
+  // renameGroup
   socket.on('renameGroup', async ({ groupId, newName }) => {
     const userName = users[socket.id].username;
     if (!groups[groupId]) return;
@@ -557,14 +538,11 @@ io.on("connection", (socket) => {
         socket.emit('errorMessage', "Grup DB'de yok.");
         return;
       }
-      // DB’de değiştir
       groupDoc.name = newName;
       await groupDoc.save();
 
-      // Bellekte de
       groups[groupId].name = newName;
 
-      // Tüm odakilere
       io.to(groupId).emit('groupRenamed', { groupId, newName });
       console.log(`Grup rename => ${groupId}, yeni isim=${newName}`);
     } catch (err) {
@@ -573,7 +551,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // deleteGroup => grubu sil
+  // deleteGroup
   socket.on('deleteGroup', async (grpId) => {
     const userName = users[socket.id].username;
     if (!groups[grpId]) {
@@ -581,20 +559,18 @@ io.on("connection", (socket) => {
       return;
     }
 
-    // Sadece owner silebilir
+    // Sadece owner
     if (groups[grpId].owner !== userName) {
       socket.emit('errorMessage', "Bu grubu silmeye yetkiniz yok.");
       return;
     }
 
     try {
-      // DB’de bul
       const groupDoc = await Group.findOne({ groupId: grpId });
       if (!groupDoc) {
         socket.emit('errorMessage', "Grup DB'de bulunamadı.");
         return;
       }
-      // DB’den sil
       await Group.deleteOne({ _id: groupDoc._id });
       await Channel.deleteMany({ group: groupDoc._id });
 
@@ -654,7 +630,7 @@ io.on("connection", (socket) => {
   });
 });
 
-// Start
+// Sunucu başlat
 const PORT = process.env.PORT || 10000;
 server.listen(PORT, () => {
   console.log(`Sunucu çalışıyor: http://localhost:${PORT}`);
