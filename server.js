@@ -16,20 +16,27 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
-/** MongoDB bağlantısı */
+/**
+ * MongoDB bağlantısı
+ * useNewUrlParser ve useUnifiedTopology artık varsayılan ve 
+ * devre dışı kalmış olduğundan kaldırıyoruz.
+ */
 const uri = process.env.MONGODB_URI || "mongodb+srv://abuzorttin:HWZe7uK5yEAE@cluster0.vdrdy.mongodb.net/myappdb?retryWrites=true&w=majority";
-
 mongoose.connect(uri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 30000 // 30 sn
+  // Bu opsiyonlar artık uyarı veriyor. Kaldırdık:
+  // useNewUrlParser: true,
+  // useUnifiedTopology: true,
+  // Gerekirse başka opsiyonlar ekleyin:
+  serverSelectionTimeoutMS: 30000 // 30sn beklesin
 })
   .then(() => console.log("MongoDB bağlantısı başarılı!"))
   .catch(err => console.error("MongoDB bağlantı hatası:", err));
 
-/** Bellek içi tablolar */
+// Bellek içi tablolar
 const users = {};   // socket.id -> { username, currentGroup, currentRoom }
 const groups = {};  // groupId -> { owner: <username>, name, users:[], rooms:{} }
+
+// Çevrimiçi kullanıcı adlarını tutuyoruz
 const onlineUsernames = new Set();
 
 app.use(express.static("public"));
@@ -46,7 +53,7 @@ async function loadGroupsFromDB() {
           rooms: {}
         };
       }
-      // owner => user tablo _id => username
+      // DB’deki gDoc.owner => user tablo _id => username
       if (gDoc.owner) {
         const ownerUser = await User.findById(gDoc.owner);
         if (ownerUser) {
@@ -294,7 +301,6 @@ io.on("connection", (socket) => {
         console.error("sendGroupsListToUser hata:", err);
       }
 
-      // broadcastGroupUsers => online/offline update
       try {
         const userDoc = await User.findOne({ username: trimmedName }).populate('groups');
         if (userDoc && userDoc.groups.length > 0) {
@@ -505,7 +511,7 @@ io.on("connection", (socket) => {
     const userName = users[socket.id].username;
     if (!groups[groupId]) return;
 
-    // Sadece grup sahibi
+    // Sadece grup sahibi rename edebilir
     if (groups[groupId].owner !== userName) {
       socket.emit('errorMessage', "Bu grubu değiştirme yetkiniz yok.");
       return;
@@ -537,6 +543,7 @@ io.on("connection", (socket) => {
       socket.emit('errorMessage', "Grup bellekte yok.");
       return;
     }
+
     // Sadece grup sahibi
     if (groups[grpId].owner !== userName) {
       socket.emit('errorMessage', "Bu grubu silmeye yetkiniz yok.");
@@ -562,18 +569,16 @@ io.on("connection", (socket) => {
     }
   });
 
-  // renameChannel (YENİ)
+  // renameChannel
   socket.on('renameChannel', async ({ groupId, channelId, newName }) => {
     const userName = users[socket.id].username;
     if (!groups[groupId]) return;
 
-    // Yine "kanal" üzerinde de (basit yaklaşım) sadece GRUP OWNER rename edebilir
     if (groups[groupId].owner !== userName) {
       socket.emit('errorMessage', "Bu kanalı değiştirme yetkiniz yok.");
       return;
     }
 
-    // DB => Channel.findOne({ channelId, group=? })
     try {
       const groupDoc = await Group.findOne({ groupId });
       if (!groupDoc) {
@@ -589,12 +594,10 @@ io.on("connection", (socket) => {
       channelDoc.name = newName;
       await channelDoc.save();
 
-      // Bellekte de değiştirelim
       if (groups[groupId].rooms[channelId]) {
         groups[groupId].rooms[channelId].name = newName;
       }
 
-      // Tüm clientlara bildir
       io.to(groupId).emit('channelRenamed', { groupId, channelId, newName });
       console.log(`Kanal rename => channelId=${channelId}, newName=${newName}`);
     } catch (err) {
@@ -603,12 +606,11 @@ io.on("connection", (socket) => {
     }
   });
 
-  // deleteChannel (YENİ)
+  // deleteChannel
   socket.on('deleteChannel', async ({ groupId, channelId }) => {
     const userName = users[socket.id].username;
     if (!groups[groupId]) return;
 
-    // Basit yaklaşım => sadece GRUP OWNER silebilir
     if (groups[groupId].owner !== userName) {
       socket.emit('errorMessage', "Bu kanalı silmeye yetkiniz yok.");
       return;
@@ -627,12 +629,10 @@ io.on("connection", (socket) => {
       }
       await Channel.deleteOne({ _id: channelDoc._id });
 
-      // Bellekten de sil
       delete groups[groupId].rooms[channelId];
 
       console.log(`Kanal silindi => channelId=${channelId}, groupId=${groupId}`);
 
-      // Tüm clientlara => channelDeleted
       io.to(groupId).emit('channelDeleted', { groupId, channelId });
     } catch (err) {
       console.error("deleteChannel hata:", err);
