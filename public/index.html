@@ -4,8 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sesli Görüşme Uygulaması</title>
+
+  <!-- Styles -->
   <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link 
+    href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" 
+    rel="stylesheet"
+  >
 </head>
 <body>
   <!-- Giriş Ekranı -->
@@ -55,8 +60,16 @@
         <div class="sidebar" id="sidebar">
           <button id="toggleDMButton" class="circle-btn dm-toggle-btn">
             <!-- Zarf ikonu -->
-            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" 
-                 stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <svg 
+              width="24" 
+              height="24" 
+              fill="none" 
+              stroke="currentColor" 
+              stroke-width="2" 
+              stroke-linecap="round" 
+              stroke-linejoin="round"
+              viewBox="0 0 24 24"
+            >
               <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 
                        1.1-.9 2-2 2H4c-1.1 
                        0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
@@ -89,8 +102,16 @@
       <!-- DM paneli -->
       <div id="dmPanel" class="dm-panel" style="display:none;">
         <button id="closeDMButton" class="circle-btn dm-close-btn">
-          <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
-               stroke-linejoin="round" viewBox="0 0 24 24" width="24" height="24">
+          <svg 
+            fill="none" 
+            stroke="currentColor"
+            stroke-width="2" 
+            stroke-linecap="round"
+            stroke-linejoin="round" 
+            viewBox="0 0 24 24"
+            width="24" 
+            height="24"
+          >
             <line x1="19" y1="12" x2="5" y2="12"/>
             <polyline points="12 19 5 12 12 5"/>
           </svg>
@@ -107,16 +128,43 @@
             <span id="leftUserName" class="left-username">(Kullanıcı)</span>
           </div>
           <div class="user-panel-buttons">
-            <button id="micToggleButton" class="user-panel-btn" title="Mikrofon Aç/Kapa" style="width:22px;height:22px;"></button>
-            <button id="deafenToggleButton" class="user-panel-btn" title="Kendini Sağırlaştır" style="width:22px;height:22px;"></button>
-            <button id="leaveButton" class="leave-btn" style="display:none;">
-              <svg width="18" height="18" viewBox="0 0 24 24" stroke="#c61884" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <button 
+              id="micToggleButton" 
+              class="user-panel-btn" 
+              title="Mikrofon Aç/Kapa" 
+              style="width:22px;height:22px;"
+            >
+              MIC
+            </button>
+            <button 
+              id="deafenToggleButton" 
+              class="user-panel-btn" 
+              title="Kendini Sağırlaştır" 
+              style="width:22px;height:22px;"
+            >
+              DEAF
+            </button>
+            <button 
+              id="leaveButton" 
+              class="leave-btn" 
+              style="display:none;"
+            >
+              <svg 
+                width="18" 
+                height="18" 
+                viewBox="0 0 24 24" 
+                stroke="#c61884"
+                fill="none" 
+                stroke-width="2" 
+                stroke-linecap="round" 
+                stroke-linejoin="round"
+              >
                 <path d="M22 16.92v3a2 2 0 0 1-2.18 2c-3.22-.34-6.23-1.61-8.6-3.53s-3.19-5.38-3.53-8.6A2 
                          2 0 0 1 6.08 8h3a2 2 0 0 1 2 
                          1.72l.22 1.56a16 
                          16 0 0 0 5.56 5.56l1.56.22A2 
-                         2 0 0 1 22 16.92z">
-                </path>
+                         2 0 0 1 22 16.92z"
+                ></path>
               </svg>
             </button>
           </div>
@@ -130,10 +178,7 @@
     </div>
 
     <div class="right-panel" id="rightPanel">
-      <!-- "Aktif Kullanıcılar (Oda)" KALDIRILDI -->
-      <!-- Burada eskiden <h2 class="panel-title">Aktif Kullanıcılar (Oda)</h2> vardı, silindi. -->
-
-      <!-- Kullanıcı listesi (Çevrimiçi / Çevrimdışı) -->
+      <!-- Sağ panel başlık kaldırıldı ama isterseniz ekleyebilirsiniz -->
       <div id="userList" class="user-list"></div>
     </div>
   </div>
@@ -180,7 +225,10 @@
     </div>
   </div>
 
+  <!-- En ÖNEMLİ: socket.io client script => /socket.io/socket.io.js -->
   <script src="/socket.io/socket.io.js"></script>
+
+  <!-- Ardından kendi script'imiz -->
   <script src="script.js"></script>
 </body>
 </html>
