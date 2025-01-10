@@ -11,32 +11,25 @@ const { v4: uuidv4 } = require('uuid'); // UUID
 const User = require('./models/User');
 const Group = require('./models/Group');
 const Channel = require('./models/Channel');
+const Message = require('./models/Message');  // YENİ: Mesaj modeli
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
-/**
- * MongoDB bağlantısı
- * useNewUrlParser ve useUnifiedTopology artık varsayılan ve 
- * devre dışı kalmış olduğundan kaldırıyoruz.
- */
+/** MongoDB URI */
 const uri = process.env.MONGODB_URI || "mongodb+srv://abuzorttin:HWZe7uK5yEAE@cluster0.vdrdy.mongodb.net/myappdb?retryWrites=true&w=majority";
+
+/** Mongoose Bağlantısı (useNewUrlParser vs. kaldırdık) */
 mongoose.connect(uri, {
-  // Bu opsiyonlar artık uyarı veriyor. Kaldırdık:
-  // useNewUrlParser: true,
-  // useUnifiedTopology: true,
-  // Gerekirse başka opsiyonlar ekleyin:
-  serverSelectionTimeoutMS: 30000 // 30sn beklesin
+  serverSelectionTimeoutMS: 30000
 })
   .then(() => console.log("MongoDB bağlantısı başarılı!"))
   .catch(err => console.error("MongoDB bağlantı hatası:", err));
 
-// Bellek içi tablolar
+/** Bellek içi tablolar */
 const users = {};   // socket.id -> { username, currentGroup, currentRoom }
 const groups = {};  // groupId -> { owner: <username>, name, users:[], rooms:{} }
-
-// Çevrimiçi kullanıcı adlarını tutuyoruz
 const onlineUsernames = new Set();
 
 app.use(express.static("public"));
@@ -53,7 +46,6 @@ async function loadGroupsFromDB() {
           rooms: {}
         };
       }
-      // DB’deki gDoc.owner => user tablo _id => username
       if (gDoc.owner) {
         const ownerUser = await User.findById(gDoc.owner);
         if (ownerUser) {
@@ -77,7 +69,8 @@ async function loadChannelsFromDB() {
       if (!groups[gId].rooms[ch.channelId]) {
         groups[gId].rooms[ch.channelId] = {
           name: ch.name,
-          users: []
+          users: [],
+          type: ch.type || 'voice'
         };
       }
     }
@@ -87,7 +80,7 @@ async function loadChannelsFromDB() {
   }
 }
 
-// Başlangıç => veritabanından grupları & kanalları belleğe yükle
+// Başlangıç
 loadGroupsFromDB().then(() => loadChannelsFromDB());
 
 function getAllChannelsData(groupId) {
@@ -97,10 +90,8 @@ function getAllChannelsData(groupId) {
     const rm = groups[groupId].rooms[roomId];
     channelsObj[roomId] = {
       name: rm.name,
-      users: rm.users.map(u => ({
-        id: u.id,
-        username: u.username
-      }))
+      users: rm.users || [],
+      type: rm.type || 'voice'
     };
   });
   return channelsObj;
@@ -184,7 +175,8 @@ function sendRoomsListToUser(socketId, groupId) {
   const groupObj = groups[groupId];
   const roomArray = Object.keys(groupObj.rooms).map(rId => ({
     id: rId,
-    name: groupObj.rooms[rId].name
+    name: groupObj.rooms[rId].name,
+    type: groupObj.rooms[rId].type || 'voice'
   }));
   io.to(socketId).emit('roomsList', roomArray);
 }
@@ -432,8 +424,8 @@ io.on("connection", (socket) => {
     await broadcastGroupUsers(groupId);
   });
 
-  // createRoom
-  socket.on('createRoom', async ({ groupId, roomName }) => {
+  // createRoom => EKLENDİ: type (voice or text)
+  socket.on('createRoom', async ({ groupId, roomName, roomType }) => {
     try {
       if (!groups[groupId]) return;
       if (!roomName) return;
@@ -448,15 +440,17 @@ io.on("connection", (socket) => {
         channelId: roomId,
         name: trimmed,
         group: groupDoc._id,
-        users: []
+        users: [],
+        type: roomType === 'text' ? 'text' : 'voice'  // varsayılan voice
       });
       await newChannel.save();
 
       groups[groupId].rooms[roomId] = {
         name: trimmed,
-        users: []
+        users: [],
+        type: roomType === 'text' ? 'text' : 'voice'
       };
-      console.log(`Yeni oda: group=${groupId}, room=${roomId}, name=${trimmed}`);
+      console.log(`Yeni oda: group=${groupId}, room=${roomId}, name=${trimmed}, type=${roomType}`);
 
       groups[groupId].users.forEach(u => {
         sendRoomsListToUser(u.id, groupId);
@@ -487,6 +481,26 @@ io.on("connection", (socket) => {
     socket.join(groupId);
     socket.join(`${groupId}::${roomId}`);
 
+    // EĞER text channel ise => fetch old messages => client'a gönder
+    const channelType = groups[groupId].rooms[roomId].type || 'voice';
+    if (channelType === 'text') {
+      // DB'deki eski mesajları çek
+      Channel.findOne({ channelId: roomId })
+        .then(async (chanDoc) => {
+          if (!chanDoc) return;
+          const messages = await Message.find({ channel: chanDoc._id })
+            .populate('user', 'username')
+            .sort({ timestamp: 1 }); // eski -> yeni sıralama
+          // Socket'e => 'previousMessages' event
+          socket.emit('previousMessages', messages.map(m => ({
+            user: m.user.username,
+            content: m.content,
+            timestamp: m.timestamp
+          })));
+        })
+        .catch(err => console.error("joinRoom => fetch messages hata:", err));
+    }
+
     io.to(`${groupId}::${roomId}`).emit('roomUsers', groups[groupId].rooms[roomId].users);
 
     broadcastAllChannelsData(groupId);
@@ -511,7 +525,6 @@ io.on("connection", (socket) => {
     const userName = users[socket.id].username;
     if (!groups[groupId]) return;
 
-    // Sadece grup sahibi rename edebilir
     if (groups[groupId].owner !== userName) {
       socket.emit('errorMessage', "Bu grubu değiştirme yetkiniz yok.");
       return;
@@ -543,8 +556,6 @@ io.on("connection", (socket) => {
       socket.emit('errorMessage', "Grup bellekte yok.");
       return;
     }
-
-    // Sadece grup sahibi
     if (groups[grpId].owner !== userName) {
       socket.emit('errorMessage', "Bu grubu silmeye yetkiniz yok.");
       return;
@@ -558,6 +569,7 @@ io.on("connection", (socket) => {
       }
       await Group.deleteOne({ _id: groupDoc._id });
       await Channel.deleteMany({ group: groupDoc._id });
+      // Mesajlar da silinebilir => DB'den Group altındaki channel'ları bulup Message'ları da silmek isterseniz
 
       delete groups[grpId];
       console.log(`Grup silindi => ${grpId}`);
@@ -640,6 +652,46 @@ io.on("connection", (socket) => {
     }
   });
 
+  // === YAZILI KANAL MESAJ İŞLEMLERİ (EKLENDİ) ===
+  // “sendMessage” => text channel'a mesaj kaydet ve yayınla
+  socket.on('sendMessage', async ({ groupId, channelId, content }) => {
+    const userData = users[socket.id];
+    if (!userData || !groups[groupId]) return;
+    const room = groups[groupId].rooms[channelId];
+    if (!room) return;
+    if (room.type !== 'text') return; // Yalnızca yazılı kanallar
+
+    try {
+      // DB => Channel bul
+      const groupDoc = await Group.findOne({ groupId });
+      if (!groupDoc) return;
+      const channelDoc = await Channel.findOne({ channelId, group: groupDoc._id });
+      if (!channelDoc) return;
+
+      // userDoc => DB
+      const userDoc = await User.findOne({ username: userData.username });
+      if (!userDoc) return;
+
+      // DB => message create
+      const newMsg = new Message({
+        channel: channelDoc._id,
+        user: userDoc._id,
+        content: content
+      });
+      await newMsg.save();
+
+      // Kanaldaki diğer kullanıcılara => “newMessage” event
+      io.to(`${groupId}::${channelId}`).emit('newMessage', {
+        user: userDoc.username,
+        content,
+        timestamp: newMsg.timestamp
+      });
+      console.log(`Yazılı kanal mesaj => channelId=${channelId}, user=${userDoc.username}, content=${content}`);
+    } catch (err) {
+      console.error("sendMessage hata:", err);
+    }
+  });
+
   // WebRTC (signal)
   socket.on("signal", (data) => {
     const targetId = data.to;
@@ -686,6 +738,7 @@ io.on("connection", (socket) => {
   });
 });
 
+// Sunucuyu başlat
 const PORT = process.env.PORT || 10000;
 server.listen(PORT, () => {
   console.log(`Sunucu çalışıyor: http://localhost:${PORT}`);
