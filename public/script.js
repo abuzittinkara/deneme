@@ -1,6 +1,7 @@
 /**************************************
  * script.js
  **************************************/
+
 const socket = io();
 let localStream;
 let peers = {};
@@ -47,6 +48,75 @@ function createWaveIcon() {
   svg.appendChild(p3);
 
   return svg;
+}
+
+// ---- KANAL SAĞ TIK MENÜSÜ DEĞİŞKENLER (EKLENDİ) ----
+let channelContextMenu = null;
+let currentRightClickedChannel = null; // { id, name }
+
+/* channelContextMenu oluşturma fonksiyonu (EKLENDİ) */
+function createChannelContextMenu() {
+  channelContextMenu = document.createElement('div');
+  channelContextMenu.id = 'channelContextMenu';
+  channelContextMenu.style.position = 'absolute';
+  channelContextMenu.style.display = 'none';
+  channelContextMenu.style.background = '#333';
+  channelContextMenu.style.border = '1px solid #666';
+  channelContextMenu.style.borderRadius = '6px';
+  channelContextMenu.style.padding = '0.5rem';
+  channelContextMenu.style.zIndex = '9999';
+
+  // Kanal ismi değiştir
+  const renameBtn = document.createElement('div');
+  renameBtn.textContent = 'Kanal Adını Değiştir';
+  renameBtn.style.cursor = 'pointer';
+  renameBtn.style.marginBottom = '0.3rem';
+  renameBtn.addEventListener('click', () => {
+    channelContextMenu.style.display = 'none';
+    if (!currentRightClickedChannel) return;
+    const newName = prompt("Yeni kanal ismi:", currentRightClickedChannel.name);
+    if (!newName || !newName.trim()) return;
+
+    // groupId => currentGroup veya selectedGroup
+    const grp = currentGroup || selectedGroup;
+    socket.emit('renameChannel', { 
+      groupId: grp, 
+      channelId: currentRightClickedChannel.id, 
+      newName: newName.trim() 
+    });
+  });
+
+  // Kanal sil
+  const deleteBtn = document.createElement('div');
+  deleteBtn.textContent = 'Kanalı Sil';
+  deleteBtn.style.cursor = 'pointer';
+  deleteBtn.addEventListener('click', () => {
+    channelContextMenu.style.display = 'none';
+    if (!currentRightClickedChannel) return;
+    const confirmDel = confirm("Bu kanalı silmek istediğinize emin misiniz?");
+    if (!confirmDel) return;
+
+    const grp = currentGroup || selectedGroup;
+    socket.emit('deleteChannel', { groupId: grp, channelId: currentRightClickedChannel.id });
+  });
+
+  channelContextMenu.appendChild(renameBtn);
+  channelContextMenu.appendChild(deleteBtn);
+
+  document.body.appendChild(channelContextMenu);
+
+  // Sayfada herhangi bir yere tıklanınca menüyü kapat
+  document.addEventListener('click', () => {
+    channelContextMenu.style.display = 'none';
+  });
+}
+
+/* Menüyü gösterme (EKLENDİ) */
+function showChannelContextMenu(x, y) {
+  if (!channelContextMenu) createChannelContextMenu();
+  channelContextMenu.style.display = 'block';
+  channelContextMenu.style.left = x + 'px';
+  channelContextMenu.style.top = y + 'px';
 }
 
 // DOM referansları
@@ -337,7 +407,19 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Kanala tıklama
+    // ====== EKLENDİ: Sağ tık (contextmenu) => Kanal Sil / Kanal Adını Değiştir ======
+    roomItem.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      // “currentRightClickedChannel” => hangi channel’ı tıkladık
+      currentRightClickedChannel = {
+        id: roomObj.id,
+        name: roomObj.name
+      };
+      showChannelContextMenu(e.pageX, e.pageY);
+    });
+    // ===============================================================================
+
+    // Kanala tıklama (sol tık)
     roomItem.addEventListener('click', () => {
       if (currentGroup !== selectedGroup) {
         socket.emit('joinGroup', selectedGroup);
@@ -411,7 +493,9 @@ socket.on('roomUsers', (usersInRoom) => {
     });
   } else {
     otherUserIds.forEach(userId => {
-      if (!peers[userId]) initPeer(userId, true);
+      if (!peers[userId]) {
+        initPeer(userId, true);
+      }
     });
   }
 });
@@ -726,7 +810,7 @@ async function createOffer(peer, userId) {
       }
       const offer2 = await peer.createOffer();
       await peer.setLocalDescription(offer2);
-      socket.emit("signal", { to: userId, signal: peer.localDescription });
+      socket.emit("signal", { to: userId, signal: offer2 });
     }, 200);
     return;
   }
@@ -817,6 +901,22 @@ socket.on('groupDeleted', (data) => {
     roomListDiv.innerHTML = '';
   }
   socket.emit('set-username', username);
+});
+
+// ======= KANAL rename/delete event’leri (EKLENDİ) =======
+
+// Kanal ismi değişti => UI refresh
+socket.on('channelRenamed', ({ groupId, channelId, newName }) => {
+  console.log(`channelRenamed => channelId=${channelId}, newName=${newName}`);
+  // Tekrar “browseGroup” diyerek roomsList yenileyelim:
+  socket.emit('browseGroup', groupId);
+});
+
+// Kanal silindi => UI refresh
+socket.on('channelDeleted', ({ groupId, channelId }) => {
+  console.log(`channelDeleted => channelId=${channelId}, groupId=${groupId}`);
+  // Tekrar “browseGroup” diyerek roomsList yenileyelim
+  socket.emit('browseGroup', groupId);
 });
 
 /* Soket durumu */
