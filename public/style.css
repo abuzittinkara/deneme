@@ -381,13 +381,11 @@ body {
 /* Ortadaki ana içerik */
 .main-content {
   flex: 1;
-  padding: 15rem;
+  display: flex;
+  flex-direction: column;
+  padding: 0; /* "Sesli Görüşme" yazısı kaldırıldı, padding sıfırlandı */
   overflow: auto;
   color: #fff;
-}
-.app-title {
-  margin: 0 0 1rem;
-  font-size: 1.4rem;
 }
 
 /* Sağ panel */
@@ -490,47 +488,36 @@ body {
   .right-panel { width:200px; }
 }
 
-/* *** YAZILI SOHBET STİLLERİ *** */
+/* YAZILI KANAL => textChatContainer */
 #textChatContainer {
-  display: none; 
-  position: relative; 
-  background: #2d2d2d;
-  width: 100%;
-  height: calc(100% - 60px); /* Üst padding/alan varsa ayarla */
-  box-sizing: border-box;
+  /* Artık main-content içinde tüm alanı kaplayabilir */
+  flex: 1;
+  display: none; /* varsayılan gizli */
   flex-direction: column;
-}
-
-/* Mesajların gösterildiği alan */
-#chatMessages {
-  flex: 1;
-  overflow: auto;
-  padding: 1rem;
   background: #2d2d2d;
 }
-
-/* Alt kısımdaki input ve buton satırı => sabit */
-.chat-input-row {
-  display: flex;
-  align-items: center;
-  padding: 0.5rem;
-  background: #1f1f1f;
+#chatMessages {
+  flex: 1; 
+  overflow: auto; 
+  background: #2d2d2d;
+  padding: 1rem;
 }
-
-/* Mesaj input => Discord benzeri */
-#chatInput {
-  flex: 1;
-  background: #444;
-  border: 1px solid #666;
-  border-radius: 6px;
-  color: #fff;
-  font-size: 0.9rem;
+.chat-input-row {
+  display: flex; 
+  align-items: center; 
+  background: #1f1f1f; 
   padding: 0.5rem;
-  outline: none;
+}
+#chatInput {
+  flex: 1; 
+  background: #444; 
+  border: 1px solid #666; 
+  border-radius: 6px; 
+  color: #fff; 
+  font-size: 0.9rem; 
+  padding: 0.5rem; 
   margin-right: 0.5rem;
 }
-
-/* Gönder butonu => pembe, ufak */
 #sendChatBtn {
   background: #c61884;
   border: none;
