@@ -85,7 +85,6 @@ function getAllChannelsData(groupId) {
   const channelsObj = {};
   Object.keys(groups[groupId].rooms).forEach(roomId => {
     const rm = groups[groupId].rooms[roomId];
-    // Sadece voice kanallarda "users" listesi tutuyoruz
     channelsObj[roomId] = {
       name: rm.name,
       users: (rm.type === 'voice') ? rm.users : [],
@@ -96,8 +95,7 @@ function getAllChannelsData(groupId) {
 }
 
 /**
- * removeUserFromAllVoiceChannels(socketId) =>
- * Bu user'ı Tüm gruplardaki voice kanallardan siliyoruz.
+ * removeUserFromAllVoiceChannels => kullanıcıyı tüm voice kanallardan çıkar
  */
 function removeUserFromAllVoiceChannels(socketId) {
   for (const gId of Object.keys(groups)) {
@@ -340,7 +338,6 @@ io.on("connection", (socket) => {
         return;
       }
 
-      // DB => Gruba eklenmesi
       if (!groupDoc.users.includes(userDoc._id)) {
         groupDoc.users.push(userDoc._id);
         await groupDoc.save();
@@ -350,7 +347,6 @@ io.on("connection", (socket) => {
         await userDoc.save();
       }
 
-      // Bellek => groups
       if (!groups[groupId]) {
         const ownerUser = await User.findById(groupDoc.owner);
         let ownerUsername = ownerUser ? ownerUser.username : null;
@@ -362,10 +358,8 @@ io.on("connection", (socket) => {
         };
       }
 
-      // Tüm voice kanallardan çıkar
       removeUserFromAllVoiceChannels(socket.id);
 
-      // Bu gruba user ekle
       const userData = users[socket.id];
       if (!groups[groupId].users.some(u => u.id === socket.id)) {
         groups[groupId].users.push({ id: socket.id, username: userData.username });
@@ -393,7 +387,7 @@ io.on("connection", (socket) => {
     await broadcastGroupUsers(groupId);
   });
 
-  // joinGroup => user'ı gruba ekle (voice kanaldan önce çıkar)
+  // joinGroup
   socket.on('joinGroup', async (groupId) => {
     if (!groups[groupId]) return;
 
@@ -406,7 +400,6 @@ io.on("connection", (socket) => {
     }
     userData.currentGroup = groupId;
     userData.currentRoom = null;
-
     socket.join(groupId);
 
     sendRoomsListToUser(socket.id, groupId);
@@ -459,10 +452,8 @@ io.on("connection", (socket) => {
     const channelType = groups[groupId].rooms[roomId].type || 'voice';
 
     if (channelType === 'voice') {
-      // Tüm voice kanallardan çıkar
       removeUserFromAllVoiceChannels(socket.id);
 
-      // Bu voice kanala ekle
       const userData = users[socket.id];
       const userName = userData.username || `(User ${socket.id})`;
       if (!groups[groupId].users.some(u => u.id === socket.id)) {
@@ -478,7 +469,7 @@ io.on("connection", (socket) => {
       io.to(`${groupId}::${roomId}`).emit('roomUsers', groups[groupId].rooms[roomId].users);
       broadcastAllChannelsData(groupId);
     } else {
-      // text channel => user ekleme yok
+      // text channel => eski mesajları yolla
       try {
         const groupDoc = await Group.findOne({ groupId });
         if (!groupDoc) return;
@@ -566,7 +557,6 @@ io.on("connection", (socket) => {
       }
       await Group.deleteOne({ _id: groupDoc._id });
       await Channel.deleteMany({ group: groupDoc._id });
-      // Mesajlar da silinebilir istenirse
 
       delete groups[grpId];
       console.log(`Grup silindi => ${grpId}`);
@@ -695,7 +685,7 @@ io.on("connection", (socket) => {
     const sR = users[socket.id].currentRoom;
     const tR = users[targetId].currentRoom;
 
-    // Sadece aynı group + aynı voice channel => signal
+    // Yalnızca aynı group + aynı voice channel => sinyal
     if (sG && sG === tG && sR && sR === tR) {
       io.to(targetId).emit("signal", {
         from: socket.id,
@@ -712,10 +702,11 @@ io.on("connection", (socket) => {
       const { username } = userData;
       if (username) {
         onlineUsernames.delete(username);
+
         // Tüm voice kanallardan çıkar
         removeUserFromAllVoiceChannels(socket.id);
 
-        // Bu user'ı group'tan da sil => groupUsers
+        // group'tan da çıkar
         for (const gId of Object.keys(groups)) {
           groups[gId].users = groups[gId].users.filter(u => u.id !== socket.id);
           broadcastAllChannelsData(gId);
@@ -727,7 +718,7 @@ io.on("connection", (socket) => {
   });
 });
 
-// Başlat
+// Sunucuyu başlat
 const PORT = process.env.PORT || 10000;
 server.listen(PORT, () => {
   console.log(`Sunucu çalışıyor: http://localhost:${PORT}`);

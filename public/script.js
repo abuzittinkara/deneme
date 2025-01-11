@@ -16,7 +16,7 @@ let selfDeafened = false;
 // Mevcut group/room
 let currentGroup = null;
 let currentRoom = null;
-let currentRoomType = 'voice'; // "voice" or "text"
+let currentRoomType = 'voice'; // "voice" veya "text"
 
 // Göz atılan (browse edilen) group
 let selectedGroup = null;
@@ -24,7 +24,7 @@ let selectedGroup = null;
 let pendingUsers = [];
 let pendingNewUsers = [];
 
-// ICE Candidate
+// ICE Candidate birikmeleri
 let pendingCandidates = {};
 let sessionUfrag = {};
 
@@ -245,7 +245,6 @@ registerButton.addEventListener('click', () => {
     alert("Tüm alanları doldurun.");
     return;
   }
-
   if (userData.username !== userData.username.toLowerCase()) {
     alert("Kullanıcı adı sadece küçük harf olmalı.");
     return;
@@ -402,7 +401,6 @@ createRoomButton.addEventListener('click', () => {
     return;
   }
   modalRoomName.value = '';
-  // Varsayılan radio: "voice"
   document.querySelector('input[name="channelType"][value="voice"]').checked = true;
   roomModal.style.display = 'flex';
 });
@@ -468,8 +466,8 @@ socket.on('roomsList', (roomsArray) => {
 
     // Kanala tıklama (sol tık)
     roomItem.addEventListener('click', () => {
-      // Eski RTCPeerConnection'ları kapat => 
-      // Tekrarlı "cannot set local answer" hatalarını önler
+      // Eski RTCPeerConnection'ları kapat => "polite approach" & 
+      // 2nd offer çakışması önleme
       closeAllPeers();
 
       if (currentGroup !== selectedGroup) {
@@ -519,7 +517,7 @@ socket.on('groupUsers', (dbUsersArray) => {
   updateUserList(dbUsersArray);
 });
 
-/* roomUsers => voice channel => WebRTC init */
+/* roomUsers => odadaki kisiler => WebRTC */
 socket.on('roomUsers', (usersInRoom) => {
   console.log("roomUsers => odadaki kisiler:", usersInRoom);
 
@@ -576,7 +574,7 @@ function appendChatMessage(user, content, timestamp) {
   chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
 }
 
-/* joinRoom => voice/text */
+/* joinRoom => voice veya text */
 function joinRoom(groupId, roomId, roomName, roomType = 'voice') {
   currentGroup = groupId;
   currentRoom = roomId;
@@ -724,15 +722,21 @@ socket.on("signal", async (data) => {
       pendingNewUsers.push(from);
       return;
     }
-    // Burada isInitiator = false => "offer" sinyali almışız
+    // isInitiator = false => "offer" alıyoruz
     peer = initPeer(from, false);
   }
 
   if (signal.type === "offer") {
-    if (peer.signalingState === "have-remote-offer") {
-      // Normal akış => setRemoteDescription + createAnswer
-    } else if (peer.signalingState !== "stable") {
-      console.warn("signaling not stable => skip second offer");
+    // Polite approach => rollback vs. stable check
+    if (peer.signalingState === "have-local-offer") {
+      console.log("Collision => rollback local offer (polite)");
+      try {
+        await peer.setLocalDescription({ type: "rollback" });
+      } catch (err) {
+        console.warn("rollback hata:", err);
+      }
+    } else if (peer.signalingState !== "stable" && peer.signalingState !== "have-remote-offer") {
+      console.warn("signaling not stable => applying polite rollback or skip");
       return;
     }
     await peer.setRemoteDescription(new RTCSessionDescription(signal));
@@ -761,7 +765,7 @@ socket.on("signal", async (data) => {
 
   } else if (signal.type === "answer") {
     if (peer.signalingState === "stable" || peer.signalingState === "closed") {
-      console.warn("PeerConnection already stable or closed. Second answer ignored.");
+      console.warn("PeerConnection already stable/closed. Second answer ignored.");
       return;
     }
     await peer.setRemoteDescription(new RTCSessionDescription(signal));
@@ -830,7 +834,6 @@ function initPeer(userId, isInitiator) {
   });
   peers[userId] = peer;
 
-  // LocalStream => peer'e ekle
   localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
 
   peer.onicecandidate = (ev) => {
