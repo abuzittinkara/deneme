@@ -24,7 +24,7 @@ let selectedGroup = null;
 let pendingUsers = [];
 let pendingNewUsers = [];
 
-// ICE Candidate birikmeleri
+// ICE Candidate
 let pendingCandidates = {};
 let sessionUfrag = {};
 
@@ -177,7 +177,6 @@ function createChannelContextMenu() {
 
   document.body.appendChild(channelContextMenu);
 
-  // Sayfada herhangi bir yere tıklayınca menüyü kapat
   document.addEventListener('click', () => {
     channelContextMenu.style.display = 'none';
   });
@@ -402,7 +401,6 @@ createRoomButton.addEventListener('click', () => {
     return;
   }
   modalRoomName.value = '';
-  // Varsayılan radio: "voice"
   document.querySelector('input[name="channelType"][value="voice"]').checked = true;
   roomModal.style.display = 'flex';
 });
@@ -471,7 +469,9 @@ socket.on('roomsList', (roomsArray) => {
     // Kanala tıklama (sol tık)
     roomItem.addEventListener('click', () => {
       if (currentGroup !== selectedGroup) {
+        // Grupla tam senkronize olmak için
         socket.emit('joinGroup', selectedGroup);
+        // Biraz bekleyip asıl joinRoom
         setTimeout(() => {
           joinRoom(selectedGroup, roomObj.id, roomObj.name, roomObj.type);
         }, 300);
@@ -492,7 +492,7 @@ socket.on('allChannelsData', (channelsObj) => {
     if (!channelDiv) return;
     channelDiv.innerHTML = '';
 
-    // Sadece voice kanallarda users gösterelim
+    // Sadece voice kanalda user listesi
     if (cData.type === 'voice' && cData.users) {
       cData.users.forEach(u => {
         const userDiv = document.createElement('div');
@@ -518,34 +518,31 @@ socket.on('groupUsers', (dbUsersArray) => {
   updateUserList(dbUsersArray);
 });
 
-/* roomUsers => odadaki kişiler => WebRTC init */
+/* roomUsers => sadece voice kanallar için => WebRTC init */
 socket.on('roomUsers', (usersInRoom) => {
   console.log("roomUsers => odadaki kisiler:", usersInRoom);
 
-  // Bu event sadece voice kanallar için geliyor
   const otherUserIds = usersInRoom
     .filter(u => u.id !== socket.id)
     .map(u => u.id)
     .filter(id => !peers[id]);
 
   if (!audioPermissionGranted || !localStream) {
-    requestMicrophoneAccess()
-      .then(() => {
-        otherUserIds.forEach(userId => {
-          if (!peers[userId]) initPeer(userId, true);
-        });
-        pendingUsers.forEach(userId => {
-          if (!peers[userId]) initPeer(userId, true);
-        });
-        pendingUsers = [];
-        pendingNewUsers.forEach(userId => {
-          if (!peers[userId]) initPeer(userId, false);
-        });
-        pendingNewUsers = [];
-      })
-      .catch(err => {
-        console.error("Mikrofon izni alınamadı:", err);
+    requestMicrophoneAccess().then(() => {
+      otherUserIds.forEach(userId => {
+        if (!peers[userId]) initPeer(userId, true);
       });
+      pendingUsers.forEach(userId => {
+        if (!peers[userId]) initPeer(userId, true);
+      });
+      pendingUsers = [];
+      pendingNewUsers.forEach(userId => {
+        if (!peers[userId]) initPeer(userId, false);
+      });
+      pendingNewUsers = [];
+    }).catch(err => {
+      console.error("Mikrofon izni alınamadı:", err);
+    });
   } else {
     otherUserIds.forEach(userId => {
       if (!peers[userId]) {
@@ -555,7 +552,7 @@ socket.on('roomUsers', (usersInRoom) => {
   }
 });
 
-/* Kanala girince eski mesajlar => "previousMessages" */
+/* previousMessages => text channel eski mesajlar */
 socket.on('previousMessages', (messages) => {
   console.log("previousMessages =>", messages);
   chatMessagesDiv.innerHTML = '';
@@ -564,7 +561,7 @@ socket.on('previousMessages', (messages) => {
   });
 });
 
-/* newMessage => anlık gelen mesaj */
+/* newMessage => anlık yeni mesaj */
 socket.on('newMessage', (data) => {
   appendChatMessage(data.user, data.content, data.timestamp);
 });
@@ -578,7 +575,7 @@ function appendChatMessage(user, content, timestamp) {
   chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
 }
 
-/* joinRoom => WebRTC veya text-channel logic */
+/* joinRoom => voice veya text */
 function joinRoom(groupId, roomId, roomName, roomType = 'voice') {
   currentGroup = groupId;
   currentRoom = roomId;
@@ -586,20 +583,19 @@ function joinRoom(groupId, roomId, roomName, roomType = 'voice') {
 
   socket.emit('joinRoom', { groupId, roomId });
 
-  // Voice kanalsa => webrtc; text kanalsa => sadece mesaj
-  // Buton
   if (roomType === 'text') {
+    // Text => "katıl" yok, buton gizli
     leaveButton.style.display = 'none';
     textChatContainer.style.display = 'flex';
     textChatContainer.style.flexDirection = 'column';
   } else {
-    // voice
+    // Voice => webrtc, leaveButton gözüksün
     leaveButton.style.display = 'flex';
     textChatContainer.style.display = 'none';
   }
 }
 
-/* Ayrıl Butonu => odadan çık (voice channel) */
+/* Ayrıl Butonu => sadece voice kanaldan çıkar */
 leaveButton.addEventListener('click', () => {
   if (!currentRoom) return;
   socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
@@ -610,7 +606,6 @@ leaveButton.addEventListener('click', () => {
   leaveButton.style.display = 'none';
   console.log("Kanaldan ayrıldınız.");
 
-  // Text chat kapat
   textChatContainer.style.display = 'none';
   chatMessagesDiv.innerHTML = '';
 
