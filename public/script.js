@@ -16,7 +16,7 @@ let selfDeafened = false;
 // Mevcut group/room
 let currentGroup = null;
 let currentRoom = null;
-let currentRoomType = 'voice'; // "voice" or "text"
+let currentRoomType = 'voice'; // "voice" veya "text"
 
 // Göz atılan (browse edilen) group
 let selectedGroup = null;
@@ -24,15 +24,15 @@ let selectedGroup = null;
 let pendingUsers = [];
 let pendingNewUsers = [];
 
-// ICE Candidate
+// ICE Candidate / session
 let pendingCandidates = {};
 let sessionUfrag = {};
 
-// Kanal sağ tık menüsü
+// Kanal sağ tık menüsü (rename/delete)
 let channelContextMenu = null;
 let currentRightClickedChannel = null;
 
-// ---- DOM referansları ----
+/* --- DOM Referansları --- */
 const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
 const callScreen = document.getElementById('callScreen');
@@ -58,11 +58,11 @@ const backToLoginButton = document.getElementById('backToLoginButton');
 const showRegisterScreen = document.getElementById('showRegisterScreen');
 const showLoginScreen = document.getElementById('showLoginScreen');
 
-// Gruplar
+// Gruplar (Sol sidebar)
 const groupListDiv = document.getElementById('groupList');
 const createGroupButton = document.getElementById('createGroupButton');
 
-// Odalar
+// Odalar (Kanallar)
 const roomListDiv = document.getElementById('roomList');
 const createRoomButton = document.getElementById('createRoomButton');
 const groupTitle = document.getElementById('groupTitle');
@@ -83,20 +83,18 @@ let isDMMode = false;
 // Sağ panel (kullanıcı listesi)
 const userListDiv = document.getElementById('userList');
 
-// Ayrıl Butonu
+// Ayrıl Butonu (sesli kanaldan)
 const leaveButton = document.getElementById('leaveButton');
 
 /* === YAZILI KANAL ALANI === */
 const textChatContainer = document.createElement('div');
 textChatContainer.id = 'textChatContainer';
-textChatContainer.classList.add('chat-container'); 
-textChatContainer.style.display = 'none'; 
-/* İçindeki HTML'i min. tutuyoruz; tasarımı style.css ile veriyoruz. */
+textChatContainer.style.display = 'none';
 textChatContainer.innerHTML = `
-  <div id="chatMessages" class="chat-messages"></div>
-  <div class="chat-input-row">
-    <input type="text" id="chatInput" placeholder="Mesajınızı yazın..." />
-    <button id="sendChatBtn">Gönder</button>
+  <div id="chatMessages" style="flex:1; overflow:auto; padding:1rem; background:#2d2d2d;"></div>
+  <div class="chat-input-row" style="display:flex; align-items:center; padding:0.5rem; background:#1f1f1f;">
+    <input type="text" id="chatInput" placeholder="Mesajınızı yazın..." style="flex:1; background:#444; border:1px solid #666; border-radius:6px; color:#fff; font-size:0.9rem; padding:0.5rem; margin-right:0.5rem;"/>
+    <button id="sendChatBtn" style="background:#c61884; border:none; border-radius:4px; color:#fff; cursor:pointer; font-size:0.8rem; padding:0.4rem 0.8rem;">Gönder</button>
   </div>
 `;
 document.querySelector('.main-content').appendChild(textChatContainer);
@@ -105,7 +103,7 @@ const chatMessagesDiv = document.getElementById('chatMessages');
 const chatInput = document.getElementById('chatInput');
 const sendChatBtn = document.getElementById('sendChatBtn');
 
-// roomModal => Kanal Adı + Tipi (radio)
+// roomModal => Kanal Adı + Tipi (voice/text)
 const roomModal = document.getElementById('roomModal');
 const modalRoomName = document.getElementById('modalRoomName');
 const modalCreateRoomBtn = document.getElementById('modalCreateRoomBtn');
@@ -134,7 +132,7 @@ function createWaveIcon() {
   return svg;
 }
 
-/* Channel Context Menu => rename / delete (sağ tık) */
+/* Channel Context Menu => rename / delete */
 function createChannelContextMenu() {
   channelContextMenu = document.createElement('div');
   channelContextMenu.id = 'channelContextMenu';
@@ -178,6 +176,7 @@ function createChannelContextMenu() {
 
   document.body.appendChild(channelContextMenu);
 
+  // Global click => menüyü kapat
   document.addEventListener('click', () => {
     channelContextMenu.style.display = 'none';
   });
@@ -246,7 +245,6 @@ registerButton.addEventListener('click', () => {
     alert("Tüm alanları doldurun.");
     return;
   }
-
   if (userData.username !== userData.username.toLowerCase()) {
     alert("Kullanıcı adı sadece küçük harf olmalı.");
     return;
@@ -319,6 +317,7 @@ socket.on('groupsList', (groupArray) => {
     grpItem.title = groupObj.name + " (" + groupObj.id + ")";
 
     grpItem.addEventListener('click', () => {
+      // Seçili highlight
       document.querySelectorAll('.grp-item').forEach(el => el.classList.remove('selected'));
       grpItem.classList.add('selected');
 
@@ -328,6 +327,7 @@ socket.on('groupsList', (groupArray) => {
 
       socket.emit('browseGroup', groupObj.id);
 
+      // Grup sahibi isek => sil/rename butonları
       if (groupObj.owner === username) {
         deleteGroupBtn.style.display = 'block';
         renameGroupBtn.style.display = 'block';
@@ -396,7 +396,7 @@ deleteGroupBtn.addEventListener('click', () => {
   socket.emit('deleteGroup', grp);
 });
 
-/* Kanal Oluştur => Oda Modalını Aç */
+/* Kanal Oluştur => Modal */
 createRoomButton.addEventListener('click', () => {
   if (!selectedGroup) {
     alert("Önce bir gruba tıklayın!");
@@ -424,6 +424,7 @@ modalCreateRoomBtn.addEventListener('click', () => {
   }
   const sel = document.querySelector('input[name="channelType"]:checked');
   const roomType = sel ? sel.value : 'voice';
+
   socket.emit('createRoom', { groupId: selectedGroup, roomName: rName, roomType });
   roomModal.style.display = 'none';
 });
@@ -431,7 +432,7 @@ modalCloseRoomBtn.addEventListener('click', () => {
   roomModal.style.display = 'none';
 });
 
-/* roomsList => kanallar */
+/* roomsList => kanal listesi */
 socket.on('roomsList', (roomsArray) => {
   roomListDiv.innerHTML = '';
   roomsArray.forEach(roomObj => {
@@ -455,6 +456,7 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
+    // Sağ tık menüsü (rename/delete)
     roomItem.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       currentRightClickedChannel = {
@@ -464,9 +466,13 @@ socket.on('roomsList', (roomsArray) => {
       showChannelContextMenu(e.pageX, e.pageY);
     });
 
+    // Sol tık => Kanala geçiş
     roomItem.addEventListener('click', () => {
-      closeAllPeers();
-
+      // Yalnızca voice->voice geçişinde closeAllPeers
+      if (currentRoomType === 'voice' && roomObj.type === 'voice' && currentRoom !== roomObj.id) {
+        closeAllPeers();
+      }
+      // Gruplar farklıysa => joinGroup
       if (currentGroup !== selectedGroup) {
         socket.emit('joinGroup', selectedGroup);
         setTimeout(() => {
@@ -481,7 +487,7 @@ socket.on('roomsList', (roomsArray) => {
   });
 });
 
-/* allChannelsData => kanallarda kim var */
+/* allChannelsData => voice kanallardaki kullanıcılar */
 socket.on('allChannelsData', (channelsObj) => {
   Object.keys(channelsObj).forEach(roomId => {
     const cData = channelsObj[roomId];
@@ -489,6 +495,7 @@ socket.on('allChannelsData', (channelsObj) => {
     if (!channelDiv) return;
     channelDiv.innerHTML = '';
 
+    // Yalnızca voice kanallarda user listesi
     if (cData.type === 'voice' && cData.users) {
       cData.users.forEach(u => {
         const userDiv = document.createElement('div');
@@ -514,7 +521,7 @@ socket.on('groupUsers', (dbUsersArray) => {
   updateUserList(dbUsersArray);
 });
 
-/* roomUsers => odadaki kullanıcılar => WebRTC init */
+/* roomUsers => voice channel => WebRTC init */
 socket.on('roomUsers', (usersInRoom) => {
   console.log("roomUsers => odadaki kisiler:", usersInRoom);
 
@@ -580,15 +587,17 @@ function joinRoom(groupId, roomId, roomName, roomType = 'voice') {
   socket.emit('joinRoom', { groupId, roomId });
 
   if (roomType === 'text') {
+    // Sesli kanalda kalmaya devam, leaveButton gözükmesin
     leaveButton.style.display = 'none';
     textChatContainer.style.display = 'flex';
   } else {
+    // Voice => ayrıl butonu aktif
     leaveButton.style.display = 'flex';
     textChatContainer.style.display = 'none';
   }
 }
 
-/* Ayrıl Butonu => odadan çık */
+/* Ayrıl Butonu => sesli kanaldan çık */
 leaveButton.addEventListener('click', () => {
   if (!currentRoom) return;
   socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
@@ -599,10 +608,12 @@ leaveButton.addEventListener('click', () => {
   leaveButton.style.display = 'none';
   console.log("Kanaldan ayrıldınız.");
 
+  // Text alanı kapat
   textChatContainer.style.display = 'none';
   chatMessagesDiv.innerHTML = '';
 
   if (currentGroup) {
+    // Tekrar group'a browse
     socket.emit('browseGroup', currentGroup);
   }
 });
@@ -647,6 +658,7 @@ function updateUserList(data) {
   }
 }
 
+/* Tek bir kullanıcı satırı */
 function createUserItem(username, isOnline) {
   const userItem = document.createElement('div');
   userItem.classList.add('user-item');
@@ -722,16 +734,15 @@ socket.on("signal", async (data) => {
   }
 
   if (signal.type === "offer") {
-    // Polite approach => rollback if needed
     if (peer.signalingState === "have-local-offer") {
-      console.log("Collision => rollback local offer (polite)");
+      console.log("Collision => rollback local offer");
       try {
         await peer.setLocalDescription({ type: "rollback" });
       } catch (err) {
         console.warn("rollback hata:", err);
       }
     } else if (peer.signalingState !== "stable" && peer.signalingState !== "have-remote-offer") {
-      console.warn("signaling not stable => skip second offer (polite approach)");
+      console.warn("signaling not stable => skip second offer");
       return;
     }
     await peer.setRemoteDescription(new RTCSessionDescription(signal));
@@ -783,7 +794,6 @@ socket.on("signal", async (data) => {
     }
 
   } else if (signal.candidate) {
-    // ICE candidate
     if (!peer.remoteDescription || peer.remoteDescription.type === "") {
       console.log("Henüz remoteDescription yok => pending candidate:", signal);
       if (!pendingCandidates[from]) {
@@ -829,6 +839,7 @@ function initPeer(userId, isInitiator) {
   });
   peers[userId] = peer;
 
+  // localStream => peer'e ekle
   localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
 
   peer.onicecandidate = (ev) => {
@@ -855,9 +866,7 @@ function initPeer(userId, isInitiator) {
     }
   };
 
-  if (isInitiator) {
-    createOffer(peer, userId);
-  }
+  if (isInitiator) createOffer(peer, userId);
   return peer;
 }
 
@@ -882,13 +891,13 @@ async function createOffer(peer, userId) {
   socket.emit("signal", { to: userId, signal: peer.localDescription });
 }
 
-/* closeAllPeers => Tüm RTCPeerConnection’ları kapat */
+/* closeAllPeers => Tüm RTCPeerConnection kapat */
 function closeAllPeers() {
   console.log("CLOSING ALL PEERS!");
-  for (const userId in peers) {
-    if (peers[userId]) {
-      peers[userId].close();
-      delete peers[userId];
+  for (const uid in peers) {
+    if (peers[uid]) {
+      peers[uid].close();
+      delete peers[uid];
     }
   }
   remoteAudios = [];
@@ -913,7 +922,7 @@ function applyAudioStates() {
       track.enabled = micEnabled && !selfDeafened;
     });
   }
-  document.getElementById('micToggleButton').innerHTML =
+  document.getElementById('micToggleButton').innerHTML = 
     (micEnabled && !selfDeafened) ? "MIC ON" : "MIC OFF";
   applyDeafenState();
   document.getElementById('deafenToggleButton').innerHTML =
@@ -937,7 +946,7 @@ function parseIceUfrag(sdp) {
   return null;
 }
 
-/* renameGroup => UI update */
+/* renameGroup => UI update => groupRenamed */
 socket.on('groupRenamed', (data) => {
   const { groupId, newName } = data;
   if (currentGroup === groupId || selectedGroup === groupId) {
@@ -946,7 +955,7 @@ socket.on('groupRenamed', (data) => {
   socket.emit('set-username', username);
 });
 
-/* deleteGroup => UI update */
+/* deleteGroup => UI update => groupDeleted */
 socket.on('groupDeleted', (data) => {
   const { groupId } = data;
   if (currentGroup === groupId) {
@@ -965,19 +974,19 @@ socket.on('groupDeleted', (data) => {
   socket.emit('set-username', username);
 });
 
-/* channelRenamed => UI refresh */
+/* channelRenamed => refresh */
 socket.on('channelRenamed', ({ groupId, channelId, newName }) => {
   console.log(`channelRenamed => channelId=${channelId}, newName=${newName}`);
   socket.emit('browseGroup', groupId);
 });
 
-/* channelDeleted => UI refresh */
+/* channelDeleted => refresh */
 socket.on('channelDeleted', ({ groupId, channelId }) => {
   console.log(`channelDeleted => channelId=${channelId}, groupId=${groupId}`);
   socket.emit('browseGroup', groupId);
 });
 
-/* Yazılı Kanal => Mesaj gönderme */
+/* Yazılı Kanal => Mesaj gönderme butonu */
 sendChatBtn.addEventListener('click', () => {
   if (currentRoomType !== 'text') {
     alert("Burası yazılı kanal değil!");
@@ -989,7 +998,7 @@ sendChatBtn.addEventListener('click', () => {
   chatInput.value = '';
 });
 
-/* newMessage => chat'e ekliyoruz */
+/* newMessage => yazılı kanal */
 socket.on('newMessage', (data) => {
   appendChatMessage(data.user, data.content, data.timestamp);
 });
