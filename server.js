@@ -67,7 +67,7 @@ async function loadChannelsFromDB() {
       if (!groups[gId].rooms[ch.channelId]) {
         groups[gId].rooms[ch.channelId] = {
           name: ch.name,
-          users: [], 
+          users: [],
           type: ch.type || 'voice'
         };
       }
@@ -85,10 +85,10 @@ function getAllChannelsData(groupId) {
   const channelsObj = {};
   Object.keys(groups[groupId].rooms).forEach(roomId => {
     const rm = groups[groupId].rooms[roomId];
-    // Sadece voice kanallara users dizisi ekleyelim, text'te users göstermiyoruz
     channelsObj[roomId] = {
       name: rm.name,
-      users: rm.type === 'voice' ? rm.users : [],
+      // Sadece voice kanallarda users gösteririz
+      users: (rm.type === 'voice') ? rm.users : [],
       type: rm.type || 'voice'
     };
   });
@@ -96,43 +96,29 @@ function getAllChannelsData(groupId) {
 }
 
 /**
- * removeUserFromAllVoiceChannels => 
- * Herhangi bir grupta, user'ı voice kanallardan siliyoruz. 
- * (Böylece farklı kanaldan ses gelmeyecek.)
+ * removeUserFromAllVoiceChannels(socketId) =>
+ * Bu user'ı TÜM voice kanallardan çıkar. 
  */
 function removeUserFromAllVoiceChannels(socketId) {
   for (const gId of Object.keys(groups)) {
     const grpObj = groups[gId];
-    // Bu group'ta user var mı?
-    if (grpObj.users.some(u => u.id === socketId)) {
-      // Tüm voice kanallarından bu user'ı çıkar
-      for (const rId of Object.keys(grpObj.rooms)) {
-        if (grpObj.rooms[rId].type === 'voice') {
-          grpObj.rooms[rId].users = grpObj.rooms[rId].users.filter(u => u.id !== socketId);
-          io.to(`${gId}::${rId}`).emit('roomUsers', grpObj.rooms[rId].users);
+    // Tüm voice kanalları
+    Object.keys(grpObj.rooms).forEach(rId => {
+      const roomObj = grpObj.rooms[rId];
+      if (roomObj.type === 'voice') {
+        const oldLen = roomObj.users.length;
+        roomObj.users = roomObj.users.filter(u => u.id !== socketId);
+        if (roomObj.users.length !== oldLen) {
+          // Bir change oldu => emit
+          io.to(`${gId}::${rId}`).emit('roomUsers', roomObj.users);
         }
       }
-      // allChannelsData da güncelle
-      io.to(gId).emit('allChannelsData', getAllChannelsData(gId));
-    }
+    });
+    // allChannelsData
+    io.to(gId).emit('allChannelsData', getAllChannelsData(gId));
   }
 }
 
-/**
- * removeUserFromAllGroups => 
- * User'ı grup membership'ten çıkar (isteğe bağlı)
- */
-function removeUserFromAllGroups(socketId) {
-  for (const gId of Object.keys(groups)) {
-    const grpObj = groups[gId];
-    grpObj.users = grpObj.users.filter(u => u.id !== socketId);
-    // Voice rooms => yukarıda removeUserFromAllVoiceChannels hallediyor
-    // Yine de broadcast
-    broadcastAllChannelsData(gId);
-  }
-}
-
-/** getOnlineOfflineDataForGroup => groupUsers event */
 async function getOnlineOfflineDataForGroup(groupId) {
   const groupDoc = await Group.findOne({ groupId }).populate('users');
   if (!groupDoc) return { online: [], offline: [] };
@@ -357,6 +343,7 @@ io.on("connection", (socket) => {
         return;
       }
 
+      // Gruba DB'de ekle
       if (!groupDoc.users.includes(userDoc._id)) {
         groupDoc.users.push(userDoc._id);
         await groupDoc.save();
@@ -366,6 +353,7 @@ io.on("connection", (socket) => {
         await userDoc.save();
       }
 
+      // Bellek objesi yoksa oluştur
       if (!groups[groupId]) {
         const ownerUser = await User.findById(groupDoc.owner);
         let ownerUsername = ownerUser ? ownerUser.username : null;
@@ -377,16 +365,17 @@ io.on("connection", (socket) => {
         };
       }
 
-      // Tüm voice kanallardan çıkar
+      // Önce Tüm voice kanallardan çıkar
       removeUserFromAllVoiceChannels(socket.id);
 
-      // Gruba user ekle
+      // Şimdi bu gruba user ekle
       const userData = users[socket.id];
       if (!groups[groupId].users.some(u => u.id === socket.id)) {
         groups[groupId].users.push({ id: socket.id, username: userData.username });
       }
       userData.currentGroup = groupId;
       userData.currentRoom = null;
+
       socket.join(groupId);
 
       console.log(`User ${socket.id} => joinGroupByID => ${groupId}`);
@@ -400,23 +389,18 @@ io.on("connection", (socket) => {
     }
   });
 
-  // browseGroup
+  // browseGroup => roomsList + allChannelsData + groupUsers
   socket.on('browseGroup', async (groupId) => {
     if (!groups[groupId]) return;
     sendRoomsListToUser(socket.id, groupId);
     sendAllChannelsDataToOneUser(socket.id, groupId);
-    try {
-      await broadcastGroupUsers(groupId);
-    } catch (err) {
-      console.error("browseGroup => broadcastGroupUsers hata:", err);
-    }
+    await broadcastGroupUsers(groupId);
   });
 
-  // joinGroup => => user'ı gruba ekle (voice kanallar hariç)
+  // joinGroup => user'ı gruba ekliyoruz (voice kanaldan çıkar)
   socket.on('joinGroup', async (groupId) => {
     if (!groups[groupId]) return;
 
-    // Tüm voice kanallardan çıkar
     removeUserFromAllVoiceChannels(socket.id);
 
     const userData = users[socket.id];
@@ -426,6 +410,7 @@ io.on("connection", (socket) => {
     }
     userData.currentGroup = groupId;
     userData.currentRoom = null;
+
     socket.join(groupId);
 
     sendRoomsListToUser(socket.id, groupId);
@@ -470,19 +455,19 @@ io.on("connection", (socket) => {
     }
   });
 
-  // joinRoom => voice/text => user'ı voice kanallardan çıkar + voice kanala ekle / text => fetch messages
+  // joinRoom => voice/text
   socket.on('joinRoom', async ({ groupId, roomId }) => {
     if (!groups[groupId]) return;
     if (!groups[groupId].rooms[roomId]) return;
 
     const channelType = groups[groupId].rooms[roomId].type || 'voice';
-    const userData = users[socket.id];
 
     if (channelType === 'voice') {
-      // Önce tüm voice kanallardan çıkar
+      // Önce Tüm voice kanallardan çıkar
       removeUserFromAllVoiceChannels(socket.id);
 
       // Şimdi bu voice kanala user ekle
+      const userData = users[socket.id];
       const userName = userData.username || `(User ${socket.id})`;
       if (!groups[groupId].users.some(u => u.id === socket.id)) {
         groups[groupId].users.push({ id: socket.id, username: userName });
@@ -493,11 +478,11 @@ io.on("connection", (socket) => {
 
       socket.join(groupId);
       socket.join(`${groupId}::${roomId}`);
-      io.to(`${groupId}::${roomId}`).emit('roomUsers', groups[groupId].rooms[roomId].users);
 
+      io.to(`${groupId}::${roomId}`).emit('roomUsers', groups[groupId].rooms[roomId].users);
       broadcastAllChannelsData(groupId);
     } else {
-      // text channel => user ekleme yok
+      // text channel => user ekleme yok, sadece eski mesajları yolla
       try {
         const groupDoc = await Group.findOne({ groupId });
         if (!groupDoc) return;
@@ -519,22 +504,20 @@ io.on("connection", (socket) => {
     }
   });
 
-  // leaveRoom => voice => user çıkar
+  // leaveRoom => voice channel'dan çıkar
   socket.on('leaveRoom', ({ groupId, roomId }) => {
     if (!groups[groupId]) return;
     if (!groups[groupId].rooms[roomId]) return;
 
     const channelType = groups[groupId].rooms[roomId].type || 'voice';
     if (channelType === 'voice') {
-      groups[groupId].rooms[roomId].users =
-        groups[groupId].rooms[roomId].users.filter(u => u.id !== socket.id);
-      io.to(`${groupId}::${roomId}`).emit('roomUsers', groups[groupId].rooms[roomId].users);
+      const roomObj = groups[groupId].rooms[roomId];
+      roomObj.users = roomObj.users.filter(u => u.id !== socket.id);
+      io.to(`${groupId}::${roomId}`).emit('roomUsers', roomObj.users);
 
       socket.leave(`${groupId}::${roomId}`);
       users[socket.id].currentRoom = null;
       broadcastAllChannelsData(groupId);
-    } else {
-      // text channel => no-op
     }
   });
 
@@ -693,7 +676,6 @@ io.on("connection", (socket) => {
       });
       await newMsg.save();
 
-      // Sadece gruptaki herkese newMessage
       io.to(groupId).emit('newMessage', {
         user: userDoc.username,
         content,
@@ -716,7 +698,7 @@ io.on("connection", (socket) => {
     const sR = users[socket.id].currentRoom;
     const tR = users[targetId].currentRoom;
 
-    // Aynı group + aynı voice channel => sesli sinyal
+    // Yalnızca aynı group ve aynı voice channel => signal iletilsin
     if (sG && sG === tG && sR && sR === tR) {
       io.to(targetId).emit("signal", {
         from: socket.id,
@@ -733,10 +715,11 @@ io.on("connection", (socket) => {
       const { username } = userData;
       if (username) {
         onlineUsernames.delete(username);
-        // Tüm voice kanallardan çıkar
+
+        // Bu user'ı tüm voice kanallardan çıkar
         removeUserFromAllVoiceChannels(socket.id);
 
-        // Ek olarak user'ı groups[gId].users'tan da silelim
+        // groupUsers listelerini ve allChannelsData'yı güncelle
         for (const gId of Object.keys(groups)) {
           groups[gId].users = groups[gId].users.filter(u => u.id !== socket.id);
           broadcastAllChannelsData(gId);
