@@ -86,12 +86,14 @@ body {
   height: 100%;
   position: relative;
   width: 65px; /* Sadece sidebar genişliği */
+  z-index: 30; /* Kanallara tıklanabilmesi için yüksek z-index */
 }
 .groups-rooms {
   display: flex;
   flex-direction: row;
   position: relative;
-  width: 265px; /* Sidebar + rooms panel */
+  width: 265px; /* Sidebar (65px) + rooms panel (200px) */
+  z-index: 30;  /* Kanallar barının tıklanabilmesi için yeterince yüksek */
 }
 
 /* DM paneli */
@@ -381,7 +383,7 @@ body {
 /* Ortadaki ana içerik */
 .main-content {
   flex: 1;
-  position: relative; /* Yazılı kanal için relative konum */
+  position: relative;
   overflow: auto;
   color: #fff;
 }
@@ -399,6 +401,7 @@ body {
   flex-direction: column;
   box-sizing: border-box;
   color: #fff;
+  z-index: 20; /* Yazılı kanal vs. üstte olmasın */
 }
 
 /* Kullanıcı listesi */
@@ -480,17 +483,19 @@ body {
   display: none;
 }
 
-/* --- YAZILI KANAL (textChatContainer) => kanallar barının HEMEN SAĞINDA */
+/* Text Chat Container */
 #textChatContainer {
   position: absolute;
   top: 0;
-  left: 265px;  /* Gruplar + rooms panel genişliği kadar offset */
-  right: 200px; /* Sağ panel genişliği kadar offset */
+  left: 265px;  /* Gruplar + rooms panel (65+200=265) */
+  right: 200px; /* Sağ panel 200px */
   bottom: 0;
-  display: none; /* Default gizli (voice channel'da) */
+  display: none;
   flex-direction: column;
   background: #2d2d2d;
-  z-index: 10; /* Kanallar barının üstünde görünsün */
+  z-index: 10; /* alt-üst sıralama => kanallar barı z-index:30, 
+                  yazılı kanal z-index:10 => 
+                  bu sayede kanallar tıklanabilir */
 }
 
 #chatMessages {
@@ -531,10 +536,11 @@ body {
   .app-title { font-size:1.2rem; }
   .right-panel { width:200px; }
 
-  /* Yazılı kanal => ufak ekranda tam genişlik */
+  /* Yazılı kanal => ufak ekranda 
+     sol 65px (sidebar) + no right offset */
   #textChatContainer {
-    left: 65px;   /* Sadece sidebar kalabilir? */
-    right: 0;     /* Sağ panel belki gizlenebilir? */
+    left: 65px;
+    right: 0;
+    z-index: 10;
   }
 }
-
