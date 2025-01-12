@@ -85,13 +85,13 @@ body {
   flex-direction: row;
   height: 100%;
   position: relative;
-  width: 65px;
+  width: 65px; /* Sadece sidebar genişliği */
 }
 .groups-rooms {
   display: flex;
   flex-direction: row;
   position: relative;
-  width: 265px;
+  width: 265px; /* Sidebar + rooms panel */
 }
 
 /* DM paneli */
@@ -138,7 +138,7 @@ body {
   height: 43px;
   background: #444;
   color: #fff;
-  border-radius: 45%;
+  border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -167,7 +167,7 @@ body {
   color: #fff;
   width: 48px;
   height: 48px;
-  border-radius: 45%;
+  border-radius: 50%;
   border: none;
   font-size: 1.5rem; 
   cursor: pointer;
@@ -273,7 +273,7 @@ body {
 .channel-user-avatar {
   width: 24px;
   height: 24px;
-  border-radius: 45%;
+  border-radius: 50%;
   background-color: #666;
 }
 
@@ -296,7 +296,7 @@ body {
   width: 40px;
   height: 40px;
   background: #666;
-  border-radius: 45%;
+  border-radius: 50%;
 }
 .left-username {
   font-size: 0.9rem;
@@ -381,11 +381,13 @@ body {
 /* Ortadaki ana içerik */
 .main-content {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 0; /* "Sesli Görüşme" yazısı kaldırıldı, padding sıfırlandı */
+  position: relative; /* Yazılı kanal için relative konum */
   overflow: auto;
   color: #fff;
+}
+.app-title {
+  margin: 0 0 1rem;
+  font-size: 1.4rem;
 }
 
 /* Sağ panel */
@@ -399,7 +401,7 @@ body {
   color: #fff;
 }
 
-/* Kullanıcı listesi => gap daha az (0.2rem) */
+/* Kullanıcı listesi */
 .user-list {
   display: flex;
   flex-direction: column;
@@ -412,18 +414,16 @@ body {
   border: none;
   display: flex;
   align-items: center;
-  gap: 0.40rem;
+  gap: 0.5rem;
 }
 .user-item:hover {
-  /* background: #444; Kaldırıldı */
+  /* no background */
 }
-
-/* Profil dairesi */
 .profile-thumb {
   width: 30px;
   height: 30px;
   background: #666;
-  border-radius: 45%;
+  border-radius: 50%;
   flex-shrink: 0;
 }
 .user-name {
@@ -480,55 +480,61 @@ body {
   display: none;
 }
 
+/* --- YAZILI KANAL (textChatContainer) => kanallar barının HEMEN SAĞINDA */
+#textChatContainer {
+  position: absolute;
+  top: 0;
+  left: 265px;  /* Gruplar + rooms panel genişliği kadar offset */
+  right: 200px; /* Sağ panel genişliği kadar offset */
+  bottom: 0;
+  display: none; /* Default gizli (voice channel'da) */
+  flex-direction: column;
+  background: #2d2d2d;
+  z-index: 10; /* Kanallar barının üstünde görünsün */
+}
+
+#chatMessages {
+  flex: 1;
+  overflow: auto;
+  padding: 1rem;
+  background: #2d2d2d;
+}
+#chatInput {
+  width: 80%;
+  padding: 0.5rem;
+  background: #444;
+  color: #fff;
+  border: 1px solid #666;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+#sendChatBtn {
+  width: 18%;
+  padding: 0.6rem;
+  background: #c61884;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  margin-left: 1%;
+}
+#sendChatBtn:hover {
+  background: #a3156f;
+}
+
+/* Responsive */
 @media (max-width: 600px) {
   .left-panels { width:65px; }
   .rooms-panel { width:200px; }
   .user-panel { width:200px; }
   .app-title { font-size:1.2rem; }
   .right-panel { width:200px; }
+
+  /* Yazılı kanal => ufak ekranda tam genişlik */
+  #textChatContainer {
+    left: 65px;   /* Sadece sidebar kalabilir? */
+    right: 0;     /* Sağ panel belki gizlenebilir? */
+  }
 }
 
-/* YAZILI KANAL => textChatContainer */
-#textChatContainer {
-  /* Artık main-content içinde tüm alanı kaplayabilir */
-  flex: 1;
-  display: none; /* varsayılan gizli */
-  flex-direction: column;
-  background: #2d2d2d;
-}
-#chatMessages {
-  flex: 1; 
-  overflow: auto; 
-  background: #2d2d2d;
-  padding: 1rem;
-}
-.chat-input-row {
-  display: flex; 
-  align-items: center; 
-  background: #1f1f1f; 
-  padding: 0.5rem;
-}
-#chatInput {
-  flex: 1; 
-  background: #444; 
-  border: 1px solid #666; 
-  border-radius: 6px; 
-  color: #fff; 
-  font-size: 0.9rem; 
-  padding: 0.5rem; 
-  margin-right: 0.5rem;
-}
-#sendChatBtn {
-  background: #c61884;
-  border: none;
-  border-radius: 4px;
-  color: #fff;
-  cursor: pointer;
-  font-size: 0.8rem;
-  padding: 0.4rem 0.8rem; 
-  flex-shrink: 0;
-  transition: background 0.3s ease;
-}
-#sendChatBtn:hover {
-  background: #a3156f;
-}
