@@ -85,15 +85,16 @@ body {
   flex-direction: row;
   height: 100%;
   position: relative;
-  width: 65px; /* Sadece sidebar genişliği */
-  z-index: 30; /* Kanallara tıklanabilmesi için yüksek z-index */
+  width: 65px; /* Yalnızca sidebar */
+  z-index: 30; /* Kanallara tıklanabilmesi için üstte */
 }
+
 .groups-rooms {
   display: flex;
   flex-direction: row;
   position: relative;
-  width: 265px; /* Sidebar (65px) + rooms panel (200px) */
-  z-index: 30;  /* Kanallar barının tıklanabilmesi için yeterince yüksek */
+  width: 265px; /* 65 + 200 = 265 */
+  z-index: 30;  /* Kanallar ve rooms paneli üstte */
 }
 
 /* DM paneli */
@@ -240,7 +241,7 @@ body {
   right: 10px;
 }
 
-/* Kanal item => volume-up-fill ikonu, no border/arka plan */
+/* Kanal item */
 .channel-item {
   display: flex;
   flex-direction: column;
@@ -279,7 +280,7 @@ body {
   background-color: #666;
 }
 
-/* Sol Alt Kullanıcı Paneli => 265px */
+/* Sol Alt Kullanıcı Paneli => Mutlaka üstte olsun */
 .user-panel {
   position: absolute;
   bottom: 0;
@@ -288,6 +289,7 @@ body {
   background: #1a1a1a;
   padding: 0.5rem;
   box-sizing: border-box;
+  z-index: 999; /* En üstte gözüksün, kaybolmasın */
 }
 .user-panel-content {
   display: flex;
@@ -340,7 +342,7 @@ body {
   color: #fff;
 }
 
-/* --- AYARLAR Paneli (settingsPanel) --- */
+/* Ayarlar Paneli */
 .settings-panel {
   position: absolute;
   top: 0; 
@@ -401,7 +403,7 @@ body {
   flex-direction: column;
   box-sizing: border-box;
   color: #fff;
-  z-index: 20; /* Yazılı kanal vs. üstte olmasın */
+  z-index: 20; 
 }
 
 /* Kullanıcı listesi */
@@ -411,7 +413,7 @@ body {
   gap: 0.2rem; 
 }
 
-/* user-item => çerçeve yok, hover yok */
+/* user-item */
 .user-item {
   padding: 0.1rem;
   border: none;
@@ -487,15 +489,13 @@ body {
 #textChatContainer {
   position: absolute;
   top: 0;
-  left: 265px;  /* Gruplar + rooms panel (65+200=265) */
-  right: 200px; /* Sağ panel 200px */
+  left: 265px;
+  right: 200px;
   bottom: 0;
   display: none;
   flex-direction: column;
   background: #2d2d2d;
-  z-index: 10; /* alt-üst sıralama => kanallar barı z-index:30, 
-                  yazılı kanal z-index:10 => 
-                  bu sayede kanallar tıklanabilir */
+  z-index: 10; 
 }
 
 #chatMessages {
@@ -536,10 +536,8 @@ body {
   .app-title { font-size:1.2rem; }
   .right-panel { width:200px; }
 
-  /* Yazılı kanal => ufak ekranda 
-     sol 65px (sidebar) + no right offset */
   #textChatContainer {
-    left: 65px;
+    left: 65px; /* Sadece sidebar */
     right: 0;
     z-index: 10;
   }
