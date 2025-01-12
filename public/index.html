@@ -81,8 +81,14 @@
               <div class="dropdown-item" id="deleteGroupBtn">Grubu Sil</div>
             </div>
           </div>
+
+          <!-- Oda listesi -->
           <div id="roomList" class="room-list"></div>
-          <button id="createRoomButton" class="circle-btn create-room-btn">+</button>
+
+          <!-- 
+              "Kanal Oluştur" butonunu (createRoomButton) kaldırdık! 
+              <button id="createRoomButton" class="circle-btn create-room-btn">+</button> 
+          -->
         </div>
       </div>
 
@@ -129,13 +135,9 @@
       <h1 class="app-title">Sesli Görüşme</h1>
       <p>Bir grup seçin, ardından oda (kanal) oluşturup katılın.</p>
 
-      <!-- YAZILI KANAL => textChatContainer -->
+      <!-- Yazılı Kanal -->
       <div id="textChatContainer" style="display:none;">
-        <!-- Mesajlar Alanı -->
-        <div id="chatMessages" style="flex:1; overflow:auto; padding:1rem; background:#2d2d2d;">
-          <!-- Burada önceki ve yeni mesajlar listelenecek -->
-        </div>
-        <!-- Mesaj Giriş + Gönder Butonu -->
+        <div id="chatMessages" style="flex:1; overflow:auto; padding:1rem; background:#2d2d2d;"></div>
         <div style="padding:0.5rem; background:#1f1f1f; display:flex; gap:0.5rem; align-items:center;">
           <input type="text" id="chatInput" placeholder="Mesajınızı yazın..." style="width:80%; padding:0.5rem;" />
           <button id="sendChatBtn" style="width:18%; padding:0.6rem;">Gönder</button>
@@ -158,7 +160,6 @@
       <button id="modalGroupJoinBtn" class="btn secondary">Gruba Katıl</button>
     </div>
   </div>
-
   <!-- Modal: Grup Kurma -->
   <div id="actualGroupCreateModal" class="modal">
     <div class="modal-content">
@@ -170,7 +171,6 @@
       </div>
     </div>
   </div>
-
   <!-- Modal: Gruba Katıl -->
   <div id="joinGroupModal" class="modal">
     <div class="modal-content">
@@ -182,7 +182,6 @@
       </div>
     </div>
   </div>
-
   <!-- Modal: Oda Oluşturma -->
   <div id="roomModal" class="modal">
     <div class="modal-content">
@@ -206,7 +205,7 @@
     </div>
   </div>
 
-  <!-- Socket.io & script.js (body sonuna) -->
+  <!-- Socket.io & script.js -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="script.js"></script>
 </body>
