@@ -11,7 +11,7 @@ const { v4: uuidv4 } = require('uuid');
 const User = require('./models/User');
 const Group = require('./models/Group');
 const Channel = require('./models/Channel');
-const Message = require('./models/Message'); // Text mesaj modeli
+const Message = require('./models/Message');
 
 const app = express();
 const server = http.createServer(app);
@@ -87,6 +87,7 @@ function getAllChannelsData(groupId) {
     const rm = groups[groupId].rooms[roomId];
     channelsObj[roomId] = {
       name: rm.name,
+      // Sadece voice kanallarda users gösteririz
       users: (rm.type === 'voice') ? rm.users : [],
       type: rm.type || 'voice'
     };
@@ -95,21 +96,25 @@ function getAllChannelsData(groupId) {
 }
 
 /**
- * removeUserFromAllVoiceChannels => kullanıcıyı tüm voice kanallardan çıkar
+ * removeUserFromAllVoiceChannels(socketId) =>
+ * Bu user'ı TÜM voice kanallardan çıkar. 
  */
 function removeUserFromAllVoiceChannels(socketId) {
   for (const gId of Object.keys(groups)) {
     const grpObj = groups[gId];
-    for (const rId of Object.keys(grpObj.rooms)) {
-      const rObj = grpObj.rooms[rId];
-      if (rObj.type === 'voice') {
-        const oldLen = rObj.users.length;
-        rObj.users = rObj.users.filter(u => u.id !== socketId);
-        if (rObj.users.length !== oldLen) {
-          io.to(`${gId}::${rId}`).emit('roomUsers', rObj.users);
+    // Tüm voice kanalları
+    Object.keys(grpObj.rooms).forEach(rId => {
+      const roomObj = grpObj.rooms[rId];
+      if (roomObj.type === 'voice') {
+        const oldLen = roomObj.users.length;
+        roomObj.users = roomObj.users.filter(u => u.id !== socketId);
+        if (roomObj.users.length !== oldLen) {
+          // Bir change oldu => emit
+          io.to(`${gId}::${rId}`).emit('roomUsers', roomObj.users);
         }
       }
-    }
+    });
+    // allChannelsData
     io.to(gId).emit('allChannelsData', getAllChannelsData(gId));
   }
 }
@@ -338,6 +343,7 @@ io.on("connection", (socket) => {
         return;
       }
 
+      // Gruba DB'de ekle
       if (!groupDoc.users.includes(userDoc._id)) {
         groupDoc.users.push(userDoc._id);
         await groupDoc.save();
@@ -347,6 +353,7 @@ io.on("connection", (socket) => {
         await userDoc.save();
       }
 
+      // Bellek objesi yoksa oluştur
       if (!groups[groupId]) {
         const ownerUser = await User.findById(groupDoc.owner);
         let ownerUsername = ownerUser ? ownerUser.username : null;
@@ -358,14 +365,17 @@ io.on("connection", (socket) => {
         };
       }
 
+      // Önce Tüm voice kanallardan çıkar
       removeUserFromAllVoiceChannels(socket.id);
 
+      // Şimdi bu gruba user ekle
       const userData = users[socket.id];
       if (!groups[groupId].users.some(u => u.id === socket.id)) {
         groups[groupId].users.push({ id: socket.id, username: userData.username });
       }
       userData.currentGroup = groupId;
       userData.currentRoom = null;
+
       socket.join(groupId);
 
       console.log(`User ${socket.id} => joinGroupByID => ${groupId}`);
@@ -379,7 +389,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // browseGroup
+  // browseGroup => roomsList + allChannelsData + groupUsers
   socket.on('browseGroup', async (groupId) => {
     if (!groups[groupId]) return;
     sendRoomsListToUser(socket.id, groupId);
@@ -387,7 +397,7 @@ io.on("connection", (socket) => {
     await broadcastGroupUsers(groupId);
   });
 
-  // joinGroup
+  // joinGroup => user'ı gruba ekliyoruz (voice kanaldan çıkar)
   socket.on('joinGroup', async (groupId) => {
     if (!groups[groupId]) return;
 
@@ -400,6 +410,7 @@ io.on("connection", (socket) => {
     }
     userData.currentGroup = groupId;
     userData.currentRoom = null;
+
     socket.join(groupId);
 
     sendRoomsListToUser(socket.id, groupId);
@@ -452,8 +463,10 @@ io.on("connection", (socket) => {
     const channelType = groups[groupId].rooms[roomId].type || 'voice';
 
     if (channelType === 'voice') {
+      // Önce Tüm voice kanallardan çıkar
       removeUserFromAllVoiceChannels(socket.id);
 
+      // Şimdi bu voice kanala user ekle
       const userData = users[socket.id];
       const userName = userData.username || `(User ${socket.id})`;
       if (!groups[groupId].users.some(u => u.id === socket.id)) {
@@ -469,7 +482,7 @@ io.on("connection", (socket) => {
       io.to(`${groupId}::${roomId}`).emit('roomUsers', groups[groupId].rooms[roomId].users);
       broadcastAllChannelsData(groupId);
     } else {
-      // text channel => eski mesajları yolla
+      // text channel => user ekleme yok, sadece eski mesajları yolla
       try {
         const groupDoc = await Group.findOne({ groupId });
         if (!groupDoc) return;
@@ -491,7 +504,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // leaveRoom => voice channel
+  // leaveRoom => voice channel'dan çıkar
   socket.on('leaveRoom', ({ groupId, roomId }) => {
     if (!groups[groupId]) return;
     if (!groups[groupId].rooms[roomId]) return;
@@ -674,7 +687,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // WebRTC => signal
+  // WebRTC (signal)
   socket.on("signal", (data) => {
     const targetId = data.to;
     if (socket.id === targetId) return;
@@ -685,7 +698,7 @@ io.on("connection", (socket) => {
     const sR = users[socket.id].currentRoom;
     const tR = users[targetId].currentRoom;
 
-    // Yalnızca aynı group + aynı voice channel => sinyal
+    // Yalnızca aynı group ve aynı voice channel => signal iletilsin
     if (sG && sG === tG && sR && sR === tR) {
       io.to(targetId).emit("signal", {
         from: socket.id,
@@ -703,10 +716,10 @@ io.on("connection", (socket) => {
       if (username) {
         onlineUsernames.delete(username);
 
-        // Tüm voice kanallardan çıkar
+        // Bu user'ı tüm voice kanallardan çıkar
         removeUserFromAllVoiceChannels(socket.id);
 
-        // group'tan da çıkar
+        // groupUsers listelerini ve allChannelsData'yı güncelle
         for (const gId of Object.keys(groups)) {
           groups[gId].users = groups[gId].users.filter(u => u.id !== socket.id);
           broadcastAllChannelsData(gId);
