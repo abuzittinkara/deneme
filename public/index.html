@@ -54,6 +54,7 @@
         <!-- Sidebar (Gruplar) -->
         <div class="sidebar" id="sidebar">
           <button id="toggleDMButton" class="circle-btn dm-toggle-btn">
+            <!-- Zarf ikonu -->
             <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" 
                  stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
               <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 
@@ -123,13 +124,26 @@
       </div>
     </div>
 
-    <!-- Ortadaki ana içerik => Artık "Sesli Görüşme..." yazısı kaldırıldı. -->
-    <div class="main-content" style="display:flex; flex-direction:column; padding:0;">
-      <!-- Burada yazılı sohbet (textChatContainer) script.js içinde eklenecek. 
-           Sesli kanaldayken de bu panel boş olabilir. -->
+    <!-- Ortadaki Ana İçerik -->
+    <div class="main-content">
+      <h1 class="app-title">Sesli Görüşme</h1>
+      <p>Bir grup seçin, ardından oda (kanal) oluşturup katılın.</p>
+
+      <!-- YAZILI KANAL => textChatContainer -->
+      <div id="textChatContainer" style="display:none;">
+        <!-- Mesajlar Alanı -->
+        <div id="chatMessages" style="flex:1; overflow:auto; padding:1rem; background:#2d2d2d;">
+          <!-- Burada önceki ve yeni mesajlar listelenecek -->
+        </div>
+        <!-- Mesaj Giriş + Gönder Butonu -->
+        <div style="padding:0.5rem; background:#1f1f1f; display:flex; gap:0.5rem; align-items:center;">
+          <input type="text" id="chatInput" placeholder="Mesajınızı yazın..." style="width:80%; padding:0.5rem;" />
+          <button id="sendChatBtn" style="width:18%; padding:0.6rem;">Gönder</button>
+        </div>
+      </div>
     </div>
 
-    <!-- Sağ panel -->
+    <!-- Sağ Panel -->
     <div class="right-panel" id="rightPanel">
       <h2 class="panel-title">Aktif Kullanıcılar (Oda)</h2>
       <div id="userList" class="user-list"></div>
@@ -144,6 +158,7 @@
       <button id="modalGroupJoinBtn" class="btn secondary">Gruba Katıl</button>
     </div>
   </div>
+
   <!-- Modal: Grup Kurma -->
   <div id="actualGroupCreateModal" class="modal">
     <div class="modal-content">
@@ -155,6 +170,7 @@
       </div>
     </div>
   </div>
+
   <!-- Modal: Gruba Katıl -->
   <div id="joinGroupModal" class="modal">
     <div class="modal-content">
@@ -166,14 +182,22 @@
       </div>
     </div>
   </div>
+
   <!-- Modal: Oda Oluşturma -->
   <div id="roomModal" class="modal">
     <div class="modal-content">
       <h2>Oda Oluştur</h2>
       <input type="text" id="modalRoomName" class="input-text" placeholder="Oda Adı">
-      <div>
-        <label><input type="radio" name="channelType" value="voice" checked> Sesli Kanal</label>
-        <label style="margin-left:1rem;"><input type="radio" name="channelType" value="text"> Yazılı Kanal</label>
+      <p style="text-align:left; margin-top:1rem;">Kanal tipi:</p>
+      <div style="display:flex; gap:1rem; margin-bottom:1rem; align-items:center;">
+        <label>
+          <input type="radio" name="channelType" value="voice" checked />
+          Sesli Kanal
+        </label>
+        <label>
+          <input type="radio" name="channelType" value="text" />
+          Yazılı Kanal
+        </label>
       </div>
       <div class="modal-buttons">
         <button id="modalCreateRoomBtn" class="btn primary">Oluştur</button>
@@ -182,6 +206,7 @@
     </div>
   </div>
 
+  <!-- Socket.io & script.js (body sonuna) -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="script.js"></script>
 </body>
