@@ -28,6 +28,33 @@ let pendingNewUsers = [];
 let pendingCandidates = {};
 let sessionUfrag = {};
 
+/* 
+   createWaveIcon => volume-up-fill ikonunu oluşturan fonksiyon
+   Bu fonksiyonun "not defined" hatasını önlemek için 
+   kodun başında (kullanmadan önce) tanımlıyoruz.
+*/
+function createWaveIcon() {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("width", "16");
+  svg.setAttribute("height", "16");
+  svg.setAttribute("fill", "currentColor");
+  svg.setAttribute("class", "channel-icon bi bi-volume-up-fill");
+  svg.setAttribute("viewBox", "0 0 16 16");
+
+  const p1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  p1.setAttribute("d", "M9.717.55A.5.5 0 0 1 10 .999v14a.5.5 0 0 1-.783.409L5.825 12H3.5...");
+  const p2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  p2.setAttribute("d", "M13.493 1.957a.5.5 0 0 1 .014.706...");
+  const p3 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  p3.setAttribute("d", "M11.534 3.16a.5.5 0 0 1 .12.7...");
+
+  svg.appendChild(p1);
+  svg.appendChild(p2);
+  svg.appendChild(p3);
+
+  return svg;
+}
+
 /* DOM Referansları */
 const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
@@ -175,8 +202,7 @@ socket.on('registerResult', (data) => {
 
 /* Grup Oluştur / Seçenekleri */
 createGroupButton.addEventListener('click', () => {
-  const groupModal = document.getElementById('groupModal');
-  groupModal.style.display = 'flex';
+  document.getElementById('groupModal').style.display = 'flex';
 });
 document.getElementById('modalGroupCreateBtn').addEventListener('click', () => {
   document.getElementById('groupModal').style.display = 'none';
@@ -311,7 +337,7 @@ socket.on('roomsList', (roomsArray) => {
     const channelHeader = document.createElement('div');
     channelHeader.className = 'channel-header';
 
-    const icon = createWaveIcon();
+    const icon = createWaveIcon(); 
     const textSpan = document.createElement('span');
     textSpan.textContent = roomObj.name;
 
@@ -325,24 +351,18 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Kanala tıklama => Farklı logic:
+    // Kanala tıklama
     roomItem.addEventListener('click', () => {
-      // 1) Eğer tıklanan kanal "voice" ise => 
-      //    kullanıcı farklı bir voice kanalda ise closeAllPeers.
-      //    Aynı voice kanaldaysa => no-op.
-      // 2) Eğer tıklanan kanal "text" ise => 
-      //    kullanıcıyı voice kanaldan koparmayız (closeAllPeers yok).
-
+      // ... hangi kanal logic
       if (roomObj.type === 'voice') {
-        // Yeni voice kanala geçerken 
+        // Farklı voice'a geçiyorsa closeAllPeers
         if (currentRoomType === 'voice') {
-          // Aynı kanala tıklamadığımızdan emin olalım
           if (currentRoom !== roomObj.id) {
-            closeAllPeers(); 
+            closeAllPeers();
           }
         } else {
-          // Mevcut text'teydik => voice'a geçince peers kapat
-          closeAllPeers(); 
+          // text -> voice
+          closeAllPeers();
         }
         if (currentGroup !== selectedGroup) {
           socket.emit('joinGroup', selectedGroup);
@@ -353,7 +373,7 @@ socket.on('roomsList', (roomsArray) => {
           joinRoom(currentGroup, roomObj.id, roomObj.name, roomObj.type);
         }
       } else if (roomObj.type === 'text') {
-        // Yazılı kanala geç => voice peers'i kapatma
+        // text => no closeAllPeers
         if (currentGroup !== selectedGroup) {
           socket.emit('joinGroup', selectedGroup);
           setTimeout(() => {
@@ -462,7 +482,7 @@ function appendChatMessage(user, content, timestamp) {
   chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
 }
 
-/* joinRoom => voice/text => No auto closeAllPeers for text */
+/* joinRoom => voice/text */
 function joinRoom(groupId, roomId, roomName, roomType = 'voice') {
   currentGroup = groupId;
   currentRoom = roomId;
@@ -471,12 +491,16 @@ function joinRoom(groupId, roomId, roomName, roomType = 'voice') {
   socket.emit('joinRoom', { groupId, roomId });
 
   if (roomType === 'text') {
-    textChatContainer.style.display = 'flex';
-    textChatContainer.style.flexDirection = 'column';
+    if (textChatContainer) {
+      textChatContainer.style.display = 'flex';
+      textChatContainer.style.flexDirection = 'column';
+    }
     leaveButton.style.display = 'none';
   } else {
-    textChatContainer.style.display = 'none';
-    chatMessagesDiv.innerHTML = '';
+    if (textChatContainer) {
+      textChatContainer.style.display = 'none';
+      if (chatMessagesDiv) chatMessagesDiv.innerHTML = '';
+    }
     leaveButton.style.display = 'flex';
   }
 }
@@ -492,9 +516,9 @@ leaveButton.addEventListener('click', () => {
   leaveButton.style.display = 'none';
   console.log("Kanaldan ayrıldınız.");
 
-  textChatContainer.style.display = 'none';
-  if (chatMessagesDiv) {
-    chatMessagesDiv.innerHTML = '';
+  if (textChatContainer) {
+    textChatContainer.style.display = 'none';
+    if (chatMessagesDiv) chatMessagesDiv.innerHTML = '';
   }
 
   if (currentGroup) {
