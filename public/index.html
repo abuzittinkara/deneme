@@ -72,7 +72,7 @@
         <!-- Odalar Paneli -->
         <div id="roomPanel" class="rooms-panel">
           <div class="room-panel-header">
-            <h2 id="groupTitle" class="panel-title">Seçili grubun adı</h2>
+            <h2 id="groupTitle" class="panel-title">Seçili Grup</h2>
             <span id="groupDropdownIcon" class="dropdown-icon">⌄</span>
             <div id="groupDropdownMenu" class="dropdown-menu" style="display: none;">
               <div class="dropdown-item" id="copyGroupIdBtn">Grup ID Kopyala</div>
@@ -104,7 +104,7 @@
         <div class="user-panel-content">
           <div class="user-profile-pic"></div>
           <div class="user-panel-info">
-            <span id="leftUserName" class="left-username">Kullanıcı Adı</span>
+            <span id="leftUserName" class="left-username">(Kullanıcı)</span>
           </div>
           <div class="user-panel-buttons">
             <button id="micToggleButton" class="user-panel-btn" title="Mikrofon Aç/Kapa" style="width:22px;height:22px;"></button>
@@ -124,20 +124,59 @@
       </div>
     </div>
 
-    <!-- Üst Bar (Örnek) => "Seçili grubun adı | yazılı sohbet kanalı 2" -->
-    <div class="top-bar">
-      <span class="top-bar-group-name" id="topBarGroupName">Seçili grubun adı</span>
-      <span class="top-bar-channel-name">yazılı sohbet kanalı 2</span>
-    </div>
-
-    <!-- Ortadaki ana içerik -->
     <div class="main-content">
-      <!-- İstersen burayı boş bırakabilir veya yazılı sohbet alanı gibi kullanabilirsin. -->
+      <h1 class="app-title">Sesli Görüşme</h1>
+      <p>Bir grup seçin, ardından oda (kanal) oluşturup katılın.</p>
     </div>
 
-    <!-- Sağ panel -->
     <div class="right-panel" id="rightPanel">
+      <!-- "Aktif Kullanıcılar (Oda)" KALDIRILDI -->
+      <!-- Burada eskiden <h2 class="panel-title">Aktif Kullanıcılar (Oda)</h2> vardı, silindi. -->
+
+      <!-- Kullanıcı listesi (Çevrimiçi / Çevrimdışı) -->
       <div id="userList" class="user-list"></div>
+    </div>
+  </div>
+
+  <!-- Modal: Grup Seçenekleri -->
+  <div id="groupModal" class="modal">
+    <div class="modal-content">
+      <h2>Grup Seçenekleri</h2>
+      <button id="modalGroupCreateBtn" class="btn primary">Grup Kur</button>
+      <button id="modalGroupJoinBtn" class="btn secondary">Gruba Katıl</button>
+    </div>
+  </div>
+  <!-- Modal: Grup Kurma -->
+  <div id="actualGroupCreateModal" class="modal">
+    <div class="modal-content">
+      <h2>Yeni Grup Kur</h2>
+      <input type="text" id="actualGroupName" class="input-text" placeholder="Grup Adı">
+      <div class="modal-buttons">
+        <button id="actualGroupNameBtn" class="btn primary">Oluştur</button>
+        <button id="closeCreateGroupModal" class="btn secondary">Kapat</button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal: Gruba Katıl -->
+  <div id="joinGroupModal" class="modal">
+    <div class="modal-content">
+      <h2>Gruba Katıl</h2>
+      <input type="text" id="joinGroupIdInput" class="input-text" placeholder="Grup ID">
+      <div class="modal-buttons">
+        <button id="joinGroupIdBtn" class="btn primary">Gruba Katıl</button>
+        <button id="closeJoinGroupModal" class="btn secondary">Kapat</button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal: Oda Oluşturma -->
+  <div id="roomModal" class="modal">
+    <div class="modal-content">
+      <h2>Oda Oluştur</h2>
+      <input type="text" id="modalRoomName" class="input-text" placeholder="Oda Adı">
+      <div class="modal-buttons">
+        <button id="modalCreateRoomBtn" class="btn primary">Oluştur</button>
+        <button id="modalCloseRoomBtn" class="btn secondary">Kapat</button>
+      </div>
     </div>
   </div>
 
