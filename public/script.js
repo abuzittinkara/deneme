@@ -335,13 +335,13 @@ modalCreateRoomBtn.addEventListener('click', () => {
   }
   const grp = currentGroup || selectedGroup;
   if (!grp) {
-    alert("Önce bir gruba katılın!");
+    alert("Önce bir gruba katılın veya en azından grup seçin!");
     return;
   }
   socket.emit('createRoom', { groupId: grp, roomName: rName });
   roomModal.style.display = 'none';
 
-  // *** DEĞİŞİKLİK: Yeni kanal eklenince anında o grup odaları güncellensin ***
+  // *** DEĞİŞİKLİK: "Hangi durumda olursa olsun" => anında roomsList güncellensin
   socket.emit('browseGroup', grp);
 });
 modalCloseRoomBtn.addEventListener('click', () => {
@@ -427,7 +427,7 @@ createChannelBtn.addEventListener('click', () => {
   groupDropdownMenu.style.display = 'none';
   const grp = currentGroup || selectedGroup;
   if (!grp) {
-    alert("Önce bir gruba katılın!");
+    alert("Önce bir gruba katılın veya en azından grup seçin!");
     return;
   }
   roomModal.style.display = 'flex';
