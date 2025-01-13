@@ -20,12 +20,18 @@ let currentRoom = null;
 // Göz atılan (browse edilen) grup
 let selectedGroup = null;
 
-let pendingUsers = [];
-let pendingNewUsers = [];
+// Beklemedeki user ID listeleri (mikrofon izni alınmadığında)
+let pendingUsers = [];     // isInitiator=true olanlar
+let pendingNewUsers = [];  // isInitiator=false olanlar
 
 // ICE Candidate / session
 let pendingCandidates = {};
 let sessionUfrag = {};
+
+// Eğer gelen sinyal bir "offer" ise; 
+// localStream hazır değilse "pendingOffers[from] = signal" kaydediyoruz
+// localStream hazır olduğunda setRemoteDescription => createAnswer yapacağız.
+let pendingOffers = {}; // userId => RTCSessionDescription (offer)
 
 /* volume-up-fill ikonu */
 function createWaveIcon() {
@@ -562,8 +568,6 @@ socket.on('roomUsers', (usersInRoom) => {
   // 3) Mikrofon izni yoksa önce microphoneAccess iste
   if (!audioPermissionGranted || !localStream) {
     requestMicrophoneAccess().then(() => {
-      // Şimdi "pendingUsers" veya "pendingNewUsers" da dahil, her bir userId için initPeer çağır
-      // Ama "isInitiator" belirlemek için => 'socket.id < userId' kuralı
       otherUserIds.forEach(userId => {
         if (!peers[userId]) {
           const isInit = (socket.id < userId);
@@ -584,6 +588,16 @@ socket.on('roomUsers', (usersInRoom) => {
         }
       });
       pendingNewUsers = [];
+
+      // Ayrıca eğer pendingOffers varsa => handleOffer
+      for (const fromUser in pendingOffers) {
+        if (!peers[fromUser]) {
+          const isInit = (socket.id < fromUser);
+          initPeer(fromUser, isInit);
+        }
+        handleOffer(fromUser, pendingOffers[fromUser]);
+      }
+      pendingOffers = {};
     }).catch(err => {
       console.error("Mikrofon izni alınamadı:", err);
     });
@@ -595,6 +609,34 @@ socket.on('roomUsers', (usersInRoom) => {
         initPeer(userId, isInit);
       }
     });
+
+    // pendingUsers
+    pendingUsers.forEach(userId => {
+      if (!peers[userId]) {
+        const isInit = (socket.id < userId);
+        initPeer(userId, isInit);
+      }
+    });
+    pendingUsers = [];
+
+    // pendingNewUsers
+    pendingNewUsers.forEach(userId => {
+      if (!peers[userId]) {
+        const isInit = (socket.id < userId);
+        initPeer(userId, isInit);
+      }
+    });
+    pendingNewUsers = [];
+
+    // pendingOffers varsa
+    for (const fromUser in pendingOffers) {
+      if (!peers[fromUser]) {
+        const isInit = (socket.id < fromUser);
+        initPeer(fromUser, isInit);
+      }
+      handleOffer(fromUser, pendingOffers[fromUser]);
+    }
+    pendingOffers = {};
   }
 });
 
@@ -730,47 +772,37 @@ socket.on("signal", async (data) => {
   const { from, signal } = data;
   let peer = peers[from];
 
-  if (!peer) {
-    // Hâlâ mikrofon izni alınmadıysa => beklemeye (pending)
-    if (!localStream) {
-      console.warn("localStream yok => push:", from);
-      pendingNewUsers.push(from);
-      return;
-    }
-    // Initiator = socket.id < from
-    const isInit = (socket.id < from);
-    peer = initPeer(from, isInit);
-  }
-
+  // 1) "signal.type === 'offer'"
   if (signal.type === "offer") {
-    await peer.setRemoteDescription(new RTCSessionDescription(signal));
-    sessionUfrag[from] = parseIceUfrag(signal.sdp);
-
-    const answer = await peer.createAnswer();
-    await peer.setLocalDescription(answer);
-    console.log("Answer gönderiliyor:", answer);
-    socket.emit("signal", { to: from, signal: peer.localDescription });
-
-    if (pendingCandidates[from]) {
-      for (const c of pendingCandidates[from]) {
-        if (sessionUfrag[from] 
-          && sessionUfrag[from] !== c.usernameFragment 
-          && c.usernameFragment !== null) {
-          console.warn("Candidate mismatch => drop:", c);
-          continue;
-        }
-        try {
-          await peer.addIceCandidate(new RTCIceCandidate(c));
-          console.log("ICE Candidate eklendi (pending):", c);
-        } catch (err) {
-          console.warn("Candidate eklenirken hata:", err);
-        }
+    // Henüz peer yoksa => initPeer
+    if (!peer) {
+      if (!localStream) {
+        // localStream yok => bu "offer" ı pendingOffers'a atalım
+        console.warn("localStream yok => pendingOffer kaydedildi:", from);
+        pendingOffers[from] = signal;
+        return;
       }
-      pendingCandidates[from] = [];
+      // localStream varsa => peer oluştur
+      const isInit = (socket.id < from);
+      peer = initPeer(from, isInit);
     }
+    // Artık peer var => remoteDesc / answer
+    handleOffer(from, signal);
 
+  // 2) "signal.type === 'answer'"
   } else if (signal.type === "answer") {
-    // "PeerConnection already stable" uyarılarını önlemek için check
+    if (!peer) {
+      if (!localStream) {
+        // localStream yok, henüz initPeer yapmadıysak => pendingNewUsers
+        console.warn("localStream yok => push to pendingNewUsers (answer):", from);
+        pendingNewUsers.push(from);
+        return;
+      }
+      // localStream varsa => initPeer
+      const isInit = (socket.id < from);
+      peer = initPeer(from, isInit);
+    }
+    // "PeerConnection already stable" check
     if (peer.signalingState === "stable") {
       console.warn("PeerConnection already stable. Second answer ignored.");
       return;
@@ -778,6 +810,7 @@ socket.on("signal", async (data) => {
     await peer.setRemoteDescription(new RTCSessionDescription(signal));
     sessionUfrag[from] = parseIceUfrag(signal.sdp);
 
+    // pendingCandidates
     if (pendingCandidates[from]) {
       for (const c of pendingCandidates[from]) {
         if (sessionUfrag[from] 
@@ -795,9 +828,11 @@ socket.on("signal", async (data) => {
       }
       pendingCandidates[from] = [];
     }
+
+  // 3) "signal.candidate"
   } else if (signal.candidate) {
-    if (!peer.remoteDescription || peer.remoteDescription.type === "") {
-      console.log("Henüz remoteDescription yok => pending candidate:", signal);
+    if (!peer || !peer.remoteDescription || peer.remoteDescription.type === "") {
+      console.log("Henüz peer yok veya remoteDescription yok => pending candidate:", signal);
       if (!pendingCandidates[from]) {
         pendingCandidates[from] = [];
       }
@@ -819,6 +854,43 @@ socket.on("signal", async (data) => {
   }
 });
 
+/* Tekrarlı kullandığımız => Offer alındığında handle etme */
+async function handleOffer(fromUser, offerSignal) {
+  const peer = peers[fromUser];
+  if (!peer) return;
+
+  try {
+    await peer.setRemoteDescription(new RTCSessionDescription(offerSignal));
+    sessionUfrag[fromUser] = parseIceUfrag(offerSignal.sdp);
+
+    const answer = await peer.createAnswer();
+    await peer.setLocalDescription(answer);
+    console.log("Answer gönderiliyor:", answer);
+    socket.emit("signal", { to: fromUser, signal: peer.localDescription });
+
+    // pendingCandidates => eğer var ise
+    if (pendingCandidates[fromUser]) {
+      for (const c of pendingCandidates[fromUser]) {
+        if (sessionUfrag[fromUser] 
+          && sessionUfrag[fromUser] !== c.usernameFragment 
+          && c.usernameFragment !== null) {
+          console.warn("Candidate mismatch => drop:", c);
+          continue;
+        }
+        try {
+          await peer.addIceCandidate(new RTCIceCandidate(c));
+          console.log("ICE Candidate eklendi (pending):", c);
+        } catch (err) {
+          console.warn("Candidate eklenirken hata:", err);
+        }
+      }
+      pendingCandidates[fromUser] = [];
+    }
+  } catch (err) {
+    console.error("handleOffer hata:", err);
+  }
+}
+
 /* Peer Başlat => WebRTC */
 function initPeer(userId, isInitiator) {
   if (!localStream || !audioPermissionGranted) {
@@ -828,7 +900,7 @@ function initPeer(userId, isInitiator) {
     } else {
       pendingNewUsers.push(userId);
     }
-    return;
+    return null;
   }
   if (peers[userId]) {
     console.log("Zaten peer var:", userId);
@@ -851,13 +923,13 @@ function initPeer(userId, isInitiator) {
     }
   };
   peer.oniceconnectionstatechange = () => {
-    console.log("ICE state:", peer.iceConnectionState);
+    console.log(`ICE state: ${peer.iceConnectionState}`, `userId=${userId}`);
   };
   peer.onconnectionstatechange = () => {
-    console.log("Peer state:", peer.connectionState);
+    console.log(`Peer state: ${peer.connectionState}`, `userId=${userId}`);
   };
   peer.ontrack = (event) => {
-    console.log("Remote stream alındı.");
+    console.log("Remote stream alındı. userId=", userId);
     const audio = new Audio();
     audio.srcObject = event.streams[0];
     audio.autoplay = false;
@@ -871,7 +943,7 @@ function initPeer(userId, isInitiator) {
     }
   };
 
-  // Sadece initiator offer oluşturacak
+  // Sadece initiator => createOffer
   if (isInitiator) {
     createOffer(peer, userId);
   }
@@ -910,6 +982,7 @@ function closeAllPeers() {
   }
   remoteAudios = [];
   pendingCandidates = {};
+  pendingOffers = {};
   sessionUfrag = {};
 }
 
