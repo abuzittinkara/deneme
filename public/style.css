@@ -85,16 +85,13 @@ body {
   flex-direction: row;
   height: 100%;
   position: relative;
-  width: 65px; /* Yalnızca sidebar */
-  z-index: 30; /* Kanallara tıklanabilmesi için üstte */
+  width: 65px;
 }
-
 .groups-rooms {
   display: flex;
   flex-direction: row;
   position: relative;
-  width: 265px; /* 65 + 200 = 265 */
-  z-index: 30;  /* Kanallar ve rooms paneli üstte */
+  width: 265px;
 }
 
 /* DM paneli */
@@ -141,7 +138,7 @@ body {
   height: 43px;
   background: #444;
   color: #fff;
-  border-radius: 50%;
+  border-radius: 45%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -170,7 +167,7 @@ body {
   color: #fff;
   width: 48px;
   height: 48px;
-  border-radius: 50%;
+  border-radius: 45%;
   border: none;
   font-size: 1.5rem; 
   cursor: pointer;
@@ -241,7 +238,7 @@ body {
   right: 10px;
 }
 
-/* Kanal item */
+/* Kanal item => volume-up-fill ikonu, no border/arka plan */
 .channel-item {
   display: flex;
   flex-direction: column;
@@ -276,11 +273,11 @@ body {
 .channel-user-avatar {
   width: 24px;
   height: 24px;
-  border-radius: 50%;
+  border-radius: 45%;
   background-color: #666;
 }
 
-/* Sol Alt Kullanıcı Paneli => Mutlaka üstte olsun */
+/* Sol Alt Kullanıcı Paneli => 265px */
 .user-panel {
   position: absolute;
   bottom: 0;
@@ -289,7 +286,6 @@ body {
   background: #1a1a1a;
   padding: 0.5rem;
   box-sizing: border-box;
-  z-index: 999; /* En üstte gözüksün, kaybolmasın */
 }
 .user-panel-content {
   display: flex;
@@ -300,7 +296,7 @@ body {
   width: 40px;
   height: 40px;
   background: #666;
-  border-radius: 50%;
+  border-radius: 45%;
 }
 .left-username {
   font-size: 0.9rem;
@@ -342,7 +338,7 @@ body {
   color: #fff;
 }
 
-/* Ayarlar Paneli */
+/* --- AYARLAR Paneli (settingsPanel) --- */
 .settings-panel {
   position: absolute;
   top: 0; 
@@ -385,7 +381,7 @@ body {
 /* Ortadaki ana içerik */
 .main-content {
   flex: 1;
-  position: relative;
+  padding: 15rem;
   overflow: auto;
   color: #fff;
 }
@@ -403,32 +399,33 @@ body {
   flex-direction: column;
   box-sizing: border-box;
   color: #fff;
-  z-index: 20; 
 }
 
-/* Kullanıcı listesi */
+/* Kullanıcı listesi => gap daha az (0.2rem) */
 .user-list {
   display: flex;
   flex-direction: column;
   gap: 0.2rem; 
 }
 
-/* user-item */
+/* user-item => çerçeve yok, hover yok */
 .user-item {
   padding: 0.1rem;
   border: none;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.40rem;
 }
 .user-item:hover {
-  /* no background */
+  /* background: #444; Kaldırıldı */
 }
+
+/* Profil dairesi */
 .profile-thumb {
   width: 30px;
   height: 30px;
   background: #666;
-  border-radius: 50%;
+  border-radius: 45%;
   flex-shrink: 0;
 }
 .user-name {
@@ -485,60 +482,10 @@ body {
   display: none;
 }
 
-/* Text Chat Container */
-#textChatContainer {
-  position: absolute;
-  top: 0;
-  left: 265px;
-  right: 200px;
-  bottom: 0;
-  display: none;
-  flex-direction: column;
-  background: #2d2d2d;
-  z-index: 10; 
-}
-
-#chatMessages {
-  flex: 1;
-  overflow: auto;
-  padding: 1rem;
-  background: #2d2d2d;
-}
-#chatInput {
-  width: 80%;
-  padding: 0.5rem;
-  background: #444;
-  color: #fff;
-  border: 1px solid #666;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  box-sizing: border-box;
-}
-#sendChatBtn {
-  width: 18%;
-  padding: 0.6rem;
-  background: #c61884;
-  border: none;
-  border-radius: 6px;
-  color: #fff;
-  cursor: pointer;
-  margin-left: 1%;
-}
-#sendChatBtn:hover {
-  background: #a3156f;
-}
-
-/* Responsive */
 @media (max-width: 600px) {
   .left-panels { width:65px; }
   .rooms-panel { width:200px; }
   .user-panel { width:200px; }
   .app-title { font-size:1.2rem; }
   .right-panel { width:200px; }
-
-  #textChatContainer {
-    left: 65px; /* Sadece sidebar */
-    right: 0;
-    z-index: 10;
-  }
 }
