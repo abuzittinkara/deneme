@@ -414,7 +414,7 @@ deleteGroupBtn.addEventListener('click', () => {
 });
 
 /*
- * ***** DEĞİŞİKLİK: "Kanal Oluştur" butonu => currentGroup || selectedGroup kullan
+ * ***** "Kanal Oluştur" butonu => currentGroup || selectedGroup kullan
  */
 
 // Oda Oluşturma => soldaki + buton
@@ -529,7 +529,7 @@ socket.on('groupUsers', (dbUsersArray) => {
 
 /* 
  * roomUsers => odadaki kullanıcılar => WebRTC init
- * BURADA AYRICA ESKİ KULLANICILARI (ODADAN ÇIKAN) KAPATIYORUZ 
+ * BURADA ESKİ KULLANICILARI (ODADAN ÇIKAN) KAPATIYORUZ 
  */
 socket.on('roomUsers', (usersInRoom) => {
   console.log("roomUsers => odadaki kisiler:", usersInRoom);
@@ -553,33 +553,46 @@ socket.on('roomUsers', (usersInRoom) => {
     }
   });
 
-  // 2) Kendimiz hariç diğer user'ların ID listesi
+  // 2) Kendimiz hariç yeni user'ların ID listesi
   const otherUserIds = usersInRoom
     .filter(u => u.id !== socket.id)
     .map(u => u.id)
     .filter(id => !peers[id]);
 
-  // 3) Mikrofon izni alındıysa direkt Peer oluştur
+  // 3) Mikrofon izni yoksa önce microphoneAccess iste
   if (!audioPermissionGranted || !localStream) {
     requestMicrophoneAccess().then(() => {
+      // Şimdi "pendingUsers" veya "pendingNewUsers" da dahil, her bir userId için initPeer çağır
+      // Ama "isInitiator" belirlemek için => 'socket.id < userId' kuralı
       otherUserIds.forEach(userId => {
-        if (!peers[userId]) initPeer(userId, true);
+        if (!peers[userId]) {
+          const isInit = (socket.id < userId);
+          initPeer(userId, isInit);
+        }
       });
       pendingUsers.forEach(userId => {
-        if (!peers[userId]) initPeer(userId, true);
+        if (!peers[userId]) {
+          const isInit = (socket.id < userId);
+          initPeer(userId, isInit);
+        }
       });
       pendingUsers = [];
       pendingNewUsers.forEach(userId => {
-        if (!peers[userId]) initPeer(userId, false);
+        if (!peers[userId]) {
+          const isInit = (socket.id < userId);
+          initPeer(userId, isInit);
+        }
       });
       pendingNewUsers = [];
     }).catch(err => {
       console.error("Mikrofon izni alınamadı:", err);
     });
   } else {
+    // Mikrofon izni zaten varsa
     otherUserIds.forEach(userId => {
       if (!peers[userId]) {
-        initPeer(userId, true);
+        const isInit = (socket.id < userId);
+        initPeer(userId, isInit);
       }
     });
   }
@@ -718,12 +731,15 @@ socket.on("signal", async (data) => {
   let peer = peers[from];
 
   if (!peer) {
+    // Hâlâ mikrofon izni alınmadıysa => beklemeye (pending)
     if (!localStream) {
       console.warn("localStream yok => push:", from);
       pendingNewUsers.push(from);
       return;
     }
-    peer = initPeer(from, false);
+    // Initiator = socket.id < from
+    const isInit = (socket.id < from);
+    peer = initPeer(from, isInit);
   }
 
   if (signal.type === "offer") {
@@ -754,6 +770,7 @@ socket.on("signal", async (data) => {
     }
 
   } else if (signal.type === "answer") {
+    // "PeerConnection already stable" uyarılarını önlemek için check
     if (peer.signalingState === "stable") {
       console.warn("PeerConnection already stable. Second answer ignored.");
       return;
@@ -854,7 +871,10 @@ function initPeer(userId, isInitiator) {
     }
   };
 
-  if (isInitiator) createOffer(peer, userId);
+  // Sadece initiator offer oluşturacak
+  if (isInitiator) {
+    createOffer(peer, userId);
+  }
   return peer;
 }
 
