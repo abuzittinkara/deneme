@@ -3,7 +3,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Roboto', sans-serif;
-  background: #2d2d2d;
+  background: #111; /* Koyu zemin */
   color: #fff;
   font-size: 16px;
 }
@@ -17,7 +17,7 @@ body {
 }
 
 .card {
-  background: #2d2d2d; 
+  background: #1a1a1a;
   padding: 2rem;
   border-radius: 8px;
   min-width: 320px;
@@ -34,9 +34,9 @@ body {
 .input-text {
   width: 100%;
   padding: 0.75rem;
-  background: #444;  
+  background: #333;  
   color: #fff;       
-  border: 1px solid #666;
+  border: 1px solid #555;
   border-radius: 6px;
   font-size: 1rem;
   margin-bottom: 1rem;
@@ -54,18 +54,18 @@ body {
   transition: background 0.3s ease;
 }
 .btn.primary {
-  background: #c61884; 
+  background: #c61884;
   color: #fff;
 }
 .btn.primary:hover {
-  background: #a3156f;
+  background: #a0146b;
 }
 .btn.secondary {
-  background: #444;
+  background: #333;
   color: #fff;
 }
 .btn.secondary:hover {
-  background: #666;
+  background: #555;
 }
 
 /* callScreen */
@@ -74,7 +74,7 @@ body {
   flex-direction: row;
   align-items: stretch;
   justify-content: flex-start;
-  background: #2d2d2d;
+  background: #111;
   width: 100vw;
   height: 100vh;
 }
@@ -85,19 +85,19 @@ body {
   flex-direction: row;
   height: 100%;
   position: relative;
-  width: 65px;
+  width: 65px; /* Sadece sidebar kadar ilk kısım */
 }
 .groups-rooms {
   display: flex;
   flex-direction: row;
   position: relative;
-  width: 265px;
+  width: 265px; /* Sidebar + rooms paneli */
 }
 
 /* DM paneli */
 .dm-panel {
   width: 265px;
-  background: #222;
+  background: #1a1a1a;
   color: #fff;
   padding: 1rem;
   box-sizing: border-box;
@@ -136,7 +136,7 @@ body {
 .grp-item {
   width: 43px;
   height: 43px;
-  background: #444;
+  background: #333;
   color: #fff;
   border-radius: 45%;
   display: flex;
@@ -147,7 +147,7 @@ body {
   border: 2px solid transparent; 
 }
 .grp-item:hover {
-  background: #666;
+  background: #555;
 }
 .grp-item.selected {
   border: 2px solid #c61884;
@@ -176,7 +176,7 @@ body {
   justify-content: center;
 }
 .circle-btn:hover {
-  background-color: #a3156f;
+  background-color: #a0146b;
 }
 
 /* Odalar paneli => 200px */
@@ -238,15 +238,18 @@ body {
   right: 10px;
 }
 
-/* Kanal item => volume-up-fill ikonu, no border/arka plan */
+/* Kanal item => volume-up-fill ikonu */
 .channel-item {
   display: flex;
   flex-direction: column;
   cursor: pointer;
   margin-bottom: 0.4rem;
+  padding: 0.4rem;
+  border-radius: 6px;
+  transition: background 0.3s ease;
 }
 .channel-item:hover {
-  /* no background */
+  background: #333;
 }
 .channel-header {
   display: flex;
@@ -259,7 +262,7 @@ body {
 }
 .channel-users {
   margin-top: 0.5rem;
-  margin-left: 0.5rem; 
+  margin-left: 1rem; 
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
@@ -274,7 +277,7 @@ body {
   width: 24px;
   height: 24px;
   border-radius: 45%;
-  background-color: #666;
+  background-color: #444;
 }
 
 /* Sol Alt Kullanıcı Paneli => 265px */
@@ -295,7 +298,7 @@ body {
 .user-profile-pic {
   width: 40px;
   height: 40px;
-  background: #666;
+  background: #444;
   border-radius: 45%;
 }
 .left-username {
@@ -333,8 +336,8 @@ body {
   justify-content: center;
 }
 .leave-btn:hover {
-  background: #a3156f;
-  border-color: #a3156f;
+  background: #a0146b;
+  border-color: #a0146b;
   color: #fff;
 }
 
@@ -345,7 +348,7 @@ body {
   right: 0;
   width: 300px;
   height: 100%;
-  background: #222;
+  background: #1a1a1a;
   color: #fff;
   display: none; /* kapalı */
   flex-direction: column;
@@ -378,19 +381,36 @@ body {
   overflow: auto; 
 }
 
+/* TOP BAR => "Seçili grubun adı | yazılı sohbet kanalı 2" */
+.top-bar {
+  width: calc(100% - 265px); /* soldaki + user paneli payını düş */
+  height: 48px;
+  background: #1a1a1a;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  box-sizing: border-box;
+}
+.top-bar-group-name {
+  font-size: 1rem;
+  margin-right: 1rem;
+}
+.top-bar-channel-name {
+  font-size: 1rem;
+  color: #ccc;
+}
+
 /* Ortadaki ana içerik */
 .main-content {
   flex: 1;
-  padding: 15rem;
+  padding: 1rem;
   overflow: auto;
   color: #fff;
-}
-.app-title {
-  margin: 0 0 1rem;
-  font-size: 1.4rem;
+  background: #111;
 }
 
-/* Sağ panel */
+/* Sağ panel => user list */
 .right-panel {
   width: 200px;
   background: #1f1f1f;
@@ -400,15 +420,11 @@ body {
   box-sizing: border-box;
   color: #fff;
 }
-
-/* Kullanıcı listesi => gap daha az (0.2rem) */
 .user-list {
   display: flex;
   flex-direction: column;
   gap: 0.2rem; 
 }
-
-/* user-item => çerçeve yok, hover yok */
 .user-item {
   padding: 0.1rem;
   border: none;
@@ -416,15 +432,10 @@ body {
   align-items: center;
   gap: 0.40rem;
 }
-.user-item:hover {
-  /* background: #444; Kaldırıldı */
-}
-
-/* Profil dairesi */
 .profile-thumb {
   width: 30px;
   height: 30px;
-  background: #666;
+  background: #444;
   border-radius: 45%;
   flex-shrink: 0;
 }
@@ -434,7 +445,7 @@ body {
   color: #fff;
 }
 .copy-id-btn {
-  background: #555;
+  background: #333;
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -444,7 +455,7 @@ body {
   transition: background 0.3s ease;
 }
 .copy-id-btn:hover {
-  background: #777;
+  background: #555;
 }
 
 /* Modal Stil */
@@ -461,7 +472,7 @@ body {
   z-index: 999;
 }
 .modal-content {
-  background: #2d2d2d;
+  background: #1a1a1a;
   padding: 2rem;
   border-radius: 8px;
   min-width: 300px;
@@ -488,4 +499,11 @@ body {
   .user-panel { width:200px; }
   .app-title { font-size:1.2rem; }
   .right-panel { width:200px; }
+  .top-bar {
+    width: 100%;
+    position: relative;
+  }
+  .main-content {
+    padding: 1rem;
+  }
 }
