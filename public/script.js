@@ -36,7 +36,6 @@ function createWaveIcon() {
   svg.setAttribute("class", "channel-icon bi bi-volume-up-fill");
   svg.setAttribute("viewBox", "0 0 16 16");
 
-  // Tüm "d" değerlerini tek satırda tutarak line break hatasını önledik.
   const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path1.setAttribute(
     "d",
@@ -414,7 +413,7 @@ deleteGroupBtn.addEventListener('click', () => {
   socket.emit('deleteGroup', grp);
 });
 
-/* 
+/*
  * ***** DEĞİŞİKLİK: "Kanal Oluştur" butonu => currentGroup || selectedGroup kullan
  */
 
@@ -484,14 +483,13 @@ socket.on('roomsList', (roomsArray) => {
 
     // Kanala tıklama
     roomItem.addEventListener('click', () => {
-      if (currentGroup !== selectedGroup) {
-        socket.emit('joinGroup', selectedGroup);
-        setTimeout(() => {
-          joinRoom(selectedGroup, roomObj.id, roomObj.name);
-        }, 300);
-      } else {
-        joinRoom(currentGroup, roomObj.id, roomObj.name);
+      // KULLANICI YENİ KANALA GİRMEDEN ÖNCE ESKİ KANAL BAĞLANTILARINI KAPATIYORUZ
+      if (currentRoom && (currentRoom !== roomObj.id || currentGroup !== selectedGroup)) {
+        socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
+        closeAllPeers();
+        currentRoom = null;
       }
+      joinRoom(selectedGroup, roomObj.id, roomObj.name);
     });
 
     roomListDiv.appendChild(roomItem);
@@ -529,15 +527,39 @@ socket.on('groupUsers', (dbUsersArray) => {
   updateUserList(dbUsersArray);
 });
 
-/* roomUsers => odadaki kullanıcılar => WebRTC init */
+/* 
+ * roomUsers => odadaki kullanıcılar => WebRTC init
+ * BURADA AYRICA ESKİ KULLANICILARI (ODADAN ÇIKAN) KAPATIYORUZ 
+ */
 socket.on('roomUsers', (usersInRoom) => {
   console.log("roomUsers => odadaki kisiler:", usersInRoom);
 
+  // 1) Kimler odada yoksa peers'dan sil
+  const userIdsInRoom = usersInRoom.map(u => u.id);
+  Object.keys(peers).forEach(peerId => {
+    if (!userIdsInRoom.includes(peerId)) {
+      console.log(`Peer ${peerId} is not in this room anymore => closing peer`);
+      peers[peerId].close();
+      delete peers[peerId];
+      // remoteAudios dizisinden de ayır
+      remoteAudios = remoteAudios.filter(audioEl => {
+        if (audioEl.dataset && audioEl.dataset.peerId === peerId) {
+          try { audioEl.pause(); } catch (e) {}
+          audioEl.srcObject = null;
+          return false;
+        }
+        return true;
+      });
+    }
+  });
+
+  // 2) Kendimiz hariç diğer user'ların ID listesi
   const otherUserIds = usersInRoom
     .filter(u => u.id !== socket.id)
     .map(u => u.id)
     .filter(id => !peers[id]);
 
+  // 3) Mikrofon izni alındıysa direkt Peer oluştur
   if (!audioPermissionGranted || !localStream) {
     requestMicrophoneAccess().then(() => {
       otherUserIds.forEach(userId => {
@@ -823,6 +845,8 @@ function initPeer(userId, isInitiator) {
     audio.srcObject = event.streams[0];
     audio.autoplay = false;
     audio.muted = false;
+    // PeerID referansı tutalım ki odadan çıkanın sesini kapatabilelim
+    audio.dataset.peerId = userId;
     remoteAudios.push(audio);
     applyDeafenState();
     if (audioPermissionGranted) {
