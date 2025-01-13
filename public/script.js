@@ -94,7 +94,6 @@ const createGroupButton = document.getElementById('createGroupButton');
 
 // Odalar
 const roomListDiv = document.getElementById('roomList');
-/* Artık createRoomButton yok, kaldırdık. */
 const groupTitle = document.getElementById('groupTitle');
 const groupDropdownIcon = document.getElementById('groupDropdownIcon');
 const groupDropdownMenu = document.getElementById('groupDropdownMenu');
@@ -327,6 +326,25 @@ closeJoinGroupModal.addEventListener('click', () => {
   joinGroupModal.style.display = 'none';
 });
 
+/* ***** YENİ: Oda Oluştur (pop-up) => "Oluştur" ve "Kapat" ***** */
+modalCreateRoomBtn.addEventListener('click', () => {
+  const rName = modalRoomName.value.trim();
+  if (!rName) {
+    alert("Oda adı girin!");
+    return;
+  }
+  const grp = currentGroup || selectedGroup;
+  if (!grp) {
+    alert("Önce bir gruba katılın!");
+    return;
+  }
+  socket.emit('createRoom', { groupId: grp, roomName: rName });
+  roomModal.style.display = 'none';
+});
+modalCloseRoomBtn.addEventListener('click', () => {
+  roomModal.style.display = 'none';
+});
+
 /* groupsList => sol sidebar */
 socket.on('groupsList', (groupArray) => {
   groupListDiv.innerHTML = '';
@@ -401,7 +419,7 @@ renameGroupBtn.addEventListener('click', () => {
   socket.emit('renameGroup', { groupId: grp, newName: newName.trim() });
 });
 
-// Kanal Oluştur (Artık sadece drop-down menüsünden)
+// Kanal Oluştur (drop-down)
 createChannelBtn.addEventListener('click', () => {
   groupDropdownMenu.style.display = 'none';
   const grp = currentGroup || selectedGroup;
