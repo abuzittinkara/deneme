@@ -326,7 +326,7 @@ closeJoinGroupModal.addEventListener('click', () => {
   joinGroupModal.style.display = 'none';
 });
 
-/* ***** YENİ: Oda Oluştur (pop-up) => "Oluştur" ve "Kapat" ***** */
+/* ***** Oda Oluştur => "Oluştur" ve "Kapat" ***** */
 modalCreateRoomBtn.addEventListener('click', () => {
   const rName = modalRoomName.value.trim();
   if (!rName) {
@@ -340,6 +340,9 @@ modalCreateRoomBtn.addEventListener('click', () => {
   }
   socket.emit('createRoom', { groupId: grp, roomName: rName });
   roomModal.style.display = 'none';
+
+  // *** DEĞİŞİKLİK: Yeni kanal eklenince anında o grup odaları güncellensin ***
+  socket.emit('browseGroup', grp);
 });
 modalCloseRoomBtn.addEventListener('click', () => {
   roomModal.style.display = 'none';
