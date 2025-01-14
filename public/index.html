@@ -175,7 +175,7 @@
     </div>
   </div>
 
-  <!-- Modal: Kanal İsmi Değiştir (Sadece callScreen içindeyken lazım) -->
+  <!-- Modal: Kanal İsmi Değiştir -->
   <div id="renameChannelModal" class="modal" style="display:none;">
     <div class="modal-content">
       <h2>Kanal İsmi Değiştir</h2>
@@ -187,10 +187,22 @@
     </div>
   </div>
 
-  <!-- Kanal Sağ Tık Menüsü (Sadece callScreen'de) -->
+  <!-- Kanal Sağ Tık Menüsü -->
   <div id="channelContextMenu" class="dropdown-menu" style="display:none; position:absolute; z-index:999;">
     <div class="dropdown-item" id="renameChannelOption">İsmini Değiştir</div>
     <div class="dropdown-item" id="deleteChannelOption">Sil</div>
+  </div>
+
+  <!-- *** Ayarlar Paneli (Artık mevcuttur, "settingsBackBtn" tanımlı) *** -->
+  <div id="settingsPanel" class="settings-panel" style="display:none;">
+    <div class="settings-panel-header">
+      <h2 class="settings-title">Ayarlar</h2>
+      <button id="settingsBackBtn" class="settings-close-btn">&lt; Geri</button>
+    </div>
+    <div class="settings-content">
+      <p>Burada kullanıcı ayarları olabilir.</p>
+      <p>Örneğin profil bilgileri, tema seçimi vs.</p>
+    </div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>

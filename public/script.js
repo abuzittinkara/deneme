@@ -114,9 +114,10 @@ const userListDiv = document.getElementById('userList');
 // Kanaldan ayrıl
 const leaveButton = document.getElementById('leaveButton');
 
-// Ayarlar Paneli
+// *** Ayarlar Paneli ve butonları (Artık mevcut) ***
 const settingsPanel = document.getElementById('settingsPanel');
 const settingsBackBtn = document.getElementById('settingsBackBtn');
+const settingsButton = document.getElementById('settingsButton');
 
 // Modallar
 const groupModal = document.getElementById('groupModal');
@@ -152,13 +153,17 @@ const deleteChannelOption = document.getElementById('deleteChannelOption');
 // Sağ tıklanan kanal
 let rightClickedChannelId = null;
 
-/* Ayarlar Paneli butonlar */
-settingsBackBtn.addEventListener('click', () => {
-  settingsPanel.style.display = 'none';
-});
-settingsButton.addEventListener('click', () => {
-  settingsPanel.style.display = 'flex';
-});
+/* Ayarlar Paneli => click */
+if (settingsBackBtn) {
+  settingsBackBtn.addEventListener('click', () => {
+    settingsPanel.style.display = 'none';
+  });
+}
+if (settingsButton) {
+  settingsButton.addEventListener('click', () => {
+    settingsPanel.style.display = 'flex';
+  });
+}
 
 /* Login -> Register Ekran Geçişleri */
 showRegisterScreen.addEventListener('click', () => {
@@ -369,8 +374,7 @@ socket.on('groupsList', (groupArray) => {
       selectedGroup = groupObj.id;
       currentGroup = null;
       groupTitle.textContent = groupObj.name;
-      selectedGroupOwner = groupObj.owner; // ÖNEMLİ
-
+      selectedGroupOwner = groupObj.owner; 
       socket.emit('browseGroup', groupObj.id);
 
       if (groupObj.owner === username) {
@@ -471,12 +475,10 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Kanal => sağ tık menüsü (sadece owner isek)
     if (selectedGroupOwner === username) {
       roomItem.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         rightClickedChannelId = roomObj.id;
-        // Sadece callScreen görünürken menüyü göster
         if (callScreen.style.display !== 'none') {
           channelContextMenu.style.display = 'block';
           channelContextMenu.style.left = e.pageX + 'px';
