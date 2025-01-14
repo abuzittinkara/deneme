@@ -54,6 +54,7 @@
         <!-- Sidebar (Gruplar) -->
         <div class="sidebar" id="sidebar">
           <button id="toggleDMButton" class="circle-btn dm-toggle-btn">
+            <!-- Zarf ikonu -->
             <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" 
                  stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
               <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 
@@ -81,7 +82,6 @@
             </div>
           </div>
           <div id="roomList" class="room-list"></div>
-          <button id="createRoomButton" class="circle-btn create-room-btn">+</button>
         </div>
       </div>
 
@@ -123,15 +123,12 @@
       </div>
     </div>
 
-    <!-- Ortadaki ana içerik => Artık "Sesli Görüşme..." yazısı kaldırıldı. -->
-    <div class="main-content" style="display:flex; flex-direction:column; padding:0;">
-      <!-- Burada yazılı sohbet (textChatContainer) script.js içinde eklenecek. 
-           Sesli kanaldayken de bu panel boş olabilir. -->
+    <div class="main-content">
+      <h1 class="app-title">Sesli Görüşme</h1>
+      <p>Bir grup seçin, ardından oda (kanal) oluşturup katılın.</p>
     </div>
 
-    <!-- Sağ panel -->
     <div class="right-panel" id="rightPanel">
-      <h2 class="panel-title">Aktif Kullanıcılar (Oda)</h2>
       <div id="userList" class="user-list"></div>
     </div>
   </div>
@@ -171,15 +168,29 @@
     <div class="modal-content">
       <h2>Oda Oluştur</h2>
       <input type="text" id="modalRoomName" class="input-text" placeholder="Oda Adı">
-      <div>
-        <label><input type="radio" name="channelType" value="voice" checked> Sesli Kanal</label>
-        <label style="margin-left:1rem;"><input type="radio" name="channelType" value="text"> Yazılı Kanal</label>
-      </div>
       <div class="modal-buttons">
         <button id="modalCreateRoomBtn" class="btn primary">Oluştur</button>
         <button id="modalCloseRoomBtn" class="btn secondary">Kapat</button>
       </div>
     </div>
+  </div>
+
+  <!-- Modal: Kanal İsmi Değiştir (Sadece callScreen içindeyken lazım) -->
+  <div id="renameChannelModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h2>Kanal İsmi Değiştir</h2>
+      <input type="text" id="renameChannelInput" class="input-text" placeholder="Yeni Kanal İsmi">
+      <div class="modal-buttons">
+        <button id="renameChannelConfirmBtn" class="btn primary">Tamam</button>
+        <button id="renameChannelCancelBtn" class="btn secondary">Vazgeç</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kanal Sağ Tık Menüsü (Sadece callScreen'de) -->
+  <div id="channelContextMenu" class="dropdown-menu" style="display:none; position:absolute; z-index:999;">
+    <div class="dropdown-item" id="renameChannelOption">İsmini Değiştir</div>
+    <div class="dropdown-item" id="deleteChannelOption">Sil</div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
