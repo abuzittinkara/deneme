@@ -94,7 +94,6 @@ const createGroupButton = document.getElementById('createGroupButton');
 
 // Odalar
 const roomListDiv = document.getElementById('roomList');
-const createRoomButton = document.getElementById('createRoomButton');
 const groupTitle = document.getElementById('groupTitle');
 const groupDropdownIcon = document.getElementById('groupDropdownIcon');
 const groupDropdownMenu = document.getElementById('groupDropdownMenu');
@@ -327,6 +326,25 @@ closeJoinGroupModal.addEventListener('click', () => {
   joinGroupModal.style.display = 'none';
 });
 
+/* ***** YENİ: Oda Oluştur (pop-up) => "Oluştur" ve "Kapat" ***** */
+modalCreateRoomBtn.addEventListener('click', () => {
+  const rName = modalRoomName.value.trim();
+  if (!rName) {
+    alert("Oda adı girin!");
+    return;
+  }
+  const grp = currentGroup || selectedGroup;
+  if (!grp) {
+    alert("Önce bir gruba katılın!");
+    return;
+  }
+  socket.emit('createRoom', { groupId: grp, roomName: rName });
+  roomModal.style.display = 'none';
+});
+modalCloseRoomBtn.addEventListener('click', () => {
+  roomModal.style.display = 'none';
+});
+
 /* groupsList => sol sidebar */
 socket.on('groupsList', (groupArray) => {
   groupListDiv.innerHTML = '';
@@ -401,32 +419,7 @@ renameGroupBtn.addEventListener('click', () => {
   socket.emit('renameGroup', { groupId: grp, newName: newName.trim() });
 });
 
-// Grup Sil
-deleteGroupBtn.addEventListener('click', () => {
-  groupDropdownMenu.style.display = 'none';
-  const grp = currentGroup || selectedGroup;
-  if (!grp) {
-    alert("Şu an bir grup seçili değil!");
-    return;
-  }
-  const confirmDel = confirm("Bu grubu silmek istediğinize emin misiniz?");
-  if (!confirmDel) return;
-  socket.emit('deleteGroup', grp);
-});
-
-/* Kanal Oluştur */
-createRoomButton.addEventListener('click', () => {
-  const grp = currentGroup || selectedGroup;
-  if (!grp) {
-    alert("Önce bir gruba katılın!");
-    return;
-  }
-  roomModal.style.display = 'flex';
-  modalRoomName.value = '';
-  modalRoomName.focus();
-});
-
-// Drop-down'daki "Kanal Oluştur" butonu
+// Kanal Oluştur (drop-down)
 createChannelBtn.addEventListener('click', () => {
   groupDropdownMenu.style.display = 'none';
   const grp = currentGroup || selectedGroup;
@@ -439,19 +432,17 @@ createChannelBtn.addEventListener('click', () => {
   modalRoomName.focus();
 });
 
-// Oda oluştur => modalCreateRoomBtn
-modalCreateRoomBtn.addEventListener('click', () => {
-  const rName = modalRoomName.value.trim();
-  if (!rName) {
-    alert("Oda adı girin!");
+// Grup Sil
+deleteGroupBtn.addEventListener('click', () => {
+  groupDropdownMenu.style.display = 'none';
+  const grp = currentGroup || selectedGroup;
+  if (!grp) {
+    alert("Şu an bir grup seçili değil!");
     return;
   }
-  const grp = currentGroup || selectedGroup;
-  socket.emit('createRoom', { groupId: grp, roomName: rName });
-  roomModal.style.display = 'none';
-});
-modalCloseRoomBtn.addEventListener('click', () => {
-  roomModal.style.display = 'none';
+  const confirmDel = confirm("Bu grubu silmek istediğinize emin misiniz?");
+  if (!confirmDel) return;
+  socket.emit('deleteGroup', grp);
 });
 
 /* roomsList => kanallar */
@@ -480,7 +471,6 @@ socket.on('roomsList', (roomsArray) => {
 
     // Kanala tıklama
     roomItem.addEventListener('click', () => {
-      // Kullanıcı yeni kanala girmeden önce eski bağlantıları kapat
       if (currentRoom && (currentRoom !== roomObj.id || currentGroup !== selectedGroup)) {
         socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
         closeAllPeers();
@@ -554,16 +544,13 @@ socket.on('roomUsers', (usersInRoom) => {
     .filter(id => !peers[id]);
 
   if (!audioPermissionGranted || !localStream) {
-    // Mikrofon izni henüz yok => bunları pending'e at
     requestMicrophoneAccess().then(() => {
-      // İzin alındıktan sonra tekrar hepsini initPeer
       otherUserIds.forEach(uid => {
         if (!peers[uid]) {
           const isInit = (socket.id < uid);
           initPeer(uid, isInit);
         }
       });
-      // Daha önce push ettiğimiz pending'ler de bağlansın
       pendingUsers.forEach(uid => {
         if (!peers[uid]) {
           initPeer(uid, true);
@@ -580,7 +567,6 @@ socket.on('roomUsers', (usersInRoom) => {
       console.error("Mikrofon izni alınamadı:", err);
     });
   } else {
-    // Mikrofon izni zaten var => direk initPeer
     otherUserIds.forEach(uid => {
       if (!peers[uid]) {
         const isInit = (socket.id < uid);
@@ -734,19 +720,18 @@ socket.on("signal", async (data) => {
     peer = initPeer(from, isInit);
   }
 
-  // Teklif geldiyse
+  // Teklif
   if (signal.type === "offer") {
     console.log("Offer alındı =>", data);
     await peer.setRemoteDescription(new RTCSessionDescription(signal));
     sessionUfrag[from] = parseIceUfrag(signal.sdp);
 
-    // Answer oluştur
+    // Answer
     const answer = await peer.createAnswer();
     await peer.setLocalDescription(answer);
     console.log("Answer gönderiliyor:", answer);
     socket.emit("signal", { to: from, signal: peer.localDescription });
 
-    // Bekleyen ICE candidate’ları ekle
     if (pendingCandidates[from]) {
       for (const c of pendingCandidates[from]) {
         if (sessionUfrag[from] 
@@ -766,7 +751,6 @@ socket.on("signal", async (data) => {
     }
 
   } else if (signal.type === "answer") {
-    // "PeerConnection already stable" uyarısını engellemek için
     if (peer.signalingState === "stable") {
       console.warn("PeerConnection already stable. Second answer ignored.");
       return;
@@ -775,7 +759,6 @@ socket.on("signal", async (data) => {
     await peer.setRemoteDescription(new RTCSessionDescription(signal));
     sessionUfrag[from] = parseIceUfrag(signal.sdp);
 
-    // Bekleyen ICE candidate’ları ekle
     if (pendingCandidates[from]) {
       for (const c of pendingCandidates[from]) {
         if (sessionUfrag[from] 
@@ -794,7 +777,7 @@ socket.on("signal", async (data) => {
       pendingCandidates[from] = [];
     }
   } 
-  // ICE candidate
+  // ICE Candidate
   else if (signal.candidate) {
     if (!peer.remoteDescription || peer.remoteDescription.type === "") {
       console.log("Henüz remoteDescription yok => pending candidate:", signal);
@@ -843,30 +826,25 @@ function initPeer(userId, isInitiator) {
   });
   peers[userId] = peer;
 
-  // localStream track'lerini Peer'e ekliyoruz
   localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
 
-  // ICE Candidate => signal
   peer.onicecandidate = (ev) => {
     if (ev.candidate) {
       socket.emit("signal", { to: userId, signal: ev.candidate });
     }
   };
-
   peer.oniceconnectionstatechange = () => {
     console.log("ICE state:", peer.iceConnectionState);
   };
   peer.onconnectionstatechange = () => {
     console.log("Peer state:", peer.connectionState);
   };
-
   peer.ontrack = (event) => {
     console.log("Remote stream alındı =>", userId);
     const audio = new Audio();
     audio.srcObject = event.streams[0];
     audio.autoplay = false;
     audio.muted = false;
-    // PeerID referansı tutalım ki odadan çıkanın sesini kapatabilelim
     audio.dataset.peerId = userId;
     remoteAudios.push(audio);
     applyDeafenState();
@@ -875,7 +853,6 @@ function initPeer(userId, isInitiator) {
     }
   };
 
-  // Sadece initiator => offer
   if (isInitiator) {
     createOffer(peer, userId);
   }
