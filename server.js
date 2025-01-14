@@ -181,6 +181,14 @@ function sendRoomsListToUser(socketId, groupId) {
   io.to(socketId).emit('roomsList', roomArray);
 }
 
+/* Tüm kullanıcıya => roomsList */
+function broadcastRoomsListToGroup(groupId) {
+  if (!groups[groupId]) return;
+  groups[groupId].users.forEach(u => {
+    sendRoomsListToUser(u.id, groupId);
+  });
+}
+
 /* Tek user'a => groupsList => (owner, id, name) */
 async function sendGroupsListToUser(socketId) {
   const userData = users[socketId];
@@ -453,9 +461,8 @@ io.on("connection", (socket) => {
       };
       console.log(`Yeni oda: group=${groupId}, room=${roomId}, name=${trimmed}`);
 
-      groups[groupId].users.forEach(u => {
-        sendRoomsListToUser(u.id, groupId);
-      });
+      // Herkese roomsList + allChannelsData
+      broadcastRoomsListToGroup(groupId);
       broadcastAllChannelsData(groupId);
     } catch (err) {
       console.error("createRoom hata:", err);
@@ -507,7 +514,7 @@ io.on("connection", (socket) => {
     const userName = users[socket.id].username;
     if (!groups[groupId]) return;
 
-    // Sadece owner rename edebilir (varsayım)
+    // Sadece owner rename edebilir
     if (groups[groupId].owner !== userName) {
       socket.emit('errorMessage', "Bu grubu değiştirme yetkiniz yok.");
       return;
@@ -541,7 +548,7 @@ io.on("connection", (socket) => {
       return;
     }
 
-    // Sadece owner silebilir (varsayım)
+    // Sadece owner silebilir
     if (groups[grpId].owner !== userName) {
       socket.emit('errorMessage', "Bu grubu silmeye yetkiniz yok.");
       return;
@@ -584,11 +591,8 @@ io.on("connection", (socket) => {
     }
   });
 
-  /*****************************************
-   * KANAL ADINI DEĞİŞTİRME (yeni)
-   *****************************************/
+  // renameChannel => kanal adını değiştirme
   socket.on('renameChannel', async (payload) => {
-    // payload: { channelId, newName }
     try {
       const { channelId, newName } = payload;
       if (!channelId || !newName) return;
@@ -605,12 +609,14 @@ io.on("connection", (socket) => {
       const groupDoc = await Group.findById(chDoc.group);
       if (!groupDoc) return;
       const gId = groupDoc.groupId;
-
       if (!groups[gId] || !groups[gId].rooms[channelId]) return;
+
       groups[gId].rooms[channelId].name = newName;
 
-      // Tüm client'lara => allChannelsData
+      // Tüm client'lara => allChannelsData + roomsList
       broadcastAllChannelsData(gId);
+      broadcastRoomsListToGroup(gId);
+
       console.log(`Kanal rename => ${channelId} => ${newName}`);
     } catch (err) {
       console.error("renameChannel hata:", err);
@@ -618,9 +624,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  /*****************************************
-   * KANALI SİLME (yeni)
-   *****************************************/
+  // deleteChannel => kanalı sil
   socket.on('deleteChannel', async (channelId) => {
     try {
       if (!channelId) return;
@@ -641,10 +645,11 @@ io.on("connection", (socket) => {
         delete groups[gId].rooms[channelId];
       }
 
-      console.log(`Kanal silindi => ${channelId}`);
-
-      // Tüm client'lara => allChannelsData
+      // Tüm client'lara => allChannelsData + roomsList
       broadcastAllChannelsData(gId);
+      broadcastRoomsListToGroup(gId);
+
+      console.log(`Kanal silindi => ${channelId}`);
     } catch (err) {
       console.error("deleteChannel hata:", err);
       socket.emit('errorMessage', "Kanal silinirken hata oluştu.");
