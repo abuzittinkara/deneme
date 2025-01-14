@@ -233,8 +233,6 @@ body {
   gap: 0rem;
 }
 
-/* (Kaldırıldı) => .create-room-btn => Artık yok */
-
 /* Kanal item => volume-up-fill ikonu, no border/arka plan */
 .channel-item {
   display: flex;
@@ -477,6 +475,31 @@ body {
 #actualGroupCreateModal,
 #joinGroupModal {
   display: none;
+}
+
+/* ----- YENİ: Kanal sağ tık menüsü ----- */
+.context-menu {
+  position: absolute;
+  background: #2d2d2d;
+  border: 1px solid #444;
+  border-radius: 6px;
+  z-index: 999999;
+  min-width: 130px;
+  display: none;
+  flex-direction: column;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+.context-menu-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font-size: 0.90rem;
+  border-bottom: 1px solid #444;
+}
+.context-menu-item:last-child {
+  border-bottom: none;
+}
+.context-menu-item:hover {
+  background: #444;
 }
 
 @media (max-width: 600px) {

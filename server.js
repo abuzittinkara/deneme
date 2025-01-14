@@ -507,7 +507,7 @@ io.on("connection", (socket) => {
     const userName = users[socket.id].username;
     if (!groups[groupId]) return;
 
-    // Sadece owner rename edebilir
+    // Sadece owner rename edebilir (varsayım)
     if (groups[groupId].owner !== userName) {
       socket.emit('errorMessage', "Bu grubu değiştirme yetkiniz yok.");
       return;
@@ -541,7 +541,7 @@ io.on("connection", (socket) => {
       return;
     }
 
-    // Sadece owner silebilir
+    // Sadece owner silebilir (varsayım)
     if (groups[grpId].owner !== userName) {
       socket.emit('errorMessage', "Bu grubu silmeye yetkiniz yok.");
       return;
@@ -581,6 +581,73 @@ io.on("connection", (socket) => {
     } catch (err) {
       console.error("deleteGroup hata:", err);
       socket.emit('errorMessage', "Grup silinirken hata oluştu.");
+    }
+  });
+
+  /*****************************************
+   * KANAL ADINI DEĞİŞTİRME (yeni)
+   *****************************************/
+  socket.on('renameChannel', async (payload) => {
+    // payload: { channelId, newName }
+    try {
+      const { channelId, newName } = payload;
+      if (!channelId || !newName) return;
+
+      const chDoc = await Channel.findOne({ channelId });
+      if (!chDoc) {
+        socket.emit('errorMessage', "Kanal DB'de bulunamadı.");
+        return;
+      }
+      chDoc.name = newName;
+      await chDoc.save();
+
+      // Bellekte de güncelle
+      const groupDoc = await Group.findById(chDoc.group);
+      if (!groupDoc) return;
+      const gId = groupDoc.groupId;
+
+      if (!groups[gId] || !groups[gId].rooms[channelId]) return;
+      groups[gId].rooms[channelId].name = newName;
+
+      // Tüm client'lara => allChannelsData
+      broadcastAllChannelsData(gId);
+      console.log(`Kanal rename => ${channelId} => ${newName}`);
+    } catch (err) {
+      console.error("renameChannel hata:", err);
+      socket.emit('errorMessage', "Kanal ismi değiştirilirken hata oluştu.");
+    }
+  });
+
+  /*****************************************
+   * KANALI SİLME (yeni)
+   *****************************************/
+  socket.on('deleteChannel', async (channelId) => {
+    try {
+      if (!channelId) return;
+      const chDoc = await Channel.findOne({ channelId });
+      if (!chDoc) {
+        socket.emit('errorMessage', "Kanal DB'de bulunamadı.");
+        return;
+      }
+      // DB'den sil
+      await Channel.deleteOne({ _id: chDoc._id });
+
+      // Bellekten sil
+      const groupDoc = await Group.findById(chDoc.group);
+      if (!groupDoc) return;
+      const gId = groupDoc.groupId;
+
+      if (groups[gId] && groups[gId].rooms[channelId]) {
+        delete groups[gId].rooms[channelId];
+      }
+
+      console.log(`Kanal silindi => ${channelId}`);
+
+      // Tüm client'lara => allChannelsData
+      broadcastAllChannelsData(gId);
+    } catch (err) {
+      console.error("deleteChannel hata:", err);
+      socket.emit('errorMessage', "Kanal silinirken hata oluştu.");
     }
   });
 

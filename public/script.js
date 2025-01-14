@@ -326,7 +326,7 @@ closeJoinGroupModal.addEventListener('click', () => {
   joinGroupModal.style.display = 'none';
 });
 
-/* ***** YENİ: Oda Oluştur (pop-up) => "Oluştur" ve "Kapat" ***** */
+/* Oda Oluştur (pop-up) => "Oluştur" / "Kapat" */
 modalCreateRoomBtn.addEventListener('click', () => {
   const rName = modalRoomName.value.trim();
   if (!rName) {
@@ -445,9 +445,59 @@ deleteGroupBtn.addEventListener('click', () => {
   socket.emit('deleteGroup', grp);
 });
 
+/* ----- KANALLAR => RIGHT-CLICK (context menu) -> rename/delete ----- */
+
+// context menu div
+const channelContextMenu = document.createElement('div');
+channelContextMenu.classList.add('context-menu');
+channelContextMenu.style.display = 'none';
+channelContextMenu.innerHTML = `
+  <div class="context-menu-item" id="renameChannelOption">Kanalın adını değiştir</div>
+  <div class="context-menu-item" id="deleteChannelOption">Kanalı sil</div>
+`;
+document.body.appendChild(channelContextMenu);
+
+// context menu'de hangi kanal?
+let rightClickedChannelId = null;
+
+// rename
+document.getElementById('renameChannelOption').addEventListener('click', () => {
+  if (!rightClickedChannelId) return;
+  const newName = prompt("Kanal için yeni isim girin:");
+  if (!newName || !newName.trim()) {
+    channelContextMenu.style.display = 'none';
+    return;
+  }
+  socket.emit('renameChannel', { channelId: rightClickedChannelId, newName: newName.trim() });
+  channelContextMenu.style.display = 'none';
+  rightClickedChannelId = null;
+});
+
+// delete
+document.getElementById('deleteChannelOption').addEventListener('click', () => {
+  if (!rightClickedChannelId) return;
+  const confirmDel = confirm("Kanalı silmek istediğinizden emin misiniz?");
+  if (!confirmDel) {
+    channelContextMenu.style.display = 'none';
+    return;
+  }
+  socket.emit('deleteChannel', rightClickedChannelId);
+  channelContextMenu.style.display = 'none';
+  rightClickedChannelId = null;
+});
+
+// Tıklama dışı => context menu'yi kapat
+document.addEventListener('click', (e) => {
+  // e.target !== channelContextMenu check
+  if (channelContextMenu.style.display === 'block') {
+    channelContextMenu.style.display = 'none';
+  }
+});
+
 /* roomsList => kanallar */
 socket.on('roomsList', (roomsArray) => {
   roomListDiv.innerHTML = '';
+
   roomsArray.forEach(roomObj => {
     const roomItem = document.createElement('div');
     roomItem.className = 'channel-item';
@@ -469,7 +519,7 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Kanala tıklama
+    // Sol tık => kanala gir
     roomItem.addEventListener('click', () => {
       if (currentRoom && (currentRoom !== roomObj.id || currentGroup !== selectedGroup)) {
         socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
@@ -477,6 +527,17 @@ socket.on('roomsList', (roomsArray) => {
         currentRoom = null;
       }
       joinRoom(selectedGroup, roomObj.id, roomObj.name);
+    });
+
+    // Sağ tık => context menu
+    roomItem.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      rightClickedChannelId = roomObj.id;
+
+      // Menüyü mouse konumunda göster
+      channelContextMenu.style.left = e.pageX + 'px';
+      channelContextMenu.style.top = e.pageY + 'px';
+      channelContextMenu.style.display = 'block';
     });
 
     roomListDiv.appendChild(roomItem);
