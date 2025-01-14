@@ -31,8 +31,12 @@ let sessionUfrag = {};
 // --- Konuşma algılama için audioAnalyser map ---
 let audioAnalyzers = {};  // userId => { analyser, dataArray, audioContext, interval, avatarElem }
 
-// Eşik değeri (ses yüksekliği)
-const SPEAKING_THRESHOLD = 0.01;  
+/* 
+ * ***** SES EŞİĞİ *****
+ * En ufak bir sesi bile algılamak için 0.0 yapıldı. 
+ */
+const SPEAKING_THRESHOLD = 0.0;  
+
 // Her 100ms ses ölçümü
 const VOLUME_CHECK_INTERVAL = 100;
 
@@ -520,7 +524,6 @@ socket.on('roomsList', (roomsArray) => {
 
     const channelUsers = document.createElement('div');
     channelUsers.className = 'channel-users';
-    // Avatar container => id: "channel-users-<roomId>"
     channelUsers.id = `channel-users-${roomObj.id}`;
 
     roomItem.appendChild(channelHeader);
@@ -564,7 +567,6 @@ socket.on('allChannelsData', (channelsObj) => {
 
       const avatarDiv = document.createElement('div');
       avatarDiv.classList.add('channel-user-avatar');
-      // userId => avatarDiv => id => "avatar-<userid>"
       avatarDiv.id = `avatar-${u.id}`;
 
       const nameSpan = document.createElement('span');
@@ -587,15 +589,12 @@ socket.on('groupUsers', (dbUsersArray) => {
 socket.on('roomUsers', (usersInRoom) => {
   console.log("roomUsers => odadaki kisiler:", usersInRoom);
 
-  // 1) Kimler odada yoksa peers'dan sil
   const userIdsInRoom = usersInRoom.map(u => u.id);
   Object.keys(peers).forEach(peerId => {
     if (!userIdsInRoom.includes(peerId)) {
       console.log(`Peer ${peerId} is not in this room anymore => closing peer`);
       peers[peerId].close();
       delete peers[peerId];
-
-      // speaking measure durdur
       stopVolumeAnalysis(peerId);
 
       remoteAudios = remoteAudios.filter(audioEl => {
@@ -609,7 +608,6 @@ socket.on('roomUsers', (usersInRoom) => {
     }
   });
 
-  // 2) Kendimiz haricindeki yeni user ID listesi
   const otherUserIds = usersInRoom
     .filter(u => u.id !== socket.id)
     .map(u => u.id)
@@ -785,7 +783,7 @@ socket.on("signal", async (data) => {
 
   if (!peer) {
     if (!localStream) {
-      console.warn("localStream yok => push:", from);
+      console.warn(`localStream yok => pending user: ${from}`);
       pendingNewUsers.push(from);
       return;
     }
@@ -816,7 +814,6 @@ socket.on("signal", async (data) => {
       }
       pendingCandidates[from] = [];
     }
-
   } else if (signal.type === "answer") {
     if (peer.signalingState === "stable") {
       return;
@@ -892,12 +889,12 @@ function initPeer(userId, isInitiator) {
     // Remote stream alındı
     const audio = new Audio();
     audio.srcObject = event.streams[0];
-    audio.autoplay = false; 
+    audio.autoplay = false;
     audio.muted = false;
     audio.dataset.peerId = userId;
     remoteAudios.push(audio);
 
-    // Konuşma algılama => bu remote stream için
+    // Konuşma algılama => remote user
     startVolumeAnalysis(event.streams[0], userId);
 
     if (audioPermissionGranted) {
@@ -1024,7 +1021,6 @@ socket.on("disconnect", () => {
 
 /* --- Konuşma Algılama (Volume Analysis) Fonksiyonları --- */
 function startVolumeAnalysis(stream, userId) {
-  // Zaten varsa durdur
   stopVolumeAnalysis(userId);
 
   const audioContext = new AudioContext();
@@ -1036,11 +1032,9 @@ function startVolumeAnalysis(stream, userId) {
 
   const dataArray = new Uint8Array(analyser.fftSize);
   
-  // Her 100ms ses seviyesini ölç => speaking tespit
   const interval = setInterval(() => {
     analyser.getByteTimeDomainData(dataArray);
 
-    // 0 - 255 arası => ortalama sapma bul
     let sum = 0;
     for (let i = 0; i < dataArray.length; i++) {
       const val = (dataArray[i] - 128) / 128.0;
