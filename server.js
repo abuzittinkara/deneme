@@ -92,7 +92,7 @@ function getAllChannelsData(groupId) {
   return channelsObj;
 }
 
-/* Her bir kanaldaki kullanıcıları da tekrar "roomUsers" şeklinde yaymak için. */
+/* Her bir kanaldaki kullanıcıları "roomUsers" şeklinde yaymak için. */
 function broadcastAllRoomsUsers(groupId) {
   if (!groups[groupId]) return;
   Object.keys(groups[groupId].rooms).forEach((roomId) => {
@@ -406,6 +406,9 @@ io.on("connection", (socket) => {
 
       console.log(`User ${socket.id} => joinGroupByID => ${groupId}`);
 
+      // **** YENİ EKLENDİ: Gruplar listesi güncellensin diye ****
+      await sendGroupsListToUser(socket.id);
+
       sendRoomsListToUser(socket.id, groupId);
       broadcastAllChannelsData(groupId);
       await broadcastGroupUsers(groupId);
@@ -469,7 +472,6 @@ io.on("connection", (socket) => {
       };
       console.log(`Yeni oda: group=${groupId}, room=${roomId}, name=${trimmed}`);
 
-      // Herkese roomsList + allChannelsData + roomUsers
       broadcastRoomsListToGroup(groupId);
       broadcastAllChannelsData(groupId);
       broadcastAllRoomsUsers(groupId);
@@ -622,7 +624,6 @@ io.on("connection", (socket) => {
 
       groups[gId].rooms[channelId].name = newName;
 
-      // Tüm client'lara => allChannelsData + roomsList + roomUsers
       broadcastAllChannelsData(gId);
       broadcastRoomsListToGroup(gId);
       broadcastAllRoomsUsers(gId);
@@ -655,7 +656,6 @@ io.on("connection", (socket) => {
         delete groups[gId].rooms[channelId];
       }
 
-      // Tüm client'lara => allChannelsData + roomsList + roomUsers
       broadcastAllChannelsData(gId);
       broadcastRoomsListToGroup(gId);
       broadcastAllRoomsUsers(gId);
