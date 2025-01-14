@@ -82,7 +82,6 @@
             </div>
           </div>
           <div id="roomList" class="room-list"></div>
-          <!-- Artık createRoomButton yok! (Kaldırıldı) -->
         </div>
       </div>
 
@@ -130,7 +129,6 @@
     </div>
 
     <div class="right-panel" id="rightPanel">
-      <!-- Kullanıcı listesi -->
       <div id="userList" class="user-list"></div>
     </div>
   </div>
@@ -175,6 +173,24 @@
         <button id="modalCloseRoomBtn" class="btn secondary">Kapat</button>
       </div>
     </div>
+  </div>
+
+  <!-- Modal: Kanal İsmi Değiştir -->
+  <div id="renameChannelModal" class="modal">
+    <div class="modal-content">
+      <h2>Kanal İsmi Değiştir</h2>
+      <input type="text" id="renameChannelInput" class="input-text" placeholder="Yeni Kanal İsmi">
+      <div class="modal-buttons">
+        <button id="renameChannelConfirmBtn" class="btn primary">Tamam</button>
+        <button id="renameChannelCancelBtn" class="btn secondary">Vazgeç</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kanal Sağ Tık Menüsü -->
+  <div id="channelContextMenu" class="dropdown-menu" style="display:none; position:absolute; z-index:999;">
+    <div class="dropdown-item" id="renameChannelOption">İsmini Değiştir</div>
+    <div class="dropdown-item" id="deleteChannelOption">Sil</div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
