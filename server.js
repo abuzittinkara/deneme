@@ -92,6 +92,14 @@ function getAllChannelsData(groupId) {
   return channelsObj;
 }
 
+/* Her bir kanaldaki kullanıcıları da tekrar "roomUsers" şeklinde yaymak için. */
+function broadcastAllRoomsUsers(groupId) {
+  if (!groups[groupId]) return;
+  Object.keys(groups[groupId].rooms).forEach((roomId) => {
+    io.to(`${groupId}::${roomId}`).emit('roomUsers', groups[groupId].rooms[roomId].users);
+  });
+}
+
 /* Bir kullanıcı hangi gruplarda/odalarda varsa hepsinden çıkarır (socket.leave vb.) */
 function removeUserFromAllGroupsAndRooms(socket) {
   const socketId = socket.id;
@@ -163,7 +171,7 @@ function broadcastAllChannelsData(groupId) {
   io.to(groupId).emit('allChannelsData', channelsObj);
 }
 
-/* Sadece tek user => allChannelsData */
+/* Tek user'a => allChannelsData */
 function sendAllChannelsDataToOneUser(socketId, groupId) {
   if (!groups[groupId]) return;
   const channelsObj = getAllChannelsData(groupId);
@@ -461,9 +469,10 @@ io.on("connection", (socket) => {
       };
       console.log(`Yeni oda: group=${groupId}, room=${roomId}, name=${trimmed}`);
 
-      // Herkese roomsList + allChannelsData
+      // Herkese roomsList + allChannelsData + roomUsers
       broadcastRoomsListToGroup(groupId);
       broadcastAllChannelsData(groupId);
+      broadcastAllRoomsUsers(groupId);
     } catch (err) {
       console.error("createRoom hata:", err);
     }
@@ -613,9 +622,10 @@ io.on("connection", (socket) => {
 
       groups[gId].rooms[channelId].name = newName;
 
-      // Tüm client'lara => allChannelsData + roomsList
+      // Tüm client'lara => allChannelsData + roomsList + roomUsers
       broadcastAllChannelsData(gId);
       broadcastRoomsListToGroup(gId);
+      broadcastAllRoomsUsers(gId);
 
       console.log(`Kanal rename => ${channelId} => ${newName}`);
     } catch (err) {
@@ -645,9 +655,10 @@ io.on("connection", (socket) => {
         delete groups[gId].rooms[channelId];
       }
 
-      // Tüm client'lara => allChannelsData + roomsList
+      // Tüm client'lara => allChannelsData + roomsList + roomUsers
       broadcastAllChannelsData(gId);
       broadcastRoomsListToGroup(gId);
+      broadcastAllRoomsUsers(gId);
 
       console.log(`Kanal silindi => ${channelId}`);
     } catch (err) {
