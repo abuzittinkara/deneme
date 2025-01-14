@@ -265,18 +265,16 @@ body {
   gap: 0.5rem;
   font-size: 0.9rem;
 }
-
-/* ----- YENİ: Konuşan kullanıcı avatarı => pembe çerçeve ----- */
 .channel-user-avatar {
   width: 24px;
   height: 24px;
   border-radius: 45%;
   background-color: #666;
-  /* Konuşmayan => border yok */
 }
+
+/* Konuşan kullanıcı => speaking */
 .channel-user-avatar.speaking {
   border: 1px solid #c61884;
-  /* border-radius: 45%; => yukarıda zaten var */
 }
 
 /* Sol Alt Kullanıcı Paneli => 265px */
@@ -484,7 +482,7 @@ body {
   display: none;
 }
 
-/* Kanal sağ tık menüsü */
+/* context-menu (kanallara sağ tık) */
 .context-menu {
   position: absolute;
   background: #2d2d2d;
