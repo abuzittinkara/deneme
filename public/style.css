@@ -232,8 +232,11 @@ body {
   flex-direction: column;
   gap: 0rem;
 }
-
-/* (Kaldırıldı) => .create-room-btn => Artık yok */
+.create-room-btn {
+  position: absolute;
+  bottom: 70px; 
+  right: 10px;
+}
 
 /* Kanal item => volume-up-fill ikonu, no border/arka plan */
 .channel-item {
