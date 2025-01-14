@@ -28,6 +28,10 @@ let pendingNewUsers = [];  // isInitiator = false olacak kullanıcılar
 let pendingCandidates = {};
 let sessionUfrag = {};
 
+// --- Konuşma tespiti için ek parametreler
+const speakingThreshold = -50;  // dB cinsinden (ortalama). -50 => sessiz/yüksek eşiği
+const speakingRefreshInterval = 200; // ms
+
 /* volume-up-fill ikonu */
 function createWaveIcon() {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -445,9 +449,7 @@ deleteGroupBtn.addEventListener('click', () => {
   socket.emit('deleteGroup', grp);
 });
 
-/* ----- KANALLAR => RIGHT-CLICK (context menu) -> rename/delete ----- */
-
-// context menu div
+/* Kanal sağ tık menüsü */
 const channelContextMenu = document.createElement('div');
 channelContextMenu.classList.add('context-menu');
 channelContextMenu.style.display = 'none';
@@ -457,7 +459,6 @@ channelContextMenu.innerHTML = `
 `;
 document.body.appendChild(channelContextMenu);
 
-// context menu'de hangi kanal?
 let rightClickedChannelId = null;
 
 // rename
@@ -486,9 +487,7 @@ document.getElementById('deleteChannelOption').addEventListener('click', () => {
   rightClickedChannelId = null;
 });
 
-// Tıklama dışı => context menu'yi kapat
 document.addEventListener('click', (e) => {
-  // e.target !== channelContextMenu check
   if (channelContextMenu.style.display === 'block') {
     channelContextMenu.style.display = 'none';
   }
@@ -534,7 +533,6 @@ socket.on('roomsList', (roomsArray) => {
       e.preventDefault();
       rightClickedChannelId = roomObj.id;
 
-      // Menüyü mouse konumunda göster
       channelContextMenu.style.left = e.pageX + 'px';
       channelContextMenu.style.top = e.pageY + 'px';
       channelContextMenu.style.display = 'block';
@@ -558,6 +556,8 @@ socket.on('allChannelsData', (channelsObj) => {
 
       const avatarDiv = document.createElement('div');
       avatarDiv.classList.add('channel-user-avatar');
+      // Veriyi saklıyoruz => userId
+      avatarDiv.dataset.userid = u.id;
 
       const nameSpan = document.createElement('span');
       nameSpan.textContent = u.username || '(İsimsiz)';
@@ -757,6 +757,9 @@ async function requestMicrophoneAccess() {
     remoteAudios.forEach(audioEl => {
       audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
     });
+
+    // **** Yerel mikrofonda da konuşma tespiti için ****
+    startVolumeDetection(stream, socket.id);
   } catch(err) {
     console.error("Mikrofon izni alınamadı:", err);
   }
@@ -769,25 +772,21 @@ socket.on("signal", async (data) => {
   const { from, signal } = data;
   let peer = peers[from];
 
-  // Peer yoksa => initPeer
   if (!peer) {
     if (!localStream) {
-      console.warn(`localStream yok => pending user: ${from}`);
+      console.warn("localStream yok => push:", from);
       pendingNewUsers.push(from);
       return;
     }
-    // isInitiator = (socket.id < from)
     const isInit = (socket.id < from);
     peer = initPeer(from, isInit);
   }
 
-  // Teklif
   if (signal.type === "offer") {
     console.log("Offer alındı =>", data);
     await peer.setRemoteDescription(new RTCSessionDescription(signal));
     sessionUfrag[from] = parseIceUfrag(signal.sdp);
 
-    // Answer
     const answer = await peer.createAnswer();
     await peer.setLocalDescription(answer);
     console.log("Answer gönderiliyor:", answer);
@@ -837,9 +836,7 @@ socket.on("signal", async (data) => {
       }
       pendingCandidates[from] = [];
     }
-  } 
-  // ICE Candidate
-  else if (signal.candidate) {
+  } else if (signal.candidate) {
     if (!peer.remoteDescription || peer.remoteDescription.type === "") {
       console.log("Henüz remoteDescription yok => pending candidate:", signal);
       if (!pendingCandidates[from]) {
@@ -908,6 +905,10 @@ function initPeer(userId, isInitiator) {
     audio.muted = false;
     audio.dataset.peerId = userId;
     remoteAudios.push(audio);
+
+    // Konuşma tespiti => trackVolume
+    startVolumeDetection(audio.srcObject, userId);
+
     applyDeafenState();
     if (audioPermissionGranted) {
       audio.play().catch(err => console.error("Ses oynatılamadı:", err));
@@ -1031,3 +1032,48 @@ socket.on("connect", () => {
 socket.on("disconnect", () => {
   console.log("WebSocket bağlantısı koptu.");
 });
+
+/* ----- KONUŞMA TESPİTİ ----- */
+/**
+ * startVolumeDetection
+ *  - stream: MediaStream (remote veya local)
+ *  - userId: o stream'e ait socket.id
+ *
+ * AnalyserNode ile periyodik (200 ms) amplitude ölçümü:
+ * eğer threshold'u aşıyorsa => user speaking => avatar .speaking class ekle
+ */
+function startVolumeDetection(stream, userId) {
+  if (!stream) return;
+  const audioCtx = new AudioContext();
+  const analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 2048;
+  const source = audioCtx.createMediaStreamSource(stream);
+  source.connect(analyser);
+
+  const pcmData = new Float32Array(analyser.fftSize);
+
+  const update = () => {
+    analyser.getFloatTimeDomainData(pcmData);
+    let sumSq = 0.0;
+    for (let i = 0; i < pcmData.length; i++) {
+      sumSq += pcmData[i] * pcmData[i];
+    }
+    const rms = Math.sqrt(sumSq / pcmData.length);
+    // dB cinsinden
+    const db = 20 * Math.log10(rms);
+
+    const isSpeaking = (db > speakingThreshold && !selfDeafened);
+
+    // DOM'da userId => .channel-user-avatar
+    const avatarEls = document.querySelectorAll(`.channel-user-avatar[data-userid="${userId}"]`);
+    avatarEls.forEach(avatar => {
+      if (isSpeaking) {
+        avatar.classList.add('speaking');
+      } else {
+        avatar.classList.remove('speaking');
+      }
+    });
+  };
+
+  setInterval(update, speakingRefreshInterval);
+}
