@@ -265,26 +265,17 @@ body::-webkit-scrollbar-thumb:hover {
 
 /* Kanal item => volume-up-fill ikonu */
 /* Kanallar arası boşluk => margin-bottom:0.2rem */
-
-/* 
-  !!! GÜNCELLEME YAPILDI !!!
-  Hover'da pembe çerçeve, kanal isminin dikey ortalanması için
-  .channel-item ve .channel-header aşağıdaki gibi düzenlenmiştir.
-*/
 .channel-item {
   display: flex;
   flex-direction: column;
-  margin-bottom: 0.2rem; 
-  border-radius: 20px;
   cursor: pointer;
-
-  /* Hover animasyonları için transition */
-  transition: background 0.2s ease, transform 0.2s ease, border 0.2s ease;
+  margin-bottom: 0.2rem; /* Azaltılmış boşluk */
+  transition: background 0.2s ease, transform 0.2s ease;
+  border-radius: 20px; 
 }
+/* Oval kenarlar hover */
 .channel-item:hover {
-  /* Üzerine gelince çerçeve ve hafif büyüme efekti */
   background: #333;
-  border: 1px solid #C61884; /* Pembe çerçeve */
   transform: scale(1.02);
 }
 
@@ -295,10 +286,12 @@ body::-webkit-scrollbar-thumb:hover {
 .channel-header {
   display: flex;
   align-items: center; 
-  justify-content: flex-start; /* İkon + isim solda */
-  height: 32px; /* Kanal adını dikeyde ortalamak için */
+  height: 32px; /* YENİ: Kanal ismini dikeyde ortalamak */
   gap: 0.6rem;
-  padding: 0 0.5rem; /* Yatayda boşluk */
+}
+.channel-icon {
+  width: 16px;
+  height: 16px;
 }
 
 /*
@@ -584,4 +577,32 @@ body::-webkit-scrollbar-thumb:hover {
   .user-panel { width:200px; }
   .app-title { font-size:1.2rem; }
   .right-panel { width:200px; }
+}
+ 
+/* KANAL DİKEY ORTALAMA VE HOVER EFEKTİ */
+.channel-item {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  margin-bottom: 0.2rem;
+  border-radius: 20px;
+  transition: background 0.2s ease, transform 0.2s ease, border 0.2s ease;
+}
+
+.channel-item:hover {
+  background: #333;
+  border: 1px solid #C61884; /* Pembe çerçeve */
+  transform: scale(1.02);
+}
+
+.channel-header {
+  display: flex;
+  align-items: center; /* Dikey ortalama */
+  height: 32px;        /* Yeterli yüksekliği ayarla */
+  gap: 0.6rem;         /* İkon ve metin arası boşluk */
+  padding: 0 0.5rem;   /* Soldan ve sağdan küçük boşluk */
+  /* 
+    Eğer kanal adıyla ikonu yatayda da ortalamak istersen:
+    justify-content: center; 
+  */
 }
