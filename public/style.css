@@ -76,7 +76,7 @@ body::-webkit-scrollbar-thumb:hover {
   color: #fff;
 }
 .btn.primary:hover {
-  background: #00c6cf;
+  background: ##ad1473;
   transform: translateY(-2px);
 }
 .btn.secondary {
@@ -201,7 +201,7 @@ body::-webkit-scrollbar-thumb:hover {
   transition: background 0.3s ease, transform 0.3s ease;
 }
 .circle-btn:hover {
-  background-color: #00c6cf;
+  background-color: ##ad1473;
   transform: scale(1.05);
 }
 
@@ -374,8 +374,8 @@ body::-webkit-scrollbar-thumb:hover {
   transition: background 0.3s ease, border-color 0.3s ease;
 }
 .leave-btn:hover {
-  background: #00c6cf;
-  border-color: #00c6cf;
+  background: ##ad1473;
+  border-color: ##ad1473;
   color: #fff;
 }
 
