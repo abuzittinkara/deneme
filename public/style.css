@@ -72,11 +72,11 @@ body::-webkit-scrollbar-thumb:hover {
   transition: background 0.3s ease, transform 0.3s ease;
 }
 .btn.primary {
-  background: #C61884; /* YENİ: Turkuaz - modern */
+  background: #C61884; /* Kendi seçimin: Pembe/Turkuaz yerine #C61884 */
   color: #fff;
 }
 .btn.primary:hover {
-  background: ##ad1473;
+  background: #ad1473; /* DÜZELTME: ##ad1473 => #ad1473 */
   transform: translateY(-2px);
 }
 .btn.secondary {
@@ -174,7 +174,7 @@ body::-webkit-scrollbar-thumb:hover {
   transform: scale(1.08);
 }
 .grp-item.selected {
-  border: 2px solid #C61884; /* YENİ: turkuaz çerçeve */
+  border: 2px solid #C61884; /* Pembe çerçeve */
   border-radius: 15px; 
 }
 
@@ -187,7 +187,7 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 .circle-btn {
-  background-color: #C61884; /* YENİ */
+  background-color: #C61884; /* Kendi seçimin */
   color: #fff;
   width: 48px;
   height: 48px;
@@ -201,7 +201,7 @@ body::-webkit-scrollbar-thumb:hover {
   transition: background 0.3s ease, transform 0.3s ease;
 }
 .circle-btn:hover {
-  background-color: ##ad1473;
+  background-color: #ad1473; /* DÜZELTME: ##ad1473 => #ad1473 */
   transform: scale(1.05);
 }
 
@@ -299,7 +299,6 @@ body::-webkit-scrollbar-thumb:hover {
   transition: background 0.2s ease;
 }
 .channel-user:hover {
-  /* Hafif hover */
   background: #3b3b3b;
 }
 .channel-user-avatar {
@@ -374,8 +373,8 @@ body::-webkit-scrollbar-thumb:hover {
   transition: background 0.3s ease, border-color 0.3s ease;
 }
 .leave-btn:hover {
-  background: ##ad1473;
-  border-color: ##ad1473;
+  background: #ad1473; /* DÜZELTME: ##ad1473 => #ad1473 */
+  border-color: #ad1473;
   color: #fff;
 }
 
