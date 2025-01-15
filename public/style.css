@@ -264,31 +264,32 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 /* Kanal item => volume-up-fill ikonu */
+/* 
+ * Kanallar arasında boşluğu azaltmak => margin-bottom'u 0.4rem'den 0.2rem'e düşürdük 
+ */
 .channel-item {
   display: flex;
   flex-direction: column;
   cursor: pointer;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.2rem; /* DÜŞÜRÜLDÜ: Eskiden 0.4rem */
   transition: background 0.2s ease, transform 0.2s ease;
+  border-radius: 20px; 
 }
-/* ***** YENİ: Oval kenarlar "hover"da ***** */
 .channel-item:hover {
   background: #333;
   transform: scale(1.02);
-  border-radius: 20px; /* Oval olsun */
+  /* border-radius: 20px; => zaten yukarıda var */
 }
-.channel-header {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-.channel-icon {
-  width: 16px;
-  height: 16px;
-}
+
+/*
+ * Kanala bağlı kullanıcıların listesi ile 
+ * bir sonraki kanal arasındaki boşluğu arttırmak => 
+ * channel-users => margin-bottom ekliyoruz
+ */
 .channel-users {
   margin-top: 0.5rem;
   margin-left: 0.5rem; 
+  margin-bottom: 0.6rem; /* YENİ: Kanalın user listesi bitince, sonraki kanala daha fazla boşluk */
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
