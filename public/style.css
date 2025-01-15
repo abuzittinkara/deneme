@@ -272,9 +272,9 @@ body {
   background-color: #666;
 }
 
-/* Konuşan kullanıcı => speaking */
+/* Konuşan kullanıcı => 2px pembe stroke dışta */
 .channel-user-avatar.speaking {
-  border: 1px solid #c61884;
+  box-shadow: 0 0 0 2px #c61884;
 }
 
 /* Sol Alt Kullanıcı Paneli => 265px */
