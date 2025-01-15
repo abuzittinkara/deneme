@@ -264,39 +264,49 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 /* Kanal item => volume-up-fill ikonu */
+/* 
+ * Kanallar arasında boşluğu azalt => margin-bottom: 0.2rem
+ * 
+ * Dikey ortalama isteği => display: flex; align-items: center; justify-content: center;
+ * Hem normalde hem hover'da
+ */
 .channel-item {
   display: flex;
   flex-direction: column;
+  align-items: center;    /* Y ekseninde ortalamak için */
+  justify-content: center;/* Y ekseninde ortalamak için */
   cursor: pointer;
-  margin-bottom: 0.2rem; /* Kanallar arası boşluk azaldı */
+  margin-bottom: 0.2rem; /* DÜŞÜRÜLDÜ: Eskiden 0.4rem */
   transition: background 0.2s ease, transform 0.2s ease;
   border-radius: 20px; 
 }
 .channel-item:hover {
   background: #333;
   transform: scale(1.02);
-  /* border-radius: 20px; => zaten üstte var */
+  border-radius: 20px; 
 }
 
-/* 
- * Kanal başlığı => Dikey ortalama (mouse'u üstüne getirdiğinde 
- * görünürken de ortada olsun) => min-height + align-items: center
-*/
 .channel-header {
   display: flex;
-  align-items: center;       /* Dikey ortalama */
+  align-items: center;
   gap: 0.6rem;
-  min-height: 2rem;         /* YENİ: Kanal ismi yukarı yaslanmasın diye */
+  /* justify-content: center; => bununla da ortalamaya yardımcı */
+  justify-content: center;  
 }
 
+/*
+ * Kanala bağlı kullanıcıların listesi ile 
+ * bir sonraki kanal arasındaki boşluğu arttır => margin-bottom: 0.6rem
+ */
 .channel-users {
   margin-top: 0.5rem;
   margin-left: 0.5rem; 
-  margin-bottom: 0.6rem; /* Kanala bağlı kullanıcıların listesi bitince, sonraki kanala biraz daha boşluk */
+  margin-bottom: 0.6rem; /* YENİ: Kanalın user listesi bitince, sonraki kanala daha fazla boşluk */
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
 }
+
 .channel-user {
   display: flex;
   align-items: center;
@@ -305,7 +315,6 @@ body::-webkit-scrollbar-thumb:hover {
   transition: background 0.2s ease;
 }
 .channel-user:hover {
-  /* Hafif hover */
   background: #3b3b3b;
 }
 .channel-user-avatar {
