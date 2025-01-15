@@ -263,35 +263,21 @@ body::-webkit-scrollbar-thumb:hover {
   gap: 0rem;
 }
 
-/* Kanal item => volume-up-fill ikonu */
-/* 
- * Kanallar arasında boşluğu azalt => margin-bottom: 0.2rem
- * 
- * Dikey ortalama isteği => display: flex; align-items: center; justify-content: center;
- * Hem normalde hem hover'da
- */
+/* Kanal item => margin-bottom: 0.2rem (azaltılmış).
+   Dikey ortalama: "align-items: center; padding" => üst ve alt eşit boşluk.
+*/
 .channel-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;    /* Y ekseninde ortalamak için */
-  justify-content: center;/* Y ekseninde ortalamak için */
-  cursor: pointer;
-  margin-bottom: 0.2rem; /* DÜŞÜRÜLDÜ: Eskiden 0.4rem */
+  display: flex; 
+  align-items: center; /* Dikeyde ortalamak için */
+  margin-bottom: 0.2rem; 
   transition: background 0.2s ease, transform 0.2s ease;
-  border-radius: 20px; 
+  border-radius: 20px;
+  padding: 6px 8px;  /* Top/Bottom:6px => yazının üst ve altı eşit boşluk */
 }
 .channel-item:hover {
   background: #333;
   transform: scale(1.02);
   border-radius: 20px; 
-}
-
-.channel-header {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  /* justify-content: center; => bununla da ortalamaya yardımcı */
-  justify-content: center;  
 }
 
 /*
@@ -305,6 +291,13 @@ body::-webkit-scrollbar-thumb:hover {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
+}
+
+.channel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  /* NOT: "justify-content" çıkarıldı, yatayda konumu bozmamak için */
 }
 
 .channel-user {
