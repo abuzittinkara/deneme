@@ -1,11 +1,28 @@
 /* Genel Ayarlar */
+
+/* YENİ: font-family => "Poppins" */
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Roboto', sans-serif;
-  background: #2d2d2d;
-  color: #fff;
+  font-family: 'Poppins', sans-serif;
+  background: #1f1f1f; /* Daha koyu */
+  color: #efefef;      /* Yazılar daha açık */
   font-size: 16px;
+}
+
+/* Modern scrollbar (Chrome, vb.) */
+body::-webkit-scrollbar {
+  width: 8px;
+}
+body::-webkit-scrollbar-track {
+  background: #2f2f2f;
+}
+body::-webkit-scrollbar-thumb {
+  background: #666;
+  border-radius: 4px;
+}
+body::-webkit-scrollbar-thumb:hover {
+  background: #888;
 }
 
 .screen-container {
@@ -17,48 +34,50 @@ body {
 }
 
 .card {
-  background: #2d2d2d; 
+  background: #262626;  /* Biraz daha koyu gri */
   padding: 2rem;
-  border-radius: 8px;
+  border-radius: 12px; /* YENİ: Daha yuvarlak */
   min-width: 320px;
   text-align: center;
   border: none; 
-  box-shadow: none; 
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5); /* YENİ: Hafif gölge */
 }
 
 .app-title {
   margin: 0 0 1rem;
-  font-size: 1.5rem;
+  font-size: 1.6rem; /* Biraz büyük */
+  font-weight: 600; /* Poppins 600 */
 }
 
 .input-text {
   width: 100%;
   padding: 0.75rem;
-  background: #444;  
-  color: #fff;       
-  border: 1px solid #666;
-  border-radius: 6px;
+  background: #333;  
+  color: #efefef;  
+  border: 1px solid #555;
+  border-radius: 8px; /* YENİ */
   font-size: 1rem;
   margin-bottom: 1rem;
   box-sizing: border-box;
 }
 
-/* Butonlar */
+/* Butonlar => Modern hover + transition */
 .btn {
   padding: 0.75rem 1.25rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px; /* YENİ */
   font-size: 1rem;
   cursor: pointer;
   margin-top: 1rem;
-  transition: background 0.3s ease;
+  transition: background 0.3s ease, transform 0.3s ease;
 }
 .btn.primary {
-  background: #c61884; 
+  background: #00ADB5; /* YENİ: Turkuaz - modern */
   color: #fff;
 }
 .btn.primary:hover {
-  background: #a3156f;
+  background: #00c6cf;
+  transform: translateY(-2px);
 }
 .btn.secondary {
   background: #444;
@@ -66,6 +85,7 @@ body {
 }
 .btn.secondary:hover {
   background: #666;
+  transform: translateY(-2px);
 }
 
 /* callScreen */
@@ -74,7 +94,7 @@ body {
   flex-direction: row;
   align-items: stretch;
   justify-content: flex-start;
-  background: #2d2d2d;
+  background: #1f1f1f;
   width: 100vw;
   height: 100vh;
 }
@@ -98,7 +118,7 @@ body {
 .dm-panel {
   width: 265px;
   background: #222;
-  color: #fff;
+  color: #efefef;
   padding: 1rem;
   box-sizing: border-box;
   overflow: auto;
@@ -106,6 +126,8 @@ body {
   left: 0;
   top: 0;
   height: 100%;
+  border-radius: 0 8px 8px 0; /* YENİ */
+  box-shadow: 2px 0 8px rgba(0,0,0,0.5);
 }
 .dm-close-btn {
   position: absolute;
@@ -122,6 +144,7 @@ body {
   align-items: center;
   padding: 1rem 0;
   position: relative; 
+  border-right: 1px solid #333; /* YENİ */
 }
 .dm-toggle-btn {
   margin-bottom: 1rem;
@@ -136,21 +159,22 @@ body {
 .grp-item {
   width: 43px;
   height: 43px;
-  background: #444;
+  background: #333;
   color: #fff;
   border-radius: 45%;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  transition: all 0.50s ease;
+  transition: all 0.4s ease;
   border: 2px solid transparent; 
 }
 .grp-item:hover {
-  background: #666;
+  background: #555;
+  transform: scale(1.08);
 }
 .grp-item.selected {
-  border: 2px solid #c61884;
+  border: 2px solid #00ADB5; /* YENİ: turkuaz çerçeve */
   border-radius: 15px; 
 }
 
@@ -163,7 +187,7 @@ body {
 }
 
 .circle-btn {
-  background-color: #c61884;
+  background-color: #00ADB5; /* YENİ */
   color: #fff;
   width: 48px;
   height: 48px;
@@ -174,20 +198,23 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background 0.3s ease, transform 0.3s ease;
 }
 .circle-btn:hover {
-  background-color: #a3156f;
+  background-color: #00c6cf;
+  transform: scale(1.05);
 }
 
 /* Odalar paneli => 200px */
 .rooms-panel {
-  background: #1f1f1f;
+  background: #242424; /* YENİ */
   width: 200px; 
   display: flex;
   flex-direction: column;
   padding: 1rem;
   box-sizing: border-box;
   gap: 1.9rem;
+  border-right: 1px solid #333; /* YENİ */
 }
 .room-panel-header {
   display: flex;
@@ -198,7 +225,8 @@ body {
 .panel-title {
   margin: 0;
   font-size: 1rem;
-  color: #fff;
+  font-weight: 600;
+  color: #efefef;
 }
 .dropdown-icon {
   cursor: pointer;
@@ -216,13 +244,15 @@ body {
   min-width: 140px;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.4);
 }
 .dropdown-item {
   padding: 0.75rem;
   cursor: pointer;
   font-size: 0.9rem;
-  color: #fff;
+  color: #efefef;
   border-bottom: 1px solid #444;
+  transition: background 0.2s ease;
 }
 .dropdown-item:hover {
   background: #444;
@@ -233,15 +263,17 @@ body {
   gap: 0rem;
 }
 
-/* Kanal item => volume-up-fill ikonu, no border/arka plan */
+/* Kanal item => volume-up-fill ikonu */
 .channel-item {
   display: flex;
   flex-direction: column;
   cursor: pointer;
   margin-bottom: 0.4rem;
+  transition: background 0.2s ease, transform 0.2s ease;
 }
 .channel-item:hover {
-  /* no background */
+  background: #333;
+  transform: scale(1.02);
 }
 .channel-header {
   display: flex;
@@ -264,6 +296,11 @@ body {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9rem;
+  transition: background 0.2s ease;
+}
+.channel-user:hover {
+  /* Hafif hover */
+  background: #3b3b3b;
 }
 .channel-user-avatar {
   width: 24px;
@@ -272,7 +309,7 @@ body {
   background-color: #666;
 }
 
-/* Konuşan kullanıcı => 2px pembe stroke dışta */
+/* KONUYLA İLGİLİ: Konuşan kullanıcı => 2px pembe stroke dışta */
 .channel-user-avatar.speaking {
   box-shadow: 0 0 0 2px #c61884;
 }
@@ -286,6 +323,7 @@ body {
   background: #1a1a1a;
   padding: 0.5rem;
   box-sizing: border-box;
+  border-top: 1px solid #333;
 }
 .user-panel-content {
   display: flex;
@@ -301,6 +339,7 @@ body {
 .left-username {
   font-size: 0.9rem;
   color: #fff;
+  font-weight: 500;
 }
 .user-panel-buttons {
   display: flex;
@@ -310,19 +349,20 @@ body {
 .user-panel-btn {
   background: none;
   border: none;
-  color: #fff;
+  color: #efefef;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: color 0.2s ease;
 }
 .user-panel-btn:hover {
-  color: #c61884;
+  color: #00ADB5;
 }
 .leave-btn {
   background: none;
-  border: 2px solid #c61884;
-  color: #c61884;
+  border: 2px solid #00ADB5;
+  color: #00ADB5;
   cursor: pointer;
   width: 25px;
   height: 25px;
@@ -331,10 +371,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 .leave-btn:hover {
-  background: #a3156f;
-  border-color: #a3156f;
+  background: #00c6cf;
+  border-color: #00c6cf;
   color: #fff;
 }
 
@@ -346,12 +387,14 @@ body {
   width: 300px;
   height: 100%;
   background: #222;
-  color: #fff;
-  display: none; /* kapalı */
+  color: #efefef;
+  display: none; 
   flex-direction: column;
   padding: 1rem;
   box-sizing: border-box;
   z-index: 999;
+  box-shadow: -2px 0 8px rgba(0,0,0,0.5);
+  border-radius: 8px 0 0 8px; /* YENİ */
 }
 .settings-panel-header {
   display: flex;
@@ -361,16 +404,18 @@ body {
 .settings-title {
   font-size: 1.2rem;
   margin: 0;
+  font-weight: 600;
 }
 .settings-close-btn {
   background: none;
   border: none;
-  color: #fff;
+  color: #efefef;
   font-size: 1rem;
   cursor: pointer;
+  transition: color 0.2s ease;
 }
 .settings-close-btn:hover {
-  color: #c61884;
+  color: #00ADB5;
 }
 .settings-content {
   margin-top: 2rem;
@@ -383,22 +428,25 @@ body {
   flex: 1;
   padding: 15rem;
   overflow: auto;
-  color: #fff;
+  color: #efefef;
 }
-.app-title {
+.main-content .app-title {
   margin: 0 0 1rem;
-  font-size: 1.4rem;
+  font-size: 1.8rem;
+  font-weight: 600;
+  text-shadow: 0 2px 5px rgba(0,0,0,0.5);
 }
 
 /* Sağ panel */
 .right-panel {
   width: 200px;
-  background: #1f1f1f;
+  background: #242424;
   padding: 1rem;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  color: #fff;
+  color: #efefef;
+  border-left: 1px solid #333;
 }
 
 /* Kullanıcı listesi => gap daha az (0.2rem) */
@@ -410,14 +458,15 @@ body {
 
 /* user-item => çerçeve yok, hover yok */
 .user-item {
-  padding: 0.1rem;
+  padding: 0.3rem;
   border: none;
   display: flex;
   align-items: center;
   gap: 0.40rem;
+  transition: background 0.2s ease;
 }
 .user-item:hover {
-  /* background: #444; Kaldırıldı */
+  background: #333;
 }
 
 /* Profil dairesi */
@@ -431,11 +480,11 @@ body {
 .user-name {
   flex: 1;
   font-weight: 500;
-  color: #fff;
+  color: #efefef;
 }
 .copy-id-btn {
-  background: #555;
-  color: #fff;
+  background: #444;
+  color: #efefef;
   border: none;
   border-radius: 6px;
   padding: 0.2rem 0.30rem;
@@ -444,7 +493,7 @@ body {
   transition: background 0.3s ease;
 }
 .copy-id-btn:hover {
-  background: #777;
+  background: #555;
 }
 
 /* Modal Stil */
@@ -461,12 +510,12 @@ body {
   z-index: 999;
 }
 .modal-content {
-  background: #2d2d2d;
+  background: #262626;
   padding: 2rem;
-  border-radius: 8px;
+  border-radius: 12px;
   min-width: 300px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-  color: #fff;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  color: #efefef;
   text-align: center;
 }
 .modal-buttons {
@@ -499,6 +548,7 @@ body {
   cursor: pointer;
   font-size: 0.90rem;
   border-bottom: 1px solid #444;
+  transition: background 0.2s ease;
 }
 .context-menu-item:last-child {
   border-bottom: none;
@@ -507,6 +557,7 @@ body {
   background: #444;
 }
 
+/* Responsive */
 @media (max-width: 600px) {
   .left-panels { width:65px; }
   .rooms-panel { width:200px; }

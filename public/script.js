@@ -28,16 +28,9 @@ let pendingNewUsers = [];  // isInitiator = false olacak kullanıcılar
 let pendingCandidates = {};
 let sessionUfrag = {};
 
-// --- Konuşma algılama için audioAnalyser map ---
-let audioAnalyzers = {};  // userId => { analyser, dataArray, audioContext, interval, avatarElem }
-
-/* 
- * ***** SES EŞİĞİ *****
- * En ufak bir sesi bile algılamak için 0.0 yapıldı. 
- */
-const SPEAKING_THRESHOLD = 0.0;  
-
-// Her 100ms ses ölçümü
+/* Konuşma algılama analizleri */
+let audioAnalyzers = {};
+const SPEAKING_THRESHOLD = 0.0;  // Minimale ses bile stroke eklesin
 const VOLUME_CHECK_INTERVAL = 100;
 
 /* volume-up-fill ikonu */
@@ -338,7 +331,7 @@ closeJoinGroupModal.addEventListener('click', () => {
   joinGroupModal.style.display = 'none';
 });
 
-/* Oda Oluştur (pop-up) => "Oluştur" / "Kapat" */
+/* Oda Oluşturma */
 modalCreateRoomBtn.addEventListener('click', () => {
   const rName = modalRoomName.value.trim();
   if (!rName) {
@@ -346,10 +339,6 @@ modalCreateRoomBtn.addEventListener('click', () => {
     return;
   }
   const grp = currentGroup || selectedGroup;
-  if (!grp) {
-    alert("Önce bir gruba katılın!");
-    return;
-  }
   socket.emit('createRoom', { groupId: grp, roomName: rName });
   roomModal.style.display = 'none';
 });
@@ -375,7 +364,6 @@ socket.on('groupsList', (groupArray) => {
       groupTitle.textContent = groupObj.name;
       socket.emit('browseGroup', groupObj.id);
 
-      // Owner check => "Grubu Sil" & "Grup İsmi Değiştir"
       if (groupObj.owner === username) {
         deleteGroupBtn.style.display = 'block';
         renameGroupBtn.style.display = 'block';
@@ -398,8 +386,7 @@ groupDropdownIcon.addEventListener('click', () => {
   }
 });
 
-/* Drop-down menü butonları */
-// Grup ID Kopyala
+/* Drop-down => Grup ID Kopyala, İsmi Değiştir, Kanal Oluştur, Grup Sil */
 copyGroupIdBtn.addEventListener('click', () => {
   groupDropdownMenu.style.display = 'none';
   const grp = currentGroup || selectedGroup;
@@ -414,8 +401,6 @@ copyGroupIdBtn.addEventListener('click', () => {
       alert("Kopyalama başarısız!");
     });
 });
-
-// Grup İsmi Değiştir
 renameGroupBtn.addEventListener('click', () => {
   groupDropdownMenu.style.display = 'none';
   const grp = currentGroup || selectedGroup;
@@ -430,8 +415,6 @@ renameGroupBtn.addEventListener('click', () => {
   }
   socket.emit('renameGroup', { groupId: grp, newName: newName.trim() });
 });
-
-// Kanal Oluştur (drop-down)
 createChannelBtn.addEventListener('click', () => {
   groupDropdownMenu.style.display = 'none';
   const grp = currentGroup || selectedGroup;
@@ -443,8 +426,6 @@ createChannelBtn.addEventListener('click', () => {
   modalRoomName.value = '';
   modalRoomName.focus();
 });
-
-// Grup Sil
 deleteGroupBtn.addEventListener('click', () => {
   groupDropdownMenu.style.display = 'none';
   const grp = currentGroup || selectedGroup;
@@ -457,9 +438,7 @@ deleteGroupBtn.addEventListener('click', () => {
   socket.emit('deleteGroup', grp);
 });
 
-/* ----- KANALLAR => RIGHT-CLICK (context menu) -> rename/delete ----- */
-
-// context menu div
+/* Kanal => Right-click -> rename/delete => script */
 const channelContextMenu = document.createElement('div');
 channelContextMenu.classList.add('context-menu');
 channelContextMenu.style.display = 'none';
@@ -471,7 +450,6 @@ document.body.appendChild(channelContextMenu);
 
 let rightClickedChannelId = null;
 
-// rename channel
 document.getElementById('renameChannelOption').addEventListener('click', () => {
   if (!rightClickedChannelId) return;
   const newName = prompt("Kanal için yeni isim girin:");
@@ -483,8 +461,6 @@ document.getElementById('renameChannelOption').addEventListener('click', () => {
   channelContextMenu.style.display = 'none';
   rightClickedChannelId = null;
 });
-
-// delete channel
 document.getElementById('deleteChannelOption').addEventListener('click', () => {
   if (!rightClickedChannelId) return;
   const confirmDel = confirm("Kanalı silmek istediğinizden emin misiniz?");
@@ -496,8 +472,6 @@ document.getElementById('deleteChannelOption').addEventListener('click', () => {
   channelContextMenu.style.display = 'none';
   rightClickedChannelId = null;
 });
-
-// Tıklama dışı => context menu'yi kapat
 document.addEventListener('click', (e) => {
   if (channelContextMenu.style.display === 'block') {
     channelContextMenu.style.display = 'none';
@@ -507,7 +481,6 @@ document.addEventListener('click', (e) => {
 /* roomsList => kanallar */
 socket.on('roomsList', (roomsArray) => {
   roomListDiv.innerHTML = '';
-
   roomsArray.forEach(roomObj => {
     const roomItem = document.createElement('div');
     roomItem.className = 'channel-item';
@@ -529,7 +502,7 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Sol tık => kanala gir
+    // Kanala tıklama
     roomItem.addEventListener('click', () => {
       if (currentRoom && (currentRoom !== roomObj.id || currentGroup !== selectedGroup)) {
         socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
@@ -657,14 +630,11 @@ function joinRoom(groupId, roomId, roomName) {
 /* Ayrıl Butonu => odadan çık */
 leaveButton.addEventListener('click', () => {
   if (!currentRoom) return;
-
   socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
   closeAllPeers();
-
   currentRoom = null;
   leaveButton.style.display = 'none';
   console.log("Kanaldan ayrıldınız.");
-
   if (currentGroup) {
     socket.emit('browseGroup', currentGroup);
   }
@@ -794,7 +764,6 @@ socket.on("signal", async (data) => {
   if (signal.type === "offer") {
     await peer.setRemoteDescription(new RTCSessionDescription(signal));
     sessionUfrag[from] = parseIceUfrag(signal.sdp);
-
     const answer = await peer.createAnswer();
     await peer.setLocalDescription(answer);
     socket.emit("signal", { to: from, signal: peer.localDescription });
@@ -814,6 +783,7 @@ socket.on("signal", async (data) => {
       }
       pendingCandidates[from] = [];
     }
+
   } else if (signal.type === "answer") {
     if (peer.signalingState === "stable") {
       return;
@@ -1041,8 +1011,8 @@ function startVolumeAnalysis(stream, userId) {
       sum += Math.abs(val);
     }
     const average = sum / dataArray.length;
-    const avatarElem = document.getElementById(`avatar-${userId}`);
 
+    const avatarElem = document.getElementById(`avatar-${userId}`);
     if (avatarElem) {
       if (average > SPEAKING_THRESHOLD) {
         avatarElem.classList.add('speaking');
