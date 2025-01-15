@@ -72,7 +72,7 @@ body::-webkit-scrollbar-thumb:hover {
   transition: background 0.3s ease, transform 0.3s ease;
 }
 .btn.primary {
-  background: #00ADB5; /* YENİ: Turkuaz - modern */
+  background: #C61884; /* YENİ: Turkuaz - modern */
   color: #fff;
 }
 .btn.primary:hover {
@@ -174,7 +174,7 @@ body::-webkit-scrollbar-thumb:hover {
   transform: scale(1.08);
 }
 .grp-item.selected {
-  border: 2px solid #00ADB5; /* YENİ: turkuaz çerçeve */
+  border: 2px solid #C61884; /* YENİ: turkuaz çerçeve */
   border-radius: 15px; 
 }
 
@@ -187,7 +187,7 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 .circle-btn {
-  background-color: #00ADB5; /* YENİ */
+  background-color: #C61884; /* YENİ */
   color: #fff;
   width: 48px;
   height: 48px;
@@ -357,12 +357,12 @@ body::-webkit-scrollbar-thumb:hover {
   transition: color 0.2s ease;
 }
 .user-panel-btn:hover {
-  color: #00ADB5;
+  color: #C61884;
 }
 .leave-btn {
   background: none;
-  border: 2px solid #00ADB5;
-  color: #00ADB5;
+  border: 2px solid #C61884;
+  color: #C61884;
   cursor: pointer;
   width: 25px;
   height: 25px;
@@ -415,7 +415,7 @@ body::-webkit-scrollbar-thumb:hover {
   transition: color 0.2s ease;
 }
 .settings-close-btn:hover {
-  color: #00ADB5;
+  color: #C61884;
 }
 .settings-content {
   margin-top: 2rem;
