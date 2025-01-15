@@ -264,33 +264,19 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 /* Kanal item => volume-up-fill ikonu */
-/* ***** YENİ: width, height, padding, vb. => normal durum ***** */
 .channel-item {
   display: flex;
   flex-direction: column;
   cursor: pointer;
   margin-bottom: 0.4rem;
-  width: 180px;       /* YENİ: Genişlik */
-  height: 50px;       /* YENİ: Yükseklik */
-  padding: 0.5rem 1rem;  /* YENİ: İç boşluk */
-  transition: 
-    background 0.2s ease, 
-    transform 0.3s ease, 
-    width 0.3s ease,
-    height 0.3s ease,
-    padding 0.3s ease;
+  transition: background 0.2s ease, transform 0.2s ease;
 }
-
-/* ***** YENİ: Hover durum => ölçüler artıyor, oval kenarlar, scale ***** */
+/* ***** YENİ: Oval kenarlar "hover"da ***** */
 .channel-item:hover {
-  width: 200px;        /* YENİ: Hover'da daha geniş */
-  height: 60px;        /* YENİ: Hover'da daha yüksek */
-  padding: 0.8rem 1.2rem;  /* YENİ: Daha fazla padding */
-  border-radius: 20px; /* Oval olsun */
   background: #333;
   transform: scale(1.02);
+  border-radius: 20px; /* Oval olsun */
 }
-
 .channel-header {
   display: flex;
   align-items: center;
