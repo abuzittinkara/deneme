@@ -263,16 +263,19 @@ body::-webkit-scrollbar-thumb:hover {
   gap: 0rem;
 }
 
-/* Kanal item => margin-bottom: 0.2rem (azaltılmış).
-   Dikey ortalama: "align-items: center; padding" => üst ve alt eşit boşluk.
+/* Kanal item => 
+   1) Kanallar arasında boşluk azalt: margin-bottom: 0.2rem
+   2) Dikey ortalama için padding ekle: padding: 6px 8px
+   3) "flex-direction: column;" => Kanal ismi (üst) + user list (alt) 
 */
 .channel-item {
   display: flex; 
-  align-items: center; /* Dikeyde ortalamak için */
+  flex-direction: column; 
+  align-items: flex-start; /* Yazı solda kalsın (yatayda bozmamak için) */
   margin-bottom: 0.2rem; 
-  transition: background 0.2s ease, transform 0.2s ease;
   border-radius: 20px;
-  padding: 6px 8px;  /* Top/Bottom:6px => yazının üst ve altı eşit boşluk */
+  transition: background 0.2s ease, transform 0.2s ease;
+  padding: 6px 8px; /* Üst-alt eşit boşluk => dikey ortalama */
 }
 .channel-item:hover {
   background: #333;
@@ -280,24 +283,24 @@ body::-webkit-scrollbar-thumb:hover {
   border-radius: 20px; 
 }
 
-/*
- * Kanala bağlı kullanıcıların listesi ile 
- * bir sonraki kanal arasındaki boşluğu arttır => margin-bottom: 0.6rem
- */
-.channel-users {
-  margin-top: 0.5rem;
-  margin-left: 0.5rem; 
-  margin-bottom: 0.6rem; /* YENİ: Kanalın user listesi bitince, sonraki kanala daha fazla boşluk */
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
+/* Kanal ismi + ikonu => yatayda row, dikeyde ortalanma yok. */
 .channel-header {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  /* NOT: "justify-content" çıkarıldı, yatayda konumu bozmamak için */
+}
+
+/*
+ * Kanala bağlı kullanıcıların listesi => alt tarafta 
+ * Bir sonraki kanal arasındaki boşluğu arttır => margin-bottom: 0.6rem
+ */
+.channel-users {
+  margin-top: 0.5rem;
+  margin-left: 1.6rem; /* Bir miktar girinti => Discord gibi */
+  margin-bottom: 0.6rem; 
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
 }
 
 .channel-user {
