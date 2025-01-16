@@ -290,14 +290,14 @@ body::-webkit-scrollbar-thumb:hover {
 */
 .channel-item.inThisChannel {
   border: 2px solid #C61884 !important; 
-  border-radius: 20px !important;
+  border-radius: 15px !important;
 }
 
 /* Kanal ismi (ikon + yazı) => satır */
 .channel-header {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
 }
 
 /* 
@@ -307,8 +307,8 @@ body::-webkit-scrollbar-thumb:hover {
  */
 .channel-users {
   margin-top: 0.7rem;
-  margin-left: 0.5rem; 
-  margin-bottom: 0.7rem; 
+  margin-left: 0.3rem; 
+  margin-bottom: 0.4rem; 
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
