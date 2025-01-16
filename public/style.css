@@ -178,7 +178,7 @@ body::-webkit-scrollbar-thumb:hover {
   border-radius: 15px; 
 }
 
-/* Grup Oluştur Butonu */
+/* Grup Oluştur Butonu => transform efekti kaldırıldı */
 .create-group-btn {
   position: absolute;
   bottom: 70px; 
@@ -186,6 +186,7 @@ body::-webkit-scrollbar-thumb:hover {
   transform: translateX(-50%);
 }
 
+/* circle-btn => transform efekti kaldırıldı */
 .circle-btn {
   background-color: #C61884; 
   color: #fff;
@@ -198,11 +199,11 @@ body::-webkit-scrollbar-thumb:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.3s ease, transform 0.3s ease;
+  /* TRANSITION => transform kaldırıldı, sadece background */
+  transition: background 0.3s ease;
 }
 .circle-btn:hover {
-  background-color: #ad1473; /* DÜZELTME: ##ad1473 => #ad1473 */
-  transform: scale(1.05);
+  background-color: #ad1473; /* sadece renk, scale yok */
 }
 
 /* Odalar paneli => 200px */
@@ -274,13 +275,14 @@ body::-webkit-scrollbar-thumb:hover {
   align-items: flex-start; 
   margin-bottom: 0.2rem; 
   border-radius: 20px;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: background 0.2s ease;
   padding: 6px 8px; 
 }
 .channel-item:hover {
   background: #333;
-  transform: scale(1.02);
   border-radius: 20px; 
+  /* 2px kontur => tıpkı seçili group gibi => border:2px solid #C61884 */
+  border: 2px solid #C61884;
 }
 
 /* Kanal ismi (ikon + yazı) => satır */
@@ -293,9 +295,7 @@ body::-webkit-scrollbar-thumb:hover {
 /* 
  * Kanala bağlı kullanıcıların listesi => alt tarafta 
  * Bir sonraki kanal arasındaki boşluğu arttır => margin-bottom: 0.6rem
- * 
- * Değişiklik: margin-top: 0.7rem; margin-bottom: 0.7rem => 
- * üst ve alt eşit => kanal adı için pay eşitlendi 
+ * üst ve alt eşit => margin-top:0.7rem; margin-bottom:0.7rem 
  */
 .channel-users {
   margin-top: 0.7rem;
@@ -306,7 +306,7 @@ body::-webkit-scrollbar-thumb:hover {
   gap: 0.3rem;
 }
 
-/* YENİ => eğer channel-users boşsa => display:none + margin yok */
+/* eğer channel-users boşsa => display:none + margin yok */
 .channel-users:empty {
   display: none; 
   margin: 0; 
