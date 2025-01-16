@@ -76,7 +76,7 @@ body::-webkit-scrollbar-thumb:hover {
   color: #fff;
 }
 .btn.primary:hover {
-  background: #ad1473; /* DÜZELTME: ##ad1473 => #ad1473 */
+  background: #ad1473;
   transform: translateY(-2px);
 }
 .btn.secondary {
@@ -126,7 +126,7 @@ body::-webkit-scrollbar-thumb:hover {
   left: 0;
   top: 0;
   height: 100%;
-  border-radius: 0 8px 8px 0; /* YENİ */
+  border-radius: 0 8px 8px 0; 
   box-shadow: 2px 0 8px rgba(0,0,0,0.5);
 }
 .dm-close-btn {
@@ -144,7 +144,7 @@ body::-webkit-scrollbar-thumb:hover {
   align-items: center;
   padding: 1rem 0;
   position: relative; 
-  border-right: 1px solid #333; /* YENİ */
+  border-right: 1px solid #333;
 }
 .dm-toggle-btn {
   margin-bottom: 1rem;
@@ -199,23 +199,22 @@ body::-webkit-scrollbar-thumb:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* TRANSITION => transform kaldırıldı, sadece background */
   transition: background 0.3s ease;
 }
 .circle-btn:hover {
-  background-color: #ad1473; /* sadece renk, scale yok */
+  background-color: #ad1473; 
 }
 
 /* Odalar paneli => 200px */
 .rooms-panel {
-  background: #242424; /* YENİ */
+  background: #242424; 
   width: 200px; 
   display: flex;
   flex-direction: column;
   padding: 1rem;
   box-sizing: border-box;
   gap: 1.9rem;
-  border-right: 1px solid #333; /* YENİ */
+  border-right: 1px solid #333;
 }
 .room-panel-header {
   display: flex;
@@ -264,11 +263,7 @@ body::-webkit-scrollbar-thumb:hover {
   gap: 0rem;
 }
 
-/* Kanal item => 
-   1) Kanallar arasında boşluk azalt: margin-bottom: 0.2rem
-   2) Dikey ortalama => padding: 6px 8px
-   3) column => kanal adı (üst) + user list (alt)
-*/
+/* Kanal item => spacing, column */
 .channel-item {
   display: flex; 
   flex-direction: column; 
@@ -278,33 +273,25 @@ body::-webkit-scrollbar-thumb:hover {
   transition: background 0.2s ease;
   padding: 6px 8px; 
 }
-
-/* Hover => Sadece arka plan rengi değişir, stroke yok */
+/* Hover => arkaplan */
 .channel-item:hover {
   background: #333; 
   border-radius: 20px;
 }
-
-/* Kullanıcı bu kanala katılmışsa => stroke (2px) 
-   => !important ekleyerek çakışma giderildi 
-*/
+/* Katıldığı kanal => 2px pembe stroke */
 .channel-item.inThisChannel {
   border: 2px solid #C61884 !important; 
   border-radius: 15px !important;
 }
 
-/* Kanal ismi (ikon + yazı) => satır */
+/* Kanal ismi => row */
 .channel-header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-/* 
- * Kanala bağlı kullanıcıların listesi => alt tarafta 
- * Bir sonraki kanal arasındaki boşluğu arttır => margin-bottom: 0.6rem
- * üst ve alt eşit => margin-top:0.7rem; margin-bottom:0.7rem 
- */
+/* Kanalın user listesi => margin */
 .channel-users {
   margin-top: 0.7rem;
   margin-left: 0.3rem; 
@@ -313,8 +300,6 @@ body::-webkit-scrollbar-thumb:hover {
   flex-direction: column;
   gap: 0.3rem;
 }
-
-/* eğer channel-users boşsa => display:none + margin yok */
 .channel-users:empty {
   display: none; 
   margin: 0; 
@@ -336,8 +321,7 @@ body::-webkit-scrollbar-thumb:hover {
   border-radius: 45%;
   background-color: #666;
 }
-
-/* KONUYLA İLGİLİ: Konuşan kullanıcı => 2px pembe stroke dışta */
+/* Konuşan kullanıcı => 2px pembe stroke */
 .channel-user-avatar.speaking {
   box-shadow: 0 0 0 2px #c61884;
 }
@@ -375,6 +359,16 @@ body::-webkit-scrollbar-thumb:hover {
   gap: 0.5rem;
   align-items: center;
 }
+/* YENİ => ikon boyutu & hover */
+.user-panel-btn i {
+  font-size: 18px;
+  color: #efefef;
+  transition: color 0.2s ease;
+}
+.user-panel-btn i:hover {
+  color: #C61884;
+}
+
 .user-panel-btn {
   background: none;
   border: none;
@@ -408,7 +402,7 @@ body::-webkit-scrollbar-thumb:hover {
   color: #fff;
 }
 
-/* --- AYARLAR Paneli (settingsPanel) --- */
+/* --- AYARLAR Paneli --- */
 .settings-panel {
   position: absolute;
   top: 0; 
@@ -423,7 +417,7 @@ body::-webkit-scrollbar-thumb:hover {
   box-sizing: border-box;
   z-index: 999;
   box-shadow: -2px 0 8px rgba(0,0,0,0.5);
-  border-radius: 8px 0 0 8px; /* YENİ */
+  border-radius: 8px 0 0 8px; 
 }
 .settings-panel-header {
   display: flex;
