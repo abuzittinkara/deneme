@@ -265,17 +265,17 @@ body::-webkit-scrollbar-thumb:hover {
 
 /* Kanal item => 
    1) Kanallar arasında boşluk azalt: margin-bottom: 0.2rem
-   2) Dikey ortalama için padding ekle: padding: 6px 8px
-   3) "flex-direction: column;" => Kanal ismi (üst) + user list (alt) 
+   2) Dikey ortalama => padding: 6px 8px
+   3) column => kanal adı (üst) + user list (alt)
 */
 .channel-item {
   display: flex; 
   flex-direction: column; 
-  align-items: flex-start; /* Yazı solda kalsın (yatayda bozmamak için) */
+  align-items: flex-start; 
   margin-bottom: 0.2rem; 
   border-radius: 20px;
   transition: background 0.2s ease, transform 0.2s ease;
-  padding: 6px 8px; /* Üst-alt eşit boşluk => dikey ortalama */
+  padding: 6px 8px; 
 }
 .channel-item:hover {
   background: #333;
@@ -283,24 +283,30 @@ body::-webkit-scrollbar-thumb:hover {
   border-radius: 20px; 
 }
 
-/* Kanal ismi + ikonu => yatayda row, dikeyde ortalanma yok. */
+/* Kanal ismi (ikon + yazı) => satır */
 .channel-header {
   display: flex;
   align-items: center;
   gap: 0.6rem;
 }
 
-/*
+/* 
  * Kanala bağlı kullanıcıların listesi => alt tarafta 
  * Bir sonraki kanal arasındaki boşluğu arttır => margin-bottom: 0.6rem
  */
 .channel-users {
   margin-top: 0.5rem;
-  margin-left: 1.6rem; /* Bir miktar girinti => Discord gibi */
+  margin-left: 1.6rem; 
   margin-bottom: 0.6rem; 
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
+}
+
+/* YENİ => eğer channel-users boşsa => display:none + margin yok */
+.channel-users:empty {
+  display: none; 
+  margin: 0; 
 }
 
 .channel-user {
