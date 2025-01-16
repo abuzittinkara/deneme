@@ -278,11 +278,17 @@ body::-webkit-scrollbar-thumb:hover {
   transition: background 0.2s ease;
   padding: 6px 8px; 
 }
+
+/* Artık HOover ile stroke yok => user joined event => .inThisChannel class */
 .channel-item:hover {
-  background: #333;
-  border-radius: 20px; 
-  /* 2px kontur => tıpkı seçili group gibi => border:2px solid #C61884 */
-  border: 2px solid #C61884;
+  background: #333; 
+  border-radius: 20px;
+}
+
+/* Eğer kullanıcı bu kanaldaysa => stroke */
+.channel-item.inThisChannel {
+  border: 2px solid #C61884; 
+  border-radius: 20px;
 }
 
 /* Kanal ismi (ikon + yazı) => satır */
