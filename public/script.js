@@ -484,6 +484,8 @@ socket.on('roomsList', (roomsArray) => {
   roomsArray.forEach(roomObj => {
     const roomItem = document.createElement('div');
     roomItem.className = 'channel-item';
+
+    // *** YENİ => her channel-item'a eşsiz ID verelim
     roomItem.id = `channel-item-${roomObj.id}`;
 
     const channelHeader = document.createElement('div');
@@ -627,15 +629,17 @@ function joinRoom(groupId, roomId, roomName) {
   socket.emit('joinRoom', { groupId, roomId });
   leaveButton.style.display = 'flex';
 
-  // Tüm kanal öğelerinden inThisChannel kaldır
-  document.querySelectorAll('.channel-item').forEach(ch => {
+  // 1) Tüm kanal öğelerinden inThisChannel sınıfını kaldır
+  const allChannels = document.querySelectorAll('.channel-item');
+  allChannels.forEach(ch => {
     ch.classList.remove('inThisChannel');
   });
 
-  // Katıldığımız kanala => inThisChannel ekle
+  // 2) Katıldığımız kanala ekle => ID: "channel-item-<roomId>"
   const joinedChannelDiv = document.getElementById(`channel-item-${roomId}`);
   if (joinedChannelDiv) {
     joinedChannelDiv.classList.add('inThisChannel');
+    console.log(`joinRoom => ${roomName} (ID=${roomId}) => .inThisChannel eklendi.`);
   }
 }
 
@@ -651,8 +655,9 @@ leaveButton.addEventListener('click', () => {
     socket.emit('browseGroup', currentGroup);
   }
 
-  // Stroke'u kaldır
-  document.querySelectorAll('.channel-item').forEach(ch => {
+  // Kanaldan ayrılınca => stroke kaldıysa sil
+  const allChannels = document.querySelectorAll('.channel-item');
+  allChannels.forEach(ch => {
     ch.classList.remove('inThisChannel');
   });
 });
@@ -948,36 +953,15 @@ function applyAudioStates() {
       track.enabled = micEnabled && !selfDeafened;
     });
   }
+  micToggleButton.innerHTML = (micEnabled && !selfDeafened) ? "MIC ON" : "MIC OFF";
+  deafenToggleButton.innerHTML = selfDeafened ? "DEAF ON" : "DEAF OFF";
   applyDeafenState();
-  // YENİ: Ikonları güncelle
-  updateMicDeafIcons();
 }
 
 function applyDeafenState() {
   remoteAudios.forEach(audio => {
     audio.muted = selfDeafened;
   });
-}
-
-/* YENİ: Mikrofon ve Deaf ikonlarını ayarla */
-function updateMicDeafIcons() {
-  // Mic
-  if (micEnabled && !selfDeafened) {
-    // Mikrofon açık => fa-microphone
-    micToggleButton.innerHTML = '<i class="fa-solid fa-microphone"></i>';
-  } else {
-    // Mikrofon kapalı => fa-microphone-slash (pembe)
-    micToggleButton.innerHTML = '<i class="fa-solid fa-microphone-slash" style="color:#c61884;"></i>';
-  }
-
-  // Deaf
-  if (selfDeafened) {
-    // Deaf ON => kulaklık slash
-    deafenToggleButton.innerHTML = '<i class="fa-solid fa-headphones-simple-slash" style="color:#c61884;"></i>';
-  } else {
-    // Deaf OFF => normal kulaklık
-    deafenToggleButton.innerHTML = '<i class="fa-solid fa-headphones-simple"></i>';
-  }
 }
 
 /* parseIceUfrag => a=ice-ufrag:... */
