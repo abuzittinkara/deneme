@@ -178,16 +178,8 @@ body::-webkit-scrollbar-thumb:hover {
   border-radius: 15px; 
 }
 
-/* Grup Oluştur Butonu => transform efekti kaldırıldı */
+/* Grup Oluştur Butonu => Artık normal akışa dahil */
 .create-group-btn {
-  position: absolute;
-  bottom: 70px; 
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-/* circle-btn => transform efekti kaldırıldı */
-.circle-btn {
   background-color: #C61884; 
   color: #fff;
   width: 48px;
@@ -196,14 +188,20 @@ body::-webkit-scrollbar-thumb:hover {
   border: none;
   font-size: 1.5rem; 
   cursor: pointer;
+  margin-top: 0.5rem; /* Grupların hemen altında yer alması */
+  margin-bottom: 0.5rem; /* Biraz alt boşluk da ekleyebiliriz */
   display: flex;
   align-items: center;
   justify-content: center;
-  /* TRANSITION => transform kaldırıldı, sadece background */
   transition: background 0.3s ease;
 }
-.circle-btn:hover {
-  background-color: #ad1473; /* sadece renk, scale yok */
+.create-group-btn:hover {
+  background-color: #ad1473;
+}
+
+/* circle-btn => transform efekti kaldırılmış => Yukarıdaki .create-group-btn */
+.circle-btn {
+  /* Boş bıraktık veya silebiliriz, her şey .create-group-btn'da */
 }
 
 /* Odalar paneli => 200px */
@@ -285,9 +283,7 @@ body::-webkit-scrollbar-thumb:hover {
   border-radius: 20px;
 }
 
-/* Kullanıcı bu kanala katılmışsa => stroke (2px) 
-   => !important ekleyerek çakışma giderildi 
-*/
+/* Kullanıcı bu kanala katılmışsa => stroke (2px) => !important ile çakışma yok */
 .channel-item.inThisChannel {
   border: 2px solid #C61884 !important; 
   border-radius: 15px !important;
