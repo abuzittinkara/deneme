@@ -485,6 +485,9 @@ socket.on('roomsList', (roomsArray) => {
     const roomItem = document.createElement('div');
     roomItem.className = 'channel-item';
 
+    // *** YENİ => her channel-item'a eşsiz ID verelim
+    roomItem.id = `channel-item-${roomObj.id}`;
+
     const channelHeader = document.createElement('div');
     channelHeader.className = 'channel-header';
 
@@ -625,6 +628,19 @@ function joinRoom(groupId, roomId, roomName) {
   currentRoom = roomId;
   socket.emit('joinRoom', { groupId, roomId });
   leaveButton.style.display = 'flex';
+
+  // 1) Tüm kanal öğelerinden inThisChannel sınıfını kaldır
+  const allChannels = document.querySelectorAll('.channel-item');
+  allChannels.forEach(ch => {
+    ch.classList.remove('inThisChannel');
+  });
+
+  // 2) Katıldığımız kanala ekle => ID: "channel-item-<roomId>"
+  const joinedChannelDiv = document.getElementById(`channel-item-${roomId}`);
+  if (joinedChannelDiv) {
+    joinedChannelDiv.classList.add('inThisChannel');
+    console.log(`joinRoom => ${roomName} (ID=${roomId}) => .inThisChannel eklendi.`);
+  }
 }
 
 /* Ayrıl Butonu => odadan çık */
@@ -638,6 +654,12 @@ leaveButton.addEventListener('click', () => {
   if (currentGroup) {
     socket.emit('browseGroup', currentGroup);
   }
+
+  // Kanaldan ayrılınca => stroke kaldıysa sil
+  const allChannels = document.querySelectorAll('.channel-item');
+  allChannels.forEach(ch => {
+    ch.classList.remove('inThisChannel');
+  });
 });
 
 /* Sağ panel => updateUserList (Çevrimiçi/Çevrimdışı) */
