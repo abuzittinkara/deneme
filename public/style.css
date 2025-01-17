@@ -12,17 +12,17 @@ body {
 
 /* Modern scrollbar (Chrome, vb.) */
 body::-webkit-scrollbar {
-  width: 8px;
+  width: 8px;               /* Doğru sözdizimi */
 }
 body::-webkit-scrollbar-track {
-  background: #2f2f2f;
+  background: #2f2f2f;      /* Doğru sözdizimi */
 }
 body::-webkit-scrollbar-thumb {
-  background: #666;
+  background: #666;         /* Doğru sözdizimi */
   border-radius: 4px;
 }
 body::-webkit-scrollbar-thumb:hover {
-  background: #888;
+  background: #888;         /* Doğru sözdizimi */
 }
 
 .screen-container {
@@ -319,7 +319,7 @@ body::-webkit-scrollbar-thumb:hover {
 /* 
  * Kanala bağlı kullanıcıların listesi => alt tarafta 
  * Bir sonraki kanal arasındaki boşluğu arttır => margin-bottom: 0.6rem
- * üst ve alt eşit => margin-top:0.7rem; margin-bottom:0.7rem 
+ * üst ve alt eşit => margin-top: 0.7rem; margin-bottom: 0.7rem 
  */
 .channel-users {
   margin-top: 0.7rem;
