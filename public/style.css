@@ -130,7 +130,7 @@ body::-webkit-scrollbar-thumb:hover {
   box-shadow: 2px 0 8px rgba(0,0,0,0.5);
 }
 
-/* DM butonunu eski hâline getiriyoruz */
+/* DM butonu (eski hâli) + boşluk artırmak => margin-bottom */
 .dm-toggle-btn {
   background-color: #C61884;
   color: #fff;
@@ -144,6 +144,7 @@ body::-webkit-scrollbar-thumb:hover {
   align-items: center;
   justify-content: center;
   transition: background 0.3s ease, transform 0.3s ease;
+  margin-bottom: 2rem; /* DM butonu ile ilk grup arasını artırdık */
 }
 .dm-toggle-btn:hover {
   background-color: #ad1473;
@@ -206,7 +207,7 @@ body::-webkit-scrollbar-thumb:hover {
   border-radius: 45%;
   font-size: 1.5rem; 
   cursor: pointer;
-  margin-top: 0.5rem; 
+  margin-top: 2rem; /* Listenin son grubuyla aradaki boşluğu artırdık */
   margin-bottom: 0.5rem; 
   display: flex;
   align-items: center;
@@ -218,9 +219,9 @@ body::-webkit-scrollbar-thumb:hover {
   color: #fff;          /* + işareti beyaz olsun */
 }
 
-/* circle-btn => istersen silebilirsin, şu an devre dışı */
+/* circle-btn => istersen silebilirsin, şimdilik boş */
 .circle-btn {
-  /* Boş bırakıldı veya kaldırıldı */
+  /* Boş, kullanılmıyor */
 }
 
 /* Odalar paneli => 200px */
