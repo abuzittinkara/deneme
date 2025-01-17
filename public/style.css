@@ -129,6 +129,27 @@ body::-webkit-scrollbar-thumb:hover {
   border-radius: 0 8px 8px 0; /* YENİ */
   box-shadow: 2px 0 8px rgba(0,0,0,0.5);
 }
+
+/* DM butonunu eski hâline getiriyoruz */
+.dm-toggle-btn {
+  background-color: #C61884;
+  color: #fff;
+  width: 48px;
+  height: 48px;
+  border-radius: 45%;
+  border: none;
+  font-size: 1.5rem; 
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+.dm-toggle-btn:hover {
+  background-color: #ad1473;
+  transform: scale(1.05);
+}
+
 .dm-close-btn {
   position: absolute;
   top: 1rem;
@@ -145,9 +166,6 @@ body::-webkit-scrollbar-thumb:hover {
   padding: 1rem 0;
   position: relative; 
   border-right: 1px solid #333; /* YENİ */
-}
-.dm-toggle-btn {
-  margin-bottom: 1rem;
 }
 .group-list {
   display: flex;
@@ -178,30 +196,31 @@ body::-webkit-scrollbar-thumb:hover {
   border-radius: 15px; 
 }
 
-/* Grup Oluştur Butonu => Artık normal akışa dahil */
+/* Grup Oluştur Butonu => 2px pembe stroke, hover'da içi pembe */
 .create-group-btn {
-  background-color: #C61884; 
-  color: #fff;
+  background: transparent;          /* İçi boş */
+  border: 2px solid #C61884;       /* 2px pembe stroke */
+  color: #C61884;                  /* Yazı da pembe */
   width: 48px;
   height: 48px;
   border-radius: 45%;
-  border: none;
   font-size: 1.5rem; 
   cursor: pointer;
-  margin-top: 0.5rem; /* Grupların hemen altında yer alması */
-  margin-bottom: 0.5rem; /* Biraz alt boşluk da ekleyebiliriz */
+  margin-top: 0.5rem; 
+  margin-bottom: 0.5rem; 
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.3s ease;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 .create-group-btn:hover {
-  background-color: #ad1473;
+  background: #C61884;  /* İçini pembe doldur */
+  color: #fff;          /* + işareti beyaz olsun */
 }
 
-/* circle-btn => transform efekti kaldırılmış => Yukarıdaki .create-group-btn */
+/* circle-btn => istersen silebilirsin, şu an devre dışı */
 .circle-btn {
-  /* Boş bıraktık veya silebiliriz, her şey .create-group-btn'da */
+  /* Boş bırakıldı veya kaldırıldı */
 }
 
 /* Odalar paneli => 200px */
@@ -283,7 +302,7 @@ body::-webkit-scrollbar-thumb:hover {
   border-radius: 20px;
 }
 
-/* Kullanıcı bu kanala katılmışsa => stroke (2px) => !important ile çakışma yok */
+/* Kullanıcı bu kanala katılmışsa => stroke (2px) => !important ekleyerek çakışma yok */
 .channel-item.inThisChannel {
   border: 2px solid #C61884 !important; 
   border-radius: 15px !important;
