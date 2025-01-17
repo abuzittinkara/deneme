@@ -144,7 +144,7 @@ body::-webkit-scrollbar-thumb:hover {
   align-items: center;
   justify-content: center;
   transition: background 0.3s ease, transform 0.3s ease;
-  margin-bottom: 2rem; /* DM butonu ile ilk grup arasını artırdık */
+  margin-bottom: 1rem; /* DM butonu ile ilk grup arasını artırdık */
 }
 .dm-toggle-btn:hover {
   background-color: #ad1473;
@@ -207,7 +207,7 @@ body::-webkit-scrollbar-thumb:hover {
   border-radius: 45%;
   font-size: 1.5rem; 
   cursor: pointer;
-  margin-top: 2rem; /* Listenin son grubuyla aradaki boşluğu artırdık */
+  margin-top: 0.6rem; /* Listenin son grubuyla aradaki boşluğu artırdık */
   margin-bottom: 0.5rem; 
   display: flex;
   align-items: center;
