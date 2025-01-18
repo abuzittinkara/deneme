@@ -635,7 +635,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // deleteChannel => kanalı sil
+  // deleteChannel => kanalı sil (DİKKAT: Burada değişiklik yapıldı)
   socket.on('deleteChannel', async (channelId) => {
     try {
       if (!channelId) return;
@@ -656,9 +656,16 @@ io.on("connection", (socket) => {
         delete groups[gId].rooms[channelId];
       }
 
+      // SİLİNEN KANALIN KULLANICI LİSTESİNİ SIFIRLAMA
+      // (Aslında kanal yok; ama orada olanları emite edebiliriz)
+      io.to(`${gId}::${channelId}`).emit('roomUsers', []);
+
+      // Bu satır, sadece kanalları ve listeyi güncelliyor. 
       broadcastAllChannelsData(gId);
       broadcastRoomsListToGroup(gId);
-      broadcastAllRoomsUsers(gId);
+
+      // ÖNCEKİ KOD: broadcastAllRoomsUsers(gId);  <--- KALDIRILDI
+      // Böylece diğer aktif kanallardaki kullanıcılar silinmiyor.
 
       console.log(`Kanal silindi => ${channelId}`);
     } catch (err) {
