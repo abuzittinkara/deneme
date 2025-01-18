@@ -347,7 +347,7 @@ io.on("connection", (socket) => {
     await userDoc.save();
 
     groups[groupId] = {
-      owner: userName, 
+      owner: userName,
       name: trimmed,
       users: [ { id: socket.id, username: userName } ],
       rooms: {}
@@ -487,7 +487,6 @@ io.on("connection", (socket) => {
     const userData = users[socket.id];
     // KULLANICI ZATEN O KANALDA MI? => O ZAMAN "removeUser..." ÇAĞRILMAYACAK
     if (userData.currentGroup !== groupId || userData.currentRoom !== roomId) {
-      // Farklı bir yerden geliyorsa / odadan çıkıp bu odaya giriyorsa => önce eski yerlerden temizle
       removeUserFromAllGroupsAndRooms(socket);
     }
 
@@ -497,7 +496,6 @@ io.on("connection", (socket) => {
       groups[groupId].users.push({ id: socket.id, username: userName });
     }
 
-    // Şimdi bu kanala ekliyoruz
     groups[groupId].rooms[roomId].users.push({ id: socket.id, username: userName });
     userData.currentGroup = groupId;
     userData.currentRoom = roomId;
@@ -659,6 +657,22 @@ io.on("connection", (socket) => {
         delete groups[gId].rooms[channelId];
       }
 
+      // --- EK: Kanal silindi => diğer kanallarda duran kullanıcılar kaybolmasın ---
+      // 1) Gruba ait tüm kullanıcıları tekrar "doğru" kanallarına ekle (varsa)
+      Object.keys(users).forEach(sId => {
+        const ud = users[sId];
+        if (ud.currentGroup === gId && ud.currentRoom) {
+          // Silinen kanal bu değilse => mevcudiyetini koru
+          if (groups[gId].rooms[ud.currentRoom]) {
+            const rArr = groups[gId].rooms[ud.currentRoom].users;
+            // Bu kullanıcı listede yoksa ekleyelim
+            if (!rArr.some(u => u.id === sId)) {
+              rArr.push({ id: sId, username: ud.username });
+            }
+          }
+        }
+      });
+
       broadcastAllChannelsData(gId);
       broadcastRoomsListToGroup(gId);
       broadcastAllRoomsUsers(gId);
@@ -681,6 +695,7 @@ io.on("connection", (socket) => {
     const sR = users[socket.id].currentRoom;
     const tR = users[targetId].currentRoom;
 
+    // İki kullanıcı aynı grupta ve aynı odadaysa sinyal gönder
     if (sG && sG === tG && sR && sR === tR) {
       io.to(targetId).emit("signal", {
         from: socket.id,
