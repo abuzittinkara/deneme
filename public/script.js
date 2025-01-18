@@ -33,7 +33,7 @@ let audioAnalyzers = {};  // userId => { analyser, dataArray, audioContext, inte
 
 /* 
  * ***** SES EŞİĞİ *****
- * En ufak bir sesi bile algılamak için 0.0 yapıldı. 
+ * En ufak sesi bile algılamak için 0.0 yapıldı
  */
 const SPEAKING_THRESHOLD = 0.0;  
 
@@ -367,12 +367,14 @@ socket.on('groupsList', (groupArray) => {
     grpItem.title = groupObj.name + " (" + groupObj.id + ")";
 
     grpItem.addEventListener('click', () => {
-      document.querySelectorAll('.grp-item').forEach(el => el.classList.remove('selected'));
-      grpItem.classList.add('selected');
-
+      // Eğer zaten bu gruba bağlıysak => hiçbir şey yapma
+      if (currentGroup === groupObj.id) {
+        return;
+      }
+      // Değilse => "browse" mantığı
       selectedGroup = groupObj.id;
-      currentGroup = null;
       groupTitle.textContent = groupObj.name;
+      // Burada "currentGroup = null" YAPMIYORUZ => Bağlı olduğu grubu bozmuyoruz.
       socket.emit('browseGroup', groupObj.id);
 
       // Owner check => "Grubu Sil" & "Grup İsmi Değiştir"
@@ -531,16 +533,19 @@ socket.on('roomsList', (roomsArray) => {
 
     // Sol tık => kanala gir (veya hiçbir şey yapma)
     roomItem.addEventListener('click', () => {
-      // Eğer zaten bu kanala bağlıysa hiçbir işlem yapma
+      // Eğer zaten bu kanala bağlıysak => hiçbir şey yapma
       if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
         return;
       }
 
+      // Eğer başka bir kanaldaysak => önce oradan ayrıl
       if (currentRoom && (currentRoom !== roomObj.id || currentGroup !== selectedGroup)) {
         socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
         closeAllPeers();
         currentRoom = null;
       }
+
+      // Ardından bu yeni kanala gir
       joinRoom(selectedGroup, roomObj.id, roomObj.name);
     });
 
@@ -548,7 +553,6 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       rightClickedChannelId = roomObj.id;
-
       channelContextMenu.style.left = e.pageX + 'px';
       channelContextMenu.style.top = e.pageY + 'px';
       channelContextMenu.style.display = 'block';
@@ -618,6 +622,7 @@ socket.on('roomUsers', (usersInRoom) => {
     .map(u => u.id)
     .filter(id => !peers[id]);
 
+  // Eğer mikrofona hâlâ erişilmediyse => iste
   if (!audioPermissionGranted || !localStream) {
     requestMicrophoneAccess().then(() => {
       otherUserIds.forEach(uid => {
@@ -642,6 +647,7 @@ socket.on('roomUsers', (usersInRoom) => {
       console.error("Mikrofon izni alınamadı:", err);
     });
   } else {
+    // Mikrofona önceden erişmişsek => direkt peer'ı başlat
     otherUserIds.forEach(uid => {
       if (!peers[uid]) {
         const isInit = (socket.id < uid);
@@ -653,6 +659,7 @@ socket.on('roomUsers', (usersInRoom) => {
 
 /* joinRoom => WebRTC */
 function joinRoom(groupId, roomId, roomName) {
+  // Şu anki grubu senkronize et
   currentGroup = groupId;
   currentRoom = roomId;
   socket.emit('joinRoom', { groupId, roomId });
@@ -991,6 +998,7 @@ function parseIceUfrag(sdp) {
 /* groupRenamed => UI update */
 socket.on('groupRenamed', (data) => {
   const { groupId, newName } = data;
+  // Eğer şu anki grup ya da seçili grup rename olmuşsa => güncelle
   if (currentGroup === groupId || selectedGroup === groupId) {
     groupTitle.textContent = newName;
   }
