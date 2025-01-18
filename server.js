@@ -474,7 +474,7 @@ io.on("connection", (socket) => {
 
       broadcastRoomsListToGroup(groupId);
       broadcastAllChannelsData(groupId);
-      broadcastAllRoomsUsers(groupId);
+      // ---- broadcastAllRoomsUsers(groupId) KALDIRILDI ----
     } catch (err) {
       console.error("createRoom hata:", err);
     }
@@ -626,7 +626,7 @@ io.on("connection", (socket) => {
 
       broadcastAllChannelsData(gId);
       broadcastRoomsListToGroup(gId);
-      broadcastAllRoomsUsers(gId);
+      // ---- broadcastAllRoomsUsers(gId) KALDIRILDI ----
 
       console.log(`Kanal rename => ${channelId} => ${newName}`);
     } catch (err) {
@@ -635,7 +635,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // deleteChannel => kanalı sil (DİKKAT: Burada değişiklik yapıldı)
+  // deleteChannel => kanalı sil
   socket.on('deleteChannel', async (channelId) => {
     try {
       if (!channelId) return;
@@ -656,16 +656,9 @@ io.on("connection", (socket) => {
         delete groups[gId].rooms[channelId];
       }
 
-      // SİLİNEN KANALIN KULLANICI LİSTESİNİ SIFIRLAMA
-      // (Aslında kanal yok; ama orada olanları emite edebiliriz)
-      io.to(`${gId}::${channelId}`).emit('roomUsers', []);
-
-      // Bu satır, sadece kanalları ve listeyi güncelliyor. 
       broadcastAllChannelsData(gId);
       broadcastRoomsListToGroup(gId);
-
-      // ÖNCEKİ KOD: broadcastAllRoomsUsers(gId);  <--- KALDIRILDI
-      // Böylece diğer aktif kanallardaki kullanıcılar silinmiyor.
+      // ---- broadcastAllRoomsUsers(gId) KALDIRILDI ----
 
       console.log(`Kanal silindi => ${channelId}`);
     } catch (err) {
