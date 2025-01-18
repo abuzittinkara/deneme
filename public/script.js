@@ -529,8 +529,13 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Sol tık => kanala gir
+    // Sol tık => kanala gir (veya hiçbir şey yapma)
     roomItem.addEventListener('click', () => {
+      // Eğer zaten bu kanala bağlıysa hiçbir işlem yapma
+      if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
+        return;
+      }
+
       if (currentRoom && (currentRoom !== roomObj.id || currentGroup !== selectedGroup)) {
         socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
         closeAllPeers();
