@@ -92,14 +92,6 @@ function getAllChannelsData(groupId) {
   return channelsObj;
 }
 
-/* Her bir kanaldaki kullanıcıları "roomUsers" şeklinde yaymak için. */
-function broadcastAllRoomsUsers(groupId) {
-  if (!groups[groupId]) return;
-  Object.keys(groups[groupId].rooms).forEach((roomId) => {
-    io.to(`${groupId}::${roomId}`).emit('roomUsers', groups[groupId].rooms[roomId].users);
-  });
-}
-
 /* Bir kullanıcı hangi gruplarda/odalarda varsa hepsinden çıkarır (socket.leave vb.) */
 function removeUserFromAllGroupsAndRooms(socket) {
   const socketId = socket.id;
@@ -361,6 +353,11 @@ io.on("connection", (socket) => {
   // joinGroupByID
   socket.on('joinGroupByID', async (groupId) => {
     try {
+      // Kullanıcı zaten bu grupta mı?
+      if (users[socket.id].currentGroup === groupId) {
+        return; // Aynı gruba tekrar girmesini engelle
+      }
+
       const userName = users[socket.id].username || `(User ${socket.id})`;
       const userDoc = await User.findOne({ username: userName });
       if (!userDoc) {
@@ -406,7 +403,7 @@ io.on("connection", (socket) => {
 
       console.log(`User ${socket.id} => joinGroupByID => ${groupId}`);
 
-      // **** YENİ EKLENDİ: Gruplar listesi güncellensin diye ****
+      // Gruplar listesi güncellensin diye
       await sendGroupsListToUser(socket.id);
 
       sendRoomsListToUser(socket.id, groupId);
@@ -429,6 +426,11 @@ io.on("connection", (socket) => {
   // joinGroup
   socket.on('joinGroup', async (groupId) => {
     if (!groups[groupId]) return;
+
+    // Kullanıcı zaten bu grupta mı?
+    if (users[socket.id].currentGroup === groupId) {
+      return; // Aynı gruba tekrar girmesini engelle
+    }
 
     removeUserFromAllGroupsAndRooms(socket);
 
@@ -474,7 +476,7 @@ io.on("connection", (socket) => {
 
       broadcastRoomsListToGroup(groupId);
       broadcastAllChannelsData(groupId);
-      // ---- broadcastAllRoomsUsers(groupId) KALDIRILDI ----
+      // (broadcastAllRoomsUsers kaldırıldı)
     } catch (err) {
       console.error("createRoom hata:", err);
     }
@@ -485,9 +487,14 @@ io.on("connection", (socket) => {
     if (!groups[groupId]) return;
     if (!groups[groupId].rooms[roomId]) return;
 
+    const userData = users[socket.id];
+    // Kullanıcı zaten bu oda + grupta mı?
+    if (userData.currentGroup === groupId && userData.currentRoom === roomId) {
+      return; // Aynı kanala tekrar girmesini engelle
+    }
+
     removeUserFromAllGroupsAndRooms(socket);
 
-    const userData = users[socket.id];
     const userName = userData.username || `(User ${socket.id})`;
 
     if (!groups[groupId].users.some(u => u.id === socket.id)) {
@@ -626,8 +633,6 @@ io.on("connection", (socket) => {
 
       broadcastAllChannelsData(gId);
       broadcastRoomsListToGroup(gId);
-      // ---- broadcastAllRoomsUsers(gId) KALDIRILDI ----
-
       console.log(`Kanal rename => ${channelId} => ${newName}`);
     } catch (err) {
       console.error("renameChannel hata:", err);
@@ -658,8 +663,6 @@ io.on("connection", (socket) => {
 
       broadcastAllChannelsData(gId);
       broadcastRoomsListToGroup(gId);
-      // ---- broadcastAllRoomsUsers(gId) KALDIRILDI ----
-
       console.log(`Kanal silindi => ${channelId}`);
     } catch (err) {
       console.error("deleteChannel hata:", err);
@@ -678,6 +681,7 @@ io.on("connection", (socket) => {
     const sR = users[socket.id].currentRoom;
     const tR = users[targetId].currentRoom;
 
+    // İki kullanıcı aynı grupta ve aynı room'daysa sinyali ilet
     if (sG && sG === tG && sR && sR === tR) {
       io.to(targetId).emit("signal", {
         from: socket.id,
