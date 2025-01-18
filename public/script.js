@@ -58,13 +58,19 @@ function createWaveIcon() {
   const path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path2.setAttribute(
     "d",
-    "M13.493 1.957a.5.5 0 0 1 .014.706 7.979 7.979 0 0 1 0 10.674.5.5 0 1 1-.72-.694 6.979 6.979 0 0 0 0-9.286.5.5 0 0 1 .706-.014z"
+    "M13.493 1.957a.5.5 0 0 1 .014.706 7.979 
+           7.979 0 0 1 0 10.674.5.5 0 1 1-.72-.694 
+           6.979 6.979 0 0 0 0-9.286.5.5 0 0 1 
+           .706-.014z"
   );
 
   const path3 = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path3.setAttribute(
     "d",
-    "M11.534 3.16a.5.5 0 0 1 .12.7 4.978 4.978 0 0 1 0 5.281.5.5 0 1 1-.82-.574 3.978 3.978 0 0 0 0-4.133.5.5 0 0 1 .7-.12z"
+    "M11.534 3.16a.5.5 0 0 1 .12.7 
+           4.978 4.978 0 0 1 0 5.281.5.5 0 
+           1 1-.82-.574 3.978 3.978 0 0 0 
+           0-4.133.5.5 0 0 1 .7-.12z"
   );
 
   svg.appendChild(path1);
@@ -367,15 +373,27 @@ socket.on('groupsList', (groupArray) => {
     grpItem.title = groupObj.name + " (" + groupObj.id + ")";
 
     grpItem.addEventListener('click', () => {
+      // Eğer zaten bu grup seçiliyse hiçbir şey yapma:
+      if (selectedGroup === groupObj.id) {
+        return;
+      }
+
+      // Başka bir gruba “göz atınca” sadece selectedGroup’ı güncelle
+      // currentGroup değerini sıfırlamıyoruz (null) => o anki odadan çıkmamış oluyoruz.
       document.querySelectorAll('.grp-item').forEach(el => el.classList.remove('selected'));
       grpItem.classList.add('selected');
 
       selectedGroup = groupObj.id;
-      currentGroup = null;
       groupTitle.textContent = groupObj.name;
+
+      // Sunucuya => bu grubu incele (oda listesi, user listesi vs. al):
       socket.emit('browseGroup', groupObj.id);
 
-      // Owner check => "Grubu Sil" & "Grup İsmi Değiştir"
+      // Eğer bu grup, o an bulunduğumuz (currentGroup) değilse,
+      // (Yani kullanıcı gerçekten bu gruba “katıl” diyene kadar currentGroup sabit kalır.)
+      // “Kullanıcı tablo” gözükmesini istiyorsanız; buradaki if-else durumunu yönetebilirsiniz.
+
+      // Sahiplik check => Sil, rename vs.
       if (groupObj.owner === username) {
         deleteGroupBtn.style.display = 'block';
         renameGroupBtn.style.display = 'block';
@@ -529,19 +547,25 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Sol tık => kanala gir (veya hiçbir şey yapma)
+    // Sol tık => kanala gir
     roomItem.addEventListener('click', () => {
       // Eğer zaten bu kanala bağlıysa hiçbir işlem yapma
       if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
         return;
       }
 
+      // Başka bir kanalda isek "leaveRoom"
+      // ... ve PeerConnection kapat
       if (currentRoom && (currentRoom !== roomObj.id || currentGroup !== selectedGroup)) {
         socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
         closeAllPeers();
         currentRoom = null;
       }
-      joinRoom(selectedGroup, roomObj.id, roomObj.name);
+
+      // Artık "resmen" bu gruba giriyoruz => currentGroup = selectedGroup
+      // (Yani kullanıcı "katıl" demiş oldu.)
+      currentGroup = selectedGroup;
+      joinRoom(currentGroup, roomObj.id, roomObj.name);
     });
 
     // Sağ tık => context menu
@@ -613,6 +637,7 @@ socket.on('roomUsers', (usersInRoom) => {
     }
   });
 
+  // Bu odaya yeni gelen kullanıcılar için PeerConnection init
   const otherUserIds = usersInRoom
     .filter(u => u.id !== socket.id)
     .map(u => u.id)
@@ -626,6 +651,7 @@ socket.on('roomUsers', (usersInRoom) => {
           initPeer(uid, isInit);
         }
       });
+      // Pending user’ları da bu aşamada aç
       pendingUsers.forEach(uid => {
         if (!peers[uid]) {
           initPeer(uid, true);
@@ -653,10 +679,13 @@ socket.on('roomUsers', (usersInRoom) => {
 
 /* joinRoom => WebRTC */
 function joinRoom(groupId, roomId, roomName) {
+  socket.emit('joinRoom', { groupId, roomId });
+  // Ayrıl butonunu göster
+  leaveButton.style.display = 'flex';
+
+  // Artık “resmen” bu odaya katıldık
   currentGroup = groupId;
   currentRoom = roomId;
-  socket.emit('joinRoom', { groupId, roomId });
-  leaveButton.style.display = 'flex';
 }
 
 /* Ayrıl Butonu => odadan çık */
@@ -670,6 +699,7 @@ leaveButton.addEventListener('click', () => {
   leaveButton.style.display = 'none';
   console.log("Kanaldan ayrıldınız.");
 
+  // Tekrar grubun odalarını listele (UI yenile)
   if (currentGroup) {
     socket.emit('browseGroup', currentGroup);
   }
