@@ -92,6 +92,14 @@ function getAllChannelsData(groupId) {
   return channelsObj;
 }
 
+/* Tüm kanallardaki kullanıcı listesini tekrar yayınlar (roomUsers) */
+function broadcastAllRoomsUsers(groupId) {
+  if (!groups[groupId]) return;
+  Object.keys(groups[groupId].rooms).forEach((roomId) => {
+    io.to(`${groupId}::${roomId}`).emit('roomUsers', groups[groupId].rooms[roomId].users);
+  });
+}
+
 /* Bir kullanıcı hangi gruplarda/odalarda varsa hepsinden çıkarır (socket.leave vb.) */
 function removeUserFromAllGroupsAndRooms(socket) {
   const socketId = socket.id;
@@ -476,7 +484,7 @@ io.on("connection", (socket) => {
 
       broadcastRoomsListToGroup(groupId);
       broadcastAllChannelsData(groupId);
-      // (broadcastAllRoomsUsers kaldırıldı)
+      // İSTEĞE BAĞLI: broadcastAllRoomsUsers(groupId) ekleyebilirsin.
     } catch (err) {
       console.error("createRoom hata:", err);
     }
@@ -633,6 +641,9 @@ io.on("connection", (socket) => {
 
       broadcastAllChannelsData(gId);
       broadcastRoomsListToGroup(gId);
+      // ÖNEMLİ: Kullanıcıların kaybolmaması için tekrar oda bilgilerini yayınla
+      broadcastAllRoomsUsers(gId);
+
       console.log(`Kanal rename => ${channelId} => ${newName}`);
     } catch (err) {
       console.error("renameChannel hata:", err);
@@ -663,6 +674,9 @@ io.on("connection", (socket) => {
 
       broadcastAllChannelsData(gId);
       broadcastRoomsListToGroup(gId);
+      // YENİ: Diğer kanallarda kullanıcıların kaybolmaması için
+      broadcastAllRoomsUsers(gId);
+
       console.log(`Kanal silindi => ${channelId}`);
     } catch (err) {
       console.error("deleteChannel hata:", err);
