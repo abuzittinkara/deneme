@@ -525,6 +525,11 @@ socket.on('roomsList', (roomsArray) => {
       channelContextMenu.style.display = 'block';
     });
 
+    // -- FIX: eğer kullanıcı bu kanaldaysa stroke yeniden ekle --
+    if (currentGroup === selectedGroup && currentRoom === roomObj.id) {
+      roomItem.classList.add('inThisChannel');
+    }
+
     roomListDiv.appendChild(roomItem);
   });
 });
