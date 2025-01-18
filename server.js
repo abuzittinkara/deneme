@@ -406,7 +406,6 @@ io.on("connection", (socket) => {
 
       console.log(`User ${socket.id} => joinGroupByID => ${groupId}`);
 
-      // **** YENİ EKLENDİ: Gruplar listesi güncellensin diye ****
       await sendGroupsListToUser(socket.id);
 
       sendRoomsListToUser(socket.id, groupId);
@@ -485,14 +484,20 @@ io.on("connection", (socket) => {
     if (!groups[groupId]) return;
     if (!groups[groupId].rooms[roomId]) return;
 
-    removeUserFromAllGroupsAndRooms(socket);
-
     const userData = users[socket.id];
+    // KULLANICI ZATEN O KANALDA MI? => O ZAMAN "removeUser..." ÇAĞRILMAYACAK
+    if (userData.currentGroup !== groupId || userData.currentRoom !== roomId) {
+      // Farklı bir yerden geliyorsa / odadan çıkıp bu odaya giriyorsa => önce eski yerlerden temizle
+      removeUserFromAllGroupsAndRooms(socket);
+    }
+
     const userName = userData.username || `(User ${socket.id})`;
 
     if (!groups[groupId].users.some(u => u.id === socket.id)) {
       groups[groupId].users.push({ id: socket.id, username: userName });
     }
+
+    // Şimdi bu kanala ekliyoruz
     groups[groupId].rooms[roomId].users.push({ id: socket.id, username: userName });
     userData.currentGroup = groupId;
     userData.currentRoom = roomId;
@@ -566,14 +571,13 @@ io.on("connection", (socket) => {
     }
 
     try {
-      // 1) DB'den groupDoc bul
       const groupDoc = await Group.findOne({ groupId: grpId }).populate('users');
       if (!groupDoc) {
         socket.emit('errorMessage', "Grup DB'de bulunamadı.");
         return;
       }
 
-      // 2) O gruba üye tüm user'lardan bu grupu çıkar (DB tarafı)
+      // O gruba üye tüm user'lardan bu grupu çıkar (DB tarafı)
       if (groupDoc.users && groupDoc.users.length > 0) {
         for (const userId of groupDoc.users) {
           const usr = await User.findById(userId);
@@ -584,17 +588,17 @@ io.on("connection", (socket) => {
         }
       }
 
-      // 3) DB'den groupDoc'u sil
+      // DB'den groupDoc'u sil
       await Group.deleteOne({ _id: groupDoc._id });
 
-      // 4) O grupla ilişkili kanalları sil
+      // O grupla ilişkili kanalları sil
       await Channel.deleteMany({ group: groupDoc._id });
 
-      // 5) Bellekten sil
+      // Bellekten sil
       delete groups[grpId];
       console.log(`Grup silindi => ${grpId}`);
 
-      // 6) Tüm client'lara => groupDeleted
+      // Tüm client'lara => groupDeleted
       io.emit('groupDeleted', { groupId: grpId });
     } catch (err) {
       console.error("deleteGroup hata:", err);
@@ -616,7 +620,6 @@ io.on("connection", (socket) => {
       chDoc.name = newName;
       await chDoc.save();
 
-      // Bellekte de güncelle
       const groupDoc = await Group.findById(chDoc.group);
       if (!groupDoc) return;
       const gId = groupDoc.groupId;

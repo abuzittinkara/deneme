@@ -525,7 +525,7 @@ socket.on('roomsList', (roomsArray) => {
       channelContextMenu.style.display = 'block';
     });
 
-    // -- FIX: eğer kullanıcı bu kanaldaysa stroke yeniden ekle --
+    // Eğer kullanıcı bu kanaldaysa stroke yeniden ekle
     if (currentGroup === selectedGroup && currentRoom === roomObj.id) {
       roomItem.classList.add('inThisChannel');
     }
@@ -558,23 +558,6 @@ socket.on('allChannelsData', (channelsObj) => {
       channelDiv.appendChild(userDiv);
     });
   });
-
-  // --- EK FIX: Kanal silindiğinde avatar kaybolmasın ---
-  // Kullanıcı hâlen bir kanalda ise, o kanal (currentRoom) var mı diye kontrol edelim.
-  if (currentRoom && currentGroup && channelsObj[currentRoom]) {
-    // 1) Stroke tekrar ekle
-    const joinedChannelDiv = document.getElementById(`channel-item-${currentRoom}`);
-    if (joinedChannelDiv) {
-      joinedChannelDiv.classList.add('inThisChannel');
-    }
-
-    // 2) Sunucunun user listesinde kendimiz var mı?
-    const usersInThisRoom = channelsObj[currentRoom].users.map(u => u.id);
-    if (!usersInThisRoom.includes(socket.id)) {
-      // Sunucu bizi burada görmüyorsa => yeniden join at
-      socket.emit('joinRoom', { groupId: currentGroup, roomId: currentRoom });
-    }
-  }
 });
 
 /* groupUsers => sağ panel */
