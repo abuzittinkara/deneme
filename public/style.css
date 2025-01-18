@@ -10,6 +10,18 @@ body {
   font-size: 16px;
 }
 
+/* sr-only => Erişilebilirlik için (label'ı gizlemek istersen) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  border: 0;
+}
+
 /* Modern scrollbar (Chrome, vb.) */
 body::-webkit-scrollbar {
   width: 8px;
@@ -25,7 +37,6 @@ body::-webkit-scrollbar-thumb:hover {
   background: #888;
 }
 
-/* Ekran container: gizleme için .hidden */
 .screen-container {
   width: 100vw;
   height: 100vh;
@@ -37,32 +48,29 @@ body::-webkit-scrollbar-thumb:hover {
   display: none !important;
 }
 
-/* Kart */
 .card {
-  background: #262626;  /* Biraz daha koyu gri */
+  background: #262626; 
   padding: 2rem;
-  border-radius: 12px; /* YENİ: Daha yuvarlak */
+  border-radius: 12px; 
   min-width: 320px;
   text-align: center;
   border: none; 
-  box-shadow: 0 4px 15px rgba(0,0,0,0.5); /* YENİ: Hafif gölge */
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
 }
 
-/* Başlık */
 .app-title {
   margin: 0 0 1rem;
-  font-size: 1.6rem; /* Biraz büyük */
-  font-weight: 600; /* Poppins 600 */
+  font-size: 1.6rem;
+  font-weight: 600;
 }
 
-/* Metin Kutusu */
 .input-text {
   width: 100%;
   padding: 0.75rem;
   background: #333;  
   color: #efefef;  
   border: 1px solid #555;
-  border-radius: 8px; /* YENİ */
+  border-radius: 8px;
   font-size: 1rem;
   margin-bottom: 1rem;
   box-sizing: border-box;
@@ -72,18 +80,18 @@ body::-webkit-scrollbar-thumb:hover {
 .btn {
   padding: 0.75rem 1.25rem;
   border: none;
-  border-radius: 8px; /* YENİ */
+  border-radius: 8px;
   font-size: 1rem;
   cursor: pointer;
   margin-top: 1rem;
   transition: background 0.3s ease, transform 0.3s ease;
 }
 .btn.primary {
-  background: #C61884; /* YENİ: Pembe */
+  background: #C61884;
   color: #fff;
 }
 .btn.primary:hover {
-  background: #ad1473; /* Yanlış yazım düzeltildi */
+  background: #ad1473;
   transform: translateY(-2px);
 }
 .btn.secondary {
@@ -94,8 +102,6 @@ body::-webkit-scrollbar-thumb:hover {
   background: #666;
   transform: translateY(-2px);
 }
-
-/* Bilgilendirici metin / link-like */
 .info-text {
   margin-top: 1rem;
   font-size: 0.95rem;
@@ -146,14 +152,19 @@ body::-webkit-scrollbar-thumb:hover {
   align-items: center;
   justify-content: center;
   transition: background 0.3s ease, transform 0.3s ease;
-  margin-bottom: 1rem; /* DM butonu ile ilk grup arasını artırdık */
+  margin-bottom: 1rem;
 }
 .dm-toggle-btn:hover {
   background-color: #ad1473;
   transform: scale(1.05);
 }
+.dm-close-btn {
+  position: absolute;
+  top: 1rem;
+  left: 0.55rem;
+}
 
-/* Sidebar - Gruplar */
+/* Sidebar (Gruplar) => 65px */
 .sidebar {
   background: #1a1a1a; 
   width: 65px;  
@@ -162,7 +173,7 @@ body::-webkit-scrollbar-thumb:hover {
   align-items: center;
   padding: 1rem 0;
   position: relative; 
-  border-right: 1px solid #333; 
+  border-right: 1px solid #333;
 }
 .group-list {
   display: flex;
@@ -188,7 +199,7 @@ body::-webkit-scrollbar-thumb:hover {
 }
 .grp-item.selected {
   border: 2px solid #C61884;
-  border-radius: 15px;
+  border-radius: 15px; 
 }
 
 /* Grup Oluştur Butonu => 2px pembe stroke, hover'da içi pembe */
@@ -201,8 +212,8 @@ body::-webkit-scrollbar-thumb:hover {
   border-radius: 45%;
   font-size: 1.5rem; 
   cursor: pointer;
-  margin-top: 0.6rem; 
-  margin-bottom: 0.5rem; 
+  margin-top: 0.6rem;
+  margin-bottom: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -213,7 +224,7 @@ body::-webkit-scrollbar-thumb:hover {
   color: #fff;
 }
 
-/* Odalar paneli vb. */
+/* Odalar paneli => 200px */
 .rooms-panel {
   background: #242424;
   width: 200px; 
@@ -279,7 +290,7 @@ body::-webkit-scrollbar-thumb:hover {
   margin-bottom: 0.2rem; 
   border-radius: 20px;
   transition: background 0.2s ease;
-  padding: 6px 8px;
+  padding: 6px 8px; 
 }
 .channel-item:hover {
   background: #333;
@@ -297,7 +308,7 @@ body::-webkit-scrollbar-thumb:hover {
 .channel-users {
   margin-top: 0.7rem;
   margin-left: 0.3rem;
-  margin-bottom: 0.4rem; 
+  margin-bottom: 0.4rem;
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
