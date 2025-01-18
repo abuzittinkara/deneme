@@ -1,200 +1,143 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sesli Görüşme Uygulaması</title>
-  <!-- Harici CSS dosyan -->
-  <link rel="stylesheet" href="style.css" />
+
+  <!-- YENİ: Google Fonts => "Poppins" -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link 
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" 
+    rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-  <!-- Giriş (Login) Ekranı -->
-  <div id="loginScreen" class="screen-container">
+  <!-- Giriş Ekranı -->
+  <div id="loginScreen" class="screen-container" style="display: block;">
     <div class="card">
       <h1 class="app-title">Oturum Aç</h1>
-
-      <!-- Kullanıcı Adı (label + input) -->
-      <label for="loginUsernameInput" class="sr-only">Kullanıcı Adı</label>
-      <input
-        type="text"
-        id="loginUsernameInput"
-        name="loginUsername"
-        class="input-text"
-        placeholder="Kullanıcı Adı"
-      />
-
-      <!-- Parola (label + input) -->
-      <label for="loginPasswordInput" class="sr-only">Parola</label>
-      <input
-        type="password"
-        id="loginPasswordInput"
-        name="loginPassword"
-        class="input-text"
-        placeholder="Parola"
-      />
-
+      <input type="text" id="loginUsernameInput" placeholder="Kullanıcı Adı" class="input-text">
+      <input type="password" id="loginPasswordInput" placeholder="Parola" class="input-text">
       <button id="loginButton" class="btn primary">Giriş Yap</button>
-      <p class="info-text">
+      <p style="margin-top: 1rem;">
         Hesabın yok mu?
-        <span id="showRegisterScreen" class="link-like">Yeni Hesap Oluştur</span>
+        <span id="showRegisterScreen" style="color:#fff; cursor:pointer; text-decoration:underline;">
+          Yeni Hesap Oluştur
+        </span>
       </p>
     </div>
   </div>
 
-  <!-- Kayıt (Register) Ekranı -->
-  <div id="registerScreen" class="screen-container hidden">
+  <!-- Kayıt Ekranı -->
+  <div id="registerScreen" class="screen-container" style="display:none;">
     <div class="card">
       <h1 class="app-title">Kayıt Ol</h1>
-
-      <!-- Kullanıcı Adı -->
-      <label for="regUsernameInput" class="sr-only">Kullanıcı Adı (küçük harf)</label>
-      <input
-        type="text"
-        id="regUsernameInput"
-        name="regUsername"
-        class="input-text"
-        placeholder="Kullanıcı Adı (küçük harf)"
-      />
-
-      <!-- İsim -->
-      <label for="regNameInput" class="sr-only">İsim</label>
-      <input
-        type="text"
-        id="regNameInput"
-        name="regName"
-        class="input-text"
-        placeholder="İsim"
-      />
-
-      <!-- Soyisim -->
-      <label for="regSurnameInput" class="sr-only">Soyisim</label>
-      <input
-        type="text"
-        id="regSurnameInput"
-        name="regSurname"
-        class="input-text"
-        placeholder="Soyisim"
-      />
-
-      <!-- Doğum Tarihi -->
-      <label for="regBirthdateInput" class="sr-only">Doğum Tarihi</label>
-      <input
-        type="date"
-        id="regBirthdateInput"
-        name="regBirthdate"
-        class="input-text"
-      />
-
-      <!-- E-Posta -->
-      <label for="regEmailInput" class="sr-only">E-Posta</label>
-      <input
-        type="email"
-        id="regEmailInput"
-        name="regEmail"
-        class="input-text"
-        placeholder="E-Posta"
-      />
-
-      <!-- Telefon -->
-      <label for="regPhoneInput" class="sr-only">Telefon Numarası</label>
-      <input
-        type="tel"
-        id="regPhoneInput"
-        name="regPhone"
-        class="input-text"
-        placeholder="Telefon Numarası"
-      />
-
-      <!-- Parola -->
-      <label for="regPasswordInput" class="sr-only">Parola</label>
-      <input
-        type="password"
-        id="regPasswordInput"
-        name="regPassword"
-        class="input-text"
-        placeholder="Parola"
-      />
-
-      <!-- Parola (Tekrar) -->
-      <label for="regPasswordConfirmInput" class="sr-only">Parola (Tekrar)</label>
-      <input
-        type="password"
-        id="regPasswordConfirmInput"
-        name="regPasswordConfirm"
-        class="input-text"
-        placeholder="Parola (Tekrar)"
-      />
-
+      <input type="text" id="regUsernameInput" placeholder="Kullanıcı Adı (küçük harf)" class="input-text">
+      <input type="text" id="regNameInput" placeholder="İsim" class="input-text">
+      <input type="text" id="regSurnameInput" placeholder="Soyisim" class="input-text">
+      <input type="date" id="regBirthdateInput" class="input-text">
+      <input type="email" id="regEmailInput" placeholder="E-Posta" class="input-text">
+      <input type="tel" id="regPhoneInput" placeholder="Telefon Numarası" class="input-text">
+      <input type="password" id="regPasswordInput" placeholder="Parola" class="input-text">
+      <input type="password" id="regPasswordConfirmInput" placeholder="Parola (Tekrar)" class="input-text">
       <button id="registerButton" class="btn primary">Kayıt Ol ve Başla</button>
       <button id="backToLoginButton" class="btn secondary">Geri Gel</button>
-      <p class="info-text">
+      <p style="margin-top: 1rem;">
         Zaten hesabın var mı?
-        <span id="showLoginScreen" class="link-like">Oturum Aç</span>
+        <span id="showLoginScreen" style="color:#fff; cursor:pointer; text-decoration:underline;">
+          Oturum Aç
+        </span>
       </p>
     </div>
   </div>
 
-  <!-- Görüşme (Call) Ekranı -->
-  <div id="callScreen" class="screen-container hidden">
-    <!-- DM paneli aç/kapat butonu -->
-    <button id="toggleDMButton" class="dm-toggle-btn">DM</button>
-    
-    <!-- Sol Panel: Gruplar -->
-    <div class="sidebar">
-      <!-- Gruplar listesi -->
-      <div id="groupList" class="group-list"></div>
-      <!-- Grup oluştur butonu -->
-      <button id="createGroupButton" class="create-group-btn">+</button>
-    </div>
+  <!-- Görüşme Ekranı -->
+  <div id="callScreen" class="screen-container" style="display:none;">
+    <div id="leftPanels" class="left-panels">
+      <div id="groupsAndRooms" class="groups-rooms">
+        <!-- Sidebar (Gruplar) -->
+        <div class="sidebar" id="sidebar">
+          <button id="toggleDMButton" class="circle-btn dm-toggle-btn">
+            <!-- Zarf ikonu -->
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" 
+                 stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 
+                       1.1-.9 2-2 2H4c-1.1 
+                       0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+          </button>
+          <!-- Gruplar listesi -->
+          <div id="groupList" class="group-list"></div>
+          <!-- Grup Oluştur Butonu -->
+          <button id="createGroupButton" class="circle-btn create-group-btn">+</button>
+        </div>
 
-    <!-- Odalar paneli -->
-    <div class="rooms-panel">
-      <div class="room-panel-header">
-        <h2 id="groupTitle" class="panel-title">Seçili Grup</h2>
-        <span id="groupDropdownIcon" class="dropdown-icon">&#9662;</span>
-        <div id="groupDropdownMenu" class="dropdown-menu">
-          <div class="dropdown-item" id="copyGroupIdBtn">Grup ID Kopyala</div>
-          <div class="dropdown-item" id="renameGroupBtn">Grup ismi değiştir</div>
-          <div class="dropdown-item" id="createChannelBtn">Kanal Oluştur</div>
-          <div class="dropdown-item" id="deleteGroupBtn">Grubu Sil</div>
+        <!-- Odalar Paneli -->
+        <div id="roomPanel" class="rooms-panel">
+          <div class="room-panel-header">
+            <h2 id="groupTitle" class="panel-title">Seçili Grup</h2>
+            <span id="groupDropdownIcon" class="dropdown-icon">⌄</span>
+            <div id="groupDropdownMenu" class="dropdown-menu" style="display: none;">
+              <div class="dropdown-item" id="copyGroupIdBtn">Grup ID Kopyala</div>
+              <div class="dropdown-item" id="renameGroupBtn">Grup ismi değiştir</div>
+              <div class="dropdown-item" id="createChannelBtn">Kanal Oluştur</div>
+              <div class="dropdown-item" id="deleteGroupBtn">Grubu Sil</div>
+            </div>
+          </div>
+          <div id="roomList" class="room-list"></div>
         </div>
       </div>
-      <!-- Odalar listesi -->
-      <div id="roomList" class="room-list"></div>
+
+      <!-- DM paneli -->
+      <div id="dmPanel" class="dm-panel" style="display:none;">
+        <button id="closeDMButton" class="circle-btn dm-close-btn">
+          <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+               stroke-linejoin="round" viewBox="0 0 24 24" width="24" height="24">
+            <line x1="19" y1="12" x2="5" y2="12"/>
+            <polyline points="12 19 5 12 12 5"/>
+          </svg>
+        </button>
+        <h3 style="margin-top:2.5rem;">DM Mesajları</h3>
+        <p>Birebir mesajlar buraya gelecek.</p>
+      </div>
+
+      <!-- Sol Alt Kullanıcı Paneli -->
+      <div id="leftUserPanel" class="user-panel">
+        <div class="user-panel-content">
+          <div class="user-profile-pic"></div>
+          <div class="user-panel-info">
+            <span id="leftUserName" class="left-username">(Kullanıcı)</span>
+          </div>
+          <div class="user-panel-buttons">
+            <button id="micToggleButton" class="user-panel-btn" title="Mikrofon Aç/Kapa" style="width:22px;height:22px;"></button>
+            <button id="deafenToggleButton" class="user-panel-btn" title="Kendini Sağırlaştır" style="width:22px;height:22px;"></button>
+            <button id="leaveButton" class="leave-btn" style="display:none;">
+              <svg width="18" height="18" viewBox="0 0 24 24" stroke="#c61884" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2c-3.22-.34-6.23-1.61-8.6-3.53s-3.19-5.38-3.53-8.6A2 
+                         2 0 0 1 6.08 8h3a2 2 0 0 1 2 
+                         1.72l.22 1.56a16 
+                         16 0 0 0 5.56 5.56l1.56.22A2 
+                         2 0 0 1 22 16.92z">
+                </path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- DM panel (isteğe bağlı) -->
-    <div id="dmPanel" class="dm-panel hidden">
-      <button id="closeDMButton" class="dm-close-btn">Kapat DM</button>
-      <h3>DM Mesajları</h3>
-      <p>Birebir mesajlar buraya gelecek.</p>
-    </div>
-
-    <!-- Ana içerik örnek -->
     <div class="main-content">
       <h1 class="app-title">Sesli Görüşme</h1>
       <p>Bir grup seçin, ardından oda (kanal) oluşturup katılın.</p>
     </div>
 
-    <!-- Sağ panel => kullanıcı listesi -->
-    <div class="right-panel">
+    <div class="right-panel" id="rightPanel">
+      <!-- Kullanıcı listesi (Çevrimiçi / Çevrimdışı) -->
       <div id="userList" class="user-list"></div>
-    </div>
-
-    <!-- Sol alt kullanıcı paneli -->
-    <div id="leftUserPanel" class="user-panel">
-      <div class="user-panel-content">
-        <div class="user-profile-pic"></div>
-        <div class="user-panel-info">
-          <span id="leftUserName" class="left-username">(Kullanıcı)</span>
-        </div>
-        <div class="user-panel-buttons">
-          <button id="micToggleButton" class="user-panel-btn">MIC ON</button>
-          <button id="deafenToggleButton" class="user-panel-btn">DEAF OFF</button>
-          <button id="leaveButton" class="leave-btn">Çık</button>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -206,36 +149,33 @@
       <button id="modalGroupJoinBtn" class="btn secondary">Gruba Katıl</button>
     </div>
   </div>
-
   <!-- Modal: Grup Kurma -->
   <div id="actualGroupCreateModal" class="modal">
     <div class="modal-content">
       <h2>Yeni Grup Kur</h2>
-      <input type="text" id="actualGroupName" class="input-text" placeholder="Grup Adı" />
+      <input type="text" id="actualGroupName" class="input-text" placeholder="Grup Adı">
       <div class="modal-buttons">
         <button id="actualGroupNameBtn" class="btn primary">Oluştur</button>
         <button id="closeCreateGroupModal" class="btn secondary">Kapat</button>
       </div>
     </div>
   </div>
-
   <!-- Modal: Gruba Katıl -->
   <div id="joinGroupModal" class="modal">
     <div class="modal-content">
       <h2>Gruba Katıl</h2>
-      <input type="text" id="joinGroupIdInput" class="input-text" placeholder="Grup ID" />
+      <input type="text" id="joinGroupIdInput" class="input-text" placeholder="Grup ID">
       <div class="modal-buttons">
         <button id="joinGroupIdBtn" class="btn primary">Gruba Katıl</button>
         <button id="closeJoinGroupModal" class="btn secondary">Kapat</button>
       </div>
     </div>
   </div>
-
   <!-- Modal: Oda Oluşturma -->
   <div id="roomModal" class="modal">
     <div class="modal-content">
       <h2>Oda Oluştur</h2>
-      <input type="text" id="modalRoomName" class="input-text" placeholder="Oda Adı" />
+      <input type="text" id="modalRoomName" class="input-text" placeholder="Oda Adı">
       <div class="modal-buttons">
         <button id="modalCreateRoomBtn" class="btn primary">Oluştur</button>
         <button id="modalCloseRoomBtn" class="btn secondary">Kapat</button>
@@ -243,9 +183,7 @@
     </div>
   </div>
 
-  <!-- ÖNEMLİ: Socket.IO istemci kütüphanesi -> /socket.io/socket.io.js -->
   <script src="/socket.io/socket.io.js"></script>
-  <!-- Senin JS dosyan -->
   <script src="script.js"></script>
 </body>
 </html>

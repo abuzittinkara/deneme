@@ -10,31 +10,19 @@ body {
   font-size: 16px;
 }
 
-/* sr-only => Erişilebilirlik için (label'ı gizlemek istersen) */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0,0,0,0);
-  border: 0;
-}
-
 /* Modern scrollbar (Chrome, vb.) */
 body::-webkit-scrollbar {
-  width: 8px;
+  width: 8px;               /* Doğru sözdizimi */
 }
 body::-webkit-scrollbar-track {
-  background: #2f2f2f;
+  background: #2f2f2f;      /* Doğru sözdizimi */
 }
 body::-webkit-scrollbar-thumb {
-  background: #666;
+  background: #666;         /* Doğru sözdizimi */
   border-radius: 4px;
 }
 body::-webkit-scrollbar-thumb:hover {
-  background: #888;
+  background: #888;         /* Doğru sözdizimi */
 }
 
 .screen-container {
@@ -44,24 +32,21 @@ body::-webkit-scrollbar-thumb:hover {
   align-items: center;
   justify-content: center;
 }
-.hidden {
-  display: none !important;
-}
 
 .card {
-  background: #262626; 
+  background: #262626;  /* Biraz daha koyu gri */
   padding: 2rem;
-  border-radius: 12px; 
+  border-radius: 12px; /* YENİ: Daha yuvarlak */
   min-width: 320px;
   text-align: center;
   border: none; 
-  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5); /* YENİ: Hafif gölge */
 }
 
 .app-title {
   margin: 0 0 1rem;
-  font-size: 1.6rem;
-  font-weight: 600;
+  font-size: 1.6rem; /* Biraz büyük */
+  font-weight: 600; /* Poppins 600 */
 }
 
 .input-text {
@@ -70,7 +55,7 @@ body::-webkit-scrollbar-thumb:hover {
   background: #333;  
   color: #efefef;  
   border: 1px solid #555;
-  border-radius: 8px;
+  border-radius: 8px; /* YENİ */
   font-size: 1rem;
   margin-bottom: 1rem;
   box-sizing: border-box;
@@ -80,18 +65,18 @@ body::-webkit-scrollbar-thumb:hover {
 .btn {
   padding: 0.75rem 1.25rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 8px; /* YENİ */
   font-size: 1rem;
   cursor: pointer;
   margin-top: 1rem;
   transition: background 0.3s ease, transform 0.3s ease;
 }
 .btn.primary {
-  background: #C61884;
+  background: #C61884; /* YENİ: Pembe */
   color: #fff;
 }
 .btn.primary:hover {
-  background: #ad1473;
+  background: #ad1473; /* DÜZELTME: ##ad1473 => #ad1473 */
   transform: translateY(-2px);
 }
 .btn.secondary {
@@ -101,16 +86,6 @@ body::-webkit-scrollbar-thumb:hover {
 .btn.secondary:hover {
   background: #666;
   transform: translateY(-2px);
-}
-.info-text {
-  margin-top: 1rem;
-  font-size: 0.95rem;
-  line-height: 1.4;
-}
-.link-like {
-  color: #fff;
-  cursor: pointer;
-  text-decoration: underline;
 }
 
 /* callScreen */
@@ -122,6 +97,21 @@ body::-webkit-scrollbar-thumb:hover {
   background: #1f1f1f;
   width: 100vw;
   height: 100vh;
+}
+
+/* Sol taraftaki paneller */
+.left-panels {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  position: relative;
+  width: 65px;
+}
+.groups-rooms {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  width: 265px;
 }
 
 /* DM paneli */
@@ -136,9 +126,11 @@ body::-webkit-scrollbar-thumb:hover {
   left: 0;
   top: 0;
   height: 100%;
-  border-radius: 0 8px 8px 0; 
+  border-radius: 0 8px 8px 0; /* YENİ */
   box-shadow: 2px 0 8px rgba(0,0,0,0.5);
 }
+
+/* DM butonu (eski hâli) + boşluk artırmak => margin-bottom */
 .dm-toggle-btn {
   background-color: #C61884;
   color: #fff;
@@ -152,12 +144,13 @@ body::-webkit-scrollbar-thumb:hover {
   align-items: center;
   justify-content: center;
   transition: background 0.3s ease, transform 0.3s ease;
-  margin-bottom: 1rem;
+  margin-bottom: 1rem; /* DM butonu ile ilk grup arasını artırdık */
 }
 .dm-toggle-btn:hover {
   background-color: #ad1473;
   transform: scale(1.05);
 }
+
 .dm-close-btn {
   position: absolute;
   top: 1rem;
@@ -173,13 +166,15 @@ body::-webkit-scrollbar-thumb:hover {
   align-items: center;
   padding: 1rem 0;
   position: relative; 
-  border-right: 1px solid #333;
+  border-right: 1px solid #333; /* YENİ */
 }
 .group-list {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
 }
+
+/* grp-item => yuvarlak, animasyon, seçili hâl */
 .grp-item {
   width: 43px;
   height: 43px;
@@ -204,36 +199,41 @@ body::-webkit-scrollbar-thumb:hover {
 
 /* Grup Oluştur Butonu => 2px pembe stroke, hover'da içi pembe */
 .create-group-btn {
-  background: transparent;
-  border: 2px solid #C61884;
-  color: #C61884;
+  background: transparent;          /* İçi boş */
+  border: 2px solid #C61884;       /* 2px pembe stroke */
+  color: #C61884;                  /* Yazı da pembe */
   width: 48px;
   height: 48px;
   border-radius: 45%;
   font-size: 1.5rem; 
   cursor: pointer;
-  margin-top: 0.6rem;
-  margin-bottom: 0.5rem;
+  margin-top: 0.6rem; /* Listenin son grubuyla aradaki boşluğu artırdık */
+  margin-bottom: 0.5rem; 
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background 0.3s ease, color 0.3s ease;
 }
 .create-group-btn:hover {
-  background: #C61884;
-  color: #fff;
+  background: #C61884;  /* İçini pembe doldur */
+  color: #fff;          /* + işareti beyaz olsun */
+}
+
+/* circle-btn => istersen silebilirsin, şimdilik boş */
+.circle-btn {
+  /* Boş, kullanılmıyor */
 }
 
 /* Odalar paneli => 200px */
 .rooms-panel {
-  background: #242424;
+  background: #242424; /* YENİ */
   width: 200px; 
   display: flex;
   flex-direction: column;
   padding: 1rem;
   box-sizing: border-box;
   gap: 1.9rem;
-  border-right: 1px solid #333;
+  border-right: 1px solid #333; /* YENİ */
 }
 .room-panel-header {
   display: flex;
@@ -282,7 +282,11 @@ body::-webkit-scrollbar-thumb:hover {
   gap: 0rem;
 }
 
-/* Kanal item */
+/* Kanal item => 
+   1) Kanallar arasında boşluk azalt: margin-bottom: 0.2rem
+   2) Dikey ortalama => padding: 6px 8px
+   3) column => kanal adı (üst) + user list (alt)
+*/
 .channel-item {
   display: flex; 
   flex-direction: column; 
@@ -292,31 +296,46 @@ body::-webkit-scrollbar-thumb:hover {
   transition: background 0.2s ease;
   padding: 6px 8px; 
 }
+
+/* Hover => Sadece arka plan rengi değişir, stroke yok */
 .channel-item:hover {
-  background: #333;
+  background: #333; 
   border-radius: 20px;
 }
+
+/* Kullanıcı bu kanala katılmışsa => stroke (2px) => !important ekleyerek çakışma yok */
 .channel-item.inThisChannel {
-  border: 2px solid #C61884 !important;
+  border: 2px solid #C61884 !important; 
   border-radius: 15px !important;
 }
+
+/* Kanal ismi (ikon + yazı) => satır */
 .channel-header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
+
+/* 
+ * Kanala bağlı kullanıcıların listesi => alt tarafta 
+ * Bir sonraki kanal arasındaki boşluğu arttır => margin-bottom: 0.6rem
+ * üst ve alt eşit => margin-top: 0.7rem; margin-bottom: 0.7rem 
+ */
 .channel-users {
   margin-top: 0.7rem;
-  margin-left: 0.3rem;
-  margin-bottom: 0.4rem;
+  margin-left: 0.3rem; 
+  margin-bottom: 0.4rem; 
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
 }
+
+/* eğer channel-users boşsa => display:none + margin yok */
 .channel-users:empty {
-  display: none;
-  margin: 0;
+  display: none; 
+  margin: 0; 
 }
+
 .channel-user {
   display: flex;
   align-items: center;
@@ -333,6 +352,8 @@ body::-webkit-scrollbar-thumb:hover {
   border-radius: 45%;
   background-color: #666;
 }
+
+/* KONUYLA İLGİLİ: Konuşan kullanıcı => 2px pembe stroke dışta */
 .channel-user-avatar.speaking {
   box-shadow: 0 0 0 2px #c61884;
 }
@@ -403,7 +424,7 @@ body::-webkit-scrollbar-thumb:hover {
   color: #fff;
 }
 
-/* AYARLAR Paneli (settingsPanel) */
+/* --- AYARLAR Paneli (settingsPanel) --- */
 .settings-panel {
   position: absolute;
   top: 0; 
@@ -418,7 +439,7 @@ body::-webkit-scrollbar-thumb:hover {
   box-sizing: border-box;
   z-index: 999;
   box-shadow: -2px 0 8px rgba(0,0,0,0.5);
-  border-radius: 8px 0 0 8px;
+  border-radius: 8px 0 0 8px; /* YENİ */
 }
 .settings-panel-header {
   display: flex;
