@@ -166,7 +166,7 @@ settingsButton.innerHTML = `
       0 1-1.51
       1.65 1.65 0 0 
       0-.33-1.82l-.06-.06
-      a2 2 0 0 1 2.83-2.83l.06.06
+      a2 2 0 0 1-2.83-2.83l.06.06
       a1.65 1.65 0 0 0 1.82.33h0
       a1.65 1.65 0 0 0 1-1.51v-.28
       a2 2 0 0 1 2-2h0.5
@@ -558,6 +558,23 @@ socket.on('allChannelsData', (channelsObj) => {
       channelDiv.appendChild(userDiv);
     });
   });
+
+  // --- EK FIX: Kanal silindiğinde avatar kaybolmasın ---
+  // Kullanıcı hâlen bir kanalda ise, o kanal (currentRoom) var mı diye kontrol edelim.
+  if (currentRoom && currentGroup && channelsObj[currentRoom]) {
+    // 1) Stroke tekrar ekle
+    const joinedChannelDiv = document.getElementById(`channel-item-${currentRoom}`);
+    if (joinedChannelDiv) {
+      joinedChannelDiv.classList.add('inThisChannel');
+    }
+
+    // 2) Sunucunun user listesinde kendimiz var mı?
+    const usersInThisRoom = channelsObj[currentRoom].users.map(u => u.id);
+    if (!usersInThisRoom.includes(socket.id)) {
+      // Sunucu bizi burada görmüyorsa => yeniden join at
+      socket.emit('joinRoom', { groupId: currentGroup, roomId: currentRoom });
+    }
+  }
 });
 
 /* groupUsers => sağ panel */
