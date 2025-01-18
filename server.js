@@ -95,7 +95,7 @@ function getAllChannelsData(groupId) {
 /* Tüm kanallardaki kullanıcı listesini tekrar yayınlar (roomUsers) */
 function broadcastAllRoomsUsers(groupId) {
   if (!groups[groupId]) return;
-  Object.keys(groups[groupId].rooms).forEach((roomId) => {
+  Object.keys(groups[groupId].rooms).forEach(roomId => {
     io.to(`${groupId}::${roomId}`).emit('roomUsers', groups[groupId].rooms[roomId].users);
   });
 }
@@ -484,7 +484,8 @@ io.on("connection", (socket) => {
 
       broadcastRoomsListToGroup(groupId);
       broadcastAllChannelsData(groupId);
-      // İSTEĞE BAĞLI: broadcastAllRoomsUsers(groupId) ekleyebilirsin.
+      // Tüm kanalların kullanıcı bilgisi istersen (gerekmiyorsa kapatabilirsin):
+      // broadcastAllRoomsUsers(groupId);
     } catch (err) {
       console.error("createRoom hata:", err);
     }
@@ -639,10 +640,12 @@ io.on("connection", (socket) => {
 
       groups[gId].rooms[channelId].name = newName;
 
-      broadcastAllChannelsData(gId);
+      // 1) Odalar listesi güncelle
       broadcastRoomsListToGroup(gId);
-      // ÖNEMLİ: Kullanıcıların kaybolmaması için tekrar oda bilgilerini yayınla
+      // 2) Her odanın kullanıcı listesini güncelle
       broadcastAllRoomsUsers(gId);
+      // 3) Tüm kanallar verisini tekrar yayınla
+      broadcastAllChannelsData(gId);
 
       console.log(`Kanal rename => ${channelId} => ${newName}`);
     } catch (err) {
@@ -672,10 +675,12 @@ io.on("connection", (socket) => {
         delete groups[gId].rooms[channelId];
       }
 
-      broadcastAllChannelsData(gId);
+      // 1) Odalar listesi güncelle
       broadcastRoomsListToGroup(gId);
-      // YENİ: Diğer kanallarda kullanıcıların kaybolmaması için
+      // 2) Her odanın kullanıcı listesini güncelle
       broadcastAllRoomsUsers(gId);
+      // 3) Tüm kanallar verisini tekrar yayınla
+      broadcastAllChannelsData(gId);
 
       console.log(`Kanal silindi => ${channelId}`);
     } catch (err) {
