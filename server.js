@@ -657,20 +657,20 @@ io.on("connection", (socket) => {
         delete groups[gId].rooms[channelId];
       }
 
-      // --- EK: Kanal silindi => diğer kanallarda duran kullanıcılar kaybolmasın ---
-      // 1) Gruba ait tüm kullanıcıları tekrar "doğru" kanallarına ekle (varsa)
-      Object.keys(users).forEach(sId => {
-        const ud = users[sId];
-        if (ud.currentGroup === gId && ud.currentRoom) {
-          // Silinen kanal bu değilse => mevcudiyetini koru
-          if (groups[gId].rooms[ud.currentRoom]) {
-            const rArr = groups[gId].rooms[ud.currentRoom].users;
-            // Bu kullanıcı listede yoksa ekleyelim
-            if (!rArr.some(u => u.id === sId)) {
-              rArr.push({ id: sId, username: ud.username });
-            }
+      // Senkronizasyon: Kalan kanalların user listelerini güncelle
+      // => Her user gerçekten currentRoom'a göre doğru kanalda kalsın
+      Object.keys(groups[gId].rooms).forEach(rId => {
+        let channelUsers = groups[gId].rooms[rId].users;
+        // Bu kanaldaki user'lardan, gerçekte "currentRoom = rId" olmayan varsa sil
+        // Tersi durumda ekle
+        const newArr = [];
+        channelUsers.forEach(u => {
+          const userData = users[u.id];
+          if (userData && userData.currentGroup === gId && userData.currentRoom === rId) {
+            newArr.push(u);
           }
-        }
+        });
+        groups[gId].rooms[rId].users = newArr;
       });
 
       broadcastAllChannelsData(gId);
@@ -695,7 +695,6 @@ io.on("connection", (socket) => {
     const sR = users[socket.id].currentRoom;
     const tR = users[targetId].currentRoom;
 
-    // İki kullanıcı aynı grupta ve aynı odadaysa sinyal gönder
     if (sG && sG === tG && sR && sR === tR) {
       io.to(targetId).emit("signal", {
         from: socket.id,

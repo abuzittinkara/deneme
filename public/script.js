@@ -45,19 +45,26 @@ function createWaveIcon() {
   const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path1.setAttribute(
     "d",
-    "M9.717.55A.5.5 0 0 1 10 .999v14a.5.5 0 0 1-.783.409L5.825 12H3.5A1.5 1.5 0 0 1 2 10.5v-5A1.5 1.5 0 0 1 3.5 4h2.325l3.392-2.409a.5.5 0 0 1 .5-.041z"
+    "M9.717.55A.5.5 0 0 1 10 .999v14a.5.5 0 0 1-.783.409L5.825 12H3.5A1.5 1.5 0 0 1 2 10.5v-5A1.5 
+     1.5 0 0 1 3.5 4h2.325l3.392-2.409a.5.5 0 0 1 .5-.041z"
   );
 
   const path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path2.setAttribute(
     "d",
-    "M13.493 1.957a.5.5 0 0 1 .014.706 7.979 7.979 0 0 1 0 10.674.5.5 0 1 1-.72-.694 6.979 6.979 0 0 0 0-9.286.5.5 0 0 1 .706-.014z"
+    "M13.493 1.957a.5.5 0 0 1 .014.706 7.979 7.979 0 0 1 0 
+     10.674.5.5 0 1 1-.72-.694 6.979 
+     6.979 0 0 0 0-9.286.5.5 0 0 
+     1 .706-.014z"
   );
 
   const path3 = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path3.setAttribute(
     "d",
-    "M11.534 3.16a.5.5 0 0 1 .12.7 4.978 4.978 0 0 1 0 5.281.5.5 0 1 1-.82-.574 3.978 3.978 0 0 0 0-4.133.5.5 0 0 1 .7-.12z"
+    "M11.534 3.16a.5.5 0 0 1 .12.7 4.978 
+     4.978 0 0 1 0 5.281.5.5 0 1 
+     1-.82-.574 3.978 3.978 0 0 0 
+     0-4.133.5.5 0 0 1 .7-.12z"
   );
 
   svg.appendChild(path1);
@@ -356,11 +363,16 @@ socket.on('groupsList', (groupArray) => {
     grpItem.title = groupObj.name + " (" + groupObj.id + ")";
 
     grpItem.addEventListener('click', () => {
+      // Tüm gruplardan selected'ı kaldır
       document.querySelectorAll('.grp-item').forEach(el => el.classList.remove('selected'));
       grpItem.classList.add('selected');
 
+      // FARKLI BİR GRUBA SADECE BAKMAK (browse) => selectedGroup değişiyor
       selectedGroup = groupObj.id;
-      currentGroup = null;
+
+      // BURADA "currentGroup = null" KALDIRILDI!
+      // Çünkü kullanıcı aslında hâlâ başka bir gruptaki sesli kanalda olabilir.
+
       groupTitle.textContent = groupObj.name;
       socket.emit('browseGroup', groupObj.id);
 
@@ -525,7 +537,7 @@ socket.on('roomsList', (roomsArray) => {
       channelContextMenu.style.display = 'block';
     });
 
-    // Eğer kullanıcı bu kanaldaysa stroke yeniden ekle
+    // Eğer kullanıcı fiziksel olarak bu kanaldaysa stroke
     if (currentGroup === selectedGroup && currentRoom === roomObj.id) {
       roomItem.classList.add('inThisChannel');
     }
