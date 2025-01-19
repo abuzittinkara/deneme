@@ -2,7 +2,6 @@
  * script.js
  **************************************/
 
-// Sunucuyla bağlantı
 const socket = io();
 
 /* ---------- DOM Öğeleri ---------- */
@@ -208,7 +207,7 @@ socket.on('registerResult', (data) => {
   }
 });
 
-/* ---------- Grup Oluştur / Gruba Katıl Modal ---------- */
+/* ---------- Grup Oluştur / Katıl Modal ---------- */
 createGroupButton.addEventListener('click', () => {
   groupModal.style.display = 'flex';
 });
@@ -220,7 +219,6 @@ modalGroupJoinBtn.addEventListener('click', () => {
   groupModal.style.display = 'none';
   joinGroupModal.style.display = 'flex';
 });
-
 // Grup Kur
 actualGroupNameBtn.addEventListener('click', () => {
   const grpName = actualGroupName.value.trim();
@@ -234,7 +232,6 @@ actualGroupNameBtn.addEventListener('click', () => {
 closeCreateGroupModal.addEventListener('click', () => {
   actualGroupCreateModal.style.display = 'none';
 });
-
 // Gruba Katıl
 joinGroupIdBtn.addEventListener('click', () => {
   const grpIdVal = joinGroupIdInput.value.trim();
@@ -286,7 +283,7 @@ socket.on('groupsList', (groupArray) => {
       groupTitle.textContent = groupObj.name;
       socket.emit('browseGroup', groupObj.id);
 
-      // Owner => Sil / Rename
+      // Owner check => Sil / Rename
       if (groupObj.owner === username) {
         deleteGroupBtn.style.display = 'block';
         renameGroupBtn.style.display = 'block';
@@ -300,7 +297,7 @@ socket.on('groupsList', (groupArray) => {
   });
 });
 
-/* ---------- groupDropdownIcon => menü aç/kapat ---------- */
+/* ---------- groupDropdownIcon => menü ---------- */
 groupDropdownIcon.addEventListener('click', () => {
   if (groupDropdownMenu.style.display === 'none' || groupDropdownMenu.style.display === '') {
     groupDropdownMenu.style.display = 'block';
@@ -376,8 +373,6 @@ channelContextMenu.innerHTML = `
 document.body.appendChild(channelContextMenu);
 
 let rightClickedChannelId = null;
-
-// rename channel
 document.getElementById('renameChannelOption').addEventListener('click', () => {
   if (!rightClickedChannelId) return;
   const newName = prompt("Kanal için yeni isim girin:");
@@ -389,7 +384,6 @@ document.getElementById('renameChannelOption').addEventListener('click', () => {
   channelContextMenu.style.display = 'none';
   rightClickedChannelId = null;
 });
-// delete channel
 document.getElementById('deleteChannelOption').addEventListener('click', () => {
   if (!rightClickedChannelId) return;
   const confirmDel = confirm("Kanalı silmek istediğinizden emin misiniz?");
@@ -401,7 +395,6 @@ document.getElementById('deleteChannelOption').addEventListener('click', () => {
   channelContextMenu.style.display = 'none';
   rightClickedChannelId = null;
 });
-// Tıklama dışına => context menu'yi kapat
 document.addEventListener('click', (e) => {
   if (channelContextMenu.style.display === 'block') {
     channelContextMenu.style.display = 'none';
@@ -416,11 +409,10 @@ socket.on('roomsList', (roomsArray) => {
     const roomItem = document.createElement('div');
     roomItem.className = 'channel-item';
 
-    // Kanal Header
     const channelHeader = document.createElement('div');
     channelHeader.className = 'channel-header';
 
-    // YENİ: createWaveIcon() => önce tanımladık
+    // Fonksiyon yukarıda tanımlandı => "createWaveIcon"
     const icon = createWaveIcon();
     const textSpan = document.createElement('span');
     textSpan.textContent = roomObj.name;
@@ -428,7 +420,6 @@ socket.on('roomsList', (roomsArray) => {
     channelHeader.appendChild(icon);
     channelHeader.appendChild(textSpan);
 
-    // Kanalın kullanıcı listesi
     const channelUsers = document.createElement('div');
     channelUsers.className = 'channel-users';
     channelUsers.id = `channel-users-${roomObj.id}`;
@@ -436,7 +427,7 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Sol tık => Kanala gir
+    // Kanala tık => gir
     roomItem.addEventListener('click', () => {
       if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
         console.log("Zaten bu kanaldasınız, işlem yapılmadı.");
@@ -448,7 +439,6 @@ socket.on('roomsList', (roomsArray) => {
         closeAllPeers();
         currentRoom = null;
       }
-      // Şimdi bu yeni kanala gir
       currentGroup = selectedGroup;
       joinRoom(currentGroup, roomObj.id, roomObj.name);
     });
@@ -467,7 +457,7 @@ socket.on('roomsList', (roomsArray) => {
   });
 });
 
-/* ---------- allChannelsData => Kanallarda kim var ---------- */
+/* ---------- allChannelsData => kanalda kim var ---------- */
 socket.on('allChannelsData', (channelsObj) => {
   Object.keys(channelsObj).forEach(roomId => {
     const cData = channelsObj[roomId];
@@ -507,7 +497,7 @@ socket.on('roomUsers', (usersInRoom) => {
   // Peer cleanup
   Object.keys(peers).forEach(peerId => {
     if (!userIdsInRoom.includes(peerId)) {
-      console.log(`Peer ${peerId} is not in this room anymore => closing peer`);
+      console.log(`Peer ${peerId} is not in this room => closing peer`);
       peers[peerId].close();
       delete peers[peerId];
       stopVolumeAnalysis(peerId);
@@ -523,7 +513,6 @@ socket.on('roomUsers', (usersInRoom) => {
     }
   });
 
-  // Yeni peer
   const otherUserIds = usersInRoom
     .filter(u => u.id !== socket.id)
     .map(u => u.id)
@@ -855,7 +844,7 @@ function closeAllPeers() {
   sessionUfrag = {};
 }
 
-/* ---------- Mikrofon & Kulaklık ---------- */
+/* ---------- Mikrofon & Deafen ---------- */
 micToggleButton.addEventListener('click', () => {
   micEnabled = !micEnabled;
   applyAudioStates();

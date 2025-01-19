@@ -2,13 +2,12 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Roboto', sans-serif; /* isteğe bağlı */
   background: #2d2d2d;
   color: #fff;
   font-size: 16px;
 }
 
-/* Ekranlar (login/register/call) */
 .screen-container {
   width: 100vw;
   height: 100vh;
@@ -27,13 +26,11 @@ body {
   box-shadow: none; 
 }
 
-/* Yazılar */
 .app-title {
   margin: 0 0 1rem;
   font-size: 1.5rem;
 }
 
-/* Input */
 .input-text {
   width: 100%;
   padding: 0.75rem;
@@ -77,15 +74,12 @@ body {
   flex-direction: row;
   align-items: stretch;
   justify-content: flex-start;
+  background: #2d2d2d;
   width: 100vw;
   height: 100vh;
-  background: #2d2d2d;
-
-  /* Barı mutlak konumlandırmak için => container relative */
-  position: relative;
 }
 
-/* Soldaki Paneller (Gruplar + Odalar) */
+/* Sol taraftaki paneller */
 .left-panels {
   display: flex;
   flex-direction: row;
@@ -148,7 +142,7 @@ body {
   gap: 0.6rem;
 }
 
-/* grp-item => yuvarlak buton */
+/* grp-item => yuvarlak, animasyon, seçili hâl */
 .grp-item {
   width: 43px;
   height: 43px;
@@ -170,7 +164,7 @@ body {
   border-radius: 15px; 
 }
 
-/* Grup Oluştur Butonu => altta */
+/* Grup Oluştur Butonu */
 .create-group-btn {
   position: absolute;
   bottom: 70px; 
@@ -195,7 +189,7 @@ body {
   background-color: #a3156f;
 }
 
-/* Odalar Paneli */
+/* Odalar paneli => sağda => 200px */
 .rooms-panel {
   background: #1f1f1f;
   width: 200px; 
@@ -204,6 +198,7 @@ body {
   padding: 1rem;
   box-sizing: border-box;
   gap: 1.9rem;
+
   border-top: none;
   border-left: none; 
   border-bottom: none;
@@ -253,7 +248,7 @@ body {
   gap: 0rem;
 }
 
-/* Kanal item => volume-up-fill ikonu */
+/* Kanal item => volume-up-fill ikonu, no border/arka plan */
 .channel-item {
   display: flex;
   flex-direction: column;
@@ -292,7 +287,7 @@ body {
   background-color: #666;
 }
 
-/* Konuşan kullanıcı => 2px pembe dış çerçeve */
+/* Konuşan kullanıcı => 2px pembe stroke dışta */
 .channel-user-avatar.speaking {
   box-shadow: 0 0 0 2px #c61884;
 }
@@ -363,15 +358,16 @@ body {
   color: #fff;
 }
 
-/* Ortadaki alan => main-content
-   => Bar'ı mutlak konumlandırdığımız için 
-      içeriğin aşağı kayması gerek => margin-top */
+/* Ortadaki ana içerik */
 .main-content {
   flex: 1;
-  overflow: auto;
   padding: 2rem;
+  overflow: auto;
   color: #fff;
-  margin-top: 40px; /* YENI: bar yüksekliği kadar */
+}
+.app-title {
+  margin: 0 0 1rem;
+  font-size: 1.4rem;
 }
 
 /* Sağ panel => 200px */
@@ -390,23 +386,47 @@ body {
   border-left: 1px solid #444;
 }
 
-/* DISCORD tarzı => "Seçili kanal" barı */
-.channel-top-bar {
-  position: absolute;
-  top: 0;
-  left: 265px;   /* => 65 (sidebar) + 200 (rooms) = 265 */
-  right: 200px;  /* => sağ panel 200px */
-  height: 40px;
-  background-color: #2e2e2e;
-  border-bottom: 1px solid #444;
+/* Kullanıcı listesi => gap */
+.user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem; 
+}
+
+/* user-item => çerçeve yok, hover yok */
+.user-item {
+  padding: 0.1rem;
+  border: none;
   display: flex;
   align-items: center;
-  padding-left: 10px;
-  z-index: 10;
+  gap: 0.40rem;
 }
-.channel-top-bar h2 {
-  margin: 0;
-  font-size: 0.95rem;
+
+/* Profil dairesi */
+.profile-thumb {
+  width: 30px;
+  height: 30px;
+  background: #666;
+  border-radius: 45%;
+  flex-shrink: 0;
+}
+.user-name {
+  flex: 1;
+  font-weight: 500;
+  color: #fff;
+}
+.copy-id-btn {
+  background: #555;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.2rem 0.30rem;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: background 0.3s ease;
+}
+.copy-id-btn:hover {
+  background: #777;
 }
 
 /* Modal Stil */
@@ -444,48 +464,7 @@ body {
   display: none;
 }
 
-/* Kullanıcı listesi => sağ panel => gap */
-.user-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem; 
-}
-.user-item {
-  padding: 0.1rem;
-  border: none;
-  display: flex;
-  align-items: center;
-  gap: 0.40rem;
-}
-
-/* Profil dairesi */
-.profile-thumb {
-  width: 30px;
-  height: 30px;
-  background: #666;
-  border-radius: 45%;
-  flex-shrink: 0;
-}
-.user-name {
-  flex: 1;
-  font-weight: 500;
-  color: #fff;
-}
-.copy-id-btn {
-  background: #555;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 0.2rem 0.30rem;
-  cursor: pointer;
-  font-size: 0.75rem;
-  transition: background 0.3s ease;
-}
-.copy-id-btn:hover {
-  background: #777;
-}
-
-/* context-menu => kanallar sağ tık */
+/* context-menu (kanallara sağ tık) */
 .context-menu {
   position: absolute;
   background: #2d2d2d;
