@@ -2,65 +2,7 @@
  * script.js
  **************************************/
 
-const socket = io();
-let localStream;
-let peers = {};
-let audioPermissionGranted = false;
-let remoteAudios = [];
-let username = null;
-
-// micEnabled / selfDeafened => global scope
-let micEnabled = true;
-let selfDeafened = false;
-
-// Mevcut group/room
-let currentGroup = null;
-let currentRoom = null;
-
-// Göz atılan (browse edilen) grup
-let selectedGroup = null;
-
-// Bağlanması beklenen user listeleri
-let pendingUsers = [];     
-let pendingNewUsers = [];  
-
-// ICE Candidate / session
-let pendingCandidates = {};
-let sessionUfrag = {};
-
-// Konuşma algılama için audioAnalyser map
-let audioAnalyzers = {};  // userId => { analyser, dataArray, audioContext, interval }
-
-/* SES EŞİĞİ */
-const SPEAKING_THRESHOLD = 0.0;  
-const VOLUME_CHECK_INTERVAL = 100;
-
-/* volume-up-fill ikonu */
-function createWaveIcon() {
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("width", "16");
-  svg.setAttribute("height", "16");
-  svg.setAttribute("fill", "currentColor");
-  svg.setAttribute("class", "channel-icon bi bi-volume-up-fill");
-  svg.setAttribute("viewBox", "0 0 16 16");
-
-  const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path1.setAttribute("d", "M9.717.55A.5.5 0 0 1 10 .999v14a.5.5 0 0 1-.783.409L5.825 12H3.5A1.5 1.5 0 0 1 2 10.5v-5A1.5 1.5 0 0 1 3.5 4h2.325l3.392-2.409a.5.5 0 0 1 .5-.041z");
-
-  const path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path2.setAttribute("d", "M13.493 1.957a.5.5 0 0 1 .014.706 7.979 7.979 0 0 1 0 10.674.5.5 0 1 1-.72-.694 6.979 6.979 0 0 0 0-9.286.5.5 0 0 1 .706-.014z");
-
-  const path3 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path3.setAttribute("d", "M11.534 3.16a.5.5 0 0 1 .12.7 4.978 4.978 0 0 1 0 5.281.5.5 0 1 1-.82-.574 3.978 3.978 0 0 0 0-4.133.5.5 0 0 1 .7-.12z");
-
-  svg.appendChild(path1);
-  svg.appendChild(path2);
-  svg.appendChild(path3);
-
-  return svg;
-}
-
-// DOM Ekranları
+// Önce DOM öğelerini alalım:
 const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
 const callScreen = document.getElementById('callScreen');
@@ -100,12 +42,27 @@ const renameGroupBtn = document.getElementById('renameGroupBtn');
 const createChannelBtn = document.getElementById('createChannelBtn');
 const deleteGroupBtn = document.getElementById('deleteGroupBtn');
 
+// Modal
+const groupModal = document.getElementById('groupModal');
+const modalGroupCreateBtn = document.getElementById('modalGroupCreateBtn');
+const modalGroupJoinBtn = document.getElementById('modalGroupJoinBtn');
+const actualGroupCreateModal = document.getElementById('actualGroupCreateModal');
+const actualGroupName = document.getElementById('actualGroupName');
+const actualGroupNameBtn = document.getElementById('actualGroupNameBtn');
+const closeCreateGroupModal = document.getElementById('closeCreateGroupModal');
+const joinGroupModal = document.getElementById('joinGroupModal');
+const joinGroupIdInput = document.getElementById('joinGroupIdInput');
+const joinGroupIdBtn = document.getElementById('joinGroupIdBtn');
+const closeJoinGroupModal = document.getElementById('closeJoinGroupModal');
+const roomModal = document.getElementById('roomModal');
+const modalRoomName = document.getElementById('modalRoomName');
+const modalCreateRoomBtn = document.getElementById('modalCreateRoomBtn');
+const modalCloseRoomBtn = document.getElementById('modalCloseRoomBtn');
+
 // DM panel
 const toggleDMButton = document.getElementById('toggleDMButton');
 const closeDMButton = document.getElementById('closeDMButton');
 const dmPanel = document.getElementById('dmPanel');
-const groupsAndRooms = document.getElementById('groupsAndRooms');
-let isDMMode = false;
 
 // Sağ panel (kullanıcı listesi)
 const userListDiv = document.getElementById('userList');
@@ -113,14 +70,50 @@ const userListDiv = document.getElementById('userList');
 // Ayrıl Butonu
 const leaveButton = document.getElementById('leaveButton');
 
-// YENİ: Kanal Bar
+// Mikrofon ve sağırlaştırma butonları
+const micToggleButton = document.getElementById('micToggleButton');
+const deafenToggleButton = document.getElementById('deafenToggleButton');
+
+// Kanal bar (ortadaki)
 const channelBarTitle = document.getElementById('channelBarTitle');
 
-/* Ayarlar Paneli => eklemeler */
-const settingsPanel = document.createElement('div'); // Bu zaten index'te ekli. Kaldırabiliriz. 
-// Yukarıda index'te ekli. Yorum olarak kalsın.
+// Diğer global değişkenler
+let isDMMode = false;
 
-/* Ekran geçişleri (login <-> register) */
+const socket = io();
+let localStream;
+let peers = {};
+let audioPermissionGranted = false;
+let remoteAudios = [];
+let username = null;
+
+// micEnabled / selfDeafened => global scope
+let micEnabled = true;
+let selfDeafened = false;
+
+// Mevcut group/room
+let currentGroup = null;
+let currentRoom = null;
+
+// Göz atılan (browse edilen) grup
+let selectedGroup = null;
+
+// Bağlanması beklenen user listeleri
+let pendingUsers = [];     // isInitiator = true olacak kullanıcılar
+let pendingNewUsers = [];  // isInitiator = false olacak kullanıcılar
+
+// ICE Candidate / session
+let pendingCandidates = {};
+let sessionUfrag = {};
+
+// Konuşma algılama için audioAnalyser map
+let audioAnalyzers = {};  // userId => { analyser, dataArray, audioContext, interval }
+
+/* SES EŞİĞİ */
+const SPEAKING_THRESHOLD = 0.0;  
+const VOLUME_CHECK_INTERVAL = 100;
+
+/* Ekran Geçişleri */
 showRegisterScreen.addEventListener('click', () => {
   loginScreen.style.display = 'none';
   registerScreen.style.display = 'block';
@@ -189,6 +182,7 @@ registerButton.addEventListener('click', () => {
 
   socket.emit('register', userData);
 });
+
 socket.on('registerResult', (data) => {
   if (data.success) {
     alert("Kayıt başarılı! Şimdi giriş yapabilirsiniz.");
@@ -211,6 +205,7 @@ modalGroupJoinBtn.addEventListener('click', () => {
   groupModal.style.display = 'none';
   joinGroupModal.style.display = 'flex';
 });
+
 // Modal: Grup Kur
 actualGroupNameBtn.addEventListener('click', () => {
   const grpName = actualGroupName.value.trim();
@@ -239,7 +234,7 @@ closeJoinGroupModal.addEventListener('click', () => {
   joinGroupModal.style.display = 'none';
 });
 
-/* Oda Oluştur (pop-up) => "Oluştur" / "Kapat" */
+// Modal: Oda Oluştur
 modalCreateRoomBtn.addEventListener('click', () => {
   const rName = modalRoomName.value.trim();
   if (!rName) {
@@ -258,7 +253,7 @@ modalCloseRoomBtn.addEventListener('click', () => {
   roomModal.style.display = 'none';
 });
 
-/* groupsList => sol sidebar */
+/* Gruplar Listesi */
 socket.on('groupsList', (groupArray) => {
   groupListDiv.innerHTML = '';
   groupArray.forEach(groupObj => {
@@ -276,7 +271,7 @@ socket.on('groupsList', (groupArray) => {
       groupTitle.textContent = groupObj.name;
       socket.emit('browseGroup', groupObj.id);
 
-      // Owner check => "Grubu Sil" & "Grup İsmi Değiştir"
+      // Owner check
       if (groupObj.owner === username) {
         deleteGroupBtn.style.display = 'block';
         renameGroupBtn.style.display = 'block';
@@ -299,7 +294,6 @@ groupDropdownIcon.addEventListener('click', () => {
   }
 });
 
-/* Drop-down menü butonları */
 // Grup ID Kopyala
 copyGroupIdBtn.addEventListener('click', () => {
   groupDropdownMenu.style.display = 'none';
@@ -332,7 +326,7 @@ renameGroupBtn.addEventListener('click', () => {
   socket.emit('renameGroup', { groupId: grp, newName: newName.trim() });
 });
 
-// Kanal Oluştur (drop-down)
+// Kanal Oluştur
 createChannelBtn.addEventListener('click', () => {
   groupDropdownMenu.style.display = 'none';
   const grp = currentGroup || selectedGroup;
@@ -358,9 +352,7 @@ deleteGroupBtn.addEventListener('click', () => {
   socket.emit('deleteGroup', grp);
 });
 
-/* ----- KANALLAR => RIGHT-CLICK (context menu) -> rename/delete ----- */
-
-// context menu div
+/* Kanallar => sağ tık (context menu) */
 const channelContextMenu = document.createElement('div');
 channelContextMenu.classList.add('context-menu');
 channelContextMenu.style.display = 'none';
@@ -371,8 +363,6 @@ channelContextMenu.innerHTML = `
 document.body.appendChild(channelContextMenu);
 
 let rightClickedChannelId = null;
-
-// rename channel
 document.getElementById('renameChannelOption').addEventListener('click', () => {
   if (!rightClickedChannelId) return;
   const newName = prompt("Kanal için yeni isim girin:");
@@ -384,8 +374,6 @@ document.getElementById('renameChannelOption').addEventListener('click', () => {
   channelContextMenu.style.display = 'none';
   rightClickedChannelId = null;
 });
-
-// delete channel
 document.getElementById('deleteChannelOption').addEventListener('click', () => {
   if (!rightClickedChannelId) return;
   const confirmDel = confirm("Kanalı silmek istediğinizden emin misiniz?");
@@ -397,8 +385,7 @@ document.getElementById('deleteChannelOption').addEventListener('click', () => {
   channelContextMenu.style.display = 'none';
   rightClickedChannelId = null;
 });
-
-// Tıklama dışı => context menu'yi kapat
+// Tıklama dışı => kapat
 document.addEventListener('click', (e) => {
   if (channelContextMenu.style.display === 'block') {
     channelContextMenu.style.display = 'none';
@@ -430,29 +417,25 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Kanalı tıklayınca => gir
+    // Kanal tık
     roomItem.addEventListener('click', () => {
-      // Zaten bu kanaldaysak => hiçbir şey yapma
       if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
         console.log("Zaten bu kanaldasınız, işlem yapılmadı.");
         return;
       }
-
       if (currentRoom && (currentRoom !== roomObj.id || currentGroup !== selectedGroup)) {
         socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
         closeAllPeers();
         currentRoom = null;
       }
-      // “Resmen” bu gruba katıl => currentGroup = selectedGroup
       currentGroup = selectedGroup;
       joinRoom(currentGroup, roomObj.id, roomObj.name);
     });
 
-    // Sağ tık => context menu
+    // Sağ tık => context
     roomItem.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       rightClickedChannelId = roomObj.id;
-
       channelContextMenu.style.left = e.pageX + 'px';
       channelContextMenu.style.top = e.pageY + 'px';
       channelContextMenu.style.display = 'block';
@@ -462,7 +445,7 @@ socket.on('roomsList', (roomsArray) => {
   });
 });
 
-/* allChannelsData => kanalda kim var */
+/* allChannelsData */
 socket.on('allChannelsData', (channelsObj) => {
   Object.keys(channelsObj).forEach(roomId => {
     const cData = channelsObj[roomId];
@@ -494,7 +477,7 @@ socket.on('groupUsers', (dbUsersArray) => {
   updateUserList(dbUsersArray);
 });
 
-/* roomUsers => odadaki kullanıcılar => WebRTC init */
+/* roomUsers => WebRTC init */
 socket.on('roomUsers', (usersInRoom) => {
   console.log("roomUsers => odadaki kisiler:", usersInRoom);
 
@@ -555,7 +538,7 @@ socket.on('roomUsers', (usersInRoom) => {
   }
 });
 
-/* joinRoom => WebRTC */
+/* joinRoom => kanala katıl */
 function joinRoom(groupId, roomId, roomName) {
   socket.emit('joinRoom', { groupId, roomId });
   leaveButton.style.display = 'flex';
@@ -563,11 +546,11 @@ function joinRoom(groupId, roomId, roomName) {
   currentGroup = groupId;
   currentRoom = roomId;
 
-  // YENİ: Kanal başlığını güncelle
+  // Kanal bar => güncelle
   channelBarTitle.textContent = roomName;
 }
 
-/* Ayrıl Butonu => odadaki kanaldan çık */
+/* Ayrıl Butonu */
 leaveButton.addEventListener('click', () => {
   if (!currentRoom) return;
 
@@ -578,7 +561,7 @@ leaveButton.addEventListener('click', () => {
   leaveButton.style.display = 'none';
   console.log("Kanaldan ayrıldınız.");
 
-  // Kanal bar başlığını sıfırla
+  // Kanal bar => sıfırla
   channelBarTitle.textContent = "Kanal Seçilmedi";
 
   if (currentGroup) {
@@ -586,7 +569,7 @@ leaveButton.addEventListener('click', () => {
   }
 });
 
-/* Sağ panel => updateUserList (Çevrimiçi/Çevrimdışı) */
+/* Sağ panel => kullanıcı listesi */
 function updateUserList(data) {
   userListDiv.innerHTML = '';
 
@@ -856,17 +839,16 @@ function closeAllPeers() {
   sessionUfrag = {};
 }
 
-/* Mikrofon & Kulaklık */
-const micToggleButton = document.getElementById('micToggleButton');
-const deafenToggleButton = document.getElementById('deafenToggleButton');
-
+/* Mikrofon & Kulaklık => Butonlar */
 micToggleButton.addEventListener('click', () => {
   micEnabled = !micEnabled;
   applyAudioStates();
 });
 deafenToggleButton.addEventListener('click', () => {
   selfDeafened = !selfDeafened;
-  if (selfDeafened) micEnabled = false;
+  if (selfDeafened) {
+    micEnabled = false;
+  }
   applyAudioStates();
 });
 
