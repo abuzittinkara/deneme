@@ -520,19 +520,23 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Sol tık => kanala gir (veya hiçbir şey yapma)
+    // Sol tık => kanala gir
     roomItem.addEventListener('click', () => {
       // Eğer zaten bu kanala bağlıysa hiçbir işlem yapma
       if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
         return;
       }
 
+      // Başka odadaysak => leave + peer close
       if (currentRoom && (currentRoom !== roomObj.id || currentGroup !== selectedGroup)) {
         socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
         closeAllPeers();
         currentRoom = null;
       }
-      joinRoom(selectedGroup, roomObj.id, roomObj.name);
+      // “Resmen” bu gruba katıl => currentGroup = selectedGroup
+      currentGroup = selectedGroup;
+
+      joinRoom(currentGroup, roomObj.id, roomObj.name);
     });
 
     // Sağ tık => context menu
@@ -644,10 +648,12 @@ socket.on('roomUsers', (usersInRoom) => {
 
 /* joinRoom => WebRTC */
 function joinRoom(groupId, roomId, roomName) {
+  socket.emit('joinRoom', { groupId, roomId });
+  // Ayrıl butonunu göster
+  leaveButton.style.display = 'flex';
+
   currentGroup = groupId;
   currentRoom = roomId;
-  socket.emit('joinRoom', { groupId, roomId });
-  leaveButton.style.display = 'flex';
 }
 
 /* Ayrıl Butonu => odadan çık */
@@ -661,6 +667,7 @@ leaveButton.addEventListener('click', () => {
   leaveButton.style.display = 'none';
   console.log("Kanaldan ayrıldınız.");
 
+  // Tekrar grubun odalarını listele
   if (currentGroup) {
     socket.emit('browseGroup', currentGroup);
   }
