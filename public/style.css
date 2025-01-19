@@ -415,7 +415,21 @@ body {
   font-size: 1.4rem;
 }
 
-/* YENİ EKLENEN: Kanal Bar */
+/* DISCORD BENZERİ ÜST BAR => channelTopBar */
+.channel-top-bar {
+  background-color: #2e2e2e;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #444;
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.channel-top-bar h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* channel-bar => eski bar */
 .channel-bar {
   background-color: #1f1f1f;
   padding: 1rem;

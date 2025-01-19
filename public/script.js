@@ -2,9 +2,9 @@
  * script.js
  **************************************/
 
-// 1) Tüm DOM öğelerini en başta seçiyoruz:
 const socket = io();
 
+// DOM değişkenleri
 const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
 const callScreen = document.getElementById('callScreen');
@@ -64,7 +64,7 @@ const modalRoomName = document.getElementById('modalRoomName');
 const modalCreateRoomBtn = document.getElementById('modalCreateRoomBtn');
 const modalCloseRoomBtn = document.getElementById('modalCloseRoomBtn');
 
-// DM Panel
+// DM panel
 const toggleDMButton = document.getElementById('toggleDMButton');
 const closeDMButton = document.getElementById('closeDMButton');
 const dmPanel = document.getElementById('dmPanel');
@@ -75,14 +75,17 @@ const userListDiv = document.getElementById('userList');
 // Ayrıl Butonu
 const leaveButton = document.getElementById('leaveButton');
 
-// Mikrofon / Deafen
+// Mikrofon & Deafen
 const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
 
-// Kanal Bar (ortadaki)
+// Kanal Bar (eski)
 const channelBarTitle = document.getElementById('channelBarTitle');
 
-// 2) createWaveIcon fonksiyonunu henüz DOM aşamasında tanımlıyoruz:
+// DISCORD benzeri üst bar
+const channelTopBarTitle = document.getElementById('channelTopBarTitle');
+
+// createWaveIcon fonksiyonu
 function createWaveIcon() {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("width", "16");
@@ -107,7 +110,7 @@ function createWaveIcon() {
   return svg;
 }
 
-// 3) Diğer global değişkenler / socket
+// Diğer global değişkenler
 let localStream;
 let peers = {};
 let audioPermissionGranted = false;
@@ -122,14 +125,14 @@ let selfDeafened = false;
 let currentGroup = null;
 let currentRoom = null;
 
-// Göz atılan (browse edilen) grup
+// Göz atılan grup
 let selectedGroup = null;
 
-// Bağlanması beklenen user listeleri
+// Bağlanması beklenen user list
 let pendingUsers = [];     
 let pendingNewUsers = [];  
 
-// ICE Candidate / session
+// ICE Candidate
 let pendingCandidates = {};
 let sessionUfrag = {};
 
@@ -196,7 +199,6 @@ registerButton.addEventListener('click', () => {
     alert("Tüm alanları doldurun.");
     return;
   }
-
   if (userData.username !== userData.username.toLowerCase()) {
     alert("Kullanıcı adı sadece küçük harf olmalı.");
     return;
@@ -230,6 +232,7 @@ modalGroupJoinBtn.addEventListener('click', () => {
   groupModal.style.display = 'none';
   joinGroupModal.style.display = 'flex';
 });
+
 // Modal: Grup Kur
 actualGroupNameBtn.addEventListener('click', () => {
   const grpName = actualGroupName.value.trim();
@@ -319,6 +322,7 @@ groupDropdownIcon.addEventListener('click', () => {
 });
 
 /* Drop-down menü butonları */
+// Grup ID Kopyala
 copyGroupIdBtn.addEventListener('click', () => {
   groupDropdownMenu.style.display = 'none';
   const grp = currentGroup || selectedGroup;
@@ -333,6 +337,8 @@ copyGroupIdBtn.addEventListener('click', () => {
       alert("Kopyalama başarısız!");
     });
 });
+
+// Grup İsmi Değiştir
 renameGroupBtn.addEventListener('click', () => {
   groupDropdownMenu.style.display = 'none';
   const grp = currentGroup || selectedGroup;
@@ -347,6 +353,8 @@ renameGroupBtn.addEventListener('click', () => {
   }
   socket.emit('renameGroup', { groupId: grp, newName: newName.trim() });
 });
+
+// Kanal Oluştur
 createChannelBtn.addEventListener('click', () => {
   groupDropdownMenu.style.display = 'none';
   const grp = currentGroup || selectedGroup;
@@ -358,6 +366,8 @@ createChannelBtn.addEventListener('click', () => {
   modalRoomName.value = '';
   modalRoomName.focus();
 });
+
+// Grup Sil
 deleteGroupBtn.addEventListener('click', () => {
   groupDropdownMenu.style.display = 'none';
   const grp = currentGroup || selectedGroup;
@@ -403,7 +413,6 @@ document.getElementById('deleteChannelOption').addEventListener('click', () => {
   channelContextMenu.style.display = 'none';
   rightClickedChannelId = null;
 });
-
 // Tıklama dışı => kapat
 document.addEventListener('click', (e) => {
   if (channelContextMenu.style.display === 'block') {
@@ -422,8 +431,7 @@ socket.on('roomsList', (roomsArray) => {
     const channelHeader = document.createElement('div');
     channelHeader.className = 'channel-header';
 
-    // Burada createWaveIcon() => fonksiyon artık tanımlı
-    const icon = createWaveIcon();
+    const icon = createWaveIcon(); // Fonksiyon yukarıda tanımlı
     const textSpan = document.createElement('span');
     textSpan.textContent = roomObj.name;
 
@@ -497,7 +505,7 @@ socket.on('groupUsers', (dbUsersArray) => {
   updateUserList(dbUsersArray);
 });
 
-/* roomUsers => odadaki kullanıcılar => WebRTC init */
+/* roomUsers => WebRTC init */
 socket.on('roomUsers', (usersInRoom) => {
   console.log("roomUsers => odadaki kisiler:", usersInRoom);
 
@@ -566,8 +574,11 @@ function joinRoom(groupId, roomId, roomName) {
   currentGroup = groupId;
   currentRoom = roomId;
 
-  // Kanal başlığını güncelle
+  // "channelBarTitle" => eski bar
   channelBarTitle.textContent = roomName;
+
+  // YENİ => Discord benzeri üst bar => "# KanalAdı"
+  channelTopBarTitle.textContent = "# " + roomName;
 }
 
 /* Ayrıl Butonu => kanaldan çık */
@@ -581,8 +592,9 @@ leaveButton.addEventListener('click', () => {
   leaveButton.style.display = 'none';
   console.log("Kanaldan ayrıldınız.");
 
-  // Kanal bar => sıfırla
+  // Sıfırla
   channelBarTitle.textContent = "Kanal Seçilmedi";
+  channelTopBarTitle.textContent = "# Kanal Seçilmedi";
 
   if (currentGroup) {
     socket.emit('browseGroup', currentGroup);
@@ -918,6 +930,7 @@ socket.on('groupDeleted', (data) => {
     userListDiv.innerHTML = '';
     roomListDiv.innerHTML = '';
     channelBarTitle.textContent = "Kanal Seçilmedi";
+    channelTopBarTitle.textContent = "# Kanal Seçilmedi";
   }
   if (selectedGroup === groupId) {
     selectedGroup = null;
@@ -925,6 +938,7 @@ socket.on('groupDeleted', (data) => {
     userListDiv.innerHTML = '';
     roomListDiv.innerHTML = '';
     channelBarTitle.textContent = "Kanal Seçilmedi";
+    channelTopBarTitle.textContent = "# Kanal Seçilmedi";
   }
   socket.emit('set-username', username);
 });
