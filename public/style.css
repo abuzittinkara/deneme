@@ -107,10 +107,8 @@ body {
   top: 0;
   height: 100%;
 
-  /* Ekranın sol ve üst kenarında => border-top / border-left kaldırıldı */
   border-top: none;
   border-left: none;
-  /* İsterseniz sağ / alt kenarı gösterebilirsiniz (örnek 1px) */
   border-right: 1px solid #444;
   border-bottom: 1px solid #444;
 }
@@ -130,8 +128,6 @@ body {
   padding: 1rem 0;
   position: relative;
 
-  /* Sol, üst ve alt kenarlar ekrana yapışıyor => kaldır.
-     Sadece sağ kenarda 1px border bırakarak rooms-panel ile ayrımı sağla. */
   border-top: none;
   border-left: none;
   border-bottom: none;
@@ -193,7 +189,7 @@ body {
   background-color: #a3156f;
 }
 
-/* Odalar paneli => sağda (yanında sidebar var) => 200px geniş */
+/* Odalar paneli => sağda => 200px */
 .rooms-panel {
   background: #1f1f1f;
   width: 200px; 
@@ -203,10 +199,8 @@ body {
   box-sizing: border-box;
   gap: 1.9rem;
 
-  /* Üst, sol, alt kenarları ekrana veya sidebar’a yapışıyor => kaldır.
-     Sadece sağ kenarda border bırakabilirsiniz. */
   border-top: none;
-  border-left: none;   /* solda sidebar border'ı var => çifte border olmaması için kaldıralım */
+  border-left: none; 
   border-bottom: none;
   border-right: 1px solid #444;
 }
@@ -308,10 +302,8 @@ body {
   padding: 0.5rem;
   box-sizing: border-box;
 
-  /* Kullanıcı panelinin sol ve alt kenarını kaldırıyoruz */
   border-left: none; 
   border-bottom: none; 
-  /* İsterseniz üst / sağ kenarı ekleyebilirsiniz */
   border-top: 1px solid #444; 
   border-right: 1px solid #444;
 }
@@ -381,9 +373,6 @@ body {
   box-sizing: border-box;
   z-index: 999;
 
-  /* Sol kenar ve alt kenar vs. duruyor, 
-     Üstte ekranın kenarıyla çakıştığı için border-top yok isteniyorsa:
-     (Kullanıcı net belirtmedi, ama üstte de yok diyelim) */
   border-top: none; 
   border-right: none; 
   border-bottom: none;
@@ -426,6 +415,14 @@ body {
   font-size: 1.4rem;
 }
 
+/* YENİ EKLENEN: Kanal Bar */
+.channel-bar {
+  background-color: #1f1f1f;
+  padding: 1rem;
+  border: 1px solid #444;
+  margin-bottom: 1rem;
+}
+
 /* Sağ panel */
 .right-panel {
   width: 200px;
@@ -436,8 +433,6 @@ body {
   box-sizing: border-box;
   color: #fff;
 
-  /* Üst, sağ, alt kenarlar ekrana yapışıyor => kaldır.
-     Sadece sol kenar bırakıp main content ayrımı yapalım. */
   border-top: none;
   border-right: none;
   border-bottom: none;

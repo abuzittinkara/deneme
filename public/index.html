@@ -82,7 +82,6 @@
             </div>
           </div>
           <div id="roomList" class="room-list"></div>
-          <!-- Artık createRoomButton yok! (Kaldırıldı) -->
         </div>
       </div>
 
@@ -125,6 +124,11 @@
     </div>
 
     <div class="main-content">
+      <!-- YENİ EKLENEN BAR -->
+      <div id="channelBar" class="channel-bar">
+        <h2 id="channelBarTitle">Kanal Seçilmedi</h2>
+      </div>
+
       <h1 class="app-title">Sesli Görüşme</h1>
       <p>Bir grup seçin, ardından oda (kanal) oluşturup katılın.</p>
     </div>
@@ -132,48 +136,6 @@
     <div class="right-panel" id="rightPanel">
       <!-- Kullanıcı listesi -->
       <div id="userList" class="user-list"></div>
-    </div>
-  </div>
-
-  <!-- Modal: Grup Seçenekleri -->
-  <div id="groupModal" class="modal">
-    <div class="modal-content">
-      <h2>Grup Seçenekleri</h2>
-      <button id="modalGroupCreateBtn" class="btn primary">Grup Kur</button>
-      <button id="modalGroupJoinBtn" class="btn secondary">Gruba Katıl</button>
-    </div>
-  </div>
-  <!-- Modal: Grup Kurma -->
-  <div id="actualGroupCreateModal" class="modal">
-    <div class="modal-content">
-      <h2>Yeni Grup Kur</h2>
-      <input type="text" id="actualGroupName" class="input-text" placeholder="Grup Adı">
-      <div class="modal-buttons">
-        <button id="actualGroupNameBtn" class="btn primary">Oluştur</button>
-        <button id="closeCreateGroupModal" class="btn secondary">Kapat</button>
-      </div>
-    </div>
-  </div>
-  <!-- Modal: Gruba Katıl -->
-  <div id="joinGroupModal" class="modal">
-    <div class="modal-content">
-      <h2>Gruba Katıl</h2>
-      <input type="text" id="joinGroupIdInput" class="input-text" placeholder="Grup ID">
-      <div class="modal-buttons">
-        <button id="joinGroupIdBtn" class="btn primary">Gruba Katıl</button>
-        <button id="closeJoinGroupModal" class="btn secondary">Kapat</button>
-      </div>
-    </div>
-  </div>
-  <!-- Modal: Oda Oluşturma -->
-  <div id="roomModal" class="modal">
-    <div class="modal-content">
-      <h2>Oda Oluştur</h2>
-      <input type="text" id="modalRoomName" class="input-text" placeholder="Oda Adı">
-      <div class="modal-buttons">
-        <button id="modalCreateRoomBtn" class="btn primary">Oluştur</button>
-        <button id="modalCloseRoomBtn" class="btn secondary">Kapat</button>
-      </div>
     </div>
   </div>
 
