@@ -106,11 +106,6 @@ body {
   left: 0;
   top: 0;
   height: 100%;
-
-  /* Ekranın sol ve üst kenarında => border-top / border-left kaldırıldı */
-  border-top: none;
-  border-left: none;
-  /* İsterseniz sağ / alt kenarı gösterebilirsiniz (örnek 1px) */
   border-right: 1px solid #444;
   border-bottom: 1px solid #444;
 }
@@ -129,12 +124,6 @@ body {
   align-items: center;
   padding: 1rem 0;
   position: relative;
-
-  /* Sol, üst ve alt kenarlar ekrana yapışıyor => kaldır.
-     Sadece sağ kenarda 1px border bırakarak rooms-panel ile ayrımı sağla. */
-  border-top: none;
-  border-left: none;
-  border-bottom: none;
   border-right: 1px solid #444; 
 }
 .dm-toggle-btn {
@@ -193,7 +182,7 @@ body {
   background-color: #a3156f;
 }
 
-/* Odalar paneli => sağda (yanında sidebar var) => 200px geniş */
+/* Odalar paneli => sağda */
 .rooms-panel {
   background: #1f1f1f;
   width: 200px; 
@@ -202,12 +191,6 @@ body {
   padding: 1rem;
   box-sizing: border-box;
   gap: 1.9rem;
-
-  /* Üst, sol, alt kenarları ekrana veya sidebar’a yapışıyor => kaldır.
-     Sadece sağ kenarda border bırakabilirsiniz. */
-  border-top: none;
-  border-left: none;   /* solda sidebar border'ı var => çifte border olmaması için kaldıralım */
-  border-bottom: none;
   border-right: 1px solid #444;
 }
 .room-panel-header {
@@ -254,7 +237,7 @@ body {
   gap: 0rem;
 }
 
-/* Kanal item => volume-up-fill ikonu, no border/arka plan */
+/* Kanal item */
 .channel-item {
   display: flex;
   flex-direction: column;
@@ -292,7 +275,6 @@ body {
   border-radius: 45%;
   background-color: #666;
 }
-
 /* Konuşan kullanıcı => 2px pembe stroke dışta */
 .channel-user-avatar.speaking {
   box-shadow: 0 0 0 2px #c61884;
@@ -307,11 +289,6 @@ body {
   background: #1a1a1a;
   padding: 0.5rem;
   box-sizing: border-box;
-
-  /* Kullanıcı panelinin sol ve alt kenarını kaldırıyoruz */
-  border-left: none; 
-  border-bottom: none; 
-  /* İsterseniz üst / sağ kenarı ekleyebilirsiniz */
   border-top: 1px solid #444; 
   border-right: 1px solid #444;
 }
@@ -380,13 +357,6 @@ body {
   padding: 1rem;
   box-sizing: border-box;
   z-index: 999;
-
-  /* Sol kenar ve alt kenar vs. duruyor, 
-     Üstte ekranın kenarıyla çakıştığı için border-top yok isteniyorsa:
-     (Kullanıcı net belirtmedi, ama üstte de yok diyelim) */
-  border-top: none; 
-  border-right: none; 
-  border-bottom: none;
   border-left: 1px solid #444;
 }
 .settings-panel-header {
@@ -435,12 +405,6 @@ body {
   flex-direction: column;
   box-sizing: border-box;
   color: #fff;
-
-  /* Üst, sağ, alt kenarlar ekrana yapışıyor => kaldır.
-     Sadece sol kenar bırakıp main content ayrımı yapalım. */
-  border-top: none;
-  border-right: none;
-  border-bottom: none;
   border-left: 1px solid #444;
 }
 
@@ -553,4 +517,14 @@ body {
   .user-panel { width:200px; }
   .app-title { font-size:1.2rem; }
   .right-panel { width:200px; }
+}
+
+/* Yeni eklenen panel (seçili kanal içeriği) */
+.channel-content-panel {
+  background: #1f1f1f;
+  border: 1px solid #444;
+  border-radius: 6px;
+  margin-top: 1rem;
+  padding: 1rem;
+  min-height: 100px;
 }
