@@ -649,6 +649,13 @@ socket.on('roomUsers', (usersInRoom) => {
 /* joinRoom => WebRTC */
 function joinRoom(groupId, roomId, roomName) {
   socket.emit('joinRoom', { groupId, roomId });
+
+  // Kanal başlığını güncelle
+  const channelTitleElem = document.getElementById('selectedChannelTitle');
+  if (channelTitleElem) {
+    channelTitleElem.textContent = roomName;
+  }
+
   // Ayrıl butonunu göster
   leaveButton.style.display = 'flex';
 
@@ -666,6 +673,12 @@ leaveButton.addEventListener('click', () => {
   currentRoom = null;
   leaveButton.style.display = 'none';
   console.log("Kanaldan ayrıldınız.");
+
+  // Kanal başlığını sıfırla
+  const channelTitleElem = document.getElementById('selectedChannelTitle');
+  if (channelTitleElem) {
+    channelTitleElem.textContent = 'Kanal Seçilmedi';
+  }
 
   // Tekrar grubun odalarını listele
   if (currentGroup) {

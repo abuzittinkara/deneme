@@ -82,7 +82,6 @@
             </div>
           </div>
           <div id="roomList" class="room-list"></div>
-          <!-- Artık createRoomButton yok! (Kaldırıldı) -->
         </div>
       </div>
 
@@ -124,9 +123,14 @@
       </div>
     </div>
 
+    <!-- Ortadaki ana içerik: Artık seçili kanalı görüntülemek için bar ve içerik alanı var -->
     <div class="main-content">
-      <h1 class="app-title">Sesli Görüşme</h1>
-      <p>Bir grup seçin, ardından oda (kanal) oluşturup katılın.</p>
+      <div id="selectedChannelBar" class="selected-channel-bar">
+        <h2 id="selectedChannelTitle" class="selected-channel-title">Kanal Seçilmedi</h2>
+      </div>
+      <div id="channelContentArea" class="channel-content-area">
+        <p>Kanal içeriği burada görünecek (Henüz geliştirilmedi).</p>
+      </div>
     </div>
 
     <div class="right-panel" id="rightPanel">

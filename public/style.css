@@ -385,10 +385,6 @@ body {
   overflow: auto;
   color: #fff;
 }
-.app-title {
-  margin: 0 0 1rem;
-  font-size: 1.4rem;
-}
 
 /* Sağ panel */
 .right-panel {
@@ -513,4 +509,24 @@ body {
   .user-panel { width:200px; }
   .app-title { font-size:1.2rem; }
   .right-panel { width:200px; }
+}
+
+/* Yeni eklenen kısım: Seçili kanal bar & içerik alanı */
+.selected-channel-bar {
+  border-bottom: 1px solid #444;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+.selected-channel-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+.channel-content-area {
+  background: #2d2d2d;
+  border: 1px solid #444;
+  border-radius: 6px;
+  padding: 1rem;
+  box-sizing: border-box;
+  min-height: 200px;
 }
