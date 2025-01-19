@@ -2,7 +2,7 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Roboto', sans-serif; /* isteğe bağlı */
+  font-family: 'Roboto', sans-serif;
   background: #2d2d2d;
   color: #fff;
   font-size: 16px;
@@ -107,8 +107,10 @@ body {
   top: 0;
   height: 100%;
 
+  /* Ekranın sol ve üst kenarında => border-top / border-left kaldırıldı */
   border-top: none;
   border-left: none;
+  /* İsterseniz sağ / alt kenarı gösterebilirsiniz (örnek 1px) */
   border-right: 1px solid #444;
   border-bottom: 1px solid #444;
 }
@@ -128,6 +130,8 @@ body {
   padding: 1rem 0;
   position: relative;
 
+  /* Sol, üst ve alt kenarlar ekrana yapışıyor => kaldır.
+     Sadece sağ kenarda 1px border bırakarak rooms-panel ile ayrımı sağla. */
   border-top: none;
   border-left: none;
   border-bottom: none;
@@ -189,7 +193,7 @@ body {
   background-color: #a3156f;
 }
 
-/* Odalar paneli => sağda => 200px */
+/* Odalar paneli => sağda (yanında sidebar var) => 200px geniş */
 .rooms-panel {
   background: #1f1f1f;
   width: 200px; 
@@ -199,8 +203,10 @@ body {
   box-sizing: border-box;
   gap: 1.9rem;
 
+  /* Üst, sol, alt kenarları ekrana veya sidebar’a yapışıyor => kaldır.
+     Sadece sağ kenarda border bırakabilirsiniz. */
   border-top: none;
-  border-left: none; 
+  border-left: none;   /* solda sidebar border'ı var => çifte border olmaması için kaldıralım */
   border-bottom: none;
   border-right: 1px solid #444;
 }
@@ -302,8 +308,10 @@ body {
   padding: 0.5rem;
   box-sizing: border-box;
 
+  /* Kullanıcı panelinin sol ve alt kenarını kaldırıyoruz */
   border-left: none; 
   border-bottom: none; 
+  /* İsterseniz üst / sağ kenarı ekleyebilirsiniz */
   border-top: 1px solid #444; 
   border-right: 1px solid #444;
 }
@@ -358,10 +366,58 @@ body {
   color: #fff;
 }
 
+/* AYARLAR Paneli */
+.settings-panel {
+  position: absolute;
+  top: 0; 
+  right: 0;
+  width: 300px;
+  height: 100%;
+  background: #222;
+  color: #fff;
+  display: none; 
+  flex-direction: column;
+  padding: 1rem;
+  box-sizing: border-box;
+  z-index: 999;
+
+  /* Sol kenar ve alt kenar vs. duruyor, 
+     Üstte ekranın kenarıyla çakıştığı için border-top yok isteniyorsa:
+     (Kullanıcı net belirtmedi, ama üstte de yok diyelim) */
+  border-top: none; 
+  border-right: none; 
+  border-bottom: none;
+  border-left: 1px solid #444;
+}
+.settings-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.settings-title {
+  font-size: 1.2rem;
+  margin: 0;
+}
+.settings-close-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.settings-close-btn:hover {
+  color: #c61884;
+}
+.settings-content {
+  margin-top: 2rem;
+  flex: 1; 
+  overflow: auto; 
+}
+
 /* Ortadaki ana içerik */
 .main-content {
   flex: 1;
-  padding: 2rem;
+  padding: 15rem;
   overflow: auto;
   color: #fff;
 }
@@ -370,7 +426,7 @@ body {
   font-size: 1.4rem;
 }
 
-/* Sağ panel => 200px */
+/* Sağ panel */
 .right-panel {
   width: 200px;
   background: #1f1f1f;
@@ -380,6 +436,8 @@ body {
   box-sizing: border-box;
   color: #fff;
 
+  /* Üst, sağ, alt kenarlar ekrana yapışıyor => kaldır.
+     Sadece sol kenar bırakıp main content ayrımı yapalım. */
   border-top: none;
   border-right: none;
   border-bottom: none;
@@ -464,7 +522,7 @@ body {
   display: none;
 }
 
-/* context-menu (kanallara sağ tık) */
+/* context-menu */
 .context-menu {
   position: absolute;
   background: #2d2d2d;
@@ -489,7 +547,6 @@ body {
   background: #444;
 }
 
-/* Responsive */
 @media (max-width: 600px) {
   .left-panels { width:65px; }
   .rooms-panel { width:200px; }
