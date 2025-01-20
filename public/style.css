@@ -263,13 +263,11 @@ body {
   border-radius: 45%;
   background-color: #666;
 }
-
-/* Konuşan kullanıcı => 2px pembe stroke dışta */
 .channel-user-avatar.speaking {
   box-shadow: 0 0 0 2px #c61884;
 }
 
-/* "Kanal Durumu" Panel => user-panel'in üstünde görünecek */
+/* "Kanal Durum" Panel => user-panel'in üstünde (265px genişlik) */
 .channel-status-panel {
   position: relative;
   width: 265px;
@@ -277,25 +275,41 @@ body {
   box-sizing: border-box;
   border-top: 1px solid #444;  
   border-right: 1px solid #444;
-  height: 60px; /* user-panel kadar bir yükseklik */
+  height: 60px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding: 0.5rem;
 }
-
-/* İçindeki satır: Ping değeri + Leave butonu */
 .chan-status-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-.ping-info {
-  font-size: 0.85rem;
-  color: #fff;
+
+/* 4 bar => cellular sinyal hissi */
+.signal-bars {
+  display: flex;
+  gap: 2px;
+}
+.cell-bar {
+  width: 6px;
+  background: #666;
+  border-radius: 2px;
+  align-self: flex-end;
+  transition: all 0.2s ease;
+}
+#cellBar1 { height: 10%; }
+#cellBar2 { height: 30%; }
+#cellBar3 { height: 55%; }
+#cellBar4 { height: 80%; }
+
+/* Aktif bar => pembe */
+.cell-bar.active {
+  background: #c61884;
 }
 
-/* Leave-btn => Ionicon */
+/* Leave button (Kanaldan ayrıl) */
 .leave-btn {
   background: none;
   border: 2px solid #c61884;
@@ -322,7 +336,7 @@ body {
   background: #1a1a1a;
   padding: 0.5rem;
   box-sizing: border-box;
-  border-top: 1px solid #444;
+  border-top: 1px solid #444;  
   border-right: 1px solid #444;
 }
 .user-panel-content {
