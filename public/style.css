@@ -140,7 +140,7 @@ body {
   background-color: #a3156f;
 }
 
-/* Grup item => yuvarlak */
+/* grp-item => yuvarlak, animasyon, seçili hâl */
 .grp-item {
   width: 43px;
   height: 43px;
@@ -369,7 +369,7 @@ body {
 .user-panel-btn:hover {
   color: #c61884;
 }
-/* mic/deaf kapalı => pembe */
+/* Mik/Deaf kapalı => pembe */
 .user-panel-btn.btn-muted .material-icons {
   color: #c61884 !important;
 }
@@ -564,7 +564,7 @@ body {
   left: 0.55rem;
 }
 
-/* context-menu (kanallara sağ tık) */
+/* context-menu */
 .context-menu {
   position: absolute;
   background: #2d2d2d;

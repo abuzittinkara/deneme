@@ -15,7 +15,6 @@ let selfDeafened = false;
 
 let currentGroup = null;
 let currentRoom = null;
-
 let selectedGroup = null;
 
 let pendingUsers = [];
@@ -29,7 +28,7 @@ const SPEAKING_THRESHOLD = 0.0;
 const VOLUME_CHECK_INTERVAL = 100;
 let pingInterval = null;
 
-/* Material Icons => "volume_up" */
+/* Artık Ionicon yok, Material Icons (ses dalgası => volume_up) */
 function createWaveIcon() {
   const icon = document.createElement('span');
   icon.classList.add('material-icons');
@@ -64,7 +63,7 @@ const backToLoginButton = document.getElementById('backToLoginButton');
 const showRegisterScreen = document.getElementById('showRegisterScreen');
 const showLoginScreen = document.getElementById('showLoginScreen');
 
-// Sidebar
+// Sidebar (Gruplar)
 const groupListDiv = document.getElementById('groupList');
 const createGroupButton = document.getElementById('createGroupButton');
 
@@ -83,7 +82,7 @@ const toggleDMButton = document.getElementById('toggleDMButton');
 const closeDMButton = document.getElementById('closeDMButton');
 let isDMMode = false;
 
-// Kullanıcı listesi
+// Sağ panel
 const userListDiv = document.getElementById('userList');
 
 // Kanal Durum Paneli
@@ -97,11 +96,11 @@ const cellBar4 = document.getElementById('cellBar4');
 // Ayrıl Butonu
 const leaveButton = document.getElementById('leaveButton');
 
-// mic / deaf
+// Mikrofon / Kulaklık butonları
 const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
 
-// Ekran geçişleri
+/* Ekran geçişleri */
 showRegisterScreen.addEventListener('click', () => {
   loginScreen.style.display = 'none';
   registerScreen.style.display = 'block';
@@ -125,6 +124,7 @@ loginButton.addEventListener('click', () => {
   }
   socket.emit('login', { username: usernameVal, password: passwordVal });
 });
+
 socket.on('loginResult', (data) => {
   if (data.success) {
     username = data.username;
@@ -236,7 +236,7 @@ document.getElementById('modalCloseRoomBtn').addEventListener('click', () => {
   document.getElementById('roomModal').style.display = 'none';
 });
 
-/* Gruplar listesi => sol sidebar */
+/* groupsList => sol sidebar */
 socket.on('groupsList', (groupArray) => {
   groupListDiv.innerHTML = '';
   groupArray.forEach(groupObj => {
@@ -254,7 +254,6 @@ socket.on('groupsList', (groupArray) => {
       groupTitle.textContent = groupObj.name;
       socket.emit('browseGroup', groupObj.id);
 
-      // Owner check => "Grubu Sil" & "Grup İsmi Değiştir"
       if (groupObj.owner === username) {
         deleteGroupBtn.style.display = 'block';
         renameGroupBtn.style.display = 'block';
@@ -268,7 +267,7 @@ socket.on('groupsList', (groupArray) => {
   });
 });
 
-/* groupDropdownIcon => menü aç/kapat */
+/* groupDropdownIcon => menüyü aç/kapat */
 groupDropdownIcon.addEventListener('click', () => {
   if (groupDropdownMenu.style.display === 'none' || groupDropdownMenu.style.display === '') {
     groupDropdownMenu.style.display = 'block';
@@ -438,7 +437,7 @@ socket.on('roomsList', (roomsArray) => {
   });
 });
 
-/* allChannelsData => her kanalın kullanıcıları */
+/* allChannelsData => user list in each channel */
 socket.on('allChannelsData', (channelsObj) => {
   Object.keys(channelsObj).forEach(roomId => {
     const cData = channelsObj[roomId];
@@ -563,7 +562,7 @@ function hideChannelStatusPanel() {
   stopPingInterval();
 }
 
-/* Ping & Hücresel bar */
+/* Ping + Hücresel bar */
 function startPingInterval() {
   if (pingInterval) clearInterval(pingInterval);
   pingInterval = setInterval(() => {
@@ -607,7 +606,7 @@ function updateCellBars(ping) {
   if (barsActive >= 4) cellBar4.classList.add('active');
 }
 
-/* Sağ panel => user list */
+/* updateUserList => sağ panel */
 function updateUserList(data) {
   userListDiv.innerHTML = '';
 
@@ -834,7 +833,7 @@ function closeAllPeers() {
   sessionUfrag = {};
 }
 
-/* Mikrofon & Kulaklık butonları */
+/* Mikrofon & Kulaklık butonları => "headset" / "headset_off" */
 micToggleButton.addEventListener('click', () => {
   micEnabled = !micEnabled;
   applyAudioStates();
@@ -845,34 +844,45 @@ deafenToggleButton.addEventListener('click', () => {
   applyAudioStates();
 });
 
+/* Son hâl: 
+   - mic => mic / mic_off
+   - deafen => headset / headset_off
+*/
 function applyAudioStates() {
+  // Track
   if (localStream) {
     localStream.getAudioTracks().forEach(track => {
       track.enabled = micEnabled && !selfDeafened;
     });
   }
-  // Mikrofon ikonu => mic / mic_off
+  // Mikrofon
   if (!micEnabled || selfDeafened) {
+    // mic_off
     micToggleButton.innerHTML = `<span class="material-icons">mic_off</span>`;
     micToggleButton.classList.add('btn-muted');
   } else {
+    // mic
     micToggleButton.innerHTML = `<span class="material-icons">mic</span>`;
     micToggleButton.classList.remove('btn-muted');
   }
-  // Deaf ikonu => volume_up / volume_off
+  // Deaf
   if (selfDeafened) {
-    deafenToggleButton.innerHTML = `<span class="material-icons">volume_off</span>`;
+    // Headset Off
+    deafenToggleButton.innerHTML = `<span class="material-icons">headset_off</span>`;
     deafenToggleButton.classList.add('btn-muted');
   } else {
-    deafenToggleButton.innerHTML = `<span class="material-icons">volume_up</span>`;
+    // Headset
+    deafenToggleButton.innerHTML = `<span class="material-icons">headset</span>`;
     deafenToggleButton.classList.remove('btn-muted');
   }
+
+  // Sesi kapat
   remoteAudios.forEach(audio => {
     audio.muted = selfDeafened;
   });
 }
 
-/* parseIceUfrag */
+/* parseIceUfrag => a=ice-ufrag:... */
 function parseIceUfrag(sdp) {
   const lines = sdp.split('\n');
   for (const line of lines) {
@@ -883,7 +893,7 @@ function parseIceUfrag(sdp) {
   return null;
 }
 
-/* groupRenamed */
+/* groupRenamed => UI update */
 socket.on('groupRenamed', (data) => {
   const { groupId, newName } = data;
   if (currentGroup === groupId || selectedGroup === groupId) {
@@ -892,7 +902,7 @@ socket.on('groupRenamed', (data) => {
   socket.emit('set-username', username);
 });
 
-/* groupDeleted */
+/* groupDeleted => UI reset */
 socket.on('groupDeleted', (data) => {
   const { groupId } = data;
   if (currentGroup === groupId) {
@@ -922,7 +932,7 @@ socket.on("disconnect", () => {
   hideChannelStatusPanel();
 });
 
-/* Konuşma Algılama */
+/* Konuşma Algılama (avatar stroke) */
 function startVolumeAnalysis(stream, userId) {
   stopVolumeAnalysis(userId);
 
@@ -945,6 +955,7 @@ function startVolumeAnalysis(stream, userId) {
     }
     const average = sum / dataArray.length;
     const avatarElem = document.getElementById(`avatar-${userId}`);
+
     if (avatarElem) {
       if (average > SPEAKING_THRESHOLD) {
         avatarElem.classList.add('speaking');
