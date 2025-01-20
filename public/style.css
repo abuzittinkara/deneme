@@ -269,7 +269,7 @@ body {
   box-shadow: 0 0 0 2px #c61884;
 }
 
-/* "Kanal Durumu" Panel => user-panel'in üstünde görünecek */
+/* Kanal Durumu Panel => user-panel üstünde */
 .channel-status-panel {
   position: relative;
   width: 265px;
@@ -277,14 +277,12 @@ body {
   box-sizing: border-box;
   border-top: 1px solid #444;  
   border-right: 1px solid #444;
-  height: 60px; /* user-panel kadar bir yükseklik */
+  height: 60px; 
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding: 0.5rem;
 }
-
-/* İçindeki satır: Ping değeri + Leave butonu */
 .chan-status-content {
   display: flex;
   align-items: center;
@@ -294,8 +292,6 @@ body {
   font-size: 0.85rem;
   color: #fff;
 }
-
-/* Leave-btn => Ionicon */
 .leave-btn {
   background: none;
   border: 2px solid #c61884;

@@ -55,7 +55,6 @@
         <!-- Sidebar (Gruplar) -->
         <div class="sidebar" id="sidebar">
           <button id="toggleDMButton" class="circle-btn dm-toggle-btn">
-            <!-- Ionicons: DM (mail) ikonu -->
             <ion-icon name="mail-outline"></ion-icon>
           </button>
           <!-- Gruplar listesi -->
@@ -84,12 +83,10 @@
 
       <!-- KULLANICI PANELİNİN ÜSTÜNDE GÖRÜNECEK "KANAL DURUM" PANELİ -->
       <div id="channelStatusPanel" class="channel-status-panel" style="display:none;">
-        <!-- Ping ve ayrıl butonu satırı -->
         <div class="chan-status-content">
           <div class="ping-info">
             Bağlantı: <span id="pingValue">--</span> ms
           </div>
-          <!-- "Kanaldan ayrıl" butonu burada -->
           <button id="leaveButton" class="leave-btn">
             <ion-icon name="call-outline"></ion-icon>
           </button>
@@ -106,7 +103,6 @@
           <div class="user-panel-buttons">
             <button id="micToggleButton" class="user-panel-btn" title="Mikrofon Aç/Kapa" style="width:22px;height:22px;"></button>
             <button id="deafenToggleButton" class="user-panel-btn" title="Kendini Sağırlaştır" style="width:22px;height:22px;"></button>
-            <!-- Artık "leaveButton" burada yok! (Taşındı channelStatusPanel'e) -->
           </div>
         </div>
       </div>
@@ -128,7 +124,7 @@
     </div>
   </div>
 
-  <!-- DM paneli (isteğe bağlı görünür) -->
+  <!-- DM paneli -->
   <div id="dmPanel" class="dm-panel" style="display:none;">
     <button id="closeDMButton" class="circle-btn dm-close-btn">
       <ion-icon name="arrow-back-outline"></ion-icon>
