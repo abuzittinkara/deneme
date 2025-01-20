@@ -151,7 +151,7 @@ body {
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  transition: all 0.50s ease;
+  transition: all 0.50s ease;  /* Bu sadece grup ikonları için geçerli */
   border: 2px solid transparent;
 }
 .grp-item:hover {
@@ -357,6 +357,7 @@ body {
   gap: 0.5rem;
   align-items: center;
 }
+/* user-panel-btn => artık hover'da renk değişmesin/hareket etmesin */
 .user-panel-btn {
   background: none;
   border: none;
@@ -365,11 +366,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  /* Hover kaldırıldı => .user-panel-btn:hover { color: #c61884; } Silindi! */
 }
-.user-panel-btn:hover {
-  color: #c61884;
-}
-/* Mik/Deaf kapalı => pembe */
 .user-panel-btn.btn-muted .material-icons {
   color: #c61884 !important;
 }
