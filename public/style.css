@@ -174,7 +174,7 @@ body {
 }
 .room-panel-header {
   /* Grup başlığı yüksekliğini sabitle */
-  min-height: 56px;
+  min-height: 50px;
   display: flex;
   align-items: center;
   position: sticky;
@@ -280,6 +280,7 @@ body {
   padding: 0.5rem;
   box-sizing: border-box;
   border-top: 1px solid #444;  /* Üst kenar */
+  border-right: 1px solid #444;
 }
 .user-panel-content {
   display: flex;
@@ -391,7 +392,7 @@ body {
   background: #2d2d2d;
   border-bottom: 1px solid #444;
   padding: 0.75rem 1rem; /* Aynı padding => room-panel-header */
-  min-height: 56px;     /* Aynı min-height => eşit yükseklik */
+  min-height: 50px;     /* Aynı min-height => eşit yükseklik */
   display: flex;
   align-items: center;
   box-sizing: border-box;
