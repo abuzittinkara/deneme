@@ -40,29 +40,12 @@ const SPEAKING_THRESHOLD = 0.0;
 // Her 100ms ses ölçümü
 const VOLUME_CHECK_INTERVAL = 100;
 
-/* volume-up-fill ikonu */
+/* createWaveIcon => eski SVG yerine Ionicon */
 function createWaveIcon() {
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("width", "16");
-  svg.setAttribute("height", "16");
-  svg.setAttribute("fill", "currentColor");
-  svg.setAttribute("class", "channel-icon bi bi-volume-up-fill");
-  svg.setAttribute("viewBox", "0 0 16 16");
-
-  const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path1.setAttribute("d", "M9.717.55A.5.5 0 0 1 10 .999v14a.5.5 0 0 1-.783.409L5.825 12H3.5A1.5 1.5 0 0 1 2 10.5v-5A1.5 1.5 0 0 1 3.5 4h2.325l3.392-2.409a.5.5 0 0 1 .5-.041z");
-
-  const path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path2.setAttribute("d", "M13.493 1.957a.5.5 0 0 1 .014.706 7.979 7.979 0 0 1 0 10.674.5.5 0 1 1-.72-.694 6.979 6.979 0 0 0 0-9.286.5.5 0 0 1 .706-.014z");
-
-  const path3 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path3.setAttribute("d", "M11.534 3.16a.5.5 0 0 1 .12.7 4.978 4.978 0 0 1 0 5.281.5.5 0 1 1-.82-.574 3.978 3.978 0 0 0 0-4.133.5.5 0 0 1 .7-.12z");
-
-  svg.appendChild(path1);
-  svg.appendChild(path2);
-  svg.appendChild(path3);
-
-  return svg;
+  const icon = document.createElement('ion-icon');
+  icon.setAttribute('name', 'volume-high-outline');
+  icon.classList.add('channel-icon'); // style.css içinde .channel-icon ile boyut vb. ayarlayabiliriz
+  return icon;
 }
 
 // DOM Ekranları
@@ -448,6 +431,21 @@ deleteGroupBtn.addEventListener('click', () => {
   socket.emit('deleteGroup', grp);
 });
 
+/* DM paneli aç/kapa */
+toggleDMButton.addEventListener('click', () => {
+  if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
+    dmPanel.style.display = 'block';
+    isDMMode = true;
+  } else {
+    dmPanel.style.display = 'none';
+    isDMMode = false;
+  }
+});
+closeDMButton.addEventListener('click', () => {
+  dmPanel.style.display = 'none';
+  isDMMode = false;
+});
+
 /* ----- KANALLAR => RIGHT-CLICK (context menu) -> rename/delete ----- */
 
 // context menu div
@@ -506,7 +504,9 @@ socket.on('roomsList', (roomsArray) => {
     const channelHeader = document.createElement('div');
     channelHeader.className = 'channel-header';
 
+    // Ionicon yerine createWaveIcon() (artık Ionicons döndürüyor)
     const icon = createWaveIcon();
+
     const textSpan = document.createElement('span');
     textSpan.textContent = roomObj.name;
 
