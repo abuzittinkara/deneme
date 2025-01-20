@@ -79,12 +79,12 @@ body {
   height: 100vh;
 }
 
-/* Soldaki Ana Panel (Gruplar + Kanallar + Kullanıcı Paneli alt tarafta) */
+/* Soldaki Ana Panel */
 #leftPanels.left-panels {
   display: flex;
   flex-direction: column;
   height: 100%;
-  width: 265px;  /* Toplam: sidebar(65px) + rooms(200px) */
+  width: 265px;
   box-sizing: border-box;
 }
 
@@ -97,7 +97,7 @@ body {
   box-sizing: border-box;
 }
 
-/* Sidebar (Gruplar) => 65px */
+/* Sidebar => 65px */
 .sidebar {
   width: 65px;  
   background: #1a1a1a; 
@@ -107,7 +107,7 @@ body {
   padding: 1rem 0;
   position: relative;
   box-sizing: border-box;
-  border-right: 1px solid #444; /* Sadece sağ kenar */
+  border-right: 1px solid #444; 
 }
 .dm-toggle-btn {
   margin-bottom: 1rem;
@@ -118,12 +118,11 @@ body {
   gap: 0.6rem;
 }
 
-/* Grup oluştur butonu (normal flow) */
+/* Grup oluştur butonu => normal flow */
 .create-group-btn {
   margin-top: 1rem;
 }
 
-/* circle-btn */
 .circle-btn {
   background-color: #c61884;
   color: #fff;
@@ -141,7 +140,7 @@ body {
   background-color: #a3156f;
 }
 
-/* grp-item => yuvarlak, animasyon, seçili hâl */
+/* Grup item => yuvarlak */
 .grp-item {
   width: 43px;
   height: 43px;
@@ -170,7 +169,7 @@ body {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  border-right: 1px solid #444; /* Sadece sağ kenar */
+  border-right: 1px solid #444; 
 }
 .room-panel-header {
   min-height: 50px;
@@ -267,7 +266,7 @@ body {
   box-shadow: 0 0 0 2px #c61884;
 }
 
-/* "Kanal Durum" Panel => user-panel'in üstünde (265px genişlik) */
+/* Kanal Durum Paneli => user-panel üstü */
 .channel-status-panel {
   position: relative;
   width: 265px;
@@ -287,7 +286,7 @@ body {
   justify-content: space-between;
 }
 
-/* 4 bar => cellular sinyal hissi */
+/* 4 bar => cellular hissi */
 .signal-bars {
   display: flex;
   gap: 2px;
@@ -304,12 +303,11 @@ body {
 #cellBar3 { height: 55%; }
 #cellBar4 { height: 80%; }
 
-/* Aktif bar => pembe */
 .cell-bar.active {
   background: #c61884;
 }
 
-/* Leave button (Kanaldan ayrıl) */
+/* Kanaldan ayrıl => call_end */
 .leave-btn {
   background: none;
   border: 2px solid #c61884;
@@ -371,9 +369,8 @@ body {
 .user-panel-btn:hover {
   color: #c61884;
 }
-
-/* Mikrofon/Deaf kapalı => pembe renk ikonu */
-.user-panel-btn.btn-muted ion-icon {
+/* mic/deaf kapalı => pembe */
+.user-panel-btn.btn-muted .material-icons {
   color: #c61884 !important;
 }
 
@@ -513,7 +510,7 @@ body {
   background: #777;
 }
 
-/* Modal Stil */
+/* Modal */
 .modal {
   position: fixed;
   top: 0; 

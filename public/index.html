@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sesli Görüşme Uygulaması</title>
+
+  <!-- Material Icons (Google) -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
@@ -54,12 +58,15 @@
       <div id="groupsAndRooms" class="groups-rooms">
         <!-- Sidebar (Gruplar) -->
         <div class="sidebar" id="sidebar">
+          <!-- DM Butonu => mail_outline -->
           <button id="toggleDMButton" class="circle-btn dm-toggle-btn">
-            <ion-icon name="mail-outline"></ion-icon>
+            <span class="material-icons">mail_outline</span>
           </button>
+          <!-- Gruplar listesi -->
           <div id="groupList" class="group-list"></div>
+          <!-- Grup Oluştur Butonu => add_circle_outline -->
           <button id="createGroupButton" class="circle-btn create-group-btn">
-            <ion-icon name="add-outline"></ion-icon>
+            <span class="material-icons">add_circle_outline</span>
           </button>
         </div>
 
@@ -91,9 +98,9 @@
           </div>
           <!-- Gerçek ping değeri -->
           <span id="pingValue" style="font-size:0.85rem;">-- ms</span>
-          <!-- Kanaldan ayrıl -->
+          <!-- Kanaldan ayrıl => call_end -->
           <button id="leaveButton" class="leave-btn">
-            <ion-icon name="call-outline"></ion-icon>
+            <span class="material-icons">call_end</span>
           </button>
         </div>
       </div>
@@ -106,14 +113,16 @@
             <span id="leftUserName" class="left-username">(Kullanıcı)</span>
           </div>
           <div class="user-panel-buttons">
+            <!-- Mik parantez => mic / mic_off -->
             <button id="micToggleButton" class="user-panel-btn" title="Mikrofon Aç/Kapa" style="width:22px;height:22px;"></button>
+            <!-- Volume => volume_up / volume_off -->
             <button id="deafenToggleButton" class="user-panel-btn" title="Kendini Sağırlaştır" style="width:22px;height:22px;"></button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Ortadaki ana içerik: Seçili kanal bar üstte, içerik alanı altta -->
+    <!-- Ortadaki ana içerik -->
     <div class="main-content">
       <div id="selectedChannelBar" class="selected-channel-bar">
         <h2 id="selectedChannelTitle" class="selected-channel-title">Kanal Seçilmedi</h2>
@@ -131,8 +140,9 @@
 
   <!-- DM paneli -->
   <div id="dmPanel" class="dm-panel" style="display:none;">
+    <!-- arrow_back -->
     <button id="closeDMButton" class="circle-btn dm-close-btn">
-      <ion-icon name="arrow-back-outline"></ion-icon>
+      <span class="material-icons">arrow_back</span>
     </button>
     <h3 style="margin-top:2.5rem;">DM Mesajları</h3>
     <p>Birebir mesajlar buraya gelecek.</p>
@@ -183,9 +193,5 @@
   <!-- Socket.io ve script.js -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="script.js"></script>
-
-  <!-- Ionicons (CDN) -->
-  <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
-  <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
 </body>
 </html>
