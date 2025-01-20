@@ -4,7 +4,7 @@ body {
   padding: 0;
   font-family: 'Roboto', sans-serif;
   background: #2d2d2d;
-  color: #fff;
+  color: #aaa; /* Tüm yazılar #aaa */
   font-size: 16px;
 }
 
@@ -29,6 +29,7 @@ body {
 .app-title {
   margin: 0 0 1rem;
   font-size: 1.5rem;
+  /* renk body'den miras: #aaa */
 }
 
 .input-text {
@@ -117,12 +118,9 @@ body {
   flex-direction: column;
   gap: 0.6rem;
 }
-
-/* Grup oluştur butonu => normal flow */
 .create-group-btn {
   margin-top: 1rem;
 }
-
 .circle-btn {
   background-color: #c61884;
   color: #fff;
@@ -151,7 +149,7 @@ body {
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  transition: all 0.50s ease;  /* Bu sadece grup ikonları için geçerli */
+  transition: all 0.50s ease;
   border: 2px solid transparent;
 }
 .grp-item:hover {
@@ -186,7 +184,7 @@ body {
 .panel-title {
   margin: 0;
   font-size: 1rem;
-  color: #fff;
+  /* renk body'den miras => #aaa */
 }
 .dropdown-icon {
   cursor: pointer;
@@ -230,6 +228,14 @@ body {
   flex-direction: column;
   cursor: pointer;
   margin-bottom: 0.4rem;
+  /* Renk normalde #aaa (body) */
+}
+/* "connected" => user bu kanalda => ismi #fff, icon #aaa */
+.channel-item.connected .channel-header span {
+  color: #fff !important;
+}
+.channel-item.connected .channel-header .channel-icon {
+  color: #aaa !important;
 }
 .channel-item:hover {
   /* no background */
@@ -242,6 +248,7 @@ body {
 .channel-icon {
   width: 16px;
   height: 16px;
+  color: #aaa; /* icon #aaa */
 }
 .channel-users {
   margin-top: 0.5rem;
@@ -350,23 +357,24 @@ body {
 }
 .left-username {
   font-size: 0.9rem;
-  color: #fff;
+  color: #aaa; /* #aaa => "Kullanıcı" text */
 }
 .user-panel-buttons {
   display: flex;
   gap: 0.5rem;
+  margin-left: auto; /* Butonları sağ tarafa yasla */
   align-items: center;
 }
-/* user-panel-btn => artık hover'da renk değişmesin/hareket etmesin */
+/* user-panel-btn => hoverda renk değişimi/hareket yok */
 .user-panel-btn {
   background: none;
   border: none;
-  color: #fff;
+  color: #fff; /* normal hali #fff => sabit */
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Hover kaldırıldı => .user-panel-btn:hover { color: #c61884; } Silindi! */
+  /* Hover kaldırıldı */
 }
 .user-panel-btn.btn-muted .material-icons {
   color: #c61884 !important;
@@ -417,13 +425,11 @@ body {
   flex: 1;
   padding: 0;
   overflow: auto;
-  color: #fff;
+  color: #aaa; /* #aaa => kalıcı */
   position: relative;
   display: flex;
   flex-direction: column;
 }
-
-/* Seçili Kanal Bar */
 .selected-channel-bar {
   position: sticky;
   top: 0;
@@ -440,6 +446,7 @@ body {
   margin: 0;
   font-size: 1.2rem;
   font-weight: 600;
+  color: #aaa; /* normalde #aaa, "Kanal Seçilmedi" vs. */
 }
 
 /* Kanalın asıl içerik alanı */
@@ -458,7 +465,7 @@ body {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  color: #fff;
+  color: #aaa; /* #aaa => normal */
   border-left: 1px solid #444;
 }
 
@@ -492,7 +499,7 @@ body {
 .user-name {
   flex: 1;
   font-weight: 500;
-  color: #fff;
+  color: #aaa; /* #aaa => normal user name */
 }
 .copy-id-btn {
   background: #555;

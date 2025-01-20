@@ -9,26 +9,34 @@ let audioPermissionGranted = false;
 let remoteAudios = [];
 let username = null;
 
-// micEnabled / selfDeafened
+// micEnabled / selfDeafened => global scope
 let micEnabled = true;
 let selfDeafened = false;
 
+// Mevcut group/room
 let currentGroup = null;
 let currentRoom = null;
+
+// Göz atılan (browse edilen) grup
 let selectedGroup = null;
 
-let pendingUsers = [];
-let pendingNewUsers = [];
+// Bağlanması beklenen user listeleri
+let pendingUsers = [];    
+let pendingNewUsers = []; 
 let pendingCandidates = {};
 let sessionUfrag = {};
 
+// Konuşma algılama map
 let audioAnalyzers = {};
 
+// Eşik
 const SPEAKING_THRESHOLD = 0.0;
 const VOLUME_CHECK_INTERVAL = 100;
+
+// Ping aralığı
 let pingInterval = null;
 
-/* Artık Ionicon yok, Material Icons (ses dalgası => volume_up) */
+/* Material Icons => volume_up */
 function createWaveIcon() {
   const icon = document.createElement('span');
   icon.classList.add('material-icons');
@@ -37,7 +45,7 @@ function createWaveIcon() {
   return icon;
 }
 
-// DOM referansları
+// DOM
 const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
 const callScreen = document.getElementById('callScreen');
@@ -59,11 +67,11 @@ const regPasswordConfirmInput = document.getElementById('regPasswordConfirmInput
 const registerButton = document.getElementById('registerButton');
 const backToLoginButton = document.getElementById('backToLoginButton');
 
-// Ekran geçiş linkleri
+// Ekran geçiş
 const showRegisterScreen = document.getElementById('showRegisterScreen');
 const showLoginScreen = document.getElementById('showLoginScreen');
 
-// Sidebar (Gruplar)
+// Gruplar
 const groupListDiv = document.getElementById('groupList');
 const createGroupButton = document.getElementById('createGroupButton');
 
@@ -96,11 +104,11 @@ const cellBar4 = document.getElementById('cellBar4');
 // Ayrıl Butonu
 const leaveButton = document.getElementById('leaveButton');
 
-// Mikrofon / Kulaklık butonları
+// Mikrofon & Kulaklık butonları
 const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
 
-/* Ekran geçişleri */
+/* Ekran Geçiş (Login<->Register) */
 showRegisterScreen.addEventListener('click', () => {
   loginScreen.style.display = 'none';
   registerScreen.style.display = 'block';
@@ -124,7 +132,6 @@ loginButton.addEventListener('click', () => {
   }
   socket.emit('login', { username: usernameVal, password: passwordVal });
 });
-
 socket.on('loginResult', (data) => {
   if (data.success) {
     username = data.username;
@@ -236,7 +243,7 @@ document.getElementById('modalCloseRoomBtn').addEventListener('click', () => {
   document.getElementById('roomModal').style.display = 'none';
 });
 
-/* groupsList => sol sidebar */
+/* Gruplar listesi => sol sidebar */
 socket.on('groupsList', (groupArray) => {
   groupListDiv.innerHTML = '';
   groupArray.forEach(groupObj => {
@@ -254,6 +261,7 @@ socket.on('groupsList', (groupArray) => {
       groupTitle.textContent = groupObj.name;
       socket.emit('browseGroup', groupObj.id);
 
+      // Owner check => "Grubu Sil" & "Grup İsmi Değiştir"
       if (groupObj.owner === username) {
         deleteGroupBtn.style.display = 'block';
         renameGroupBtn.style.display = 'block';
@@ -383,7 +391,7 @@ document.addEventListener('click', () => {
   }
 });
 
-/* roomsList => kanallar */
+/* roomsList => Kanallar */
 socket.on('roomsList', (roomsArray) => {
   roomListDiv.innerHTML = '';
 
@@ -394,8 +402,7 @@ socket.on('roomsList', (roomsArray) => {
     const channelHeader = document.createElement('div');
     channelHeader.className = 'channel-header';
 
-    // Material Icons => volume_up
-    const icon = createWaveIcon();
+    const icon = createWaveIcon(); // "volume_up"
     const textSpan = document.createElement('span');
     textSpan.textContent = roomObj.name;
 
@@ -409,11 +416,17 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Odaya gir
+    // Kanala gir
     roomItem.addEventListener('click', () => {
+      // Diğer kanallardan "connected" sınıfını kaldır
+      document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
+
       if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
+        // Zaten bu kanaldasın
+        roomItem.classList.add('connected');
         return;
       }
+      // Başka odadaysak => leave
       if (currentRoom && (currentRoom !== roomObj.id || currentGroup !== selectedGroup)) {
         socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
         closeAllPeers();
@@ -421,7 +434,11 @@ socket.on('roomsList', (roomsArray) => {
         currentRoom = null;
       }
       currentGroup = selectedGroup;
+
       joinRoom(currentGroup, roomObj.id, roomObj.name);
+
+      // Bu kanala "connected" sınıfı
+      roomItem.classList.add('connected');
     });
 
     // Sağ tık => context menu
@@ -437,7 +454,7 @@ socket.on('roomsList', (roomsArray) => {
   });
 });
 
-/* allChannelsData => user list in each channel */
+/* allChannelsData => kanalda kim var */
 socket.on('allChannelsData', (channelsObj) => {
   Object.keys(channelsObj).forEach(roomId => {
     const cData = channelsObj[roomId];
@@ -543,6 +560,10 @@ leaveButton.addEventListener('click', () => {
   socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
   closeAllPeers();
   hideChannelStatusPanel();
+
+  // Tüm kanallar => connected kalksın
+  document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
+
   currentRoom = null;
   console.log("Kanaldan ayrıldınız.");
 
@@ -606,7 +627,7 @@ function updateCellBars(ping) {
   if (barsActive >= 4) cellBar4.classList.add('active');
 }
 
-/* updateUserList => sağ panel */
+/* Sağ panel => updateUserList */
 function updateUserList(data) {
   userListDiv.innerHTML = '';
 
@@ -844,39 +865,28 @@ deafenToggleButton.addEventListener('click', () => {
   applyAudioStates();
 });
 
-/* Son hâl: 
-   - mic => mic / mic_off
-   - deafen => headset / headset_off
-*/
 function applyAudioStates() {
-  // Track
   if (localStream) {
     localStream.getAudioTracks().forEach(track => {
       track.enabled = micEnabled && !selfDeafened;
     });
   }
-  // Mikrofon
+  // Mikrofon => mic / mic_off
   if (!micEnabled || selfDeafened) {
-    // mic_off
     micToggleButton.innerHTML = `<span class="material-icons">mic_off</span>`;
     micToggleButton.classList.add('btn-muted');
   } else {
-    // mic
     micToggleButton.innerHTML = `<span class="material-icons">mic</span>`;
     micToggleButton.classList.remove('btn-muted');
   }
-  // Deaf
+  // Deaf => headset / headset_off
   if (selfDeafened) {
-    // Headset Off
     deafenToggleButton.innerHTML = `<span class="material-icons">headset_off</span>`;
     deafenToggleButton.classList.add('btn-muted');
   } else {
-    // Headset
     deafenToggleButton.innerHTML = `<span class="material-icons">headset</span>`;
     deafenToggleButton.classList.remove('btn-muted');
   }
-
-  // Sesi kapat
   remoteAudios.forEach(audio => {
     audio.muted = selfDeafened;
   });
