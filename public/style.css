@@ -173,7 +173,6 @@ body {
   border-right: 1px solid #444; /* Sadece sağ kenar */
 }
 .room-panel-header {
-  /* Grup başlığı yüksekliğini sabitle */
   min-height: 50px;
   display: flex;
   align-items: center;
@@ -182,7 +181,7 @@ body {
   z-index: 5;
   background: #1f1f1f;
   border-bottom: 1px solid #444;
-  padding: 0.75rem 1rem; /* Aynı padding => selected-channel-bar ile eşit */
+  padding: 0.75rem 1rem;
   box-sizing: border-box;
 }
 .panel-title {
@@ -217,15 +216,13 @@ body {
 .dropdown-item:hover {
   background: #444;
 }
-
-/* Kanal listesi */
 .room-list {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem; /* arası biraz açtık */
-  padding: 0 1rem 1rem 1rem; /* içerik için boşluk */
+  gap: 0.4rem;
+  padding: 0 1rem 1rem 1rem;
   overflow: auto;
-  margin-top: 1rem; /* Grup başlığı ile ilk kanal arasında mesafe */
+  margin-top: 1rem;
 }
 
 /* Kanal item */
@@ -272,6 +269,52 @@ body {
   box-shadow: 0 0 0 2px #c61884;
 }
 
+/* "Kanal Durumu" Panel => user-panel'in üstünde görünecek */
+.channel-status-panel {
+  position: relative;
+  width: 265px;
+  background: #1a1a1a;
+  box-sizing: border-box;
+  border-top: 1px solid #444;  
+  border-right: 1px solid #444;
+  height: 60px; /* user-panel kadar bir yükseklik */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0.5rem;
+}
+
+/* İçindeki satır: Ping değeri + Leave butonu */
+.chan-status-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.ping-info {
+  font-size: 0.85rem;
+  color: #fff;
+}
+
+/* Leave-btn => Ionicon */
+.leave-btn {
+  background: none;
+  border: 2px solid #c61884;
+  color: #c61884;
+  cursor: pointer;
+  width: 25px;
+  height: 25px;
+  padding: 0;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.leave-btn:hover {
+  background: #a3156f;
+  border-color: #a3156f;
+  color: #fff;
+}
+
 /* Kullanıcı Paneli (Sol Alt) */
 .user-panel {
   position: relative;
@@ -279,7 +322,7 @@ body {
   background: #1a1a1a;
   padding: 0.5rem;
   box-sizing: border-box;
-  border-top: 1px solid #444;  /* Üst kenar */
+  border-top: 1px solid #444;
   border-right: 1px solid #444;
 }
 .user-panel-content {
@@ -314,31 +357,13 @@ body {
 .user-panel-btn:hover {
   color: #c61884;
 }
-.leave-btn {
-  background: none;
-  border: 2px solid #c61884;
-  color: #c61884;
-  cursor: pointer;
-  width: 25px;
-  height: 25px;
-  padding: 0;
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.leave-btn:hover {
-  background: #a3156f;
-  border-color: #a3156f;
-  color: #fff;
-}
 
 /* Mikrofon/Deaf kapalı => pembe renk ikonu */
 .user-panel-btn.btn-muted ion-icon {
   color: #c61884 !important;
 }
 
-/* AYARLAR Paneli (settingsPanel) */
+/* AYARLAR Paneli */
 .settings-panel {
   position: absolute;
   top: 0; 
@@ -347,7 +372,7 @@ body {
   height: 100%;
   background: #222;
   color: #fff;
-  display: none; /* kapalı */
+  display: none;
   flex-direction: column;
   padding: 1rem;
   box-sizing: border-box;
@@ -389,7 +414,7 @@ body {
   flex-direction: column;
 }
 
-/* Seçili Kanal Bar => aynı yükseklik */
+/* Seçili Kanal Bar */
 .selected-channel-bar {
   position: sticky;
   top: 0;
@@ -410,7 +435,7 @@ body {
 
 /* Kanalın asıl içerik alanı */
 .channel-content-area {
-  border: none; /* Bordersız */
+  border: none;
   padding: 1rem;
   box-sizing: border-box;
   min-height: 200px;
@@ -425,7 +450,7 @@ body {
   flex-direction: column;
   box-sizing: border-box;
   color: #fff;
-  border-left: 1px solid #444; /* Sadece sol kenar */
+  border-left: 1px solid #444;
 }
 
 /* Kullanıcı listesi => gap */
