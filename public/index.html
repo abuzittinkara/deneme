@@ -49,6 +49,7 @@
 
   <!-- Görüşme Ekranı -->
   <div id="callScreen" class="screen-container" style="display:none;">
+    <!-- Soldaki Paneller (Gruplar + Kanallar + Kullanıcı Paneli) -->
     <div id="leftPanels" class="left-panels">
       <div id="groupsAndRooms" class="groups-rooms">
         <!-- Sidebar (Gruplar) -->
@@ -85,20 +86,7 @@
         </div>
       </div>
 
-      <!-- DM paneli -->
-      <div id="dmPanel" class="dm-panel" style="display:none;">
-        <button id="closeDMButton" class="circle-btn dm-close-btn">
-          <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
-               stroke-linejoin="round" viewBox="0 0 24 24" width="24" height="24">
-            <line x1="19" y1="12" x2="5" y2="12"/>
-            <polyline points="12 19 5 12 12 5"/>
-          </svg>
-        </button>
-        <h3 style="margin-top:2.5rem;">DM Mesajları</h3>
-        <p>Birebir mesajlar buraya gelecek.</p>
-      </div>
-
-      <!-- Sol Alt Kullanıcı Paneli -->
+      <!-- Kullanıcı Paneli (Sol Alt) -->
       <div id="leftUserPanel" class="user-panel">
         <div class="user-panel-content">
           <div class="user-profile-pic"></div>
@@ -123,7 +111,7 @@
       </div>
     </div>
 
-    <!-- Ortadaki ana içerik: Seçili kanal bar üstte sabit, altında içerik alanı -->
+    <!-- Ortadaki ana içerik: Seçili kanal bar üstte, içerik alanı altta -->
     <div class="main-content">
       <div id="selectedChannelBar" class="selected-channel-bar">
         <h2 id="selectedChannelTitle" class="selected-channel-title">Kanal Seçilmedi</h2>
@@ -133,10 +121,23 @@
       </div>
     </div>
 
+    <!-- Sağ Panel (Kullanıcılar) -->
     <div class="right-panel" id="rightPanel">
-      <!-- Kullanıcı listesi -->
       <div id="userList" class="user-list"></div>
     </div>
+  </div>
+
+  <!-- DM paneli (isteğe bağlı görünür) -->
+  <div id="dmPanel" class="dm-panel" style="display:none;">
+    <button id="closeDMButton" class="circle-btn dm-close-btn">
+      <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+           stroke-linejoin="round" viewBox="0 0 24 24" width="24" height="24">
+        <line x1="19" y1="12" x2="5" y2="12"/>
+        <polyline points="12 19 5 12 12 5"/>
+      </svg>
+    </button>
+    <h3 style="margin-top:2.5rem;">DM Mesajları</h3>
+    <p>Birebir mesajlar buraya gelecek.</p>
   </div>
 
   <!-- Modal: Grup Seçenekleri -->
