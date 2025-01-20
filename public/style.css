@@ -333,6 +333,11 @@ body {
   color: #fff;
 }
 
+/* Mikrofon/Deaf kapalı => pembe renk ikonu */
+.user-panel-btn.btn-muted ion-icon {
+  color: #c61884 !important;
+}
+
 /* AYARLAR Paneli (settingsPanel) */
 .settings-panel {
   position: absolute;
@@ -384,15 +389,15 @@ body {
   flex-direction: column;
 }
 
-/* Seçili Kanal Bar => aynı yükseklik (56px) */
+/* Seçili Kanal Bar => aynı yükseklik */
 .selected-channel-bar {
   position: sticky;
   top: 0;
   z-index: 10;
   background: #2d2d2d;
   border-bottom: 1px solid #444;
-  padding: 0.75rem 1rem; /* Aynı padding => room-panel-header */
-  min-height: 50px;     /* Aynı min-height => eşit yükseklik */
+  padding: 0.75rem 1rem;
+  min-height: 50px; 
   display: flex;
   align-items: center;
   box-sizing: border-box;

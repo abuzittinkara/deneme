@@ -40,11 +40,11 @@ const SPEAKING_THRESHOLD = 0.0;
 // Her 100ms ses ölçümü
 const VOLUME_CHECK_INTERVAL = 100;
 
-/* createWaveIcon => eski SVG yerine Ionicon */
+/* createWaveIcon => Ionicon (ses dalgası) */
 function createWaveIcon() {
   const icon = document.createElement('ion-icon');
   icon.setAttribute('name', 'volume-high-outline');
-  icon.classList.add('channel-icon'); // style.css içinde .channel-icon ile boyut vb. ayarlayabiliriz
+  icon.classList.add('channel-icon'); 
   return icon;
 }
 
@@ -123,45 +123,8 @@ const settingsButton = document.createElement('button');
 settingsButton.id = 'settingsButton';
 settingsButton.classList.add('user-panel-btn');
 settingsButton.title = 'Ayarlar';
-settingsButton.innerHTML = `
-  <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
-       stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-    <circle cx="12" cy="12" r="3"></circle>
-    <path d="M19.4 15a1.65 1.65 0 0 
-      0 .33 1.82l.06.06
-      a2 2 0 0 1-2.83 2.83l-.06-.06
-      a1.65 1.65 0 0 0-1.82-.33
-      1.65 1.65 0 0 0-1 1.51v.28
-      a2 2 0 0 1-2 2h-0.5
-      a2 2 0 0 1-2-2v-.28
-      a1.65 1.65 0 0 0-1-1.51
-      1.65 1.65 0 0 0-1.82.33l-.06.06
-      a2 2 0 0 1-2.83-2.83l.06-.06
-      a1.65 1.65 0 0 
-      0 .33-1.82
-      1.65 1.65 0 0 
-      0-1-1.51h-.28
-      a2 2 0 0 1-2-2v-0.5
-      a2 2 0 0 1 2-2h.28
-      a1.65 1.65 0 0 
-      0 1-1.51
-      1.65 1.65 0 0 
-      0-.33-1.82l-.06-.06
-      a2 2 0 0 1 2.83-2.83l.06.06
-      a1.65 1.65 0 0 0 1.82.33h0
-      a1.65 1.65 0 0 0 1-1.51v-.28
-      a2 2 0 0 1 2-2h0.5
-      a2 2 0 0 1 2 2v.28
-      a1.65 1.65 0 0 0 1 1.51h0
-      a1.65 1.65 0 0 0 1.82-.33l.06-.06
-      a2 2 0 0 1 2.83 2.83l-.06.06
-      a1.65 1.65 0 0 0-.33 1.82v0
-      a1.65 1.65 0 0 0 1 1.51h.28
-      a2 2 0 0 1 2 2v0.5
-      a2 2 0 0 1-2 2h-.28
-      a1.65 1.65 0 0 0-1.51 1z"></path>
-  </svg>
-`;
+/* Ionicon => settings-outline */
+settingsButton.innerHTML = `<ion-icon name="settings-outline"></ion-icon>`;
 userPanelButtons.appendChild(settingsButton);
 
 // Geri butonu => kapat
@@ -504,9 +467,8 @@ socket.on('roomsList', (roomsArray) => {
     const channelHeader = document.createElement('div');
     channelHeader.className = 'channel-header';
 
-    // Ionicon yerine createWaveIcon() (artık Ionicons döndürüyor)
+    // Ionicon (ses dalgası)
     const icon = createWaveIcon();
-
     const textSpan = document.createElement('span');
     textSpan.textContent = roomObj.name;
 
@@ -527,7 +489,7 @@ socket.on('roomsList', (roomsArray) => {
         return;
       }
 
-      // Başka odadaysak => leave + peer close
+      // Başka odadaysa => leave + peer close
       if (currentRoom && (currentRoom !== roomObj.id || currentGroup !== selectedGroup)) {
         socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
         closeAllPeers();
@@ -971,14 +933,38 @@ deafenToggleButton.addEventListener('click', () => {
   applyAudioStates();
 });
 
+/* applyAudioStates => buton ikonları & renk */
 function applyAudioStates() {
+  // Mikrofondan veri iletiliyor mu? (micEnabled && !selfDeafened)
   if (localStream) {
     localStream.getAudioTracks().forEach(track => {
       track.enabled = micEnabled && !selfDeafened;
     });
   }
-  micToggleButton.innerHTML = (micEnabled && !selfDeafened) ? "MIC ON" : "MIC OFF";
-  deafenToggleButton.innerHTML = selfDeafened ? "DEAF ON" : "DEAF OFF";
+
+  // Mikrofon ikonu
+  if (!micEnabled || selfDeafened) {
+    // MIC OFF
+    micToggleButton.innerHTML = `<ion-icon name="mic-off-outline"></ion-icon>`;
+    micToggleButton.classList.add('btn-muted');
+  } else {
+    // MIC ON
+    micToggleButton.innerHTML = `<ion-icon name="mic-outline"></ion-icon>`;
+    micToggleButton.classList.remove('btn-muted');
+  }
+
+  // Deaf ikonu
+  if (selfDeafened) {
+    // DEAF ON
+    deafenToggleButton.innerHTML = `<ion-icon name="volume-mute-outline"></ion-icon>`;
+    deafenToggleButton.classList.add('btn-muted');
+  } else {
+    // DEAF OFF
+    deafenToggleButton.innerHTML = `<ion-icon name="volume-high-outline"></ion-icon>`;
+    deafenToggleButton.classList.remove('btn-muted');
+  }
+
+  // Bu fonksiyon, kimsenin sesini duymak istemiyorsak remote sesleri kapatır.
   applyDeafenState();
 }
 
