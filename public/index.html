@@ -74,7 +74,6 @@
         <div id="roomPanel" class="rooms-panel">
           <div class="room-panel-header">
             <h2 id="groupTitle" class="panel-title">Seçili Grup</h2>
-            <!-- arrow down icon => "keyboard_arrow_down" -->
             <span id="groupDropdownIcon" class="dropdown-icon material-icons">keyboard_arrow_down</span>
             <div id="groupDropdownMenu" class="dropdown-menu" style="display: none;">
               <div class="dropdown-item" id="copyGroupIdBtn">Grup ID Kopyala</div>
@@ -114,10 +113,18 @@
             <span id="leftUserName" class="left-username">(Kullanıcı)</span>
           </div>
           <div class="user-panel-buttons">
-            <!-- Mikrofon butonu (micToggleButton) -->
-            <button id="micToggleButton" class="user-panel-btn" title="Mikrofon Aç/Kapa" style="width:22px;height:22px;"></button>
-            <!-- Kulaklık butonu (deafenToggleButton) -->
-            <button id="deafenToggleButton" class="user-panel-btn" title="Kendini Sağırlaştır" style="width:22px;height:22px;"></button>
+            <!-- Mik --> 
+            <button id="micToggleButton" class="user-panel-btn" title="Mikrofon Aç/Kapa" style="width:22px;height:22px;">
+              <!-- mic_off veya mic eklenecek script.js'te -->
+            </button>
+            <!-- Deafen -->
+            <button id="deafenToggleButton" class="user-panel-btn" title="Kendini Sağırlaştır" style="width:22px;height:22px;">
+              <!-- headset_off veya headset -->
+            </button>
+            <!-- Settings ikonu => kendini sağırlaştır butonunun sağ tarafına -->
+            <button id="settingsButton" class="user-panel-btn" style="width:22px;height:22px;" title="Ayarlar">
+              <span class="material-icons">settings</span>
+            </button>
           </div>
         </div>
       </div>

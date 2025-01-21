@@ -221,33 +221,33 @@ body {
 .room-list {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem; /* Kanallar arası az mesafe */
+  gap: 0.25rem;
   padding: 0 1rem 1rem 1rem;
   overflow: auto;
   margin-top: 1rem;
 }
 
-/* Kanal item => flex-direction: column; kullanıcılar altta */
+/* Kanal item => column, kullanıcılar altta */
 .channel-item {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;  /* solda hizalan */
+  align-items: flex-start;  
   cursor: pointer;
-  padding: 6px 12px;  /* Eşit top/bottom, solda 12px => Yatay biraz geniş */
+  padding: 6px 12px;  
   margin-bottom: 0rem; 
-  border-radius: 8px; /* Hafif köşe */
+  border-radius: 8px; 
   background: #1f1f1f;
 }
 .channel-item:hover {
-  background-color: #242424; /* Hover => doldurma */
+  background-color: #242424;
 }
-/* "connected" => user bu kanalda => ismi #fff, ikon #aaa */
+/* connected => farklı arka plan */
 .channel-item.connected {
   background-color: #2d2d2d;
 }
 .channel-header {
   display: flex;
-  align-items: center; /* dikey ortalama */
+  align-items: center;
   gap: 0.6rem;
 }
 .channel-icon {
@@ -260,8 +260,8 @@ body {
 }
 /* Kullanıcılar => alt tarafta listelenecek */
 .channel-users {
-  margin-top: 4px;    /* Kanal adından sonra az mesafe */
-  margin-left: 0px;   /* solda hizalan */
+  margin-top: 4px;
+  margin-left: 0px; 
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
@@ -371,12 +371,16 @@ body {
 }
 .user-panel-buttons {
   display: flex;
-  gap: 0.4rem; 
+  gap: 0.6rem; /* Biraz daha fazla boşluk ver */
   margin-left: auto; 
   align-items: center;
-  margin-right: 0.4rem; 
+  margin-right: 0.8rem; /* Biraz sağa kaydır */
 }
-/* user-panel-btn => #aaa, boyutu küçük + hover => renk değişimi */
+/* user-panel-btn => #aaa, boyutu küçük + hover => 
+   normalde #c61884 idi; 
+   fakat her durumda (mute/unmute) => #666 isteniyor => 
+   Bu satırla, hertürlü btn-muted vs. override olacak 
+*/
 .user-panel-btn {
   background: none;
   border: none;
@@ -389,10 +393,16 @@ body {
   width: 20px;
   height: 20px;
 }
-.user-panel-btn:hover {
-  color: #c61884;
+
+/* 
+   Her durumda => hover => #666
+   (mute/unmute farketmez => override)
+*/
+.user-panel-btn:hover .material-icons {
+  color: #666 !important;
 }
-/* Sessize (muted) => pembe ikon */
+
+/* Sessize (muted) => pembe ikon normalde (hover hariç) */
 .user-panel-btn.btn-muted .material-icons {
   color: #c61884 !important;
 }
