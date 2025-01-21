@@ -242,22 +242,18 @@ body {
   color: #aaa !important;
 }
 
-/* Sadece channel-header'e hover => fill #242424 */
+/* 
+   Kullanıcı kanala (channel-item) hover edince => 
+   .channel-header bölümünün tamamını doldur (#242424 fill)
+*/
+.channel-item:hover .channel-header {
+  background-color: #242424;
+}
+
 .channel-header {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  position: relative;
-}
-.channel-header:hover::before {
-  content: "";
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  background-color: #242424;
-  z-index: -1;
 }
 .channel-icon {
   width: 14px; 
