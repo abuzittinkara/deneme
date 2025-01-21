@@ -232,11 +232,7 @@ body {
   display: flex;
   flex-direction: column;
   cursor: pointer;
-  margin-bottom: 0rem; /* Değiştirildi => 0rem */
-}
-/* Kanal item hover => outline bir çerçeve, reflow yapmasın => box-shadow */
-.channel-item:hover {
-  box-shadow: 0 0 0 1px #c61884;
+  margin-bottom: 0rem; 
 }
 /* "connected" => user bu kanalda => ismi #fff, ikon #aaa */
 .channel-item.connected .channel-header span {
@@ -245,6 +241,11 @@ body {
 .channel-item.connected .channel-header .channel-icon {
   color: #aaa !important;
 }
+/* Kanala hover => sadece channel-header */
+.channel-header:hover {
+  box-shadow: 0 0 0 1px #c61884;
+}
+
 .channel-header {
   display: flex;
   align-items: center;
