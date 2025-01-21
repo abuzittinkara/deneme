@@ -227,12 +227,17 @@ body {
   margin-top: 1rem;
 }
 
-/* Kanal item => margin-bottom: 0rem */
+/* Kanal item */
 .channel-item {
   display: flex;
   flex-direction: column;
   cursor: pointer;
   margin-bottom: 0rem; 
+  padding: 0.3rem; /* Hover alanını genişletmek için eklendi */
+}
+/* Hover => fill (#242424) => tüm .channel-item alanı */
+.channel-item:hover {
+  background-color: #242424;
 }
 /* "connected" => user bu kanalda => ismi #fff, ikon #aaa */
 .channel-item.connected .channel-header span {
@@ -240,14 +245,6 @@ body {
 }
 .channel-item.connected .channel-header .channel-icon {
   color: #aaa !important;
-}
-
-/* 
-   Kullanıcı kanala (channel-item) hover edince => 
-   .channel-header bölümünün tamamını doldur (#242424 fill)
-*/
-.channel-item:hover .channel-header {
-  background-color: #242424;
 }
 
 .channel-header {
@@ -380,7 +377,7 @@ body {
   align-items: center;
   margin-right: 0.4rem; 
 }
-/* user-panel-btn => #aaa, hover yok, boyutu biraz küçük */
+/* user-panel-btn => #aaa, boyutu küçük + hover => renk değişimi */
 .user-panel-btn {
   background: none;
   border: none;
@@ -393,6 +390,11 @@ body {
   width: 20px;
   height: 20px;
 }
+/* Hover => sadece renk değişimi */
+.user-panel-btn:hover {
+  color: #c61884;
+}
+/* Sessize (muted) => pembe ikon */
 .user-panel-btn.btn-muted .material-icons {
   color: #c61884 !important;
 }
