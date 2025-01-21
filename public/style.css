@@ -221,48 +221,33 @@ body {
 .room-list {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem; /* Kanallar arası mesafe az olsun */
+  gap: 0.25rem; /* Kanallar arası az mesafe */
   padding: 0 1rem 1rem 1rem;
   overflow: auto;
   margin-top: 1rem;
 }
 
-/* Kanal item => 
-   - Yukarıdaki görseldeki gibi 
-   - Eşit top/bottom => padding
-   - Kanallar arası margin => room-list'teki gap ile ayarlandı
-*/
+/* Kanal item => flex-direction: column; kullanıcılar altta */
 .channel-item {
   display: flex;
-  flex-direction: row;       /* icon + text yanyana */
-  align-items: center;       /* dikey ortalama */
+  flex-direction: column;
+  align-items: flex-start;  /* solda hizalan */
   cursor: pointer;
-  padding: 6px 12px;         /* Eşit top/bottom (6px) */
-  border-radius: 8px;        /* Hafif köşe */
-  background: #1f1f1f;       /* Normal hâli => arka plan */
+  padding: 6px 12px;  /* Eşit top/bottom, solda 12px => Yatay biraz geniş */
+  margin-bottom: 0rem; 
+  border-radius: 8px; /* Hafif köşe */
+  background: #1f1f1f;
 }
 .channel-item:hover {
-  background-color: #242424; /* Hover => #242424 doldurma */
+  background-color: #242424; /* Hover => doldurma */
 }
-
 /* "connected" => user bu kanalda => ismi #fff, ikon #aaa */
 .channel-item.connected {
-  background-color: #2d2d2d; /* Seçiliyse biraz farklı renkle */
+  background-color: #2d2d2d;
 }
-.channel-item.connected .channel-header span {
-  color: #fff !important;
-}
-.channel-item.connected .channel-header .channel-icon {
-  color: #aaa !important;
-}
-
-/* channel-header => row, 
-   ama .channel-item zaten row, 
-   istersen orada icon + text var => align center 
-*/
 .channel-header {
   display: flex;
-  align-items: center;
+  align-items: center; /* dikey ortalama */
   gap: 0.6rem;
 }
 .channel-icon {
@@ -273,9 +258,10 @@ body {
   align-items: center;
   justify-content: center;
 }
+/* Kullanıcılar => alt tarafta listelenecek */
 .channel-users {
-  margin-top: 0.5rem;
-  margin-left: 0.5rem; 
+  margin-top: 4px;    /* Kanal adından sonra az mesafe */
+  margin-left: 0px;   /* solda hizalan */
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
