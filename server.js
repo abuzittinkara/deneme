@@ -330,7 +330,11 @@ io.on("connection", (socket) => {
     const trimmed = groupName.trim();
     if (!trimmed) return;
 
-    const userName = users[socket.id].username || `(User ${socket.id})`;
+    const userName = users[socket.id].username || null;
+    if (!userName) {
+      socket.emit('errorMessage', "Kullanıcı adınız tanımlı değil.");
+      return;
+    }
     const userDoc = await User.findOne({ username: userName });
     if (!userDoc) return;
 
@@ -361,12 +365,14 @@ io.on("connection", (socket) => {
   // joinGroupByID
   socket.on('joinGroupByID', async (groupId) => {
     try {
-      // Kullanıcı zaten bu grupta mı?
       if (users[socket.id].currentGroup === groupId) {
         return; // Aynı gruba tekrar girmesini engelle
       }
-
-      const userName = users[socket.id].username || `(User ${socket.id})`;
+      const userName = users[socket.id].username || null;
+      if (!userName) {
+        socket.emit('errorMessage', "Kullanıcı adınız tanımlı değil.");
+        return;
+      }
       const userDoc = await User.findOne({ username: userName });
       if (!userDoc) {
         socket.emit('errorMessage', "Kullanıcı yok (DB).");
@@ -402,6 +408,11 @@ io.on("connection", (socket) => {
       removeUserFromAllGroupsAndRooms(socket);
 
       const userData = users[socket.id];
+      // Fallback kaldırıldı => eğer username yoksa ekleme
+      if (!userData.username) {
+        socket.emit('errorMessage', "Kullanıcı adınız yok, kanala eklenemiyorsunuz.");
+        return;
+      }
       if (!groups[groupId].users.some(u => u.id === socket.id)) {
         groups[groupId].users.push({ id: socket.id, username: userData.username });
       }
@@ -411,7 +422,6 @@ io.on("connection", (socket) => {
 
       console.log(`User ${socket.id} => joinGroupByID => ${groupId}`);
 
-      // Gruplar listesi güncellensin diye
       await sendGroupsListToUser(socket.id);
 
       sendRoomsListToUser(socket.id, groupId);
@@ -426,7 +436,6 @@ io.on("connection", (socket) => {
   // browseGroup => roomsList + groupUsers
   socket.on('browseGroup', async (groupId) => {
     if (!groups[groupId]) return;
-    // Sadece liste göster => user’ı oradan çıkarmıyoruz
     sendRoomsListToUser(socket.id, groupId);
     sendAllChannelsDataToOneUser(socket.id, groupId);
     await sendGroupUsersToOneUser(socket.id, groupId);
@@ -435,8 +444,6 @@ io.on("connection", (socket) => {
   // joinGroup
   socket.on('joinGroup', async (groupId) => {
     if (!groups[groupId]) return;
-
-    // Kullanıcı zaten bu grupta mı?
     if (users[socket.id].currentGroup === groupId) {
       return; // Aynı gruba tekrar girmesini engelle
     }
@@ -444,7 +451,11 @@ io.on("connection", (socket) => {
     removeUserFromAllGroupsAndRooms(socket);
 
     const userData = users[socket.id];
-    const userName = userData.username || `(User ${socket.id})`;
+    const userName = userData.username;
+    if (!userName) {
+      socket.emit('errorMessage', "Kullanıcı adınız yok.");
+      return;
+    }
     if (!groups[groupId].users.some(u => u.id === socket.id)) {
       groups[groupId].users.push({ id: socket.id, username: userName });
     }
@@ -496,9 +507,14 @@ io.on("connection", (socket) => {
     if (!groups[groupId].rooms[roomId]) return;
 
     const userData = users[socket.id];
+    if (!userData.username) {
+      socket.emit('errorMessage', "Kullanıcı adınız tanımsız => Kanala eklenemiyor.");
+      return;
+    }
+
     // Kullanıcı zaten bu oda + grupta mı?
     if (userData.currentGroup === groupId && userData.currentRoom === roomId) {
-      return; // Aynı kanala tekrar girmesini engelle
+      return; 
     }
 
     // Aynı grupta fakat başka odadaysa => sadece o odadan çıkar
@@ -512,8 +528,7 @@ io.on("connection", (socket) => {
       removeUserFromAllGroupsAndRooms(socket);
     }
 
-    const userName = userData.username || `(User ${socket.id})`;
-
+    const userName = userData.username;
     if (!groups[groupId].users.some(u => u.id === socket.id)) {
       groups[groupId].users.push({ id: socket.id, username: userName });
     }
@@ -566,7 +581,6 @@ io.on("connection", (socket) => {
 
       groups[groupId].name = newName;
 
-      // Tüm kullanıcılara => groupRenamed
       io.to(groupId).emit('groupRenamed', { groupId, newName });
       console.log(`Grup rename => ${groupId}, yeni isim=${newName}`);
     } catch (err) {
@@ -640,7 +654,6 @@ io.on("connection", (socket) => {
       chDoc.name = newName;
       await chDoc.save();
 
-      // Bellekte de güncelle
       const groupDoc = await Group.findById(chDoc.group);
       if (!groupDoc) return;
       const gId = groupDoc.groupId;
@@ -671,7 +684,6 @@ io.on("connection", (socket) => {
       // DB'den sil
       await Channel.deleteOne({ _id: chDoc._id });
 
-      // Bellekten sil
       const groupDoc = await Group.findById(chDoc.group);
       if (!groupDoc) return;
       const gId = groupDoc.groupId;
@@ -710,7 +722,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Disconnect
+  // Disconnect => Bağlantı kopunca
   socket.on("disconnect", async () => {
     console.log("disconnect:", socket.id);
     const userData = users[socket.id];
@@ -718,6 +730,8 @@ io.on("connection", (socket) => {
       const { username } = userData;
       if (username) {
         onlineUsernames.delete(username);
+
+        // Kanaldan/gruplardan otomatik çıkar:
         removeUserFromAllGroupsAndRooms(socket);
 
         try {
