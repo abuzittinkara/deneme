@@ -221,30 +221,34 @@ body {
 .room-list {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.25rem; /* Kanallar arası mesafe az olsun */
   padding: 0 1rem 1rem 1rem;
   overflow: auto;
   margin-top: 1rem;
 }
 
 /* Kanal item => 
-   - Biraz yatay genişletmek için padding ekliyoruz
-   - Min-height -> .channel-item + .channel-header dikeyde ortalasın
+   - Yukarıdaki görseldeki gibi 
+   - Eşit top/bottom => padding
+   - Kanallar arası margin => room-list'teki gap ile ayarlandı
 */
 .channel-item {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;       /* icon + text yanyana */
+  align-items: center;       /* dikey ortalama */
   cursor: pointer;
-  margin-bottom: 0rem; 
-  padding: 0.5rem 1rem; /* Yatay genişleme */
-  min-height: 40px;     /* Dikey alan => ortalama */
-  justify-content: center; /* İçinde .channel-header dikey ortalansın */
+  padding: 6px 12px;         /* Eşit top/bottom (6px) */
+  border-radius: 8px;        /* Hafif köşe */
+  background: #1f1f1f;       /* Normal hâli => arka plan */
 }
-/* Hover => fill (#242424) */
 .channel-item:hover {
-  background-color: #242424;
+  background-color: #242424; /* Hover => #242424 doldurma */
 }
+
 /* "connected" => user bu kanalda => ismi #fff, ikon #aaa */
+.channel-item.connected {
+  background-color: #2d2d2d; /* Seçiliyse biraz farklı renkle */
+}
 .channel-item.connected .channel-header span {
   color: #fff !important;
 }
@@ -252,14 +256,18 @@ body {
   color: #aaa !important;
 }
 
+/* channel-header => row, 
+   ama .channel-item zaten row, 
+   istersen orada icon + text var => align center 
+*/
 .channel-header {
   display: flex;
-  align-items: center;  /* Dikine ortalama */
+  align-items: center;
   gap: 0.6rem;
 }
 .channel-icon {
-  width: 14px; 
-  height: 14px;
+  width: 18px; 
+  height: 18px;
   color: #aaa; 
   display: inline-flex;
   align-items: center;
