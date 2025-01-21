@@ -29,7 +29,7 @@ body {
 .app-title {
   margin: 0 0 1rem;
   font-size: 1.5rem;
-  /* renk body'den miras: #aaa */
+  /* renk #aaa */
 }
 
 .input-text {
@@ -184,7 +184,7 @@ body {
 .panel-title {
   margin: 0;
   font-size: 1rem;
-  /* renk body'den miras => #aaa */
+  /* renk #aaa */
 }
 .dropdown-icon {
   cursor: pointer;
@@ -228,9 +228,8 @@ body {
   flex-direction: column;
   cursor: pointer;
   margin-bottom: 0.4rem;
-  /* Renk normalde #aaa (body) */
 }
-/* "connected" => user bu kanalda => ismi #fff, icon #aaa */
+/* "connected" => user bu kanalda => ismi #fff, ikon #aaa */
 .channel-item.connected .channel-header span {
   color: #fff !important;
 }
@@ -246,9 +245,12 @@ body {
   gap: 0.6rem;
 }
 .channel-icon {
-  width: 16px;
-  height: 16px;
-  color: #aaa; /* icon #aaa */
+  width: 14px; /* Boyutu küçülttük */
+  height: 14px;
+  color: #aaa; 
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .channel-users {
   margin-top: 0.5rem;
@@ -357,25 +359,29 @@ body {
 }
 .left-username {
   font-size: 0.9rem;
-  color: #aaa; /* #aaa => "Kullanıcı" text */
+  color: #aaa; 
 }
 .user-panel-buttons {
   display: flex;
-  gap: 0.5rem;
-  margin-left: auto; /* Butonları sağ tarafa yasla */
+  gap: 0.4rem; /* Butonlar arası azaldı */
+  margin-left: auto; /* Butonları sağa yasla */
   align-items: center;
+  margin-right: 0.4rem; /* Biraz daha sağa kaydır */
 }
-/* user-panel-btn => hoverda renk değişimi/hareket yok */
+/* user-panel-btn => normalde #aaa, hover yok. Daha küçük */
 .user-panel-btn {
   background: none;
   border: none;
-  color: #fff; /* normal hali #fff => sabit */
+  color: #aaa; /* Varsayılan #aaa */
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Hover kaldırıldı */
+  font-size: 14px; /* ikonu biraz küçülttük */
+  width: 20px;
+  height: 20px;
 }
+/* Sessize (muted) => pembe */
 .user-panel-btn.btn-muted .material-icons {
   color: #c61884 !important;
 }
@@ -446,7 +452,7 @@ body {
   margin: 0;
   font-size: 1.2rem;
   font-weight: 600;
-  color: #aaa; /* normalde #aaa, "Kanal Seçilmedi" vs. */
+  color: #aaa;
 }
 
 /* Kanalın asıl içerik alanı */
@@ -465,7 +471,7 @@ body {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  color: #aaa; /* #aaa => normal */
+  color: #aaa;
   border-left: 1px solid #444;
 }
 
@@ -499,7 +505,7 @@ body {
 .user-name {
   flex: 1;
   font-weight: 500;
-  color: #aaa; /* #aaa => normal user name */
+  color: #aaa;
 }
 .copy-id-btn {
   background: #555;
