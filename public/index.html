@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sesli Görüşme Uygulaması</title>
 
-  <!-- Material Icons -->
+  <!-- Material Icons (Google) -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
 
   <link rel="stylesheet" href="style.css">
@@ -16,6 +16,12 @@
   <div id="loginScreen" class="screen-container" style="display: block;">
     <div class="card">
       <h1 class="app-title">Oturum Aç</h1>
+
+      <!-- Giriş Hatası Mesajı (varsayılan gizli) -->
+      <p id="loginErrorMessage" style="display:none; color:#f44; margin:0 0 0.6rem; font-size:0.9rem;">
+        Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin
+      </p>
+
       <input type="text" id="loginUsernameInput" placeholder="Kullanıcı Adı" class="input-text">
       <input type="password" id="loginPasswordInput" placeholder="Parola" class="input-text">
       <button id="loginButton" class="btn primary">Giriş Yap</button>
@@ -113,15 +119,15 @@
             <span id="leftUserName" class="left-username">(Kullanıcı)</span>
           </div>
           <div class="user-panel-buttons">
-            <!-- Mik --> 
+            <!-- Mic butonu -->
             <button id="micToggleButton" class="user-panel-btn" title="Mikrofon Aç/Kapa" style="width:22px;height:22px;">
-              <!-- mic_off veya mic eklenecek script.js'te -->
+              <!-- script.js'te mic / mic_off ayarlanıyor -->
             </button>
-            <!-- Deafen -->
+            <!-- Deaf butonu -->
             <button id="deafenToggleButton" class="user-panel-btn" title="Kendini Sağırlaştır" style="width:22px;height:22px;">
-              <!-- headset_off veya headset -->
+              <!-- script.js'te headset / headset_off ayarlanıyor -->
             </button>
-            <!-- Settings ikonu => kendini sağırlaştır butonunun sağ tarafına -->
+            <!-- Settings butonu -->
             <button id="settingsButton" class="user-panel-btn" style="width:22px;height:22px;" title="Ayarlar">
               <span class="material-icons">settings</span>
             </button>
