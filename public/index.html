@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sesli Görüşme Uygulaması</title>
 
-  <!-- Material Icons (Google) -->
+  <!-- Material Icons -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
 
   <link rel="stylesheet" href="style.css">
@@ -58,15 +58,15 @@
       <div id="groupsAndRooms" class="groups-rooms">
         <!-- Sidebar (Gruplar) -->
         <div class="sidebar" id="sidebar">
-          <!-- DM Butonu => mail_outline -->
+          <!-- DM Butonu => "chat" -->
           <button id="toggleDMButton" class="circle-btn dm-toggle-btn">
-            <span class="material-icons">mail_outline</span>
+            <span class="material-icons">chat</span>
           </button>
           <!-- Gruplar listesi -->
           <div id="groupList" class="group-list"></div>
-          <!-- Grup Oluştur Butonu => add_circle_outline -->
+          <!-- Grup Oluştur Butonu => "add" -->
           <button id="createGroupButton" class="circle-btn create-group-btn">
-            <span class="material-icons">add_circle_outline</span>
+            <span class="material-icons">add</span>
           </button>
         </div>
 
@@ -74,7 +74,8 @@
         <div id="roomPanel" class="rooms-panel">
           <div class="room-panel-header">
             <h2 id="groupTitle" class="panel-title">Seçili Grup</h2>
-            <span id="groupDropdownIcon" class="dropdown-icon">⌄</span>
+            <!-- arrow down icon => "keyboard_arrow_down" -->
+            <span id="groupDropdownIcon" class="dropdown-icon material-icons">keyboard_arrow_down</span>
             <div id="groupDropdownMenu" class="dropdown-menu" style="display: none;">
               <div class="dropdown-item" id="copyGroupIdBtn">Grup ID Kopyala</div>
               <div class="dropdown-item" id="renameGroupBtn">Grup ismi değiştir</div>
@@ -98,7 +99,7 @@
           </div>
           <!-- Gerçek ping değeri -->
           <span id="pingValue" style="font-size:0.85rem;">-- ms</span>
-          <!-- Kanaldan ayrıl => call_end -->
+          <!-- Kanaldan ayrıl butonu -->
           <button id="leaveButton" class="leave-btn">
             <span class="material-icons">call_end</span>
           </button>
@@ -113,9 +114,9 @@
             <span id="leftUserName" class="left-username">(Kullanıcı)</span>
           </div>
           <div class="user-panel-buttons">
-            <!-- Mik parantez => mic / mic_off -->
+            <!-- Mikrofon butonu (micToggleButton) -->
             <button id="micToggleButton" class="user-panel-btn" title="Mikrofon Aç/Kapa" style="width:22px;height:22px;"></button>
-            <!-- Volume => volume_up / volume_off -->
+            <!-- Kulaklık butonu (deafenToggleButton) -->
             <button id="deafenToggleButton" class="user-panel-btn" title="Kendini Sağırlaştır" style="width:22px;height:22px;"></button>
           </div>
         </div>
@@ -140,7 +141,6 @@
 
   <!-- DM paneli -->
   <div id="dmPanel" class="dm-panel" style="display:none;">
-    <!-- arrow_back -->
     <button id="closeDMButton" class="circle-btn dm-close-btn">
       <span class="material-icons">arrow_back</span>
     </button>
