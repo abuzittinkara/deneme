@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sesli Görüşme Uygulaması</title>
 
-  <!-- Material Icons (Google) -->
+  <!-- Material Icons -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
 
   <link rel="stylesheet" href="style.css">
@@ -22,8 +22,10 @@
         Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin
       </p>
 
+      <!-- Alt alta inputlar -->
       <input type="text" id="loginUsernameInput" placeholder="Kullanıcı Adı" class="input-text">
       <input type="password" id="loginPasswordInput" placeholder="Parola" class="input-text">
+
       <button id="loginButton" class="btn primary">Giriş Yap</button>
       <p style="margin-top: 1rem;">
         Hesabın yok mu?
@@ -38,6 +40,13 @@
   <div id="registerScreen" class="screen-container" style="display:none;">
     <div class="card">
       <h1 class="app-title">Kayıt Ol</h1>
+
+      <!-- Kayıt Hatası Mesajı -->
+      <p id="registerErrorMessage" style="display:none; color:#f44; margin:0 0 0.6rem; font-size:0.9rem;">
+        Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin
+      </p>
+
+      <!-- Kayıt inputları alt alta -->
       <input type="text" id="regUsernameInput" placeholder="Kullanıcı Adı (küçük harf)" class="input-text">
       <input type="text" id="regNameInput" placeholder="İsim" class="input-text">
       <input type="text" id="regSurnameInput" placeholder="Soyisim" class="input-text">
@@ -46,8 +55,10 @@
       <input type="tel" id="regPhoneInput" placeholder="Telefon Numarası" class="input-text">
       <input type="password" id="regPasswordInput" placeholder="Parola" class="input-text">
       <input type="password" id="regPasswordConfirmInput" placeholder="Parola (Tekrar)" class="input-text">
+
       <button id="registerButton" class="btn primary">Kayıt Ol ve Başla</button>
       <button id="backToLoginButton" class="btn secondary">Geri Gel</button>
+
       <p style="margin-top: 1rem;">
         Zaten hesabın var mı?
         <span id="showLoginScreen" style="color:#fff; cursor:pointer; text-decoration:underline;">
@@ -119,15 +130,11 @@
             <span id="leftUserName" class="left-username">(Kullanıcı)</span>
           </div>
           <div class="user-panel-buttons">
-            <!-- Mic butonu -->
-            <button id="micToggleButton" class="user-panel-btn" title="Mikrofon Aç/Kapa" style="width:22px;height:22px;">
-              <!-- script.js'te mic / mic_off ayarlanıyor -->
-            </button>
-            <!-- Deaf butonu -->
-            <button id="deafenToggleButton" class="user-panel-btn" title="Kendini Sağırlaştır" style="width:22px;height:22px;">
-              <!-- script.js'te headset / headset_off ayarlanıyor -->
-            </button>
-            <!-- Settings butonu -->
+            <!-- micToggleButton -->
+            <button id="micToggleButton" class="user-panel-btn" title="Mikrofon Aç/Kapa" style="width:22px;height:22px;"></button>
+            <!-- deafenToggleButton -->
+            <button id="deafenToggleButton" class="user-panel-btn" title="Kendini Sağırlaştır" style="width:22px;height:22px;"></button>
+            <!-- settingsButton -->
             <button id="settingsButton" class="user-panel-btn" style="width:22px;height:22px;" title="Ayarlar">
               <span class="material-icons">settings</span>
             </button>

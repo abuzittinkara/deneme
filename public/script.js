@@ -1,7 +1,6 @@
 /**************************************
  * script.js
  **************************************/
-
 const socket = io();
 let localStream;
 let peers = {};
@@ -9,34 +8,26 @@ let audioPermissionGranted = false;
 let remoteAudios = [];
 let username = null;
 
-// micEnabled / selfDeafened => global scope
+// micEnabled / selfDeafened
 let micEnabled = true;
 let selfDeafened = false;
 
-// Mevcut group/room
 let currentGroup = null;
 let currentRoom = null;
-
-// Göz atılan (browse edilen) grup
 let selectedGroup = null;
 
-// Bağlanması beklenen user listeleri
-let pendingUsers = [];    
-let pendingNewUsers = []; 
+let pendingUsers = [];
+let pendingNewUsers = [];
 let pendingCandidates = {};
 let sessionUfrag = {};
 
-// Konuşma algılama map
 let audioAnalyzers = {};
 
-// Eşik
 const SPEAKING_THRESHOLD = 0.0;
 const VOLUME_CHECK_INTERVAL = 100;
-
-// Ping aralığı
 let pingInterval = null;
 
-/* Material Icons => volume_up */
+/* Material Icons => (channel wave icon) => volume_up */
 function createWaveIcon() {
   const icon = document.createElement('span');
   icon.classList.add('material-icons');
@@ -45,17 +36,18 @@ function createWaveIcon() {
   return icon;
 }
 
-// DOM
+// DOM Ekranları
 const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
 const callScreen = document.getElementById('callScreen');
 
-// Login
+// Login inputs, buton
 const loginUsernameInput = document.getElementById('loginUsernameInput');
 const loginPasswordInput = document.getElementById('loginPasswordInput');
 const loginButton = document.getElementById('loginButton');
+const loginErrorMessage = document.getElementById('loginErrorMessage');
 
-// Register
+// Register inputs
 const regUsernameInput = document.getElementById('regUsernameInput');
 const regNameInput = document.getElementById('regNameInput');
 const regSurnameInput = document.getElementById('regSurnameInput');
@@ -66,8 +58,9 @@ const regPasswordInput = document.getElementById('regPasswordInput');
 const regPasswordConfirmInput = document.getElementById('regPasswordConfirmInput');
 const registerButton = document.getElementById('registerButton');
 const backToLoginButton = document.getElementById('backToLoginButton');
+const registerErrorMessage = document.getElementById('registerErrorMessage');
 
-// Ekran geçiş
+// Ekran geçiş linkleri
 const showRegisterScreen = document.getElementById('showRegisterScreen');
 const showLoginScreen = document.getElementById('showLoginScreen');
 
@@ -104,11 +97,13 @@ const cellBar4 = document.getElementById('cellBar4');
 // Ayrıl Butonu
 const leaveButton = document.getElementById('leaveButton');
 
-// Mikrofon & Kulaklık butonları
+// Mikrofon / Kulaklık butonları
 const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
+// Settings butonu
+const settingsButton = document.getElementById('settingsButton');
 
-/* Ekran Geçiş (Login<->Register) */
+/* Ekran geçişleri (login <-> register) */
 showRegisterScreen.addEventListener('click', () => {
   loginScreen.style.display = 'none';
   registerScreen.style.display = 'block';
@@ -126,12 +121,21 @@ backToLoginButton.addEventListener('click', () => {
 loginButton.addEventListener('click', () => {
   const usernameVal = loginUsernameInput.value.trim();
   const passwordVal = loginPasswordInput.value.trim();
+  // Önceki hata mesajlarını / shake durumunu sıfırla
+  loginErrorMessage.style.display = 'none';
+  loginUsernameInput.classList.remove('shake');
+  loginPasswordInput.classList.remove('shake');
+
   if (!usernameVal || !passwordVal) {
-    alert("Lütfen kullanıcı adı ve parola girin.");
+    // Shake + hata
+    loginErrorMessage.style.display = 'block';
+    loginUsernameInput.classList.add('shake');
+    loginPasswordInput.classList.add('shake');
     return;
   }
   socket.emit('login', { username: usernameVal, password: passwordVal });
 });
+
 socket.on('loginResult', (data) => {
   if (data.success) {
     username = data.username;
@@ -141,7 +145,10 @@ socket.on('loginResult', (data) => {
     document.getElementById('leftUserName').textContent = username;
     applyAudioStates();
   } else {
-    alert("Giriş başarısız: " + data.message);
+    // Pop-up yerine => input'lar shake, loginErrorMessage göster
+    loginErrorMessage.style.display = 'block';
+    loginUsernameInput.classList.add('shake');
+    loginPasswordInput.classList.add('shake');
   }
 });
 
@@ -158,29 +165,50 @@ registerButton.addEventListener('click', () => {
     passwordConfirm: regPasswordConfirmInput.value.trim()
   };
 
+  // Hata mesajını sıfırla
+  registerErrorMessage.style.display = 'none';
+  // Titreşim sıfırla
+  regUsernameInput.classList.remove('shake');
+  regPasswordInput.classList.remove('shake');
+  regPasswordConfirmInput.classList.remove('shake');
+
+  let isError = false;
+
   if (!userData.username || !userData.name || !userData.surname ||
       !userData.birthdate || !userData.email || !userData.phone ||
       !userData.password || !userData.passwordConfirm) {
-    alert("Tüm alanları doldurun.");
-    return;
+    // Shake => username + pass + passConfirm
+    regUsernameInput.classList.add('shake');
+    regPasswordInput.classList.add('shake');
+    regPasswordConfirmInput.classList.add('shake');
+    registerErrorMessage.style.display = 'block';
+    isError = true;
+  } else if (userData.username !== userData.username.toLowerCase()) {
+    regUsernameInput.classList.add('shake');
+    registerErrorMessage.style.display = 'block';
+    isError = true;
+  } else if (userData.password !== userData.passwordConfirm) {
+    regPasswordInput.classList.add('shake');
+    regPasswordConfirmInput.classList.add('shake');
+    registerErrorMessage.style.display = 'block';
+    isError = true;
   }
-  if (userData.username !== userData.username.toLowerCase()) {
-    alert("Kullanıcı adı sadece küçük harf olmalı.");
-    return;
+
+  if (!isError) {
+    socket.emit('register', userData);
   }
-  if (userData.password !== userData.passwordConfirm) {
-    alert("Parolalar eşleşmiyor!");
-    return;
-  }
-  socket.emit('register', userData);
 });
 socket.on('registerResult', (data) => {
   if (data.success) {
-    alert("Kayıt başarılı! Şimdi giriş yapabilirsiniz.");
+    // Başarılı => loginScreen'e dön
     registerScreen.style.display = 'none';
     loginScreen.style.display = 'block';
   } else {
-    alert("Kayıt başarısız: " + data.message);
+    // Hata => shake + uyarı göster
+    registerErrorMessage.style.display = 'block';
+    regUsernameInput.classList.add('shake');
+    regPasswordInput.classList.add('shake');
+    regPasswordConfirmInput.classList.add('shake');
   }
 });
 
@@ -243,7 +271,7 @@ document.getElementById('modalCloseRoomBtn').addEventListener('click', () => {
   document.getElementById('roomModal').style.display = 'none';
 });
 
-/* Gruplar listesi => sol sidebar */
+/* groupsList => sol sidebar */
 socket.on('groupsList', (groupArray) => {
   groupListDiv.innerHTML = '';
   groupArray.forEach(groupObj => {
@@ -261,7 +289,6 @@ socket.on('groupsList', (groupArray) => {
       groupTitle.textContent = groupObj.name;
       socket.emit('browseGroup', groupObj.id);
 
-      // Owner check => "Grubu Sil" & "Grup İsmi Değiştir"
       if (groupObj.owner === username) {
         deleteGroupBtn.style.display = 'block';
         renameGroupBtn.style.display = 'block';
@@ -402,7 +429,7 @@ socket.on('roomsList', (roomsArray) => {
     const channelHeader = document.createElement('div');
     channelHeader.className = 'channel-header';
 
-    const icon = createWaveIcon(); // "volume_up"
+    const icon = createWaveIcon(); 
     const textSpan = document.createElement('span');
     textSpan.textContent = roomObj.name;
 
@@ -416,7 +443,7 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Kanala gir
+    // Odaya gir
     roomItem.addEventListener('click', () => {
       // Diğer kanallardan "connected" sınıfını kaldır
       document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
@@ -426,7 +453,6 @@ socket.on('roomsList', (roomsArray) => {
         roomItem.classList.add('connected');
         return;
       }
-      // Başka odadaysak => leave
       if (currentRoom && (currentRoom !== roomObj.id || currentGroup !== selectedGroup)) {
         socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
         closeAllPeers();
@@ -560,12 +586,7 @@ leaveButton.addEventListener('click', () => {
   socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
   closeAllPeers();
   hideChannelStatusPanel();
-
-  // Tüm kanallar => connected kalksın
-  document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
-
   currentRoom = null;
-  console.log("Kanaldan ayrıldınız.");
 
   document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
   if (currentGroup) {
@@ -667,7 +688,7 @@ function updateUserList(data) {
   }
 }
 
-/* Kullanıcı item */
+/* Kullanıcı item oluşturma */
 function createUserItem(username, isOnline) {
   const userItem = document.createElement('div');
   userItem.classList.add('user-item');
