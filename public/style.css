@@ -227,12 +227,16 @@ body {
   margin-top: 1rem;
 }
 
-/* Kanal item */
+/* Kanal item => margin-bottom:0rem */
 .channel-item {
   display: flex;
   flex-direction: column;
   cursor: pointer;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0rem; /* Değiştirildi => 0rem */
+}
+/* Kanal item hover => outline bir çerçeve, reflow yapmasın => box-shadow */
+.channel-item:hover {
+  box-shadow: 0 0 0 1px #c61884;
 }
 /* "connected" => user bu kanalda => ismi #fff, ikon #aaa */
 .channel-item.connected .channel-header span {
@@ -241,16 +245,13 @@ body {
 .channel-item.connected .channel-header .channel-icon {
   color: #aaa !important;
 }
-.channel-item:hover {
-  /* no background */
-}
 .channel-header {
   display: flex;
   align-items: center;
   gap: 0.6rem;
 }
 .channel-icon {
-  width: 14px; /* Küçültüldü */
+  width: 14px; 
   height: 14px;
   color: #aaa; 
   display: inline-flex;
@@ -281,7 +282,7 @@ body {
 }
 
 /* Kanal Durum Paneli => user-panel üstü 
-   => height: 45px (istenen)
+   => height: 45px
 */
 .channel-status-panel {
   position: relative;
@@ -290,7 +291,7 @@ body {
   box-sizing: border-box;
   border-top: 1px solid #444;  
   border-right: 1px solid #444;
-  height: 45px; /* Değiştirildi */
+  height: 45px; 
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -324,22 +325,22 @@ body {
 }
 
 /* Kanaldan ayrıl => call_end 
-   => width:30px; height:25px; border-radius:6px
-   + dikey ortalamak için align-self: center;
+   => width:30px; height:25px; border-radius:6px 
+   + align-self center
 */
 .leave-btn {
   background: none;
   border: 2px solid #c61884;
   color: #c61884;
   cursor: pointer;
-  width: 30px;  /* Değiştirildi */
-  height: 25px; /* Değiştirildi */
+  width: 30px;  
+  height: 25px; 
   padding: 0;
-  border-radius: 6px; /* Değiştirildi */
+  border-radius: 6px; 
   display: flex;
   align-items: center;
   justify-content: center;
-  align-self: center; /* Dikeyde ortala => .chan-status-content' */
+  align-self: center; 
 }
 .leave-btn:hover {
   background: #a3156f;
