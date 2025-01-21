@@ -227,7 +227,7 @@ body {
   margin-top: 1rem;
 }
 
-/* Kanal item => margin-bottom:0rem */
+/* Kanal item => margin-bottom: 0rem */
 .channel-item {
   display: flex;
   flex-direction: column;
@@ -241,15 +241,23 @@ body {
 .channel-item.connected .channel-header .channel-icon {
   color: #aaa !important;
 }
-/* Kanala hover => sadece channel-header */
-.channel-header:hover {
-  box-shadow: 0 0 0 1px #c61884;
-}
 
+/* Sadece channel-header'e hover => fill #242424 */
 .channel-header {
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  position: relative;
+}
+.channel-header:hover::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background-color: #242424;
+  z-index: -1;
 }
 .channel-icon {
   width: 14px; 
@@ -282,9 +290,7 @@ body {
   box-shadow: 0 0 0 2px #c61884;
 }
 
-/* Kanal Durum Paneli => user-panel üstü 
-   => height: 45px
-*/
+/* Kanal Durum Paneli => user-panel üstü => height:45px */
 .channel-status-panel {
   position: relative;
   width: 265px;
@@ -325,10 +331,7 @@ body {
   background: #c61884;
 }
 
-/* Kanaldan ayrıl => call_end 
-   => width:30px; height:25px; border-radius:6px 
-   + align-self center
-*/
+/* Kanaldan ayrıl => call_end => width:30px; height:25px; border-radius:6px */
 .leave-btn {
   background: none;
   border: 2px solid #c61884;
