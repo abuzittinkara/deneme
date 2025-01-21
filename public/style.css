@@ -227,15 +227,20 @@ body {
   margin-top: 1rem;
 }
 
-/* Kanal item */
+/* Kanal item => 
+   - Biraz yatay genişletmek için padding ekliyoruz
+   - Min-height -> .channel-item + .channel-header dikeyde ortalasın
+*/
 .channel-item {
   display: flex;
   flex-direction: column;
   cursor: pointer;
   margin-bottom: 0rem; 
-  padding: 0.3rem; /* Hover alanını genişletmek için eklendi */
+  padding: 0.5rem 1rem; /* Yatay genişleme */
+  min-height: 40px;     /* Dikey alan => ortalama */
+  justify-content: center; /* İçinde .channel-header dikey ortalansın */
 }
-/* Hover => fill (#242424) => tüm .channel-item alanı */
+/* Hover => fill (#242424) */
 .channel-item:hover {
   background-color: #242424;
 }
@@ -249,7 +254,7 @@ body {
 
 .channel-header {
   display: flex;
-  align-items: center;
+  align-items: center;  /* Dikine ortalama */
   gap: 0.6rem;
 }
 .channel-icon {
@@ -390,7 +395,6 @@ body {
   width: 20px;
   height: 20px;
 }
-/* Hover => sadece renk değişimi */
 .user-panel-btn:hover {
   color: #c61884;
 }
