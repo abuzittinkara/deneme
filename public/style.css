@@ -243,23 +243,18 @@ body {
   margin-top: 1rem;
 }
 
-/* 
-   ÖNEMLİ: `.channel-item`
-   Üst/bottom boşlukların tam eşit durması için
-   => y-padding + line-height ayarları
-*/
+/* .channel-item => top:10px, bottom:8px, left-right:12px */
 .channel-item {
   display: flex;
   flex-direction: column;
   justify-content: center; 
   align-items: flex-start;  
   cursor: pointer;
-  /* Yukarı-aşağı = 10px => tam eşit, text ortada */
-  padding: 10px 12px; 
+  padding: 10px 12px 8px 12px; /* Üst 10px, alt 8px, sağ/sol 12px */
   margin-bottom: 0rem; 
   border-radius: 8px; 
   background: #1f1f1f;
-  line-height: 1.2; /* Yazı boyuna göre ayar */
+  line-height: 1.2;
 }
 .channel-item:hover {
   background-color: #242424;
@@ -267,8 +262,6 @@ body {
 .channel-item.connected {
   background-color: #2d2d2d;
 }
-
-/* channel-header => flex row */
 .channel-header {
   display: flex;
   align-items: center;
@@ -349,7 +342,7 @@ body {
   background: #c61884;
 }
 
-/* Kanaldan ayrıl => width:30px; height:25px; radius:6px */
+/* Kanaldan ayrıl => call_end => width:30px; height:25px; border-radius:6px */
 .leave-btn {
   background: none;
   border: 2px solid #c61884;
