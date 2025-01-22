@@ -1,6 +1,7 @@
 /**************************************
  * script.js
  **************************************/
+
 const socket = io();
 let localStream;
 let peers = {};
@@ -102,7 +103,7 @@ const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
 const settingsButton = document.getElementById('settingsButton');
 
-/* --- Ekran geçişleri (Login <-> Register) --- */
+/* --- Ekran geçişleri --- */
 showRegisterScreen.addEventListener('click', () => {
   loginScreen.style.display = 'none';
   registerScreen.style.display = 'block';
@@ -482,7 +483,7 @@ socket.on('roomsList', (roomsArray) => {
   });
 });
 
-/* allChannelsData => her user row => tek satır: solda (avatar+name), sağda (ikonlar) */
+/* allChannelsData => her user row => solda avatar+isim, sağda .channel-user-buttons */
 socket.on('allChannelsData', (channelsObj) => {
   Object.keys(channelsObj).forEach(roomId => {
     const cData = channelsObj[roomId];
@@ -491,53 +492,46 @@ socket.on('allChannelsData', (channelsObj) => {
     channelDiv.innerHTML = '';
 
     cData.users.forEach(u => {
-      // channel-user => display:flex; justify-content:space-between
+      // channel-user => avatar + isim + (channel-user-buttons)
       const userDiv = document.createElement('div');
       userDiv.classList.add('channel-user');
 
-      // left => avatar + user name
-      const leftPart = document.createElement('div');
-      leftPart.style.display = 'flex';
-      leftPart.style.alignItems = 'center';
-      leftPart.style.gap = '0.5rem';
-
+      // Avatar
       const avatarDiv = document.createElement('div');
       avatarDiv.classList.add('channel-user-avatar');
       avatarDiv.id = `avatar-${u.id}`;
 
+      // User name
       const nameSpan = document.createElement('span');
+      nameSpan.classList.add('channel-user-name');
       nameSpan.textContent = u.username || '(İsimsiz)';
 
-      leftPart.appendChild(avatarDiv);
-      leftPart.appendChild(nameSpan);
+      // Buttons => ikonlar
+      const buttonsDiv = document.createElement('div');
+      buttonsDiv.classList.add('channel-user-buttons');
 
-      // right => icons
-      const rightPart = document.createElement('div');
-      rightPart.style.display = 'flex';
-      rightPart.style.alignItems = 'center';
-      rightPart.style.gap = '6px';
-
-      // mic_off => if !micEnabled
+      // mic_off => if not u.micEnabled
       if (!u.micEnabled) {
         const micIcon = document.createElement('span');
         micIcon.classList.add('material-icons');
-        micIcon.textContent = 'mic_off';
         micIcon.style.color = '#c61884';
         micIcon.style.fontSize = '18px';
-        rightPart.appendChild(micIcon);
+        micIcon.textContent = 'mic_off';
+        buttonsDiv.appendChild(micIcon);
       }
-      // headset_off => if selfDeafened
+      // headset_off => if u.selfDeafened
       if (u.selfDeafened) {
         const deafIcon = document.createElement('span');
         deafIcon.classList.add('material-icons');
-        deafIcon.textContent = 'headset_off';
         deafIcon.style.color = '#c61884';
         deafIcon.style.fontSize = '18px';
-        rightPart.appendChild(deafIcon);
+        deafIcon.textContent = 'headset_off';
+        buttonsDiv.appendChild(deafIcon);
       }
 
-      userDiv.appendChild(leftPart);
-      userDiv.appendChild(rightPart);
+      userDiv.appendChild(avatarDiv);
+      userDiv.appendChild(nameSpan);
+      userDiv.appendChild(buttonsDiv);
 
       channelDiv.appendChild(userDiv);
     });
@@ -611,7 +605,7 @@ socket.on('roomUsers', (usersInRoom) => {
   }
 });
 
-/* joinRoom => WebRTC */
+/* joinRoom => server => "selectedChannelTitle" => show panel => etc. */
 function joinRoom(groupId, roomId, roomName) {
   socket.emit('joinRoom', { groupId, roomId });
   document.getElementById('selectedChannelTitle').textContent = roomName;
@@ -620,7 +614,7 @@ function joinRoom(groupId, roomId, roomName) {
   currentRoom = roomId;
 }
 
-/* Ayrıl Butonu */
+/* Ayrıl Butonu => leave + closeAllPeers */
 leaveButton.addEventListener('click', () => {
   if (!currentRoom) return;
   socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
@@ -688,10 +682,11 @@ function updateCellBars(ping) {
   if (barsActive >= 4) cellBar4.classList.add('active');
 }
 
-/* Sağ panel => updateUserList */
+/* groupUsers => updateUserList */
 socket.on('groupUsers', (dbUsersArray) => {
   updateUserList(dbUsersArray);
 });
+
 function updateUserList(data) {
   userListDiv.innerHTML = '';
 
@@ -794,6 +789,7 @@ async function requestMicrophoneAccess() {
 /* WebRTC => Offer/Answer/ICE */
 socket.on("signal", async (data) => {
   if (data.from === socket.id) return;
+
   const { from, signal } = data;
   let peer = peers[from];
 
@@ -1010,7 +1006,7 @@ socket.on("disconnect", () => {
   hideChannelStatusPanel();
 });
 
-/* Konuşma Algılama */
+/* Konuşma Algılama => avatar stroke */
 function startVolumeAnalysis(stream, userId) {
   stopVolumeAnalysis(userId);
 

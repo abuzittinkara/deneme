@@ -101,7 +101,7 @@ body {
   height: 100vh;
 }
 
-/* Soldaki Ana Panel => (65px sidebar + 300px rooms) = 365px */
+/* Soldaki Ana Panel => 65px sidebar + 300px rooms => 365px */
 #leftPanels.left-panels {
   display: flex;
   flex-direction: column;
@@ -159,7 +159,7 @@ body {
   background-color: #a3156f;
 }
 
-/* grp-item => yuvarlak */
+/* grp-item => yuvarlak, animasyon, seçili hâl */
 .grp-item {
   width: 43px;
   height: 43px;
@@ -181,7 +181,7 @@ body {
   border-radius: 15px; 
 }
 
-/* rooms-panel => 300px */
+/* Odalar paneli => 300px */
 .rooms-panel {
   width: 300px; 
   background: #1f1f1f;
@@ -243,7 +243,7 @@ body {
   margin-top: 1rem;
 }
 
-/* channel-item => margin, color unchanged */
+/* channel-item => odada => padding vs. */
 .channel-item {
   display: flex;
   flex-direction: column;
@@ -289,15 +289,12 @@ body {
   gap: 0.3rem;
 }
 
-/* .channel-user => Tek satır: avatar + name solda, mic/deaf ikonlar sağda */
+/* .channel-user => satır; avatar + isim solda, .channel-user-buttons sağda */
 .channel-user {
   display: flex;
   align-items: center;
-  /* ortadaki isim solda, ikonlar sağda => space-between */
-  justify-content: space-between;  
-  font-size: 0.9rem;
-  /* width:100% => satırı doldursun */
   width: 100%;
+  gap: 0.5rem;
 }
 .channel-user-avatar {
   width: 24px;
@@ -307,6 +304,18 @@ body {
 }
 .channel-user-avatar.speaking {
   box-shadow: 0 0 0 2px #c61884;
+}
+/* .channel-user-name => normal text */
+.channel-user-name {
+  color: #aaa;
+  font-size: 0.9rem;
+}
+/* .channel-user-buttons => margin-left:auto => ikonları sağa yasla */
+.channel-user-buttons {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* Kanal Durum Paneli => absolute => left=65px => width=300px => alt kısımda */
@@ -352,7 +361,7 @@ body {
   background: #c61884;
 }
 
-/* Kanaldan ayrıl => call_end => width:30px; height:25px; border-radius:6px */
+/* Kanaldan ayrıl => call_end => 30x25 => border:6px radius => vs. */
 .leave-btn {
   background: none;
   border: 2px solid #c61884;
@@ -409,7 +418,6 @@ body {
   align-items: center;
   margin-right: 0.4rem; 
 }
-
 .user-panel-btn {
   background: none;
   border: none;
@@ -429,7 +437,7 @@ body {
   color: #c61884 !important;
 }
 
-/* Ayarlar Paneli */
+/* AYARLAR Paneli */
 .settings-panel {
   position: absolute;
   top: 0; 
@@ -498,7 +506,7 @@ body {
   color: #aaa;
 }
 
-/* Kanal içerik alanı */
+/* Kanalın asıl içerik alanı */
 .channel-content-area {
   border: none;
   padding: 1rem;
@@ -525,7 +533,7 @@ body {
   gap: 0.2rem; 
 }
 
-/* user-item => listede profil, isim, ID kopyala */
+/* user-item => çerçeve yok, hover yok */
 .user-item {
   padding: 0.1rem;
   border: none;
@@ -599,7 +607,7 @@ body {
   display: none;
 }
 
-/* DM panel */
+/* DM paneli */
 .dm-panel {
   width: 265px;
   background: #222;
