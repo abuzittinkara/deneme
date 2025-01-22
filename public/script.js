@@ -97,7 +97,7 @@ const cellBar4 = document.getElementById('cellBar4');
 // Ayrıl Butonu
 const leaveButton = document.getElementById('leaveButton');
 
-// Mikrofon & Kulaklık Butonları
+// Mikrofon / Kulaklık butonları
 const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
 const settingsButton = document.getElementById('settingsButton');
@@ -448,7 +448,7 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Kanala gir
+    // Tıklayınca => Kanala gir
     roomItem.addEventListener('click', () => {
       document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
 
@@ -482,7 +482,7 @@ socket.on('roomsList', (roomsArray) => {
   });
 });
 
-/* allChannelsData => kanalda kim var + ikonlar sağa yaslı */
+/* allChannelsData => her user row => tek satır: solda (avatar+name), sağda (ikonlar) */
 socket.on('allChannelsData', (channelsObj) => {
   Object.keys(channelsObj).forEach(roomId => {
     const cData = channelsObj[roomId];
@@ -490,58 +490,54 @@ socket.on('allChannelsData', (channelsObj) => {
     if (!channelDiv) return;
     channelDiv.innerHTML = '';
 
-    // Her user => avatar + isim solda, iconlar sağa
     cData.users.forEach(u => {
+      // channel-user => display:flex; justify-content:space-between
       const userDiv = document.createElement('div');
-      userDiv.classList.add('channel-user'); 
-      // userDiv => display: flex; justify-content: space-between
+      userDiv.classList.add('channel-user');
 
-      // LEFT => avatar + username
-      const leftDiv = document.createElement('div');
-      leftDiv.style.display = 'flex';
-      leftDiv.style.alignItems = 'center';
-      leftDiv.style.gap = '0.5rem';
+      // left => avatar + user name
+      const leftPart = document.createElement('div');
+      leftPart.style.display = 'flex';
+      leftPart.style.alignItems = 'center';
+      leftPart.style.gap = '0.5rem';
 
-      // avatar
       const avatarDiv = document.createElement('div');
       avatarDiv.classList.add('channel-user-avatar');
       avatarDiv.id = `avatar-${u.id}`;
 
-      // user name
       const nameSpan = document.createElement('span');
       nameSpan.textContent = u.username || '(İsimsiz)';
 
-      leftDiv.appendChild(avatarDiv);
-      leftDiv.appendChild(nameSpan);
+      leftPart.appendChild(avatarDiv);
+      leftPart.appendChild(nameSpan);
 
-      // RIGHT => icon container
-      const rightDiv = document.createElement('div');
-      rightDiv.style.display = 'flex';
-      rightDiv.style.alignItems = 'center';
-      rightDiv.style.gap = '6px';
+      // right => icons
+      const rightPart = document.createElement('div');
+      rightPart.style.display = 'flex';
+      rightPart.style.alignItems = 'center';
+      rightPart.style.gap = '6px';
 
-      // Mic icon => if micEnabled===false => mic_off
+      // mic_off => if !micEnabled
       if (!u.micEnabled) {
         const micIcon = document.createElement('span');
         micIcon.classList.add('material-icons');
         micIcon.textContent = 'mic_off';
         micIcon.style.color = '#c61884';
         micIcon.style.fontSize = '18px';
-        rightDiv.appendChild(micIcon);
+        rightPart.appendChild(micIcon);
       }
-
-      // Deaf icon => if selfDeafened===true => headset_off
+      // headset_off => if selfDeafened
       if (u.selfDeafened) {
         const deafIcon = document.createElement('span');
         deafIcon.classList.add('material-icons');
         deafIcon.textContent = 'headset_off';
         deafIcon.style.color = '#c61884';
         deafIcon.style.fontSize = '18px';
-        rightDiv.appendChild(deafIcon);
+        rightPart.appendChild(deafIcon);
       }
 
-      userDiv.appendChild(leftDiv);
-      userDiv.appendChild(rightDiv);
+      userDiv.appendChild(leftPart);
+      userDiv.appendChild(rightPart);
 
       channelDiv.appendChild(userDiv);
     });
@@ -624,7 +620,7 @@ function joinRoom(groupId, roomId, roomName) {
   currentRoom = roomId;
 }
 
-/* Ayrıl Butonu => leave + closeAllPeers */
+/* Ayrıl Butonu */
 leaveButton.addEventListener('click', () => {
   if (!currentRoom) return;
   socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
@@ -693,6 +689,9 @@ function updateCellBars(ping) {
 }
 
 /* Sağ panel => updateUserList */
+socket.on('groupUsers', (dbUsersArray) => {
+  updateUserList(dbUsersArray);
+});
 function updateUserList(data) {
   userListDiv.innerHTML = '';
 
@@ -732,7 +731,7 @@ function updateUserList(data) {
   }
 }
 
-/* Kullanıcı item => profil + isim + "ID Kopyala" btn */
+/* user-item => listede profil + isim + ID kopyala btn */
 function createUserItem(username, isOnline) {
   const userItem = document.createElement('div');
   userItem.classList.add('user-item');
@@ -795,7 +794,6 @@ async function requestMicrophoneAccess() {
 /* WebRTC => Offer/Answer/ICE */
 socket.on("signal", async (data) => {
   if (data.from === socket.id) return;
-
   const { from, signal } = data;
   let peer = peers[from];
 
@@ -956,11 +954,9 @@ function applyAudioStates() {
     deafenToggleButton.innerHTML = `<span class="material-icons">headset</span>`;
     deafenToggleButton.classList.remove('btn-muted');
   }
-  // Tüm remote audio => muted = selfDeafened
   remoteAudios.forEach(audio => {
     audio.muted = selfDeafened;
   });
-  // Sunucuya bildir => micEnabled, selfDeafened
   socket.emit('audioStateChanged', { micEnabled, selfDeafened });
 }
 
