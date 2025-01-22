@@ -48,7 +48,7 @@ body {
   border: 1px solid #666;
   border-radius: 6px;
   font-size: 0.95rem;
-  margin: 0.6rem auto; 
+  margin: 0.6rem auto;
   box-sizing: border-box;
 }
 
@@ -159,7 +159,7 @@ body {
   background-color: #a3156f;
 }
 
-/* grp-item => yuvarlak, animasyon, seçili hâl */
+/* grp-item => yuvarlak */
 .grp-item {
   width: 43px;
   height: 43px;
@@ -181,7 +181,7 @@ body {
   border-radius: 15px; 
 }
 
-/* Odalar paneli => 300px */
+/* rooms-panel => 300px */
 .rooms-panel {
   width: 300px; 
   background: #1f1f1f;
@@ -243,7 +243,7 @@ body {
   margin-top: 1rem;
 }
 
-/* channel-item => odada => padding vs. */
+/* channel-item => alt alta user list */
 .channel-item {
   display: flex;
   flex-direction: column;
@@ -255,6 +255,7 @@ body {
   border-radius: 5px; 
   background: #1f1f1f;
   line-height: 1.2;
+  position: relative; /* for absolutely placed .channel-user-buttons */
 }
 .channel-item:hover {
   background-color: #242424;
@@ -263,6 +264,8 @@ body {
   background-color: #2d2d2d;
   padding: 7px 12px 10px 12px;
 }
+
+/* channel-header => icon + text */
 .channel-header {
   display: flex;
   align-items: center;
@@ -280,7 +283,7 @@ body {
   justify-content: center;
 }
 
-/* channel-users => alt tarafta */
+/* channel-users => alt */
 .channel-users {
   margin-top: 4px;
   margin-left: 0px; 
@@ -289,12 +292,12 @@ body {
   gap: 0.3rem;
 }
 
-/* .channel-user => satır; avatar + isim solda, .channel-user-buttons sağda */
+/* Tek satır user => solda avatar + name */
 .channel-user {
   display: flex;
   align-items: center;
-  width: 100%;
   gap: 0.5rem;
+  font-size: 0.9rem;
 }
 .channel-user-avatar {
   width: 24px;
@@ -305,20 +308,23 @@ body {
 .channel-user-avatar.speaking {
   box-shadow: 0 0 0 2px #c61884;
 }
-/* .channel-user-name => normal text */
-.channel-user-name {
-  color: #aaa;
-  font-size: 0.9rem;
-}
-/* .channel-user-buttons => margin-left:auto => ikonları sağa yasla */
+
+/* .channel-user-buttons => mikrofon/sağır ikonları => .channel-item.connected sağ taraf */
 .channel-user-buttons {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  display: none; 
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  gap: 8px;
 }
 
-/* Kanal Durum Paneli => absolute => left=65px => width=300px => alt kısımda */
+/* Sadece connected channel'da göster */
+.channel-item.connected .channel-user-buttons {
+  display: flex;
+}
+
+/* channel-status-panel => absolute left=65px width=300px bottom=60px */
 .channel-status-panel {
   position: absolute; 
   left: 65px;      
@@ -361,7 +367,7 @@ body {
   background: #c61884;
 }
 
-/* Kanaldan ayrıl => call_end => 30x25 => border:6px radius => vs. */
+/* leave-btn => call_end => w=30 h=25 radius=6 */
 .leave-btn {
   background: none;
   border: 2px solid #c61884;
@@ -383,7 +389,7 @@ body {
   color: #fff;
 }
 
-/* Kullanıcı Paneli => absolute => left=65px => width=300px => alt */
+/* user-panel => absolute left=65px width=300px bottom=0 */
 .user-panel {
   position: absolute; 
   left: 65px;
@@ -437,7 +443,7 @@ body {
   color: #c61884 !important;
 }
 
-/* AYARLAR Paneli */
+/* settings-panel => absolute right=0 */
 .settings-panel {
   position: absolute;
   top: 0; 
@@ -477,7 +483,7 @@ body {
   overflow: auto; 
 }
 
-/* Ortadaki ana içerik */
+/* Ortadaki ana içerik => .main-content */
 .main-content {
   flex: 1;
   padding: 0;
@@ -506,7 +512,6 @@ body {
   color: #aaa;
 }
 
-/* Kanalın asıl içerik alanı */
 .channel-content-area {
   border: none;
   padding: 1rem;
@@ -526,14 +531,14 @@ body {
   border-left: 1px solid #444;
 }
 
-/* Kullanıcı listesi => gap */
+/* user-list => gap */
 .user-list {
   display: flex;
   flex-direction: column;
   gap: 0.2rem; 
 }
 
-/* user-item => çerçeve yok, hover yok */
+/* user-item => kimse yoksa bile */
 .user-item {
   padding: 0.1rem;
   border: none;
@@ -545,7 +550,6 @@ body {
   /* background: #444; Kaldırıldı */
 }
 
-/* Profil dairesi */
 .profile-thumb {
   width: 30px;
   height: 30px;
@@ -607,7 +611,7 @@ body {
   display: none;
 }
 
-/* DM paneli */
+/* DM panel */
 .dm-panel {
   width: 265px;
   background: #222;

@@ -1,7 +1,6 @@
 /**************************************
  * script.js
  **************************************/
-
 const socket = io();
 let localStream;
 let peers = {};
@@ -103,7 +102,7 @@ const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
 const settingsButton = document.getElementById('settingsButton');
 
-/* --- Ekran geçişleri --- */
+/* --- Ekran geçişleri (Login <-> Register) --- */
 showRegisterScreen.addEventListener('click', () => {
   loginScreen.style.display = 'none';
   registerScreen.style.display = 'block';
@@ -442,11 +441,18 @@ socket.on('roomsList', (roomsArray) => {
     channelHeader.appendChild(icon);
     channelHeader.appendChild(textSpan);
 
+    // .channel-user-buttons => ikonu .channel-item.connected sağa alacağız
+    const userButtonsDiv = document.createElement('div');
+    userButtonsDiv.classList.add('channel-user-buttons'); 
+    // Başta boş, ".channel-item.connected" olunca display: flex yapacak
+
+    // Alt => channel-users container
     const channelUsers = document.createElement('div');
     channelUsers.className = 'channel-users';
     channelUsers.id = `channel-users-${roomObj.id}`;
 
     roomItem.appendChild(channelHeader);
+    roomItem.appendChild(userButtonsDiv);
     roomItem.appendChild(channelUsers);
 
     // Tıklayınca => Kanala gir
@@ -467,6 +473,7 @@ socket.on('roomsList', (roomsArray) => {
 
       joinRoom(currentGroup, roomObj.id, roomObj.name);
 
+      // "connected" => userButtonsDiv (icons) eklenecek mi?
       roomItem.classList.add('connected');
     });
 
@@ -483,7 +490,7 @@ socket.on('roomsList', (roomsArray) => {
   });
 });
 
-/* allChannelsData => her user row => solda avatar+isim, sağda .channel-user-buttons */
+/* allChannelsData => her user => normal row, eğer current user micOff / deaf => icons .channel-user-buttons'a */
 socket.on('allChannelsData', (channelsObj) => {
   Object.keys(channelsObj).forEach(roomId => {
     const cData = channelsObj[roomId];
@@ -491,49 +498,48 @@ socket.on('allChannelsData', (channelsObj) => {
     if (!channelDiv) return;
     channelDiv.innerHTML = '';
 
-    cData.users.forEach(u => {
-      // channel-user => avatar + isim + (channel-user-buttons)
-      const userDiv = document.createElement('div');
-      userDiv.classList.add('channel-user');
+    // Bu .channel-item => icons => .channel-user-buttons
+    const channelItemDiv = channelDiv.closest('.channel-item');
+    if (!channelItemDiv) return;
+    const userButtonsDiv = channelItemDiv.querySelector('.channel-user-buttons');
+    if (userButtonsDiv) userButtonsDiv.innerHTML = '';
 
-      // Avatar
+    cData.users.forEach(u => {
+      // Sıradan user row => avatar + name
+      const userRow = document.createElement('div');
+      userRow.classList.add('channel-user');
+
       const avatarDiv = document.createElement('div');
       avatarDiv.classList.add('channel-user-avatar');
       avatarDiv.id = `avatar-${u.id}`;
 
-      // User name
       const nameSpan = document.createElement('span');
-      nameSpan.classList.add('channel-user-name');
       nameSpan.textContent = u.username || '(İsimsiz)';
 
-      // Buttons => ikonlar
-      const buttonsDiv = document.createElement('div');
-      buttonsDiv.classList.add('channel-user-buttons');
+      userRow.appendChild(avatarDiv);
+      userRow.appendChild(nameSpan);
 
-      // mic_off => if not u.micEnabled
-      if (!u.micEnabled) {
-        const micIcon = document.createElement('span');
-        micIcon.classList.add('material-icons');
-        micIcon.style.color = '#c61884';
-        micIcon.style.fontSize = '18px';
-        micIcon.textContent = 'mic_off';
-        buttonsDiv.appendChild(micIcon);
+      channelDiv.appendChild(userRow);
+
+      // Eğer bu user local user ise ve micOff/deaf => .channel-user-buttons'a ikon ekle
+      if (u.id === socket.id) {
+        if (!u.micEnabled) {
+          const micIcon = document.createElement('span');
+          micIcon.classList.add('material-icons');
+          micIcon.textContent = 'mic_off';
+          micIcon.style.color = '#c61884';
+          micIcon.style.fontSize = '18px';
+          if (userButtonsDiv) userButtonsDiv.appendChild(micIcon);
+        }
+        if (u.selfDeafened) {
+          const deafIcon = document.createElement('span');
+          deafIcon.classList.add('material-icons');
+          deafIcon.textContent = 'headset_off';
+          deafIcon.style.color = '#c61884';
+          deafIcon.style.fontSize = '18px';
+          if (userButtonsDiv) userButtonsDiv.appendChild(deafIcon);
+        }
       }
-      // headset_off => if u.selfDeafened
-      if (u.selfDeafened) {
-        const deafIcon = document.createElement('span');
-        deafIcon.classList.add('material-icons');
-        deafIcon.style.color = '#c61884';
-        deafIcon.style.fontSize = '18px';
-        deafIcon.textContent = 'headset_off';
-        buttonsDiv.appendChild(deafIcon);
-      }
-
-      userDiv.appendChild(avatarDiv);
-      userDiv.appendChild(nameSpan);
-      userDiv.appendChild(buttonsDiv);
-
-      channelDiv.appendChild(userDiv);
     });
   });
 });
@@ -550,9 +556,7 @@ socket.on('roomUsers', (usersInRoom) => {
   const userIdsInRoom = usersInRoom.map(u => u.id);
   Object.keys(peers).forEach(peerId => {
     if (!userIdsInRoom.includes(peerId)) {
-      if (peers[peerId]) {
-        peers[peerId].close();
-      }
+      if (peers[peerId]) peers[peerId].close();
       delete peers[peerId];
       stopVolumeAnalysis(peerId);
 
@@ -605,7 +609,7 @@ socket.on('roomUsers', (usersInRoom) => {
   }
 });
 
-/* joinRoom => server => "selectedChannelTitle" => show panel => etc. */
+/* joinRoom => WebRTC */
 function joinRoom(groupId, roomId, roomName) {
   socket.emit('joinRoom', { groupId, roomId });
   document.getElementById('selectedChannelTitle').textContent = roomName;
@@ -614,7 +618,7 @@ function joinRoom(groupId, roomId, roomName) {
   currentRoom = roomId;
 }
 
-/* Ayrıl Butonu => leave + closeAllPeers */
+/* Ayrıl Butonu */
 leaveButton.addEventListener('click', () => {
   if (!currentRoom) return;
   socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
@@ -682,11 +686,10 @@ function updateCellBars(ping) {
   if (barsActive >= 4) cellBar4.classList.add('active');
 }
 
-/* groupUsers => updateUserList */
+/* Kullanıcı listesi => updateUserList => sağ panel */
 socket.on('groupUsers', (dbUsersArray) => {
   updateUserList(dbUsersArray);
 });
-
 function updateUserList(data) {
   userListDiv.innerHTML = '';
 
@@ -726,7 +729,7 @@ function updateUserList(data) {
   }
 }
 
-/* user-item => listede profil + isim + ID kopyala btn */
+/* user-item => listede profil + isim + ID kopyala */
 function createUserItem(username, isOnline) {
   const userItem = document.createElement('div');
   userItem.classList.add('user-item');
@@ -1006,7 +1009,7 @@ socket.on("disconnect", () => {
   hideChannelStatusPanel();
 });
 
-/* Konuşma Algılama => avatar stroke */
+/* Konuşma Algılama */
 function startVolumeAnalysis(stream, userId) {
   stopVolumeAnalysis(userId);
 
