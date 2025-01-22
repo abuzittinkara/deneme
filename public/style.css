@@ -243,14 +243,15 @@ body {
   margin-top: 1rem;
 }
 
-/* .channel-item => top:10px, bottom:8px, left-right:12px */
+/* Burada asıl fark: normal .channel-item ile .channel-item.connected */
 .channel-item {
   display: flex;
   flex-direction: column;
   justify-content: center; 
   align-items: flex-start;  
   cursor: pointer;
-  padding: 7px 12px 3px 8px; /* Üst 10px, alt 8px, sağ/sol 12px */
+  /* Üst=7px, sağ=12px, alt=3px, sol=8px */
+  padding: 7px 12px 3px 8px;; 
   margin-bottom: 0rem; 
   border-radius: 5px; 
   background: #1f1f1f;
