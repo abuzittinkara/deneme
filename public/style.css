@@ -48,7 +48,7 @@ body {
   border: 1px solid #666;
   border-radius: 6px;
   font-size: 0.95rem;
-  margin: 0.6rem auto;
+  margin: 0.6rem auto; 
   box-sizing: border-box;
 }
 
@@ -101,12 +101,12 @@ body {
   height: 100vh;
 }
 
-/* Soldaki Ana Panel */
+/* Soldaki Ana Panel => (sidebar + rooms) topl. 65+300=365px */
 #leftPanels.left-panels {
   display: flex;
   flex-direction: column;
   height: 100%;
-  width: 365px; /* 65px sidebar + 300px rooms */
+  width: 365px; 
   box-sizing: border-box;
 }
 
@@ -243,7 +243,7 @@ body {
   margin-top: 1rem;
 }
 
-/* Kanal item => top:7, bottom:3, left:8, right:12 (senin son ayarın) */
+/* channel-item => normal */
 .channel-item {
   display: flex;
   flex-direction: column;
@@ -279,7 +279,8 @@ body {
   align-items: center;
   justify-content: center;
 }
-/* Kanal kullanıcı listesi */
+
+/* channel-users => alt tarafta */
 .channel-users {
   margin-top: 4px;
   margin-left: 0px; 
@@ -287,25 +288,15 @@ body {
   flex-direction: column;
   gap: 0.3rem;
 }
-/* channel-user => avatar, isim solda, mic/deaf ikonları sağa dayalı */
+
+/* channel-user => solda avatar+isim, sağda (ikonlar), justify-content: space-between */
 .channel-user {
   display: flex;
   align-items: center;
-  justify-content: space-between; /* solda avatar+isim, sağda ikon */
+  justify-content: space-between;
   font-size: 0.9rem;
-  width: 100%; /* tam genişlik */
+  width: 100%;
 }
-.channel-user-left {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.channel-user-right {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-/* avatar => speaking effect */
 .channel-user-avatar {
   width: 24px;
   height: 24px;
@@ -316,7 +307,7 @@ body {
   box-shadow: 0 0 0 2px #c61884;
 }
 
-/* Kanal Durum Paneli => absolute => left=65px => 300px => bottom=60px */
+/* Kanal Durum Paneli => absolute => left=65px + width=300px => alt kısımda */
 .channel-status-panel {
   position: absolute; 
   left: 65px;      
@@ -330,7 +321,7 @@ body {
   flex-direction: column;
   justify-content: center;
   padding: 0.5rem;
-  bottom: 60px;     
+  bottom: 60px; 
   z-index: 10;
 }
 .chan-status-content {
@@ -381,7 +372,7 @@ body {
   color: #fff;
 }
 
-/* Kullanıcı Paneli => absolute => left=65px => 300px => bottom=0 */
+/* Kullanıcı Paneli => absolute => left=65px; width=300px => alt */
 .user-panel {
   position: absolute; 
   left: 65px;
@@ -416,7 +407,6 @@ body {
   align-items: center;
   margin-right: 0.4rem; 
 }
-
 .user-panel-btn {
   background: none;
   border: none;
@@ -513,7 +503,7 @@ body {
   min-height: 200px;
 }
 
-/* Sağ panel */
+/* Sağ panel => 200px */
 .right-panel {
   width: 200px;
   background: #1f1f1f;
@@ -571,7 +561,7 @@ body {
   background: #777;
 }
 
-/* Modal */
+/* Modal => ortalama */
 .modal {
   position: fixed;
   top: 0; 
@@ -625,7 +615,7 @@ body {
   left: 0.55rem;
 }
 
-/* context-menu */
+/* context-menu => absolute + z-index */
 .context-menu {
   position: absolute;
   background: #2d2d2d;

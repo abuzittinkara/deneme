@@ -1,7 +1,6 @@
 /**************************************
  * script.js
  **************************************/
-
 const socket = io();
 let localStream;
 let peers = {};
@@ -9,10 +8,10 @@ let audioPermissionGranted = false;
 let remoteAudios = [];
 let username = null;
 
-// Mikrofon / Deafen
+// Mikrofon / Kulaklık
 let micEnabled = true;
 let selfDeafened = false;
-let micWasEnabledBeforeDeaf = false; // Deafen'dan önce mic açık mıydı?
+let micWasEnabledBeforeDeaf = false;
 
 let currentGroup = null;
 let currentRoom = null;
@@ -98,13 +97,12 @@ const cellBar4 = document.getElementById('cellBar4');
 // Ayrıl Butonu
 const leaveButton = document.getElementById('leaveButton');
 
-// Mikrofon / Kulaklık butonları
+// Mikrofon & Kulaklık Butonları
 const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
 const settingsButton = document.getElementById('settingsButton');
 
-
-/* ---- Ekran geçişleri (login <-> register) ---- */
+/* --- Ekran geçişleri (Login <-> Register) --- */
 showRegisterScreen.addEventListener('click', () => {
   loginScreen.style.display = 'none';
   registerScreen.style.display = 'block';
@@ -181,6 +179,7 @@ registerButton.addEventListener('click', () => {
   regPasswordConfirmInput.classList.remove('shake');
 
   let isError = false;
+
   if (!userData.username || !userData.name || !userData.surname ||
       !userData.birthdate || !userData.email || !userData.phone ||
       !userData.password || !userData.passwordConfirm) {
@@ -232,7 +231,6 @@ document.getElementById('modalGroupJoinBtn').addEventListener('click', () => {
   document.getElementById('groupModal').style.display = 'none';
   document.getElementById('joinGroupModal').style.display = 'flex';
 });
-
 // Modal: Grup Kur
 document.getElementById('actualGroupNameBtn').addEventListener('click', () => {
   const grpName = document.getElementById('actualGroupName').value.trim();
@@ -261,7 +259,7 @@ document.getElementById('closeJoinGroupModal').addEventListener('click', () => {
   document.getElementById('joinGroupModal').style.display = 'none';
 });
 
-/* Oda Oluştur (pop-up) */
+/* Oda Oluştur */
 document.getElementById('modalCreateRoomBtn').addEventListener('click', () => {
   const rName = document.getElementById('modalRoomName').value.trim();
   if (!rName) {
@@ -319,8 +317,6 @@ groupDropdownIcon.addEventListener('click', () => {
     groupDropdownMenu.style.display = 'none';
   }
 });
-
-/* Drop-down menü butonları */
 copyGroupIdBtn.addEventListener('click', () => {
   groupDropdownMenu.style.display = 'none';
   const grp = currentGroup || selectedGroup;
@@ -452,6 +448,7 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
+    // Kanala gir
     roomItem.addEventListener('click', () => {
       document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
 
@@ -485,59 +482,64 @@ socket.on('roomsList', (roomsArray) => {
   });
 });
 
-/* allChannelsData => Kanaldaki kullanıcılar + mic/deaf ikonları sağ tarafta */
+/* allChannelsData => kanalda kim var + ikonlar sağa yaslı */
 socket.on('allChannelsData', (channelsObj) => {
-  // channelsObj = { roomId: { name, users:[ {id, username, micEnabled, selfDeafened} ] }, ... }
   Object.keys(channelsObj).forEach(roomId => {
     const cData = channelsObj[roomId];
     const channelDiv = document.getElementById(`channel-users-${roomId}`);
     if (!channelDiv) return;
     channelDiv.innerHTML = '';
 
+    // Her user => avatar + isim solda, iconlar sağa
     cData.users.forEach(u => {
-      // channel-user => solda avatar+isim, sağda ikonlar
       const userDiv = document.createElement('div');
-      userDiv.classList.add('channel-user');
+      userDiv.classList.add('channel-user'); 
+      // userDiv => display: flex; justify-content: space-between
 
-      // soldaki kısım => .channel-user-left
+      // LEFT => avatar + username
       const leftDiv = document.createElement('div');
-      leftDiv.classList.add('channel-user-left');
+      leftDiv.style.display = 'flex';
+      leftDiv.style.alignItems = 'center';
+      leftDiv.style.gap = '0.5rem';
 
+      // avatar
       const avatarDiv = document.createElement('div');
       avatarDiv.classList.add('channel-user-avatar');
       avatarDiv.id = `avatar-${u.id}`;
 
+      // user name
       const nameSpan = document.createElement('span');
       nameSpan.textContent = u.username || '(İsimsiz)';
 
       leftDiv.appendChild(avatarDiv);
       leftDiv.appendChild(nameSpan);
 
-      // sağdaki kısım => .channel-user-right
+      // RIGHT => icon container
       const rightDiv = document.createElement('div');
-      rightDiv.classList.add('channel-user-right');
+      rightDiv.style.display = 'flex';
+      rightDiv.style.alignItems = 'center';
+      rightDiv.style.gap = '6px';
 
-      // Mikrofon kapalı => mic_off (#c61884)
+      // Mic icon => if micEnabled===false => mic_off
       if (!u.micEnabled) {
         const micIcon = document.createElement('span');
         micIcon.classList.add('material-icons');
+        micIcon.textContent = 'mic_off';
         micIcon.style.color = '#c61884';
         micIcon.style.fontSize = '18px';
-        micIcon.textContent = 'mic_off';
         rightDiv.appendChild(micIcon);
       }
 
-      // Sağırlaştırılmış => headset_off (#c61884)
+      // Deaf icon => if selfDeafened===true => headset_off
       if (u.selfDeafened) {
         const deafIcon = document.createElement('span');
         deafIcon.classList.add('material-icons');
+        deafIcon.textContent = 'headset_off';
         deafIcon.style.color = '#c61884';
         deafIcon.style.fontSize = '18px';
-        deafIcon.textContent = 'headset_off';
         rightDiv.appendChild(deafIcon);
       }
 
-      // Tamamını userDiv'e ekle
       userDiv.appendChild(leftDiv);
       userDiv.appendChild(rightDiv);
 
@@ -622,7 +624,7 @@ function joinRoom(groupId, roomId, roomName) {
   currentRoom = roomId;
 }
 
-/* Ayrıl Butonu */
+/* Ayrıl Butonu => leave + closeAllPeers */
 leaveButton.addEventListener('click', () => {
   if (!currentRoom) return;
   socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
@@ -636,7 +638,7 @@ leaveButton.addEventListener('click', () => {
   }
 });
 
-/* Kanal Durum Paneli => göster/gizle + ping ölçümü */
+/* Kanal Durum Paneli => göster/gizle + ping */
 function showChannelStatusPanel() {
   channelStatusPanel.style.display = 'block';
   startPingInterval();
@@ -730,7 +732,7 @@ function updateUserList(data) {
   }
 }
 
-/* Kullanıcı item => (online/offline) => sağ panel */
+/* Kullanıcı item => profil + isim + "ID Kopyala" btn */
 function createUserItem(username, isOnline) {
   const userItem = document.createElement('div');
   userItem.classList.add('user-item');
@@ -806,6 +808,7 @@ socket.on("signal", async (data) => {
     const isInit = (socket.id < from);
     peer = initPeer(from, isInit);
   }
+
   if (signal.type === "offer") {
     await peer.setRemoteDescription(new RTCSessionDescription(signal));
     sessionUfrag[from] = parseIceUfrag(signal.sdp);
@@ -847,9 +850,7 @@ function initPeer(userId, isInitiator) {
     else pendingNewUsers.push(userId);
     return;
   }
-  if (peers[userId]) {
-    return peers[userId];
-  }
+  if (peers[userId]) return peers[userId];
 
   console.log("initPeer =>", userId, "isInitiator?", isInitiator);
   const peer = new RTCPeerConnection({
@@ -916,7 +917,7 @@ function closeAllPeers() {
   sessionUfrag = {};
 }
 
-/* Mikrofon & Kulaklık => audioStateChanged => server */
+/* Mikrofon & Kulaklık => sunucuya audioStateChanged */
 micToggleButton.addEventListener('click', () => {
   micEnabled = !micEnabled;
   applyAudioStates();
@@ -928,9 +929,7 @@ deafenToggleButton.addEventListener('click', () => {
     micEnabled = false;
   } else {
     selfDeafened = false;
-    if (micWasEnabledBeforeDeaf) {
-      micEnabled = true;
-    }
+    if (micWasEnabledBeforeDeaf) micEnabled = true;
   }
   applyAudioStates();
 });
@@ -961,7 +960,7 @@ function applyAudioStates() {
   remoteAudios.forEach(audio => {
     audio.muted = selfDeafened;
   });
-  // Server'a bildir => "audioStateChanged"
+  // Sunucuya bildir => micEnabled, selfDeafened
   socket.emit('audioStateChanged', { micEnabled, selfDeafened });
 }
 
@@ -1015,7 +1014,7 @@ socket.on("disconnect", () => {
   hideChannelStatusPanel();
 });
 
-/* Konuşma Algılama (avatar stroke) */
+/* Konuşma Algılama */
 function startVolumeAnalysis(stream, userId) {
   stopVolumeAnalysis(userId);
 
