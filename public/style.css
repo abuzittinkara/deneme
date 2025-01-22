@@ -106,7 +106,7 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
-  width: 265px;
+  width: 265px; /* (65px sidebar + 200px rooms) */
   box-sizing: border-box;
 }
 
@@ -243,15 +243,14 @@ body {
   margin-top: 1rem;
 }
 
-/* Burada asıl fark: normal .channel-item ile .channel-item.connected */
+/* channel-item => normal */
 .channel-item {
   display: flex;
   flex-direction: column;
   justify-content: center; 
   align-items: flex-start;  
   cursor: pointer;
-  /* Üst=7px, sağ=12px, alt=3px, sol=8px */
-  padding: 7px 12px 3px 8px;; 
+  padding: 7px 12px 3px 8px; 
   margin-bottom: 0rem; 
   border-radius: 5px; 
   background: #1f1f1f;
@@ -304,10 +303,11 @@ body {
   box-shadow: 0 0 0 2px #c61884;
 }
 
-/* Kanal Durum Paneli => user-panel üstü => height:45px */
+/* Kanal Durum Paneli => Artık absolute: left=65px, width=200px => Gruplar barı + Kanallar barı arası */
 .channel-status-panel {
-  position: relative;
-  width: 265px;
+  position: absolute; 
+  left: 65px;          /* gruplar barının hemen sağından başla */
+  width: 200px;        /* kanallar barının genişliği */
   background: #1a1a1a;
   box-sizing: border-box;
   border-top: 1px solid #444;  
@@ -317,6 +317,8 @@ body {
   flex-direction: column;
   justify-content: center;
   padding: 0.5rem;
+  top: 0;              /* en üst */
+  z-index: 10;         /* üste çıksın */
 }
 .chan-status-content {
   display: flex;
@@ -366,15 +368,18 @@ body {
   color: #fff;
 }
 
-/* Kullanıcı Paneli (Sol Alt) */
+/* Kullanıcı Paneli => Artık absolute: left=65px, width=200px => Gruplar + Kanallar arası */
 .user-panel {
-  position: relative;
-  width: 265px;
+  position: absolute; 
+  left: 65px;
+  width: 200px;
   background: #1a1a1a;
   padding: 0.5rem;
   box-sizing: border-box;
   border-top: 1px solid #444;  
   border-right: 1px solid #444;
+  bottom: 0;           /* en altta */
+  z-index: 10;         /* üste çıksın */
 }
 .user-panel-content {
   display: flex;
