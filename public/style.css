@@ -48,7 +48,7 @@ body {
   border: 1px solid #666;
   border-radius: 6px;
   font-size: 0.95rem;
-  margin: 0.6rem auto; 
+  margin: 0.6rem auto;
   box-sizing: border-box;
 }
 
@@ -106,7 +106,7 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
-  width: 365px; /* 65px sidebar + 300px rooms => total 365px */
+  width: 365px; /* 65px sidebar + 300px rooms */
   box-sizing: border-box;
 }
 
@@ -243,7 +243,7 @@ body {
   margin-top: 1rem;
 }
 
-/* channel-item => top:7, bottom:3, etc (unchanged) */
+/* Kanal item => top:7, bottom:3, left:8, right:12 (senin son ayarın) */
 .channel-item {
   display: flex;
   flex-direction: column;
@@ -279,6 +279,7 @@ body {
   align-items: center;
   justify-content: center;
 }
+/* Kanal kullanıcı listesi */
 .channel-users {
   margin-top: 4px;
   margin-left: 0px; 
@@ -286,12 +287,25 @@ body {
   flex-direction: column;
   gap: 0.3rem;
 }
+/* channel-user => avatar, isim solda, mic/deaf ikonları sağa dayalı */
 .channel-user {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: space-between; /* solda avatar+isim, sağda ikon */
   font-size: 0.9rem;
+  width: 100%; /* tam genişlik */
 }
+.channel-user-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.channel-user-right {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+/* avatar => speaking effect */
 .channel-user-avatar {
   width: 24px;
   height: 24px;
@@ -302,7 +316,7 @@ body {
   box-shadow: 0 0 0 2px #c61884;
 }
 
-/* Kanal Durum Paneli => absolute: left=65px; width=300px; bottom=60px => user panelinin üstü */
+/* Kanal Durum Paneli => absolute => left=65px => 300px => bottom=60px */
 .channel-status-panel {
   position: absolute; 
   left: 65px;      
@@ -316,7 +330,7 @@ body {
   flex-direction: column;
   justify-content: center;
   padding: 0.5rem;
-  bottom: 60px;     /* Kullanıcı panelinin üstünde */
+  bottom: 60px;     
   z-index: 10;
 }
 .chan-status-content {
@@ -367,7 +381,7 @@ body {
   color: #fff;
 }
 
-/* Kullanıcı Paneli => absolute: left=65px; width=300px; bottom=0 => en altta */
+/* Kullanıcı Paneli => absolute => left=65px => 300px => bottom=0 */
 .user-panel {
   position: absolute; 
   left: 65px;
@@ -637,10 +651,6 @@ body {
 }
 
 @media (max-width: 600px) {
-  /* mobilde .rooms-panel => 300px istek, ama buraya da yansıtmak? 
-     Yine 200px diyebilirdik. 
-     Dilerseniz 300px'e sabit tutabilirsiniz. 
-  */
   .left-panels { width:65px; }
   .rooms-panel { width:300px; }
   .user-panel { width:300px; }
