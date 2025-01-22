@@ -431,7 +431,7 @@ socket.on('roomsList', (roomsArray) => {
     const roomItem = document.createElement('div');
     roomItem.className = 'channel-item';
 
-    // Kanal Başlığı (ikon+isim)
+    // Kanal Başlığı
     const channelHeader = document.createElement('div');
     channelHeader.className = 'channel-header';
     const icon = createWaveIcon(); 
@@ -440,16 +440,16 @@ socket.on('roomsList', (roomsArray) => {
     channelHeader.appendChild(icon);
     channelHeader.appendChild(textSpan);
 
-    // Kullanıcılar listesi => alt 
+    // Kullanıcı listesi
     const channelUsers = document.createElement('div');
     channelUsers.className = 'channel-users';
     channelUsers.id = `channel-users-${roomObj.id}`;
 
-    // Eklenecek => channelHeader / channelUsers
+    // Ekle
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Tıklayınca => bu kanala katıl
+    // Tık => Kanala gir
     roomItem.addEventListener('click', () => {
       document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
 
@@ -483,8 +483,9 @@ socket.on('roomsList', (roomsArray) => {
   });
 });
 
-/* allChannelsData => her user => satırda solda (avatar + ad), sağda => .channel-user-buttons
-   => .channel-user-buttons hidden unless .channel-item.connected
+/* allChannelsData => her user => 
+   .channel-user => width:100%, space-between => .channel-user-left + .channel-user-buttons
+   Yalnızca local user micOff/deaf => userButtons'a ikon
 */
 socket.on('allChannelsData', (channelsObj) => {
   Object.keys(channelsObj).forEach(roomId => {
@@ -494,13 +495,13 @@ socket.on('allChannelsData', (channelsObj) => {
     channelDiv.innerHTML = '';
 
     cData.users.forEach(u => {
-      // "channel-user" => flex row
+      // user row => .channel-user => 100% wide => space-between
       const userRow = document.createElement('div');
       userRow.classList.add('channel-user');
 
       // solda => .channel-user-left => avatar + name
-      const userLeft = document.createElement('div');
-      userLeft.classList.add('channel-user-left');
+      const leftDiv = document.createElement('div');
+      leftDiv.classList.add('channel-user-left');
 
       const avatarDiv = document.createElement('div');
       avatarDiv.classList.add('channel-user-avatar');
@@ -509,14 +510,13 @@ socket.on('allChannelsData', (channelsObj) => {
       const nameSpan = document.createElement('span');
       nameSpan.textContent = u.username || '(İsimsiz)';
 
-      userLeft.appendChild(avatarDiv);
-      userLeft.appendChild(nameSpan);
+      leftDiv.appendChild(avatarDiv);
+      leftDiv.appendChild(nameSpan);
 
-      // sağda => .channel-user-buttons => display:none (only connected => flex)
-      const userButtons = document.createElement('div');
-      userButtons.classList.add('channel-user-buttons');
+      // sağda => .channel-user-buttons => hidden unless .channel-item.connected
+      const buttonsDiv = document.createElement('div');
+      buttonsDiv.classList.add('channel-user-buttons');
 
-      // Yalnızca local user'a ait => mic_off / headset_off
       if (u.id === socket.id) {
         if (!u.micEnabled) {
           const micIcon = document.createElement('span');
@@ -524,7 +524,7 @@ socket.on('allChannelsData', (channelsObj) => {
           micIcon.style.color = '#c61884';
           micIcon.style.fontSize = '18px';
           micIcon.textContent = 'mic_off';
-          userButtons.appendChild(micIcon);
+          buttonsDiv.appendChild(micIcon);
         }
         if (u.selfDeafened) {
           const deafIcon = document.createElement('span');
@@ -532,12 +532,13 @@ socket.on('allChannelsData', (channelsObj) => {
           deafIcon.style.color = '#c61884';
           deafIcon.style.fontSize = '18px';
           deafIcon.textContent = 'headset_off';
-          userButtons.appendChild(deafIcon);
+          buttonsDiv.appendChild(deafIcon);
         }
       }
 
-      userRow.appendChild(userLeft);
-      userRow.appendChild(userButtons);
+      // userRow => leftDiv + buttonsDiv
+      userRow.appendChild(leftDiv);
+      userRow.appendChild(buttonsDiv);
 
       channelDiv.appendChild(userRow);
     });

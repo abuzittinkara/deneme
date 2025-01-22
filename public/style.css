@@ -101,7 +101,7 @@ body {
   height: 100vh;
 }
 
-/* Soldaki Ana Panel => 65px sidebar + 300px rooms => 365px */
+/* Soldaki Ana Panel => (65px sidebar + 300px rooms) => 365px */
 #leftPanels.left-panels {
   display: flex;
   flex-direction: column;
@@ -243,8 +243,9 @@ body {
   margin-top: 1rem;
 }
 
-/* channel-item => alt alta user list */
+/* channel-item => full width => 100% => fill the 300px. */
 .channel-item {
+  width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center; 
@@ -255,6 +256,7 @@ body {
   border-radius: 5px; 
   background: #1f1f1f;
   line-height: 1.2;
+  box-sizing: border-box;
 }
 .channel-item:hover {
   background-color: #242424;
@@ -264,7 +266,7 @@ body {
   padding: 7px 12px 10px 12px;
 }
 
-/* channel-header => icon + text */
+/* channel-header => icon + text => fill width ???  (left align) */
 .channel-header {
   display: flex;
   align-items: center;
@@ -282,38 +284,50 @@ body {
   justify-content: center;
 }
 
-/* channel-users => alt */
+/* channel-users => margin top, fill width ??? */
 .channel-users {
   margin-top: 4px;
   margin-left: 0px; 
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
-}
-
-/* Her user => avatar + ad + butonlar => .channel-user => flex row */
-.channel-user {
-  display: flex;
-  align-items: center;
-  justify-content: space-between; /* ad solda, butonlar sağda */
-  font-size: 0.9rem;
   width: 100%;
+  box-sizing: border-box;
 }
 
-/* soldaki kısım => avatar + name => .channel-user-left */
+/* .channel-user => width:100% => flex row => space-between => 
+   left => avatar+name, right => icons 
+*/
+.channel-user {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between; 
+  box-sizing: border-box;
+  gap: 0.4rem;
+}
+
+/* sol kısım => flex row => gap: 0.5rem */
 .channel-user-left {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-/* sağdaki kısım => .channel-user-buttons => mic_off vb. => default hidden => only .channel-item.connected show */
+/* sağ kısım => .channel-user-buttons => hidden unless .channel-item.connected => parent's parent's parent ??? 
+   => We'll rely on .channel-item.connected > .channel-users > .channel-user => descend
+*/
 .channel-user-buttons {
   display: none; 
   gap: 8px;
 }
+/* 
+   Yalnız .channel-item.connected .channel-user => show .channel-user-buttons 
+   (since user row is inside .channel-users which is inside .channel-item)
+*/
 .channel-item.connected .channel-user-buttons {
-  display: flex; 
+  display: flex;
 }
 
 /* Avatar => 24x24 */
@@ -370,7 +384,7 @@ body {
   background: #c61884;
 }
 
-/* leave-btn => call_end => w=30 h=25 radius=6 */
+/* leave-btn => w=30 h=25 */
 .leave-btn {
   background: none;
   border: 2px solid #c61884;
