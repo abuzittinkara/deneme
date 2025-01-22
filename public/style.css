@@ -48,7 +48,7 @@ body {
   border: 1px solid #666;
   border-radius: 6px;
   font-size: 0.95rem;
-  margin: 0.6rem auto;
+  margin: 0.6rem auto; 
   box-sizing: border-box;
 }
 
@@ -106,10 +106,7 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
-  width: 65px; /* İlk anda sadece sidebar? 
-                 Ama total 65 + 300 = 365 olmalı
-                 Sadece "leftPanels" main boyutu önemli değil. 
-               */
+  width: 365px; /* 65px sidebar + 300px rooms => total 365px */
   box-sizing: border-box;
 }
 
@@ -246,7 +243,7 @@ body {
   margin-top: 1rem;
 }
 
-/* channel-item => normal */
+/* channel-item => top:7, bottom:3, etc (unchanged) */
 .channel-item {
   display: flex;
   flex-direction: column;
@@ -282,7 +279,6 @@ body {
   align-items: center;
   justify-content: center;
 }
-/* Kullanıcılar => alt tarafta */
 .channel-users {
   margin-top: 4px;
   margin-left: 0px; 
@@ -306,13 +302,11 @@ body {
   box-shadow: 0 0 0 2px #c61884;
 }
 
-/* Kanal Durum Paneli => 300px geniş, absolute konum. 
-   Kullanıcı panelinin hemen üstünde => bottom=60px (bkz .user-panel height=60px)
-*/
+/* Kanal Durum Paneli => absolute: left=65px; width=300px; bottom=60px => user panelinin üstü */
 .channel-status-panel {
   position: absolute; 
-  left: 65px;          
-  width: 300px;        
+  left: 65px;      
+  width: 300px;    
   background: #1a1a1a;
   box-sizing: border-box;
   border-top: 1px solid #444;  
@@ -322,8 +316,8 @@ body {
   flex-direction: column;
   justify-content: center;
   padding: 0.5rem;
-  bottom: 60px;        /* User panelin hemen üstü => user panel height=60px */
-  z-index: 10;         
+  bottom: 60px;     /* Kullanıcı panelinin üstünde */
+  z-index: 10;
 }
 .chan-status-content {
   display: flex;
@@ -373,7 +367,7 @@ body {
   color: #fff;
 }
 
-/* Kullanıcı Paneli => 300px geniş, en altta => height:60px */
+/* Kullanıcı Paneli => absolute: left=65px; width=300px; bottom=0 => en altta */
 .user-panel {
   position: absolute; 
   left: 65px;
@@ -383,15 +377,13 @@ body {
   box-sizing: border-box;
   border-top: 1px solid #444;  
   border-right: 1px solid #444;
-  bottom: 0;           
-  height: 60px;        /* sabit 60px */
-  z-index: 10;         
+  bottom: 0; 
+  z-index: 10;
 }
 .user-panel-content {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  height: 100%;
 }
 .user-profile-pic {
   width: 40px;
@@ -645,10 +637,14 @@ body {
 }
 
 @media (max-width: 600px) {
+  /* mobilde .rooms-panel => 300px istek, ama buraya da yansıtmak? 
+     Yine 200px diyebilirdik. 
+     Dilerseniz 300px'e sabit tutabilirsiniz. 
+  */
   .left-panels { width:65px; }
-  .rooms-panel { width:200px; }
-  .user-panel { width:200px; }
-  .channel-status-panel { width:200px; bottom:60px; }
+  .rooms-panel { width:300px; }
+  .user-panel { width:300px; }
+  .channel-status-panel { width:300px; }
   .app-title { font-size:1.2rem; }
   .right-panel { width:200px; }
 }
