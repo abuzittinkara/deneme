@@ -48,7 +48,7 @@ body {
   border: 1px solid #666;
   border-radius: 6px;
   font-size: 0.95rem;
-  margin: 0.6rem auto;
+  margin: 0.6rem auto; 
   box-sizing: border-box;
 }
 
@@ -255,7 +255,6 @@ body {
   border-radius: 5px; 
   background: #1f1f1f;
   line-height: 1.2;
-  position: relative; /* for absolutely placed .channel-user-buttons */
 }
 .channel-item:hover {
   background-color: #242424;
@@ -292,13 +291,32 @@ body {
   gap: 0.3rem;
 }
 
-/* Tek satır user => solda avatar + name */
+/* Her user => avatar + ad + butonlar => .channel-user => flex row */
 .channel-user {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: space-between; /* ad solda, butonlar sağda */
   font-size: 0.9rem;
+  width: 100%;
 }
+
+/* soldaki kısım => avatar + name => .channel-user-left */
+.channel-user-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* sağdaki kısım => .channel-user-buttons => mic_off vb. => default hidden => only .channel-item.connected show */
+.channel-user-buttons {
+  display: none; 
+  gap: 8px;
+}
+.channel-item.connected .channel-user-buttons {
+  display: flex; 
+}
+
+/* Avatar => 24x24 */
 .channel-user-avatar {
   width: 24px;
   height: 24px;
@@ -309,22 +327,7 @@ body {
   box-shadow: 0 0 0 2px #c61884;
 }
 
-/* .channel-user-buttons => mikrofon/sağır ikonları => .channel-item.connected sağ taraf */
-.channel-user-buttons {
-  display: none; 
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  gap: 8px;
-}
-
-/* Sadece connected channel'da göster */
-.channel-item.connected .channel-user-buttons {
-  display: flex;
-}
-
-/* channel-status-panel => absolute left=65px width=300px bottom=60px */
+/* channel-status-panel => left=65px width=300px bottom=60px */
 .channel-status-panel {
   position: absolute; 
   left: 65px;      
@@ -538,7 +541,7 @@ body {
   gap: 0.2rem; 
 }
 
-/* user-item => kimse yoksa bile */
+/* user-item => listede profil + isim + ID kopyala */
 .user-item {
   padding: 0.1rem;
   border: none;

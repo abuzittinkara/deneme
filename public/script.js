@@ -431,31 +431,25 @@ socket.on('roomsList', (roomsArray) => {
     const roomItem = document.createElement('div');
     roomItem.className = 'channel-item';
 
+    // Kanal Başlığı (ikon+isim)
     const channelHeader = document.createElement('div');
     channelHeader.className = 'channel-header';
-
     const icon = createWaveIcon(); 
     const textSpan = document.createElement('span');
     textSpan.textContent = roomObj.name;
-
     channelHeader.appendChild(icon);
     channelHeader.appendChild(textSpan);
 
-    // .channel-user-buttons => ikonu .channel-item.connected sağa alacağız
-    const userButtonsDiv = document.createElement('div');
-    userButtonsDiv.classList.add('channel-user-buttons'); 
-    // Başta boş, ".channel-item.connected" olunca display: flex yapacak
-
-    // Alt => channel-users container
+    // Kullanıcılar listesi => alt 
     const channelUsers = document.createElement('div');
     channelUsers.className = 'channel-users';
     channelUsers.id = `channel-users-${roomObj.id}`;
 
+    // Eklenecek => channelHeader / channelUsers
     roomItem.appendChild(channelHeader);
-    roomItem.appendChild(userButtonsDiv);
     roomItem.appendChild(channelUsers);
 
-    // Tıklayınca => Kanala gir
+    // Tıklayınca => bu kanala katıl
     roomItem.addEventListener('click', () => {
       document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
 
@@ -473,7 +467,6 @@ socket.on('roomsList', (roomsArray) => {
 
       joinRoom(currentGroup, roomObj.id, roomObj.name);
 
-      // "connected" => userButtonsDiv (icons) eklenecek mi?
       roomItem.classList.add('connected');
     });
 
@@ -490,7 +483,9 @@ socket.on('roomsList', (roomsArray) => {
   });
 });
 
-/* allChannelsData => her user => normal row, eğer current user micOff / deaf => icons .channel-user-buttons'a */
+/* allChannelsData => her user => satırda solda (avatar + ad), sağda => .channel-user-buttons
+   => .channel-user-buttons hidden unless .channel-item.connected
+*/
 socket.on('allChannelsData', (channelsObj) => {
   Object.keys(channelsObj).forEach(roomId => {
     const cData = channelsObj[roomId];
@@ -498,16 +493,14 @@ socket.on('allChannelsData', (channelsObj) => {
     if (!channelDiv) return;
     channelDiv.innerHTML = '';
 
-    // Bu .channel-item => icons => .channel-user-buttons
-    const channelItemDiv = channelDiv.closest('.channel-item');
-    if (!channelItemDiv) return;
-    const userButtonsDiv = channelItemDiv.querySelector('.channel-user-buttons');
-    if (userButtonsDiv) userButtonsDiv.innerHTML = '';
-
     cData.users.forEach(u => {
-      // Sıradan user row => avatar + name
+      // "channel-user" => flex row
       const userRow = document.createElement('div');
       userRow.classList.add('channel-user');
+
+      // solda => .channel-user-left => avatar + name
+      const userLeft = document.createElement('div');
+      userLeft.classList.add('channel-user-left');
 
       const avatarDiv = document.createElement('div');
       avatarDiv.classList.add('channel-user-avatar');
@@ -516,30 +509,37 @@ socket.on('allChannelsData', (channelsObj) => {
       const nameSpan = document.createElement('span');
       nameSpan.textContent = u.username || '(İsimsiz)';
 
-      userRow.appendChild(avatarDiv);
-      userRow.appendChild(nameSpan);
+      userLeft.appendChild(avatarDiv);
+      userLeft.appendChild(nameSpan);
 
-      channelDiv.appendChild(userRow);
+      // sağda => .channel-user-buttons => display:none (only connected => flex)
+      const userButtons = document.createElement('div');
+      userButtons.classList.add('channel-user-buttons');
 
-      // Eğer bu user local user ise ve micOff/deaf => .channel-user-buttons'a ikon ekle
+      // Yalnızca local user'a ait => mic_off / headset_off
       if (u.id === socket.id) {
         if (!u.micEnabled) {
           const micIcon = document.createElement('span');
           micIcon.classList.add('material-icons');
-          micIcon.textContent = 'mic_off';
           micIcon.style.color = '#c61884';
           micIcon.style.fontSize = '18px';
-          if (userButtonsDiv) userButtonsDiv.appendChild(micIcon);
+          micIcon.textContent = 'mic_off';
+          userButtons.appendChild(micIcon);
         }
         if (u.selfDeafened) {
           const deafIcon = document.createElement('span');
           deafIcon.classList.add('material-icons');
-          deafIcon.textContent = 'headset_off';
           deafIcon.style.color = '#c61884';
           deafIcon.style.fontSize = '18px';
-          if (userButtonsDiv) userButtonsDiv.appendChild(deafIcon);
+          deafIcon.textContent = 'headset_off';
+          userButtons.appendChild(deafIcon);
         }
       }
+
+      userRow.appendChild(userLeft);
+      userRow.appendChild(userButtons);
+
+      channelDiv.appendChild(userRow);
     });
   });
 });
@@ -556,7 +556,9 @@ socket.on('roomUsers', (usersInRoom) => {
   const userIdsInRoom = usersInRoom.map(u => u.id);
   Object.keys(peers).forEach(peerId => {
     if (!userIdsInRoom.includes(peerId)) {
-      if (peers[peerId]) peers[peerId].close();
+      if (peers[peerId]) {
+        peers[peerId].close();
+      }
       delete peers[peerId];
       stopVolumeAnalysis(peerId);
 
@@ -843,8 +845,11 @@ socket.on("signal", async (data) => {
 /* Peer Başlat => WebRTC */
 function initPeer(userId, isInitiator) {
   if (!localStream || !audioPermissionGranted) {
-    if (isInitiator) pendingUsers.push(userId);
-    else pendingNewUsers.push(userId);
+    if (isInitiator) {
+      pendingUsers.push(userId);
+    } else {
+      pendingNewUsers.push(userId);
+    }
     return;
   }
   if (peers[userId]) return peers[userId];
