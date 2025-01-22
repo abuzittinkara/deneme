@@ -250,9 +250,9 @@ body {
   justify-content: center; 
   align-items: flex-start;  
   cursor: pointer;
-  padding: 10px 12px 8px 12px; /* Üst 10px, alt 8px, sağ/sol 12px */
+  padding: 7px 12px 3px 8px; /* Üst 10px, alt 8px, sağ/sol 12px */
   margin-bottom: 0rem; 
-  border-radius: 8px; 
+  border-radius: 5px; 
   background: #1f1f1f;
   line-height: 1.2;
 }
@@ -261,6 +261,7 @@ body {
 }
 .channel-item.connected {
   background-color: #2d2d2d;
+  padding: 7px 12px 10px 12px;
 }
 .channel-header {
   display: flex;
