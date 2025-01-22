@@ -4,7 +4,7 @@ body {
   padding: 0;
   font-family: 'Roboto', sans-serif;
   background: #2d2d2d;
-  color: #aaa;
+  color: #aaa; 
   font-size: 16px;
 }
 
@@ -21,6 +21,7 @@ body {
   justify-content: center;
 }
 
+/* Kart => alt alta inputlar */
 .card {
   background: #2d2d2d; 
   padding: 2rem;
@@ -36,8 +37,9 @@ body {
   font-size: 1.5rem;
 }
 
-/* Input kutucukları */
+/* Inputları alt alta sıralamak => display:block; */
 .input-text {
+  display: block;
   width: 260px;
   max-width: 90%;
   padding: 0.6rem;
@@ -46,7 +48,7 @@ body {
   border: 1px solid #666;
   border-radius: 6px;
   font-size: 0.95rem;
-  margin-bottom: 0.8rem;
+  margin: 0.6rem auto; /* alt alta => center align */
   box-sizing: border-box;
 }
 
