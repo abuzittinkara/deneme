@@ -9,8 +9,13 @@ let audioPermissionGranted = false;
 let remoteAudios = [];
 let username = null;
 
+// Mikrofon / Deafen
 let micEnabled = true;
 let selfDeafened = false;
+
+// Bu değişken, kullanıcı kendini sağırlaştırmadan önce mikrofon açıksa true tutulur.
+// Sağırlaştırma bitince mikrofona geri dönebilmesi için.
+let micWasEnabledBeforeDeaf = false;
 
 let currentGroup = null;
 let currentRoom = null;
@@ -94,7 +99,7 @@ const cellBar4 = document.getElementById('cellBar4');
 // Ayrıl Butonu
 const leaveButton = document.getElementById('leaveButton');
 
-// Mikrofon / Kulaklık
+// Mikrofon / Kulaklık butonları
 const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
 const settingsButton = document.getElementById('settingsButton');
@@ -118,22 +123,18 @@ function attemptLogin() {
   const usernameVal = loginUsernameInput.value.trim();
   const passwordVal = loginPasswordInput.value.trim();
 
-  // Her seferinde önce hata mesajlarını gizle, shake class kaldıralım
   loginErrorMessage.style.display = 'none';
   loginUsernameInput.classList.remove('shake');
   loginPasswordInput.classList.remove('shake');
 
-  // Boş alan var mı?
   if (!usernameVal || !passwordVal) {
-    // Shake + Uyarı
+    // Kutucuklar shake + "Lütfen gerekli alanları doldurunuz"
     loginErrorMessage.textContent = "Lütfen gerekli alanları doldurunuz";
     loginErrorMessage.style.display = 'block';
     loginUsernameInput.classList.add('shake');
     loginPasswordInput.classList.add('shake');
     return;
   }
-
-  // Boş değil => server'a login isteği
   socket.emit('login', { username: usernameVal, password: passwordVal });
 }
 
@@ -142,7 +143,7 @@ loginButton.addEventListener('click', () => {
   attemptLogin();
 });
 
-// Enter tuşu => login => (hem usernameInput hem passwordInput)
+// Enter => login
 loginUsernameInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
     attemptLogin();
@@ -154,7 +155,7 @@ loginPasswordInput.addEventListener('keydown', (e) => {
   }
 });
 
-// Login Result => server
+// Login result
 socket.on('loginResult', (data) => {
   if (data.success) {
     username = data.username;
@@ -164,7 +165,6 @@ socket.on('loginResult', (data) => {
     document.getElementById('leftUserName').textContent = username;
     applyAudioStates();
   } else {
-    // Hatalı giriş => shake + "Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin"
     loginErrorMessage.textContent = "Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin";
     loginErrorMessage.style.display = 'block';
     loginUsernameInput.classList.add('shake');
@@ -185,7 +185,6 @@ registerButton.addEventListener('click', () => {
     passwordConfirm: regPasswordConfirmInput.value.trim()
   };
 
-  // Hata mesajını kapat + shake temizle
   registerErrorMessage.style.display = 'none';
   regUsernameInput.classList.remove('shake');
   regPasswordInput.classList.remove('shake');
@@ -464,7 +463,7 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
-    // Odaya gir
+    // Kanala gir
     roomItem.addEventListener('click', () => {
       document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
 
@@ -893,14 +892,29 @@ function closeAllPeers() {
   sessionUfrag = {};
 }
 
-/* Mikrofon & Kulaklık butonları => "headset" / "headset_off" */
+/* Mikrofon & Kulaklık => Deafen Toggle */
 micToggleButton.addEventListener('click', () => {
   micEnabled = !micEnabled;
   applyAudioStates();
 });
+
 deafenToggleButton.addEventListener('click', () => {
-  selfDeafened = !selfDeafened;
-  if (selfDeafened) micEnabled = false;
+  // Sağırlaştırma toggle
+  if (!selfDeafened) {
+    // Kendini sağırlaştırıyorsa => mikrofona dair eski durumu kaydet
+    micWasEnabledBeforeDeaf = micEnabled; 
+    // Deaf ON
+    selfDeafened = true;
+    // Mic kapansın
+    micEnabled = false;
+  } else {
+    // Deaf OFF
+    selfDeafened = false;
+    // Eğer sağırlaştırmadan evvel mic açıksa => tekrar aç
+    if (micWasEnabledBeforeDeaf) {
+      micEnabled = true;
+    }
+  }
   applyAudioStates();
 });
 
