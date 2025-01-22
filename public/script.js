@@ -26,7 +26,7 @@ const SPEAKING_THRESHOLD = 0.0;
 const VOLUME_CHECK_INTERVAL = 100;
 let pingInterval = null;
 
-/* wave icon => volume_up */
+/* volume_up icon => wave */
 function createWaveIcon() {
   const icon = document.createElement('span');
   icon.classList.add('material-icons');
@@ -35,16 +35,18 @@ function createWaveIcon() {
   return icon;
 }
 
-// DOM
+// DOM Referansları
 const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
 const callScreen = document.getElementById('callScreen');
 
+// Login DOM
 const loginUsernameInput = document.getElementById('loginUsernameInput');
 const loginPasswordInput = document.getElementById('loginPasswordInput');
 const loginButton = document.getElementById('loginButton');
 const loginErrorMessage = document.getElementById('loginErrorMessage');
 
+// Register DOM
 const regUsernameInput = document.getElementById('regUsernameInput');
 const regNameInput = document.getElementById('regNameInput');
 const regSurnameInput = document.getElementById('regSurnameInput');
@@ -61,11 +63,9 @@ const registerErrorMessage = document.getElementById('registerErrorMessage');
 const showRegisterScreen = document.getElementById('showRegisterScreen');
 const showLoginScreen = document.getElementById('showLoginScreen');
 
-// Gruplar
+// Gruplar & Kanallar
 const groupListDiv = document.getElementById('groupList');
 const createGroupButton = document.getElementById('createGroupButton');
-
-// Odalar
 const roomListDiv = document.getElementById('roomList');
 const groupTitle = document.getElementById('groupTitle');
 const groupDropdownIcon = document.getElementById('groupDropdownIcon');
@@ -80,7 +80,7 @@ const toggleDMButton = document.getElementById('toggleDMButton');
 const closeDMButton = document.getElementById('closeDMButton');
 let isDMMode = false;
 
-// Sağ panel
+// Sağ panel (kullanıcı listesi)
 const userListDiv = document.getElementById('userList');
 
 // Kanal Durum Paneli
@@ -94,12 +94,12 @@ const cellBar4 = document.getElementById('cellBar4');
 // Ayrıl Butonu
 const leaveButton = document.getElementById('leaveButton');
 
-// Mikrofon / Kulaklık butonları
+// Mikrofon / Kulaklık
 const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
 const settingsButton = document.getElementById('settingsButton');
 
-/* Ekran geçişleri (login <-> register) */
+/* Ekran geçişleri (Login <-> Register) */
 showRegisterScreen.addEventListener('click', () => {
   loginScreen.style.display = 'none';
   registerScreen.style.display = 'block';
@@ -113,26 +113,48 @@ backToLoginButton.addEventListener('click', () => {
   loginScreen.style.display = 'block';
 });
 
-/* Login */
-loginButton.addEventListener('click', () => {
+/* ====== LOGIN ====== */
+function attemptLogin() {
   const usernameVal = loginUsernameInput.value.trim();
   const passwordVal = loginPasswordInput.value.trim();
 
-  // Hata mesajını gizle, shake class kaldır
+  // Her seferinde önce hata mesajlarını gizle, shake class kaldıralım
   loginErrorMessage.style.display = 'none';
   loginUsernameInput.classList.remove('shake');
   loginPasswordInput.classList.remove('shake');
 
+  // Boş alan var mı?
   if (!usernameVal || !passwordVal) {
-    // Shake + uyarı göster
+    // Shake + Uyarı
+    loginErrorMessage.textContent = "Lütfen gerekli alanları doldurunuz";
     loginErrorMessage.style.display = 'block';
     loginUsernameInput.classList.add('shake');
     loginPasswordInput.classList.add('shake');
     return;
   }
+
+  // Boş değil => server'a login isteği
   socket.emit('login', { username: usernameVal, password: passwordVal });
+}
+
+// Login buton => tıklayınca
+loginButton.addEventListener('click', () => {
+  attemptLogin();
 });
 
+// Enter tuşu => login => (hem usernameInput hem passwordInput)
+loginUsernameInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    attemptLogin();
+  }
+});
+loginPasswordInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    attemptLogin();
+  }
+});
+
+// Login Result => server
 socket.on('loginResult', (data) => {
   if (data.success) {
     username = data.username;
@@ -142,14 +164,15 @@ socket.on('loginResult', (data) => {
     document.getElementById('leftUserName').textContent = username;
     applyAudioStates();
   } else {
-    // Pop-up yerine => input'lar shake + uyarı
+    // Hatalı giriş => shake + "Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin"
+    loginErrorMessage.textContent = "Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin";
     loginErrorMessage.style.display = 'block';
     loginUsernameInput.classList.add('shake');
     loginPasswordInput.classList.add('shake');
   }
 });
 
-/* Register */
+/* ====== REGISTER ====== */
 registerButton.addEventListener('click', () => {
   const userData = {
     username: regUsernameInput.value.trim(),
@@ -162,7 +185,7 @@ registerButton.addEventListener('click', () => {
     passwordConfirm: regPasswordConfirmInput.value.trim()
   };
 
-  // Hata mesajını gizle, shake class kaldır
+  // Hata mesajını kapat + shake temizle
   registerErrorMessage.style.display = 'none';
   regUsernameInput.classList.remove('shake');
   regPasswordInput.classList.remove('shake');
@@ -177,15 +200,18 @@ registerButton.addEventListener('click', () => {
     regPasswordInput.classList.add('shake');
     regPasswordConfirmInput.classList.add('shake');
     registerErrorMessage.style.display = 'block';
+    registerErrorMessage.textContent = "Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin";
     isError = true;
   } else if (userData.username !== userData.username.toLowerCase()) {
     regUsernameInput.classList.add('shake');
     registerErrorMessage.style.display = 'block';
+    registerErrorMessage.textContent = "Kullanıcı adı sadece küçük harf olmalı!";
     isError = true;
   } else if (userData.password !== userData.passwordConfirm) {
     regPasswordInput.classList.add('shake');
     regPasswordConfirmInput.classList.add('shake');
     registerErrorMessage.style.display = 'block';
+    registerErrorMessage.textContent = "Parolalar eşleşmiyor!";
     isError = true;
   }
 
@@ -195,12 +221,11 @@ registerButton.addEventListener('click', () => {
 });
 socket.on('registerResult', (data) => {
   if (data.success) {
-    // Başarılı => loginScreen'e dön
     registerScreen.style.display = 'none';
     loginScreen.style.display = 'block';
   } else {
-    // Hata => shake + uyarı
     registerErrorMessage.style.display = 'block';
+    registerErrorMessage.textContent = data.message || "Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin";
     regUsernameInput.classList.add('shake');
     regPasswordInput.classList.add('shake');
     regPasswordConfirmInput.classList.add('shake');
@@ -219,6 +244,7 @@ document.getElementById('modalGroupJoinBtn').addEventListener('click', () => {
   document.getElementById('groupModal').style.display = 'none';
   document.getElementById('joinGroupModal').style.display = 'flex';
 });
+
 // Modal: Grup Kur
 document.getElementById('actualGroupNameBtn').addEventListener('click', () => {
   const grpName = document.getElementById('actualGroupName').value.trim();
@@ -438,6 +464,7 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
+    // Odaya gir
     roomItem.addEventListener('click', () => {
       document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
 
