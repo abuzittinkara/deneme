@@ -243,16 +243,23 @@ body {
   margin-top: 1rem;
 }
 
-/* ÖNEMLİ: Kanal item => top/bottom eşit boşluk => padding: 8px 12px */
+/* 
+   ÖNEMLİ: `.channel-item`
+   Üst/bottom boşlukların tam eşit durması için
+   => y-padding + line-height ayarları
+*/
 .channel-item {
   display: flex;
   flex-direction: column;
+  justify-content: center; 
   align-items: flex-start;  
   cursor: pointer;
-  padding: 8px 12px;  /* Artık 8px => üst ve alt eşit */
+  /* Yukarı-aşağı = 10px => tam eşit, text ortada */
+  padding: 10px 12px; 
   margin-bottom: 0rem; 
   border-radius: 8px; 
   background: #1f1f1f;
+  line-height: 1.2; /* Yazı boyuna göre ayar */
 }
 .channel-item:hover {
   background-color: #242424;
@@ -260,10 +267,15 @@ body {
 .channel-item.connected {
   background-color: #2d2d2d;
 }
+
+/* channel-header => flex row */
 .channel-header {
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  width: 100%;
+  line-height: 1.2;
+  margin: 0; 
 }
 .channel-icon {
   width: 18px; 
@@ -273,7 +285,7 @@ body {
   align-items: center;
   justify-content: center;
 }
-/* Kullanıcılar => alt tarafta listelenecek */
+/* Kullanıcılar => alt tarafta */
 .channel-users {
   margin-top: 4px;
   margin-left: 0px; 
@@ -333,12 +345,11 @@ body {
 #cellBar2 { height: 30%; }
 #cellBar3 { height: 55%; }
 #cellBar4 { height: 80%; }
-
 .cell-bar.active {
   background: #c61884;
 }
 
-/* Kanaldan ayrıl => call_end => width:30px; height:25px; border-radius:6px */
+/* Kanaldan ayrıl => width:30px; height:25px; radius:6px */
 .leave-btn {
   background: none;
   border: 2px solid #c61884;
