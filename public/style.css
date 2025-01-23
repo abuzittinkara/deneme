@@ -243,7 +243,7 @@ body {
   margin-top: 1rem;
 }
 
-/* channel-item => full width => 100% => fill the 300px. */
+/* channel-item => full width => 300px, fill horizontally */
 .channel-item {
   width: 100%;
   display: flex;
@@ -266,7 +266,7 @@ body {
   padding: 7px 12px 10px 12px;
 }
 
-/* channel-header => icon + text => fill width ???  (left align) */
+/* channel-header => icon + text */
 .channel-header {
   display: flex;
   align-items: center;
@@ -284,7 +284,7 @@ body {
   justify-content: center;
 }
 
-/* channel-users => margin top, fill width ??? */
+/* channel-users => alt => fill width => user row => 100% */
 .channel-users {
   margin-top: 4px;
   margin-left: 0px; 
@@ -295,9 +295,7 @@ body {
   box-sizing: border-box;
 }
 
-/* .channel-user => width:100% => flex row => space-between => 
-   left => avatar+name, right => icons 
-*/
+/* .channel-user => 100% => space-between => left (avatar+name), right (icons) */
 .channel-user {
   width: 100%;
   display: flex;
@@ -308,24 +306,18 @@ body {
   gap: 0.4rem;
 }
 
-/* sol kısım => flex row => gap: 0.5rem */
+/* sol kısım => .channel-user-left => avatar + name */
 .channel-user-left {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-/* sağ kısım => .channel-user-buttons => hidden unless .channel-item.connected => parent's parent's parent ??? 
-   => We'll rely on .channel-item.connected > .channel-users > .channel-user => descend
-*/
+/* sağ kısım => .channel-user-buttons => hidden unless .channel-item.connected */
 .channel-user-buttons {
   display: none; 
   gap: 8px;
 }
-/* 
-   Yalnız .channel-item.connected .channel-user => show .channel-user-buttons 
-   (since user row is inside .channel-users which is inside .channel-item)
-*/
 .channel-item.connected .channel-user-buttons {
   display: flex;
 }
