@@ -487,7 +487,7 @@ socket.on('roomsList', (roomsArray) => {
   });
 });
 
-/* allChannelsData => her user => show mic_off / headset_off if !micEnabled or selfDeafened => for all channels */
+/* allChannelsData => her user => show mic_off / headset_off if !micEnabled or selfDeafened => always (no "connected" check) */
 socket.on('allChannelsData', (channelsObj) => {
   Object.keys(channelsObj).forEach(roomId => {
     const cData = channelsObj[roomId];
@@ -502,6 +502,7 @@ socket.on('allChannelsData', (channelsObj) => {
       // solda => avatar + name
       const leftDiv = document.createElement('div');
       leftDiv.classList.add('channel-user-left');
+      leftDiv.style.flexShrink = '0';
 
       const avatarDiv = document.createElement('div');
       avatarDiv.classList.add('channel-user-avatar');
@@ -513,11 +514,11 @@ socket.on('allChannelsData', (channelsObj) => {
       leftDiv.appendChild(avatarDiv);
       leftDiv.appendChild(nameSpan);
 
-      // sağ => daima visible => .channel-user-buttons
+      // sağ => .channel-user-buttons => her zaman
       const buttonsDiv = document.createElement('div');
       buttonsDiv.classList.add('channel-user-buttons');
+      buttonsDiv.style.flexShrink = '0';
 
-      // mic_off => if user micEnabled == false
       if (!u.micEnabled) {
         const micIcon = document.createElement('span');
         micIcon.classList.add('material-icons');
@@ -526,7 +527,6 @@ socket.on('allChannelsData', (channelsObj) => {
         micIcon.textContent = 'mic_off';
         buttonsDiv.appendChild(micIcon);
       }
-      // headset_off => if user selfDeafened
       if (u.selfDeafened) {
         const deafIcon = document.createElement('span');
         deafIcon.classList.add('material-icons');
