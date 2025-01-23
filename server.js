@@ -23,7 +23,7 @@ mongoose.connect(uri)
   .catch(err => console.error("MongoDB bağlantı hatası:", err));
 
 // Bellek içi tablolar (Anlık takip için)
-const users = {};   // socket.id -> { username, currentGroup, currentRoom }
+const users = {};   // socket.id -> { username, currentGroup, currentRoom, micEnabled, selfDeafened }
 const groups = {};  // groupId -> { owner: <username>, name, users:[], rooms:{} }
 
 // Çevrimiçi (online) olan kullanıcı adlarını tutuyoruz
@@ -38,7 +38,7 @@ async function loadGroupsFromDB() {
     allGroups.forEach(gDoc => {
       if (!groups[gDoc.groupId]) {
         groups[gDoc.groupId] = {
-          owner: null, // Owner username (string)
+          owner: null, 
           name: gDoc.name,
           users: [],
           rooms: {}
@@ -81,30 +81,31 @@ function getAllChannelsData(groupId) {
   const channelsObj = {};
   Object.keys(groups[groupId].rooms).forEach(roomId => {
     const rm = groups[groupId].rooms[roomId];
+    // rm.users => { id, username }
+    // Her user => micEnabled / selfDeafened de eklenecek
+    const userListWithAudio = rm.users.map(u => ({
+      id: u.id,
+      username: u.username,
+      micEnabled: (users[u.id] && users[u.id].micEnabled !== undefined)
+        ? users[u.id].micEnabled 
+        : true,
+      selfDeafened: (users[u.id] && users[u.id].selfDeafened !== undefined)
+        ? users[u.id].selfDeafened 
+        : false
+    }));
     channelsObj[roomId] = {
       name: rm.name,
-      users: rm.users.map(u => ({
-        id: u.id,
-        username: u.username,
-        micEnabled: (typeof u.micEnabled !== 'undefined' ? u.micEnabled : true),
-        selfDeafened: (typeof u.selfDeafened !== 'undefined' ? u.selfDeafened : false)
-      }))
+      users: userListWithAudio
     };
   });
   return channelsObj;
 }
 
-/* Bir kanaldaki users array'ini => roomUsers event'i ile yay */
-function broadcastRoomUsers(groupId, roomId) {
-  if (!groups[groupId] || !groups[groupId].rooms[roomId]) return;
-  io.to(`${groupId}::${roomId}`).emit('roomUsers', groups[groupId].rooms[roomId].users);
-}
-
-/* Tüm kanallardaki kullanıcı listesini tekrar yayınlar */
+/* Tüm kanallardaki kullanıcı listesini tekrar yayınlar (roomUsers) */
 function broadcastAllRoomsUsers(groupId) {
   if (!groups[groupId]) return;
   Object.keys(groups[groupId].rooms).forEach(roomId => {
-    broadcastRoomUsers(groupId, roomId);
+    io.to(`${groupId}::${roomId}`).emit('roomUsers', groups[groupId].rooms[roomId].users);
   });
 }
 
@@ -121,7 +122,7 @@ function removeUserFromAllGroupsAndRooms(socket) {
 
       Object.keys(grpObj.rooms).forEach(rId => {
         grpObj.rooms[rId].users = grpObj.rooms[rId].users.filter(u => u.id !== socketId);
-        broadcastRoomUsers(gId, rId);
+        io.to(`${gId}::${rId}`).emit('roomUsers', grpObj.rooms[rId].users);
       });
       io.to(gId).emit('allChannelsData', getAllChannelsData(gId));
     }
@@ -197,6 +198,14 @@ function sendRoomsListToUser(socketId, groupId) {
   io.to(socketId).emit('roomsList', roomArray);
 }
 
+/* Tüm kullanıcıya => roomsList */
+function broadcastRoomsListToGroup(groupId) {
+  if (!groups[groupId]) return;
+  groups[groupId].users.forEach(u => {
+    sendRoomsListToUser(u.id, groupId);
+  });
+}
+
 /* Tek user'a => groupsList => (owner, id, name) */
 async function sendGroupsListToUser(socketId) {
   const userData = users[socketId];
@@ -224,10 +233,13 @@ async function sendGroupsListToUser(socketId) {
 io.on("connection", (socket) => {
   console.log("Kullanıcı bağlandı:", socket.id);
 
+  // Kullanıcı datası => default micEnabled = true, selfDeafened = false
   users[socket.id] = {
     username: null,
     currentGroup: null,
-    currentRoom: null
+    currentRoom: null,
+    micEnabled: true,
+    selfDeafened: false
   };
 
   // LOGIN
@@ -295,7 +307,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // set-username => kullanıcı adını belirleme
+  // set-username
   socket.on('set-username', async (usernameVal) => {
     if (usernameVal && typeof usernameVal === 'string') {
       const trimmedName = usernameVal.trim();
@@ -324,13 +336,28 @@ io.on("connection", (socket) => {
     }
   });
 
+  // audioStateChanged => client => sunucu => kaydet => broadcast
+  socket.on('audioStateChanged', ({ micEnabled, selfDeafened }) => {
+    if (!users[socket.id]) return;
+    users[socket.id].micEnabled = micEnabled;
+    users[socket.id].selfDeafened = selfDeafened;
+    const gId = users[socket.id].currentGroup;
+    if (gId) {
+      broadcastAllChannelsData(gId);
+    }
+  });
+
   // createGroup
   socket.on('createGroup', async (groupName) => {
     if (!groupName) return;
     const trimmed = groupName.trim();
     if (!trimmed) return;
 
-    const userName = users[socket.id].username || `(User ${socket.id})`;
+    const userName = users[socket.id].username || null;
+    if (!userName) {
+      socket.emit('errorMessage', "Kullanıcı adınız tanımlı değil.");
+      return;
+    }
     const userDoc = await User.findOne({ username: userName });
     if (!userDoc) return;
 
@@ -362,10 +389,13 @@ io.on("connection", (socket) => {
   socket.on('joinGroupByID', async (groupId) => {
     try {
       if (users[socket.id].currentGroup === groupId) {
-        return; // Aynı gruba tekrar girmesini engelle
+        return;
       }
-
-      const userName = users[socket.id].username || `(User ${socket.id})`;
+      const userName = users[socket.id].username || null;
+      if (!userName) {
+        socket.emit('errorMessage', "Kullanıcı adınız tanımlı değil.");
+        return;
+      }
       const userDoc = await User.findOne({ username: userName });
       if (!userDoc) {
         socket.emit('errorMessage', "Kullanıcı yok (DB).");
@@ -377,7 +407,6 @@ io.on("connection", (socket) => {
         return;
       }
 
-      // DB relation
       if (!groupDoc.users.includes(userDoc._id)) {
         groupDoc.users.push(userDoc._id);
         await groupDoc.save();
@@ -401,6 +430,10 @@ io.on("connection", (socket) => {
       removeUserFromAllGroupsAndRooms(socket);
 
       const userData = users[socket.id];
+      if (!userData.username) {
+        socket.emit('errorMessage', "Kullanıcı adınız yok, kanala eklenemiyorsunuz.");
+        return;
+      }
       if (!groups[groupId].users.some(u => u.id === socket.id)) {
         groups[groupId].users.push({ id: socket.id, username: userData.username });
       }
@@ -413,7 +446,7 @@ io.on("connection", (socket) => {
       await sendGroupsListToUser(socket.id);
 
       sendRoomsListToUser(socket.id, groupId);
-      sendAllChannelsDataToOneUser(socket.id, groupId);
+      broadcastAllChannelsData(groupId);
       await broadcastGroupUsers(groupId);
 
     } catch (err) {
@@ -421,20 +454,12 @@ io.on("connection", (socket) => {
     }
   });
 
-  // browseGroup => odaları + kanal datası + groupUsers
+  // browseGroup
   socket.on('browseGroup', async (groupId) => {
     if (!groups[groupId]) return;
-
     sendRoomsListToUser(socket.id, groupId);
     sendAllChannelsDataToOneUser(socket.id, groupId);
     await sendGroupUsersToOneUser(socket.id, groupId);
-
-    // ***EKLENDİ*** => Her kanal için "roomUsers" event'i tetikle
-    Object.keys(groups[groupId].rooms).forEach(roomId => {
-      const roomUsersArray = groups[groupId].rooms[roomId].users;
-      socket.emit('roomUsers', roomUsersArray);
-    });
-    // ***EKLENDİ***
   });
 
   // joinGroup
@@ -443,10 +468,15 @@ io.on("connection", (socket) => {
     if (users[socket.id].currentGroup === groupId) {
       return;
     }
+
     removeUserFromAllGroupsAndRooms(socket);
 
     const userData = users[socket.id];
-    const userName = userData.username || `(User ${socket.id})`;
+    const userName = userData.username;
+    if (!userName) {
+      socket.emit('errorMessage', "Kullanıcı adınız yok.");
+      return;
+    }
     if (!groups[groupId].users.some(u => u.id === socket.id)) {
       groups[groupId].users.push({ id: socket.id, username: userName });
     }
@@ -455,7 +485,7 @@ io.on("connection", (socket) => {
     socket.join(groupId);
 
     sendRoomsListToUser(socket.id, groupId);
-    sendAllChannelsDataToOneUser(socket.id, groupId);
+    broadcastAllChannelsData(groupId);
     await broadcastGroupUsers(groupId);
   });
 
@@ -485,7 +515,7 @@ io.on("connection", (socket) => {
       };
       console.log(`Yeni oda: group=${groupId}, room=${roomId}, name=${trimmed}`);
 
-      sendRoomsListToUser(socket.id, groupId);
+      broadcastRoomsListToGroup(groupId);
       broadcastAllChannelsData(groupId);
     } catch (err) {
       console.error("createRoom hata:", err);
@@ -498,35 +528,34 @@ io.on("connection", (socket) => {
     if (!groups[groupId].rooms[roomId]) return;
 
     const userData = users[socket.id];
-    if (userData.currentGroup === groupId && userData.currentRoom === roomId) {
+    if (!userData.username) {
+      socket.emit('errorMessage', "Kullanıcı adınız tanımsız => Kanala eklenemiyor.");
       return;
+    }
+    if (userData.currentGroup === groupId && userData.currentRoom === roomId) {
+      return; 
     }
     if (userData.currentGroup === groupId && userData.currentRoom && groups[groupId].rooms[userData.currentRoom]) {
       groups[groupId].rooms[userData.currentRoom].users =
         groups[groupId].rooms[userData.currentRoom].users.filter(u => u.id !== socket.id);
-      broadcastRoomUsers(groupId, userData.currentRoom);
+      io.to(`${groupId}::${userData.currentRoom}`).emit('roomUsers', groups[groupId].rooms[userData.currentRoom].users);
       socket.leave(`${groupId}::${userData.currentRoom}`);
     } else {
       removeUserFromAllGroupsAndRooms(socket);
     }
 
-    const userName = userData.username || `(User ${socket.id})`;
+    const userName = userData.username;
     if (!groups[groupId].users.some(u => u.id === socket.id)) {
       groups[groupId].users.push({ id: socket.id, username: userName });
     }
-    groups[groupId].rooms[roomId].users.push({
-      id: socket.id,
-      username: userName,
-      micEnabled: true,
-      selfDeafened: false
-    });
+    groups[groupId].rooms[roomId].users.push({ id: socket.id, username: userName });
     userData.currentGroup = groupId;
     userData.currentRoom = roomId;
 
     socket.join(groupId);
     socket.join(`${groupId}::${roomId}`);
 
-    broadcastRoomUsers(groupId, roomId);
+    io.to(`${groupId}::${roomId}`).emit('roomUsers', groups[groupId].rooms[roomId].users);
 
     broadcastAllChannelsData(groupId);
   });
@@ -538,14 +567,14 @@ io.on("connection", (socket) => {
 
     groups[groupId].rooms[roomId].users =
       groups[groupId].rooms[roomId].users.filter(u => u.id !== socket.id);
-    broadcastRoomUsers(groupId, roomId);
+    io.to(`${groupId}::${roomId}`).emit('roomUsers', groups[groupId].rooms[roomId].users);
     socket.leave(`${groupId}::${roomId}`);
 
     users[socket.id].currentRoom = null;
     broadcastAllChannelsData(groupId);
   });
 
-  // renameGroup => grup ismi değiştirme
+  // renameGroup
   socket.on('renameGroup', async (data) => {
     const { groupId, newName } = data;
     const userName = users[socket.id].username;
@@ -566,7 +595,6 @@ io.on("connection", (socket) => {
       await groupDoc.save();
 
       groups[groupId].name = newName;
-
       io.to(groupId).emit('groupRenamed', { groupId, newName });
       console.log(`Grup rename => ${groupId}, yeni isim=${newName}`);
     } catch (err) {
@@ -575,14 +603,13 @@ io.on("connection", (socket) => {
     }
   });
 
-  // deleteGroup => grubu sil
+  // deleteGroup
   socket.on('deleteGroup', async (grpId) => {
     const userName = users[socket.id].username;
     if (!groups[grpId]) {
       socket.emit('errorMessage', "Grup bellekte yok.");
       return;
     }
-
     if (groups[grpId].owner !== userName) {
       socket.emit('errorMessage', "Bu grubu silmeye yetkiniz yok.");
       return;
@@ -594,7 +621,6 @@ io.on("connection", (socket) => {
         socket.emit('errorMessage', "Grup DB'de bulunamadı.");
         return;
       }
-
       if (groupDoc.users && groupDoc.users.length > 0) {
         for (const userId of groupDoc.users) {
           const usr = await User.findById(userId);
@@ -604,7 +630,6 @@ io.on("connection", (socket) => {
           }
         }
       }
-
       await Group.deleteOne({ _id: groupDoc._id });
       await Channel.deleteMany({ group: groupDoc._id });
 
@@ -618,7 +643,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // renameChannel => kanal adını değiştirme
+  // renameChannel
   socket.on('renameChannel', async (payload) => {
     try {
       const { channelId, newName } = payload;
@@ -639,10 +664,9 @@ io.on("connection", (socket) => {
 
       groups[gId].rooms[channelId].name = newName;
 
-      sendRoomsListToUser(socket.id, gId);
+      broadcastRoomsListToGroup(gId);
       broadcastAllRoomsUsers(gId);
       broadcastAllChannelsData(gId);
-
       console.log(`Kanal rename => ${channelId} => ${newName}`);
     } catch (err) {
       console.error("renameChannel hata:", err);
@@ -650,7 +674,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // deleteChannel => kanalı sil
+  // deleteChannel
   socket.on('deleteChannel', async (channelId) => {
     try {
       if (!channelId) return;
@@ -668,8 +692,7 @@ io.on("connection", (socket) => {
       if (groups[gId] && groups[gId].rooms[channelId]) {
         delete groups[gId].rooms[channelId];
       }
-
-      sendRoomsListToUser(socket.id, gId);
+      broadcastRoomsListToGroup(gId);
       broadcastAllRoomsUsers(gId);
       broadcastAllChannelsData(gId);
 
@@ -697,24 +720,6 @@ io.on("connection", (socket) => {
         signal: data.signal
       });
     }
-  });
-
-  // audioStateChanged => micEnabled/selfDeaf => Bellek güncelle => allChannelsData
-  socket.on('audioStateChanged', (payload) => {
-    const { micEnabled, selfDeafened } = payload;
-    const userData = users[socket.id];
-    if (!userData) return;
-    const gId = userData.currentGroup;
-    const rId = userData.currentRoom;
-    if (!gId || !rId) return;
-    if (!groups[gId] || !groups[gId].rooms[rId]) return;
-
-    const userInRoom = groups[gId].rooms[rId].users.find(u => u.id === socket.id);
-    if (userInRoom) {
-      userInRoom.micEnabled = micEnabled;
-      userInRoom.selfDeafened = selfDeafened;
-    }
-    broadcastAllChannelsData(gId);
   });
 
   // Disconnect
