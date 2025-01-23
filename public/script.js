@@ -423,7 +423,7 @@ document.addEventListener('click', () => {
   }
 });
 
-/* roomsList => Kanallar => "connected" state + re-apply if current user is in that channel */
+/* roomsList => Kanallar => connected state + re-apply if current user is in that channel */
 socket.on('roomsList', (roomsArray) => {
   roomListDiv.innerHTML = '';
 
@@ -431,6 +431,7 @@ socket.on('roomsList', (roomsArray) => {
     const roomItem = document.createElement('div');
     roomItem.className = 'channel-item';
 
+    // Kanal ismi
     const channelHeader = document.createElement('div');
     channelHeader.className = 'channel-header';
     const icon = createWaveIcon(); 
@@ -439,6 +440,7 @@ socket.on('roomsList', (roomsArray) => {
     channelHeader.appendChild(icon);
     channelHeader.appendChild(textSpan);
 
+    // Kullanıcılar
     const channelUsers = document.createElement('div');
     channelUsers.className = 'channel-users';
     channelUsers.id = `channel-users-${roomObj.id}`;
@@ -476,7 +478,7 @@ socket.on('roomsList', (roomsArray) => {
       channelContextMenu.style.display = 'block';
     });
 
-    // EĞER currentRoom === roomObj.id ve currentGroup === selectedGroup => .connected
+    // Re-apply connected if currently in that channel
     if (roomObj.id === currentRoom && selectedGroup === currentGroup) {
       roomItem.classList.add('connected');
     }
@@ -485,10 +487,7 @@ socket.on('roomsList', (roomsArray) => {
   });
 });
 
-/* allChannelsData => her user => 
-   => .channel-user => show mic_off / headset_off if !micEnabled / selfDeafened
-   => (Artık local user check yok; her user'a bak)
-*/
+/* allChannelsData => her user => show mic_off / headset_off if !micEnabled or selfDeafened => for all channels */
 socket.on('allChannelsData', (channelsObj) => {
   Object.keys(channelsObj).forEach(roomId => {
     const cData = channelsObj[roomId];
@@ -500,7 +499,7 @@ socket.on('allChannelsData', (channelsObj) => {
       const userRow = document.createElement('div');
       userRow.classList.add('channel-user');
 
-      // solda => .channel-user-left
+      // solda => avatar + name
       const leftDiv = document.createElement('div');
       leftDiv.classList.add('channel-user-left');
 
@@ -514,11 +513,11 @@ socket.on('allChannelsData', (channelsObj) => {
       leftDiv.appendChild(avatarDiv);
       leftDiv.appendChild(nameSpan);
 
-      // sağ => .channel-user-buttons => hidden unless .channel-item.connected
+      // sağ => daima visible => .channel-user-buttons
       const buttonsDiv = document.createElement('div');
       buttonsDiv.classList.add('channel-user-buttons');
 
-      // Tüm kullanıcılar => eğer micEnabled=false => mic_off
+      // mic_off => if user micEnabled == false
       if (!u.micEnabled) {
         const micIcon = document.createElement('span');
         micIcon.classList.add('material-icons');
@@ -527,7 +526,7 @@ socket.on('allChannelsData', (channelsObj) => {
         micIcon.textContent = 'mic_off';
         buttonsDiv.appendChild(micIcon);
       }
-      // eğer selfDeafened => headset_off
+      // headset_off => if user selfDeafened
       if (u.selfDeafened) {
         const deafIcon = document.createElement('span');
         deafIcon.classList.add('material-icons');

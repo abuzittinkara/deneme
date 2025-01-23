@@ -243,7 +243,7 @@ body {
   margin-top: 1rem;
 }
 
-/* channel-item => full width => 300px, fill horizontally */
+/* channel-item => fill width => 300px horizontally */
 .channel-item {
   width: 100%;
   display: flex;
@@ -266,7 +266,7 @@ body {
   padding: 7px 12px 10px 12px;
 }
 
-/* channel-header => icon + text */
+/* channel-header => icon + text => left aligned, fill width */
 .channel-header {
   display: flex;
   align-items: center;
@@ -284,7 +284,7 @@ body {
   justify-content: center;
 }
 
-/* channel-users => alt => fill width => user row => 100% */
+/* channel-users => fill width => user row => 100% */
 .channel-users {
   margin-top: 4px;
   margin-left: 0px; 
@@ -295,7 +295,7 @@ body {
   box-sizing: border-box;
 }
 
-/* .channel-user => 100% => space-between => left (avatar+name), right (icons) */
+/* .channel-user => 100% => flex row => space-between => left (avatar+name), right(icons) */
 .channel-user {
   width: 100%;
   display: flex;
@@ -305,21 +305,16 @@ body {
   box-sizing: border-box;
   gap: 0.4rem;
 }
-
-/* sol kısım => .channel-user-left => avatar + name */
 .channel-user-left {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-/* sağ kısım => .channel-user-buttons => hidden unless .channel-item.connected */
+/* Artık iconlar her zaman görünsün => "display:flex" => .channel-item.connected vs. yok */
 .channel-user-buttons {
-  display: none; 
+  display: flex; 
   gap: 8px;
-}
-.channel-item.connected .channel-user-buttons {
-  display: flex;
 }
 
 /* Avatar => 24x24 */
