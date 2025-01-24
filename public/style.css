@@ -243,7 +243,7 @@ body {
   margin-top: 1rem;
 }
 
-/* channel-item => fill width => 300px horizontally */
+/* channel-item => full width => 100% => fill the 300px. */
 .channel-item {
   width: 100%;
   display: flex;
@@ -266,7 +266,7 @@ body {
   padding: 7px 12px 10px 12px;
 }
 
-/* channel-header => icon + text => left aligned, fill width */
+/* channel-header => icon + text => fill width ???  (left align) */
 .channel-header {
   display: flex;
   align-items: center;
@@ -284,7 +284,7 @@ body {
   justify-content: center;
 }
 
-/* channel-users => fill width => user row => 100% */
+/* channel-users => margin top, fill width ??? */
 .channel-users {
   margin-top: 4px;
   margin-left: 0px; 
@@ -295,7 +295,9 @@ body {
   box-sizing: border-box;
 }
 
-/* .channel-user => 100% => flex row => space-between => left (avatar+name), right(icons) */
+/* .channel-user => width:100% => flex row => space-between => 
+   left => avatar+name, right => icons 
+*/
 .channel-user {
   width: 100%;
   display: flex;
@@ -305,18 +307,27 @@ body {
   box-sizing: border-box;
   gap: 0.4rem;
 }
+
+/* sol kısım => flex row => gap: 0.5rem */
 .channel-user-left {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  flex-shrink: 0; /* Ekledik => avatar vs. kaymasın */
 }
 
-/* Artık iconlar her zaman görünsün => "display:flex" */
+/* sağ kısım => .channel-user-buttons => hidden unless .channel-item.connected => parent's parent's parent ??? 
+   => We'll rely on .channel-item.connected > .channel-users > .channel-user => descend
+*/
 .channel-user-buttons {
-  display: flex; 
+  display: none; 
   gap: 8px;
-  flex-shrink: 0; /* Ekledik => ikonlar da sabit kalsın */
+}
+/* 
+   Yalnız .channel-item.connected .channel-user => show .channel-user-buttons 
+   (since user row is inside .channel-users which is inside .channel-item)
+*/
+.channel-item.connected .channel-user-buttons {
+  display: flex;
 }
 
 /* Avatar => 24x24 */

@@ -423,7 +423,7 @@ document.addEventListener('click', () => {
   }
 });
 
-/* roomsList => Kanallar => connected state + re-apply if current user is in that channel */
+/* roomsList => Kanallar */
 socket.on('roomsList', (roomsArray) => {
   roomListDiv.innerHTML = '';
 
@@ -431,7 +431,7 @@ socket.on('roomsList', (roomsArray) => {
     const roomItem = document.createElement('div');
     roomItem.className = 'channel-item';
 
-    // Kanal ismi
+    // Kanal Başlığı
     const channelHeader = document.createElement('div');
     channelHeader.className = 'channel-header';
     const icon = createWaveIcon(); 
@@ -440,11 +440,12 @@ socket.on('roomsList', (roomsArray) => {
     channelHeader.appendChild(icon);
     channelHeader.appendChild(textSpan);
 
-    // Kullanıcılar
+    // Kullanıcı listesi
     const channelUsers = document.createElement('div');
     channelUsers.className = 'channel-users';
     channelUsers.id = `channel-users-${roomObj.id}`;
 
+    // Ekle
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
@@ -478,16 +479,14 @@ socket.on('roomsList', (roomsArray) => {
       channelContextMenu.style.display = 'block';
     });
 
-    // Re-apply connected if currently in that channel
-    if (roomObj.id === currentRoom && selectedGroup === currentGroup) {
-      roomItem.classList.add('connected');
-    }
-
     roomListDiv.appendChild(roomItem);
   });
 });
 
-/* allChannelsData => her user => show mic_off / headset_off if !micEnabled or selfDeafened => always (no "connected" check) */
+/* allChannelsData => her user => 
+   .channel-user => width:100%, space-between => .channel-user-left + .channel-user-buttons
+   Yalnızca local user micOff/deaf => userButtons'a ikon
+*/
 socket.on('allChannelsData', (channelsObj) => {
   Object.keys(channelsObj).forEach(roomId => {
     const cData = channelsObj[roomId];
@@ -496,13 +495,13 @@ socket.on('allChannelsData', (channelsObj) => {
     channelDiv.innerHTML = '';
 
     cData.users.forEach(u => {
+      // user row => .channel-user => 100% wide => space-between
       const userRow = document.createElement('div');
       userRow.classList.add('channel-user');
 
-      // solda => avatar + name
+      // solda => .channel-user-left => avatar + name
       const leftDiv = document.createElement('div');
       leftDiv.classList.add('channel-user-left');
-      leftDiv.style.flexShrink = '0';
 
       const avatarDiv = document.createElement('div');
       avatarDiv.classList.add('channel-user-avatar');
@@ -514,28 +513,30 @@ socket.on('allChannelsData', (channelsObj) => {
       leftDiv.appendChild(avatarDiv);
       leftDiv.appendChild(nameSpan);
 
-      // sağ => .channel-user-buttons => her zaman
+      // sağda => .channel-user-buttons => hidden unless .channel-item.connected
       const buttonsDiv = document.createElement('div');
       buttonsDiv.classList.add('channel-user-buttons');
-      buttonsDiv.style.flexShrink = '0';
 
-      if (!u.micEnabled) {
-        const micIcon = document.createElement('span');
-        micIcon.classList.add('material-icons');
-        micIcon.style.color = '#c61884';
-        micIcon.style.fontSize = '18px';
-        micIcon.textContent = 'mic_off';
-        buttonsDiv.appendChild(micIcon);
-      }
-      if (u.selfDeafened) {
-        const deafIcon = document.createElement('span');
-        deafIcon.classList.add('material-icons');
-        deafIcon.style.color = '#c61884';
-        deafIcon.style.fontSize = '18px';
-        deafIcon.textContent = 'headset_off';
-        buttonsDiv.appendChild(deafIcon);
+      if (u.id === socket.id) {
+        if (!u.micEnabled) {
+          const micIcon = document.createElement('span');
+          micIcon.classList.add('material-icons');
+          micIcon.style.color = '#c61884';
+          micIcon.style.fontSize = '18px';
+          micIcon.textContent = 'mic_off';
+          buttonsDiv.appendChild(micIcon);
+        }
+        if (u.selfDeafened) {
+          const deafIcon = document.createElement('span');
+          deafIcon.classList.add('material-icons');
+          deafIcon.style.color = '#c61884';
+          deafIcon.style.fontSize = '18px';
+          deafIcon.textContent = 'headset_off';
+          buttonsDiv.appendChild(deafIcon);
+        }
       }
 
+      // userRow => leftDiv + buttonsDiv
       userRow.appendChild(leftDiv);
       userRow.appendChild(buttonsDiv);
 
