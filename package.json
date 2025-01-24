@@ -16,8 +16,5 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
-  "devDependencies": {
-    "artillery": "^2.0.21"
-  }
+  "description": ""
 }
