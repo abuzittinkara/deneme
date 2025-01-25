@@ -980,7 +980,7 @@ function updateCellBars(ping) {
   if (barsActive >= 4) cellBar4.classList.add('active');
 }
 
-/* roomUsers => WebRTC init */
+/* roomUsers => WebRTC init + main-content'te user-card */
 socket.on('roomUsers', (usersInRoom) => {
   console.log("roomUsers => odadaki kisiler:", usersInRoom);
 
@@ -1006,14 +1006,13 @@ socket.on('roomUsers', (usersInRoom) => {
     }
   });
 
-  // Yeni gelen user'lar için peer başlat
+  // Yeni gelen user'lar
   const otherUserIds = usersInRoom
     .filter(u => u.id !== socket.id)
     .map(u => u.id)
     .filter(id => !peers[id] || peers[id].connectionState === 'closed');
 
   if (!audioPermissionGranted || !localStream) {
-    // Mikrofon izni yok => once mic al, sonra peer oluştur
     requestMicrophoneAccess().then(() => {
       otherUserIds.forEach(uid => {
         initPeer(uid, socket.id < uid);
@@ -1035,6 +1034,9 @@ socket.on('roomUsers', (usersInRoom) => {
       initPeer(uid, socket.id < uid);
     });
   }
+
+  // Artık main-content'teki user-card'ları güncelle
+  renderUsersInMainContent(usersInRoom);
 });
 
 /* Ayrıl Butonu */
@@ -1047,7 +1049,52 @@ leaveButton.addEventListener('click', () => {
 
   document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
 
+  // main-content alanını temizle
+  const container = document.getElementById('channelUsersContainer');
+  if (container) {
+    container.innerHTML = '';
+    container.classList.remove('layout-1-user', 'layout-2-users', 'layout-3-users', 'layout-n-users');
+  }
+
   if (currentGroup) {
     socket.emit('browseGroup', currentGroup);
   }
 });
+
+/* Kullanıcı kartlarını main-content'e ekleyen fonksiyon */
+function renderUsersInMainContent(usersArray) {
+  const container = document.getElementById('channelUsersContainer');
+  if (!container) return;
+
+  // Önce temizleyip layout sınıflarını resetleyelim
+  container.innerHTML = '';
+  container.classList.remove('layout-1-user', 'layout-2-users', 'layout-3-users', 'layout-n-users');
+
+  // Kaç kullanıcı varsa ona göre layout
+  if (usersArray.length === 1) {
+    container.classList.add('layout-1-user');
+  } else if (usersArray.length === 2) {
+    container.classList.add('layout-2-users');
+  } else if (usersArray.length === 3) {
+    container.classList.add('layout-3-users');
+  } else {
+    container.classList.add('layout-n-users');
+  }
+
+  // Her kullanıcı için bir card
+  usersArray.forEach(u => {
+    const card = document.createElement('div');
+    card.classList.add('user-card');
+
+    const avatar = document.createElement('div');
+    avatar.classList.add('user-card-avatar');
+
+    const name = document.createElement('div');
+    name.classList.add('user-card-name');
+    name.textContent = u.username || '(İsimsiz)';
+
+    card.appendChild(avatar);
+    card.appendChild(name);
+    container.appendChild(card);
+  });
+}

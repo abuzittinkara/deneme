@@ -666,10 +666,9 @@ body {
 }
 
 /* =============================
-   Layout için yeni sınıflar
+   Kullanıcı kartları (main-content)
    ============================= */
 
-/* Container temel ayarı */
 .channel-users-container {
   position: relative;
   width: 100%;
@@ -677,7 +676,7 @@ body {
   box-sizing: border-box;
 }
 
-/* Ortak kart stili */
+/* Kart genel görünüm */
 .user-card {
   background: #333;
   border: 2px solid #444;
@@ -701,7 +700,7 @@ body {
   text-align: center;
 }
 
-/* 1 kişi */
+/* Layout durumları */
 .layout-1-user {
   display: flex;
   justify-content: center;
@@ -713,8 +712,6 @@ body {
   max-width: 600px;
   max-height: 400px;
 }
-
-/* 2 kişi => Yatay 2 kolon */
 .layout-2-users {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -727,8 +724,6 @@ body {
   height: 100%;
   margin: 0;
 }
-
-/* 3 kişi => 2 üstte, 1 altta ortada */
 .layout-3-users {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -752,11 +747,10 @@ body {
   height: 60%;
 }
 
-/* 4 ve üstü için basit fallback (örnek) */
+/* 4+ kullanıcı => basit wrap */
 .layout-n-users {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
   align-items: center;
   justify-content: center;
   width: 100%;
