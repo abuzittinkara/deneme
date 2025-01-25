@@ -1053,7 +1053,7 @@ leaveButton.addEventListener('click', () => {
   const container = document.getElementById('channelUsersContainer');
   if (container) {
     container.innerHTML = '';
-    container.classList.remove('layout-1-user', 'layout-2-users', 'layout-3-users', 'layout-n-users');
+    container.classList.remove('layout-1-user', 'layout-2-users', 'layout-3-users', 'layout-4-users', 'layout-n-users');
   }
 
   if (currentGroup) {
@@ -1068,7 +1068,13 @@ function renderUsersInMainContent(usersArray) {
 
   // Önce temizleyip layout sınıflarını resetleyelim
   container.innerHTML = '';
-  container.classList.remove('layout-1-user', 'layout-2-users', 'layout-3-users', 'layout-n-users');
+  container.classList.remove(
+    'layout-1-user',
+    'layout-2-users',
+    'layout-3-users',
+    'layout-4-users',
+    'layout-n-users'
+  );
 
   // Kaç kullanıcı varsa ona göre layout
   if (usersArray.length === 1) {
@@ -1077,24 +1083,30 @@ function renderUsersInMainContent(usersArray) {
     container.classList.add('layout-2-users');
   } else if (usersArray.length === 3) {
     container.classList.add('layout-3-users');
+  } else if (usersArray.length === 4) {
+    container.classList.add('layout-4-users');
   } else {
+    // 5 ve üzeri => basit grid
     container.classList.add('layout-n-users');
   }
 
-  // Her kullanıcı için bir card
+  // Her kullanıcı için bir kart
   usersArray.forEach(u => {
     const card = document.createElement('div');
     card.classList.add('user-card');
 
+    // Avatar
     const avatar = document.createElement('div');
     avatar.classList.add('user-card-avatar');
 
-    const name = document.createElement('div');
-    name.classList.add('user-card-name');
-    name.textContent = u.username || '(İsimsiz)';
+    // Alt-solda kullanıcı ismi => .user-label
+    const label = document.createElement('div');
+    label.classList.add('user-label');
+    label.textContent = u.username || '(İsimsiz)';
 
     card.appendChild(avatar);
-    card.appendChild(name);
+    card.appendChild(label);
+
     container.appendChild(card);
   });
 }
