@@ -1052,6 +1052,12 @@ leaveButton.addEventListener('click', () => {
   const channelUsersContainer = document.getElementById('channelUsersContainer');
   if (channelUsersContainer) {
     channelUsersContainer.innerHTML = '';
+    channelUsersContainer.classList.remove(
+      'layout-1-user',
+      'layout-2-users',
+      'layout-3-users',
+      'layout-n-users'
+    );
   }
 
   if (currentGroup) {
@@ -1065,8 +1071,27 @@ function renderUsersInMainContent(usersArray) {
   if (!container) return;
   container.innerHTML = '';
 
+  // Daha önce eklenmiş layout sınıflarını temizle
+  container.classList.remove(
+    'layout-1-user',
+    'layout-2-users',
+    'layout-3-users',
+    'layout-n-users'
+  );
+
+  // Kullanıcı sayısına göre layout seç
+  if (usersArray.length === 1) {
+    container.classList.add('layout-1-user');
+  } else if (usersArray.length === 2) {
+    container.classList.add('layout-2-users');
+  } else if (usersArray.length === 3) {
+    container.classList.add('layout-3-users');
+  } else {
+    container.classList.add('layout-n-users');
+  }
+
+  // Kartları ekle
   usersArray.forEach((u) => {
-    // Her kullanıcı için dikdörtgen bir kart
     const card = document.createElement('div');
     card.classList.add('user-card');
 
