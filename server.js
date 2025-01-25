@@ -703,7 +703,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // WebRTC (signal)
+  // WebRTC (signal) => RACE CONDITION DÜZELTMESİ
   socket.on("signal", (data) => {
     const targetId = data.to;
     if (socket.id === targetId) return;
@@ -714,12 +714,30 @@ io.on("connection", (socket) => {
     const sR = users[socket.id].currentRoom;
     const tR = users[targetId].currentRoom;
 
+    // Önce, ikisi de aynı roomdaysa sinyali anında iletiyoruz:
     if (sG && sG === tG && sR && sR === tR) {
       io.to(targetId).emit("signal", {
         from: socket.id,
         signal: data.signal
       });
+    } 
+    // Değilse, ama aynı group'talar => 200 ms bekleyip tekrar kontrol edelim:
+    else if (sG && tG && sG === tG) {
+      setTimeout(() => {
+        const sG2 = users[socket.id]?.currentGroup;
+        const tG2 = users[targetId]?.currentGroup;
+        const sR2 = users[socket.id]?.currentRoom;
+        const tR2 = users[targetId]?.currentRoom;
+
+        if (sG2 && tG2 && sG2 === tG2 && sR2 && sR2 === tR2) {
+          io.to(targetId).emit("signal", {
+            from: socket.id,
+            signal: data.signal
+          });
+        }
+      }, 200);
     }
+    // Aksi halde sinyali iletmiyoruz (farklı group).
   });
 
   // Disconnect
