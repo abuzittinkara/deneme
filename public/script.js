@@ -647,7 +647,8 @@ socket.on("signal", async (data) => {
   const { from, signal } = data;
   let peer = peers[from];
 
-  if (!peer) {
+  // Peer yoksa veya kapanmışsa yeniden oluştur
+  if (!peer || peer.connectionState === 'closed') {
     if (!localStream) {
       console.warn(`localStream yok => pending user: ${from}`);
       pendingNewUsers.push(from);
@@ -665,16 +666,29 @@ socket.on("signal", async (data) => {
     await peer.setLocalDescription(answer);
     socket.emit("signal", { to: from, signal: peer.localDescription });
   } else if (signal.type === "answer") {
-    // [DÜZELTME] "if (peer.signalingState === 'stable') return;" satırı kaldırıldı
     await peer.setRemoteDescription(new RTCSessionDescription(signal));
     sessionUfrag[from] = parseIceUfrag(signal.sdp);
+
+    // Cevap geldikten sonra bekleyen candidate'leri ekle
+    if (pendingCandidates[from]) {
+      for (const candidateObj of pendingCandidates[from]) {
+        try {
+          await peer.addIceCandidate(new RTCIceCandidate(candidateObj));
+        } catch (err) {
+          console.warn("ICE Candidate hata (pending):", err);
+        }
+      }
+      delete pendingCandidates[from];
+    }
   } else if (signal.candidate) {
+    // RemoteDescription henüz yoksa candidate'i pending'e at
     if (!peer.remoteDescription || peer.remoteDescription.type === "") {
       if (!pendingCandidates[from]) {
         pendingCandidates[from] = [];
       }
       pendingCandidates[from].push(signal);
     } else {
+      // sessionUfrag check
       if (sessionUfrag[from] 
         && sessionUfrag[from] !== signal.usernameFragment 
         && signal.usernameFragment !== null) {
@@ -699,7 +713,10 @@ function initPeer(userId, isInitiator) {
     }
     return;
   }
-  if (peers[userId]) return peers[userId];
+  if (peers[userId] && peers[userId].connectionState !== 'closed') {
+    // Zaten var ve kapalı değil
+    return peers[userId];
+  }
 
   console.log("initPeer =>", userId, "isInitiator?", isInitiator);
   const peer = new RTCPeerConnection({
@@ -730,13 +747,16 @@ function initPeer(userId, isInitiator) {
       audio.play().catch(err => console.error("Ses oynatılamadı:", err));
     }
   };
+  peer.onconnectionstatechange = () => {
+    console.log(`Peer ${userId} state:`, peer.connectionState);
+  };
 
   if (isInitiator) createOffer(peer, userId);
 
   return peer;
 }
 
-/* createOffer => basit hale getirildi, setTimeout ve stable check kaldırıldı */
+/* createOffer => basit hale getirildi */
 async function createOffer(peer, userId) {
   const offer = await peer.createOffer();
   await peer.setLocalDescription(offer);
@@ -960,12 +980,13 @@ function updateCellBars(ping) {
   if (barsActive >= 4) cellBar4.classList.add('active');
 }
 
-/* roomUsers => WebRTC init + ana içerik */
+/* roomUsers => WebRTC init */
 socket.on('roomUsers', (usersInRoom) => {
   console.log("roomUsers => odadaki kisiler:", usersInRoom);
 
   const userIdsInRoom = usersInRoom.map(u => u.id);
-  // Mevcut peers'ta ama room'a ait olmayan kullanıcıları kapat
+
+  // Mevcut peers'ta ama bu odada olmayanları kapat
   Object.keys(peers).forEach(peerId => {
     if (!userIdsInRoom.includes(peerId)) {
       if (peers[peerId]) {
@@ -985,41 +1006,33 @@ socket.on('roomUsers', (usersInRoom) => {
     }
   });
 
-  // Odaya yeni gelen kullanıcılar
+  // Yeni gelen user'lar için peer başlat
   const otherUserIds = usersInRoom
     .filter(u => u.id !== socket.id)
     .map(u => u.id)
-    .filter(id => !peers[id]);
+    .filter(id => !peers[id] || peers[id].connectionState === 'closed');
 
   if (!audioPermissionGranted || !localStream) {
+    // Mikrofon izni yok => once mic al, sonra peer oluştur
     requestMicrophoneAccess().then(() => {
       otherUserIds.forEach(uid => {
-        if (!peers[uid]) {
-          const isInit = (socket.id < uid);
-          initPeer(uid, isInit);
-        }
+        initPeer(uid, socket.id < uid);
       });
+      // pendingUsers / pendingNewUsers
       pendingUsers.forEach(uid => {
-        if (!peers[uid]) {
-          initPeer(uid, true);
-        }
+        initPeer(uid, true);
+      });
+      pendingNewUsers.forEach(uid => {
+        initPeer(uid, false);
       });
       pendingUsers = [];
-      pendingNewUsers.forEach(uid => {
-        if (!peers[uid]) {
-          initPeer(uid, false);
-        }
-      });
       pendingNewUsers = [];
     }).catch(err => {
       console.error("Mikrofon izni alınamadı:", err);
     });
   } else {
     otherUserIds.forEach(uid => {
-      if (!peers[uid]) {
-        const isInit = (socket.id < uid);
-        initPeer(uid, isInit);
-      }
+      initPeer(uid, socket.id < uid);
     });
   }
 });
