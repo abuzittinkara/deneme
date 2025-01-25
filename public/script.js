@@ -980,7 +980,7 @@ function updateCellBars(ping) {
   if (barsActive >= 4) cellBar4.classList.add('active');
 }
 
-/* roomUsers => WebRTC init + main-content'te user-card */
+/* roomUsers => WebRTC init */
 socket.on('roomUsers', (usersInRoom) => {
   console.log("roomUsers => odadaki kisiler:", usersInRoom);
 
@@ -1006,7 +1006,7 @@ socket.on('roomUsers', (usersInRoom) => {
     }
   });
 
-  // Yeni gelen user'lar
+  // Odaya yeni gelen kullanıcılar
   const otherUserIds = usersInRoom
     .filter(u => u.id !== socket.id)
     .map(u => u.id)
@@ -1015,9 +1015,10 @@ socket.on('roomUsers', (usersInRoom) => {
   if (!audioPermissionGranted || !localStream) {
     requestMicrophoneAccess().then(() => {
       otherUserIds.forEach(uid => {
-        initPeer(uid, socket.id < uid);
+        if (!peers[uid]) {
+          initPeer(uid, socket.id < uid);
+        }
       });
-      // pendingUsers / pendingNewUsers
       pendingUsers.forEach(uid => {
         initPeer(uid, true);
       });
@@ -1031,12 +1032,11 @@ socket.on('roomUsers', (usersInRoom) => {
     });
   } else {
     otherUserIds.forEach(uid => {
-      initPeer(uid, socket.id < uid);
+      if (!peers[uid]) {
+        initPeer(uid, socket.id < uid);
+      }
     });
   }
-
-  // Artık main-content'teki user-card'ları güncelle
-  renderUsersInMainContent(usersInRoom);
 });
 
 /* Ayrıl Butonu */
@@ -1049,64 +1049,7 @@ leaveButton.addEventListener('click', () => {
 
   document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
 
-  // main-content alanını temizle
-  const container = document.getElementById('channelUsersContainer');
-  if (container) {
-    container.innerHTML = '';
-    container.classList.remove('layout-1-user', 'layout-2-users', 'layout-3-users', 'layout-4-users', 'layout-n-users');
-  }
-
   if (currentGroup) {
     socket.emit('browseGroup', currentGroup);
   }
 });
-
-/* Kullanıcı kartlarını main-content'e ekleyen fonksiyon */
-function renderUsersInMainContent(usersArray) {
-  const container = document.getElementById('channelUsersContainer');
-  if (!container) return;
-
-  // Önce temizleyip layout sınıflarını resetleyelim
-  container.innerHTML = '';
-  container.classList.remove(
-    'layout-1-user',
-    'layout-2-users',
-    'layout-3-users',
-    'layout-4-users',
-    'layout-n-users'
-  );
-
-  // Kaç kullanıcı varsa ona göre layout
-  if (usersArray.length === 1) {
-    container.classList.add('layout-1-user');
-  } else if (usersArray.length === 2) {
-    container.classList.add('layout-2-users');
-  } else if (usersArray.length === 3) {
-    container.classList.add('layout-3-users');
-  } else if (usersArray.length === 4) {
-    container.classList.add('layout-4-users');
-  } else {
-    // 5 ve üzeri => basit grid
-    container.classList.add('layout-n-users');
-  }
-
-  // Her kullanıcı için bir kart
-  usersArray.forEach(u => {
-    const card = document.createElement('div');
-    card.classList.add('user-card');
-
-    // Avatar
-    const avatar = document.createElement('div');
-    avatar.classList.add('user-card-avatar');
-
-    // Alt-solda kullanıcı ismi => .user-label
-    const label = document.createElement('div');
-    label.classList.add('user-label');
-    label.textContent = u.username || '(İsimsiz)';
-
-    card.appendChild(avatar);
-    card.appendChild(label);
-
-    container.appendChild(card);
-  });
-}
