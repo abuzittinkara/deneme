@@ -670,15 +670,9 @@ body {
    Kullanıcı kartları (main-content)
    ============================= */
 
-.channel-users-container {
-  width: 100%;
-  height: 100%;
-  box-sizing: border-box;
-}
-
-/* Ortak kart */
+/* Kart => 16:9 aspect ratio */
 .user-card {
-  position: relative; 
+  position: relative;
   background: #222;
   border: 1px solid #444;
   border-radius: 8px;
@@ -687,30 +681,15 @@ body {
   justify-content: center;
   margin: 0.5rem;
   overflow: hidden;
+  /* Yeni eklenen => 16:9 koruması */
+  aspect-ratio: 16 / 9;
 }
 
-/* Orta avatar (gri yuvarlak) */
-.user-card-avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 45%;
-  background-color: #555;
-}
+/* Orta avatar (gri yuvarlak) => zaten var */
 
-/* Altta sol kısımda isim */
-.user-label {
-  position: absolute;
-  bottom: 8px;
-  left: 8px;
-  background: #1a1a1a;
-  color: #eee;
-  font-size: 0.8rem;
-  padding: 2px 6px;
-  border-radius: 4px;
-  opacity: 0.9;
-}
+/* Altta sol kısımda isim => .user-label => zaten var */
 
-/* 1 kişi => tek büyük kart */
+/* 1 kişi => tek büyük kart => height kaldırıldı => ratio korunsun */
 .layout-1-user {
   display: flex;
   flex-direction: row;
@@ -720,52 +699,64 @@ body {
 }
 .layout-1-user .user-card {
   width: 100%;
-  height: 80vh;
   margin: 0;
+  /* height: 80vh; => KALDIRILDI => ratio korunsun */
+  height: auto;
 }
 
-/* 2 kişi => yanyana */
+/* 2 kişi => yanyana => grid => height'lar kalktı => ratio korunsun */
 .layout-2-users {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-auto-rows: 60vh;
+  /* grid-auto-rows: 60vh => KALDIRILDI */
   gap: 1rem;
   width: 100%;
   height: auto;
 }
+.layout-2-users .user-card {
+  width: 100%;
+  height: auto;
+  margin: 0;
+}
 
-/* 3 kişi => üstte 2, altta 1 tam en */
+/* 3 kişi => üstte 2, altta 1 => satır yükseklik kalktı => ratio korunsun */
 .layout-3-users {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  /* ilk satır 60vh, ikinci satır 50vh (örnek) */
-  grid-template-rows: 60vh 50vh; 
+  /* grid-template-rows: 60vh 50vh => KALDIRILDI */
   gap: 1rem;
   width: 100%;
   height: auto;
 }
 .layout-3-users .user-card:nth-child(3) {
-  /* 3. kart => alt satır, 2 sütunu kaplasın */
   grid-column: 1 / span 2;
   width: 100%;
 }
 
-/* 4 kişi => 2x2 */
+/* 4 kişi => 2x2 => height kalktı => ratio korunsun */
 .layout-4-users {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: 50vh 50vh;
+  /* grid-template-rows: 50vh 50vh => KALDIRILDI */
   gap: 1rem;
   width: 100%;
   height: auto;
 }
+.layout-4-users .user-card {
+  width: 100%;
+  height: auto;
+}
 
-/* 5+ kişi => basit grid (2 kolonu) */
+/* 5+ kişi => basit grid => auto => ratio korunsun */
 .layout-n-users {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-auto-rows: 40vh;
+  /* grid-auto-rows: 40vh => KALDIRILDI */
   gap: 1rem;
+  width: 100%;
+  height: auto;
+}
+.layout-n-users .user-card {
   width: 100%;
   height: auto;
 }
