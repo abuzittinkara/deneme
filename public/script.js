@@ -665,9 +665,7 @@ socket.on("signal", async (data) => {
     await peer.setLocalDescription(answer);
     socket.emit("signal", { to: from, signal: peer.localDescription });
   } else if (signal.type === "answer") {
-    if (peer.signalingState === "stable") {
-      return;
-    }
+    // [DÜZELTME] "if (peer.signalingState === 'stable') return;" satırı kaldırıldı
     await peer.setRemoteDescription(new RTCSessionDescription(signal));
     sessionUfrag[from] = parseIceUfrag(signal.sdp);
   } else if (signal.candidate) {
@@ -737,16 +735,9 @@ function initPeer(userId, isInitiator) {
 
   return peer;
 }
+
+/* createOffer => basit hale getirildi, setTimeout ve stable check kaldırıldı */
 async function createOffer(peer, userId) {
-  if (peer.signalingState !== "stable") {
-    setTimeout(async () => {
-      if (peer.signalingState !== "stable") return;
-      const offer2 = await peer.createOffer();
-      await peer.setLocalDescription(offer2);
-      socket.emit("signal", { to: userId, signal: peer.localDescription });
-    }, 200);
-    return;
-  }
   const offer = await peer.createOffer();
   await peer.setLocalDescription(offer);
   socket.emit("signal", { to: userId, signal: peer.localDescription });
@@ -969,7 +960,7 @@ function updateCellBars(ping) {
   if (barsActive >= 4) cellBar4.classList.add('active');
 }
 
-/* roomUsers => WebRTC init + ana içerikte kullanıcıların dikdörtgen kartları */
+/* roomUsers => WebRTC init + ana içerik */
 socket.on('roomUsers', (usersInRoom) => {
   console.log("roomUsers => odadaki kisiler:", usersInRoom);
 
@@ -1031,11 +1022,6 @@ socket.on('roomUsers', (usersInRoom) => {
       }
     });
   }
-
-  // --- Yeni ek: Ana içerik tarafında kullanıcı kartlarını göster ---
-  if (currentRoom) {
-    renderUsersInMainContent(usersInRoom);
-  }
 });
 
 /* Ayrıl Butonu */
@@ -1048,62 +1034,7 @@ leaveButton.addEventListener('click', () => {
 
   document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
 
-  // Kanal kullanıcı görünümünü temizle
-  const channelUsersContainer = document.getElementById('channelUsersContainer');
-  if (channelUsersContainer) {
-    channelUsersContainer.innerHTML = '';
-    channelUsersContainer.classList.remove(
-      'layout-1-user',
-      'layout-2-users',
-      'layout-3-users',
-      'layout-n-users'
-    );
-  }
-
   if (currentGroup) {
     socket.emit('browseGroup', currentGroup);
   }
 });
-
-/* Ana içerik için kullanıcı kartlarını renderla */
-function renderUsersInMainContent(usersArray) {
-  const container = document.getElementById('channelUsersContainer');
-  if (!container) return;
-  container.innerHTML = '';
-
-  // Daha önce eklenmiş layout sınıflarını temizle
-  container.classList.remove(
-    'layout-1-user',
-    'layout-2-users',
-    'layout-3-users',
-    'layout-n-users'
-  );
-
-  // Kullanıcı sayısına göre layout seç
-  if (usersArray.length === 1) {
-    container.classList.add('layout-1-user');
-  } else if (usersArray.length === 2) {
-    container.classList.add('layout-2-users');
-  } else if (usersArray.length === 3) {
-    container.classList.add('layout-3-users');
-  } else {
-    container.classList.add('layout-n-users');
-  }
-
-  // Kartları ekle
-  usersArray.forEach((u) => {
-    const card = document.createElement('div');
-    card.classList.add('user-card');
-
-    const avatar = document.createElement('div');
-    avatar.classList.add('user-card-avatar');
-
-    const name = document.createElement('div');
-    name.classList.add('user-card-name');
-    name.textContent = u.username || '(İsimsiz)';
-
-    card.appendChild(avatar);
-    card.appendChild(name);
-    container.appendChild(card);
-  });
-}
