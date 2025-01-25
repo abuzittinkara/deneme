@@ -483,10 +483,7 @@ socket.on('roomsList', (roomsArray) => {
   });
 });
 
-/* allChannelsData => her user => 
-   .channel-user => width:100%, space-between => .channel-user-left + .channel-user-buttons
-   Yalnızca local user micOff/deaf => userButtons'a ikon
-*/
+/* allChannelsData => kanallarda kimler var => sol kısımdaki liste */
 socket.on('allChannelsData', (channelsObj) => {
   Object.keys(channelsObj).forEach(roomId => {
     const cData = channelsObj[roomId];
@@ -495,11 +492,10 @@ socket.on('allChannelsData', (channelsObj) => {
     channelDiv.innerHTML = '';
 
     cData.users.forEach(u => {
-      // user row => .channel-user => 100% wide => space-between
+      // user row
       const userRow = document.createElement('div');
       userRow.classList.add('channel-user');
 
-      // solda => .channel-user-left => avatar + name
       const leftDiv = document.createElement('div');
       leftDiv.classList.add('channel-user-left');
 
@@ -513,7 +509,6 @@ socket.on('allChannelsData', (channelsObj) => {
       leftDiv.appendChild(avatarDiv);
       leftDiv.appendChild(nameSpan);
 
-      // sağda => .channel-user-buttons => hidden unless .channel-item.connected
       const buttonsDiv = document.createElement('div');
       buttonsDiv.classList.add('channel-user-buttons');
 
@@ -536,7 +531,6 @@ socket.on('allChannelsData', (channelsObj) => {
         }
       }
 
-      // userRow => leftDiv + buttonsDiv
       userRow.appendChild(leftDiv);
       userRow.appendChild(buttonsDiv);
 
@@ -546,150 +540,6 @@ socket.on('allChannelsData', (channelsObj) => {
 });
 
 /* groupUsers => sağ panel */
-socket.on('groupUsers', (dbUsersArray) => {
-  updateUserList(dbUsersArray);
-});
-
-/* roomUsers => WebRTC init */
-socket.on('roomUsers', (usersInRoom) => {
-  console.log("roomUsers => odadaki kisiler:", usersInRoom);
-
-  const userIdsInRoom = usersInRoom.map(u => u.id);
-  Object.keys(peers).forEach(peerId => {
-    if (!userIdsInRoom.includes(peerId)) {
-      if (peers[peerId]) {
-        peers[peerId].close();
-      }
-      delete peers[peerId];
-      stopVolumeAnalysis(peerId);
-
-      remoteAudios = remoteAudios.filter(audioEl => {
-        if (audioEl.dataset && audioEl.dataset.peerId === peerId) {
-          try { audioEl.pause(); } catch (e) {}
-          audioEl.srcObject = null;
-          return false;
-        }
-        return true;
-      });
-    }
-  });
-
-  const otherUserIds = usersInRoom
-    .filter(u => u.id !== socket.id)
-    .map(u => u.id)
-    .filter(id => !peers[id]);
-
-  if (!audioPermissionGranted || !localStream) {
-    requestMicrophoneAccess().then(() => {
-      otherUserIds.forEach(uid => {
-        if (!peers[uid]) {
-          const isInit = (socket.id < uid);
-          initPeer(uid, isInit);
-        }
-      });
-      pendingUsers.forEach(uid => {
-        if (!peers[uid]) {
-          initPeer(uid, true);
-        }
-      });
-      pendingUsers = [];
-      pendingNewUsers.forEach(uid => {
-        if (!peers[uid]) {
-          initPeer(uid, false);
-        }
-      });
-      pendingNewUsers = [];
-    }).catch(err => {
-      console.error("Mikrofon izni alınamadı:", err);
-    });
-  } else {
-    otherUserIds.forEach(uid => {
-      if (!peers[uid]) {
-        const isInit = (socket.id < uid);
-        initPeer(uid, isInit);
-      }
-    });
-  }
-});
-
-/* joinRoom => WebRTC */
-function joinRoom(groupId, roomId, roomName) {
-  socket.emit('joinRoom', { groupId, roomId });
-  document.getElementById('selectedChannelTitle').textContent = roomName;
-  showChannelStatusPanel();
-  currentGroup = groupId;
-  currentRoom = roomId;
-}
-
-/* Ayrıl Butonu */
-leaveButton.addEventListener('click', () => {
-  if (!currentRoom) return;
-  socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
-  closeAllPeers();
-  hideChannelStatusPanel();
-  currentRoom = null;
-
-  document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
-  if (currentGroup) {
-    socket.emit('browseGroup', currentGroup);
-  }
-});
-
-/* Kanal Durum Paneli => göster/gizle + ping */
-function showChannelStatusPanel() {
-  channelStatusPanel.style.display = 'block';
-  startPingInterval();
-}
-function hideChannelStatusPanel() {
-  channelStatusPanel.style.display = 'none';
-  stopPingInterval();
-}
-
-/* Ping + Hücresel bar */
-function startPingInterval() {
-  if (pingInterval) clearInterval(pingInterval);
-  pingInterval = setInterval(() => {
-    let pingMs = 0;
-    if (socket && socket.io && socket.io.engine && socket.io.engine.lastPingTimestamp) {
-      const now = Date.now();
-      pingMs = now - socket.io.engine.lastPingTimestamp;
-      pingValueSpan.textContent = pingMs + ' ms';
-    } else {
-      pingValueSpan.textContent = '-- ms';
-    }
-    updateCellBars(pingMs);
-  }, 1000);
-}
-function stopPingInterval() {
-  if (pingInterval) {
-    clearInterval(pingInterval);
-    pingInterval = null;
-  }
-  pingValueSpan.textContent = '-- ms';
-  updateCellBars(0);
-}
-function updateCellBars(ping) {
-  let barsActive = 0;
-  if (ping >= 1) {
-    if (ping < 80) barsActive = 4;
-    else if (ping < 150) barsActive = 3;
-    else if (ping < 300) barsActive = 2;
-    else barsActive = 1;
-  } else {
-    barsActive = 0;
-  }
-  cellBar1.classList.remove('active');
-  cellBar2.classList.remove('active');
-  cellBar3.classList.remove('active');
-  cellBar4.classList.remove('active');
-
-  if (barsActive >= 1) cellBar1.classList.add('active');
-  if (barsActive >= 2) cellBar2.classList.add('active');
-  if (barsActive >= 3) cellBar3.classList.add('active');
-  if (barsActive >= 4) cellBar4.classList.add('active');
-}
-
-/* Kullanıcı listesi => updateUserList => sağ panel */
 socket.on('groupUsers', (dbUsersArray) => {
   updateUserList(dbUsersArray);
 });
@@ -731,8 +581,6 @@ function updateUserList(data) {
     userListDiv.appendChild(noneP2);
   }
 }
-
-/* user-item => listede profil + isim + ID kopyala */
 function createUserItem(username, isOnline) {
   const userItem = document.createElement('div');
   userItem.classList.add('user-item');
@@ -889,8 +737,6 @@ function initPeer(userId, isInitiator) {
 
   return peer;
 }
-
-/* createOffer => stable check */
 async function createOffer(peer, userId) {
   if (peer.signalingState !== "stable") {
     setTimeout(async () => {
@@ -936,7 +782,6 @@ deafenToggleButton.addEventListener('click', () => {
   }
   applyAudioStates();
 });
-
 function applyAudioStates() {
   if (localStream) {
     localStream.getAudioTracks().forEach(track => {
@@ -1061,4 +906,179 @@ function stopVolumeAnalysis(userId) {
     audioAnalyzers[userId].audioContext.close().catch(() => {});
     delete audioAnalyzers[userId];
   }
+}
+
+/* joinRoom => WebRTC */
+function joinRoom(groupId, roomId, roomName) {
+  socket.emit('joinRoom', { groupId, roomId });
+  document.getElementById('selectedChannelTitle').textContent = roomName;
+  showChannelStatusPanel();
+  currentGroup = groupId;
+  currentRoom = roomId;
+}
+
+/* Kanal Durum Paneli => göster/gizle + ping */
+function showChannelStatusPanel() {
+  channelStatusPanel.style.display = 'block';
+  startPingInterval();
+}
+function hideChannelStatusPanel() {
+  channelStatusPanel.style.display = 'none';
+  stopPingInterval();
+}
+function startPingInterval() {
+  if (pingInterval) clearInterval(pingInterval);
+  pingInterval = setInterval(() => {
+    let pingMs = 0;
+    if (socket && socket.io && socket.io.engine && socket.io.engine.lastPingTimestamp) {
+      const now = Date.now();
+      pingMs = now - socket.io.engine.lastPingTimestamp;
+      pingValueSpan.textContent = pingMs + ' ms';
+    } else {
+      pingValueSpan.textContent = '-- ms';
+    }
+    updateCellBars(pingMs);
+  }, 1000);
+}
+function stopPingInterval() {
+  if (pingInterval) {
+    clearInterval(pingInterval);
+    pingInterval = null;
+  }
+  pingValueSpan.textContent = '-- ms';
+  updateCellBars(0);
+}
+function updateCellBars(ping) {
+  let barsActive = 0;
+  if (ping >= 1) {
+    if (ping < 80) barsActive = 4;
+    else if (ping < 150) barsActive = 3;
+    else if (ping < 300) barsActive = 2;
+    else barsActive = 1;
+  } else {
+    barsActive = 0;
+  }
+  cellBar1.classList.remove('active');
+  cellBar2.classList.remove('active');
+  cellBar3.classList.remove('active');
+  cellBar4.classList.remove('active');
+
+  if (barsActive >= 1) cellBar1.classList.add('active');
+  if (barsActive >= 2) cellBar2.classList.add('active');
+  if (barsActive >= 3) cellBar3.classList.add('active');
+  if (barsActive >= 4) cellBar4.classList.add('active');
+}
+
+/* roomUsers => WebRTC init + ana içerikte kullanıcıların dikdörtgen kartları */
+socket.on('roomUsers', (usersInRoom) => {
+  console.log("roomUsers => odadaki kisiler:", usersInRoom);
+
+  const userIdsInRoom = usersInRoom.map(u => u.id);
+  // Mevcut peers'ta ama room'a ait olmayan kullanıcıları kapat
+  Object.keys(peers).forEach(peerId => {
+    if (!userIdsInRoom.includes(peerId)) {
+      if (peers[peerId]) {
+        peers[peerId].close();
+      }
+      delete peers[peerId];
+      stopVolumeAnalysis(peerId);
+
+      remoteAudios = remoteAudios.filter(audioEl => {
+        if (audioEl.dataset && audioEl.dataset.peerId === peerId) {
+          try { audioEl.pause(); } catch (e) {}
+          audioEl.srcObject = null;
+          return false;
+        }
+        return true;
+      });
+    }
+  });
+
+  // Odaya yeni gelen kullanıcılar
+  const otherUserIds = usersInRoom
+    .filter(u => u.id !== socket.id)
+    .map(u => u.id)
+    .filter(id => !peers[id]);
+
+  if (!audioPermissionGranted || !localStream) {
+    requestMicrophoneAccess().then(() => {
+      otherUserIds.forEach(uid => {
+        if (!peers[uid]) {
+          const isInit = (socket.id < uid);
+          initPeer(uid, isInit);
+        }
+      });
+      pendingUsers.forEach(uid => {
+        if (!peers[uid]) {
+          initPeer(uid, true);
+        }
+      });
+      pendingUsers = [];
+      pendingNewUsers.forEach(uid => {
+        if (!peers[uid]) {
+          initPeer(uid, false);
+        }
+      });
+      pendingNewUsers = [];
+    }).catch(err => {
+      console.error("Mikrofon izni alınamadı:", err);
+    });
+  } else {
+    otherUserIds.forEach(uid => {
+      if (!peers[uid]) {
+        const isInit = (socket.id < uid);
+        initPeer(uid, isInit);
+      }
+    });
+  }
+
+  // --- Yeni ek: Ana içerik tarafında kullanıcı kartlarını göster ---
+  if (currentRoom) {
+    renderUsersInMainContent(usersInRoom);
+  }
+});
+
+/* Ayrıl Butonu */
+leaveButton.addEventListener('click', () => {
+  if (!currentRoom) return;
+  socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
+  closeAllPeers();
+  hideChannelStatusPanel();
+  currentRoom = null;
+
+  document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
+
+  // Kanal kullanıcı görünümünü temizle
+  const channelUsersContainer = document.getElementById('channelUsersContainer');
+  if (channelUsersContainer) {
+    channelUsersContainer.innerHTML = '';
+  }
+
+  if (currentGroup) {
+    socket.emit('browseGroup', currentGroup);
+  }
+});
+
+/* Ana içerik için kullanıcı kartlarını renderla */
+function renderUsersInMainContent(usersArray) {
+  const container = document.getElementById('channelUsersContainer');
+  if (!container) return;
+  container.innerHTML = '';
+
+  usersArray.forEach((u) => {
+    // Her kullanıcı için dikdörtgen bir kart
+    const card = document.createElement('div');
+    card.classList.add('user-card');
+
+    const avatar = document.createElement('div');
+    avatar.classList.add('user-card-avatar');
+
+    const name = document.createElement('div');
+    name.classList.add('user-card-name');
+    name.textContent = u.username || '(İsimsiz)';
+
+    card.appendChild(avatar);
+    card.appendChild(name);
+    container.appendChild(card);
+  });
 }

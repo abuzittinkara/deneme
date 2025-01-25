@@ -266,7 +266,7 @@ body {
   padding: 7px 12px 10px 12px;
 }
 
-/* channel-header => icon + text => fill width ???  (left align) */
+/* channel-header */
 .channel-header {
   display: flex;
   align-items: center;
@@ -284,7 +284,7 @@ body {
   justify-content: center;
 }
 
-/* channel-users => margin top, fill width ??? */
+/* channel-users */
 .channel-users {
   margin-top: 4px;
   margin-left: 0px; 
@@ -295,9 +295,7 @@ body {
   box-sizing: border-box;
 }
 
-/* .channel-user => width:100% => flex row => space-between => 
-   left => avatar+name, right => icons 
-*/
+/* .channel-user => width:100% => flex row => space-between */
 .channel-user {
   width: 100%;
   display: flex;
@@ -307,25 +305,15 @@ body {
   box-sizing: border-box;
   gap: 0.4rem;
 }
-
-/* sol kısım => flex row => gap: 0.5rem */
 .channel-user-left {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
-
-/* sağ kısım => .channel-user-buttons => hidden unless .channel-item.connected => parent's parent's parent ??? 
-   => We'll rely on .channel-item.connected > .channel-users > .channel-user => descend
-*/
 .channel-user-buttons {
   display: none; 
   gap: 8px;
 }
-/* 
-   Yalnız .channel-item.connected .channel-user => show .channel-user-buttons 
-   (since user row is inside .channel-users which is inside .channel-item)
-*/
 .channel-item.connected .channel-user-buttons {
   display: flex;
 }
@@ -341,7 +329,7 @@ body {
   box-shadow: 0 0 0 2px #c61884;
 }
 
-/* channel-status-panel => left=65px width=300px bottom=60px */
+/* channel-status-panel */
 .channel-status-panel {
   position: absolute; 
   left: 65px;      
@@ -363,8 +351,6 @@ body {
   align-items: center;
   justify-content: space-between;
 }
-
-/* 4 bar => cellular hissi */
 .signal-bars {
   display: flex;
   gap: 2px;
@@ -383,8 +369,6 @@ body {
 .cell-bar.active {
   background: #c61884;
 }
-
-/* leave-btn => w=30 h=25 */
 .leave-btn {
   background: none;
   border: 2px solid #c61884;
@@ -460,7 +444,7 @@ body {
   color: #c61884 !important;
 }
 
-/* settings-panel => absolute right=0 */
+/* settings-panel => hidden by default */
 .settings-panel {
   position: absolute;
   top: 0; 
@@ -679,4 +663,40 @@ body {
   .channel-status-panel { width:300px; }
   .app-title { font-size:1.2rem; }
   .right-panel { width:200px; }
+}
+
+/* =============================
+   YENİ EKLENEN STİLLER
+   ============================= */
+
+.channel-users-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.user-card {
+  background: #333;
+  border: 2px solid #444;
+  border-radius: 8px;
+  width: 100px;
+  height: 130px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-card-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 45%;
+  background-color: #666;
+  margin-bottom: 8px;
+}
+
+.user-card-name {
+  font-size: 0.85rem;
+  color: #eee;
+  text-align: center;
 }
