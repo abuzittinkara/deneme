@@ -28,11 +28,6 @@ const VOLUME_CHECK_INTERVAL = 100;
 let pingInterval = null;
 
 /* 
-  Sadece bir yerde tanımlıyoruz:
-*/
-let lastUserIdsInRoom = new Set();
-
-/* 
   channel listesinde (roomsList) "volume_up" ikonu göstermek istediğimizde
   createWaveIcon() çağrılır. Hata almamak için bu fonksiyon tanımlı olmalı.
 */
@@ -43,6 +38,10 @@ function createWaveIcon() {
   icon.textContent = 'volume_up';
   return icon;
 }
+
+// [ADDED] Daha net bir state takibi veya “peer manager” yapmak isterseniz 
+// buraya bir sınıf vs. ekleyebilirsiniz. Şimdilik eklemedik, basit tutuyoruz.
+
 
 // DOM Referansları
 const loginScreen = document.getElementById('loginScreen');
@@ -111,13 +110,8 @@ const deafenToggleButton = document.getElementById('deafenToggleButton');
 const settingsButton = document.getElementById('settingsButton');
 
 
-/* 
-  =======================================
-  BURADA closeAllPeers() FONKSİYONUNU EKLEDİK
-  =======================================
-*/
+// [ADDED] Basit fonksiyon: Tüm peer’leri kapatıp session’ları temizler
 function closeAllPeers() {
-  // Tüm peer bağlantılarını kapatıp temizliyoruz
   for (const userId in peers) {
     if (peers[userId]) {
       peers[userId].close();
@@ -129,7 +123,6 @@ function closeAllPeers() {
   pendingCandidates = {};
   sessionUfrag = {};
 }
-
 
 /* ====== LOGIN / REGISTER Geçişleri ====== */
 showRegisterScreen.addEventListener('click', () => {
@@ -477,16 +470,23 @@ socket.on('roomsList', (roomsArray) => {
         roomItem.classList.add('connected');
         return;
       }
+
+      // [Kanal Geçişi ve State Yeniden Kurulumu]
       if (currentRoom && (currentRoom !== roomObj.id || currentGroup !== selectedGroup)) {
         socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
-        closeAllPeers();  // <== Artık tanımlı!
+        
+        // Varsayılan: Tüm peer’leri kapat
+        closeAllPeers();
+
         hideChannelStatusPanel();
         currentRoom = null;
       }
       currentGroup = selectedGroup;
 
-      joinRoom(currentGroup, roomObj.id, roomObj.name);
+      // Bu odada “yeniden pazarlık” denemek isterseniz (closeAllPeers yapmadan):
+      // tryRenegotiate(); // opsiyonel
 
+      joinRoom(currentGroup, roomObj.id, roomObj.name);
       roomItem.classList.add('connected');
     });
 
@@ -638,17 +638,21 @@ function createUserItem(username, isOnline) {
 }
 
 /* Mikrofon Erişimi */
+// [UPDATED] Gelişmiş ses kısıtları ekleyerek Discord’a benzer eko bastırma vb.
 async function requestMicrophoneAccess() {
   try {
     console.log("Mikrofon izni isteniyor...");
-    const constraints = {
+
+    const advancedConstraints = {
       audio: {
         echoCancellation: true,
         noiseSuppression: true,
-        autoGainControl: false
+        autoGainControl: true,
       }
     };
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    // [NOT] Bazı tarayıcılarda “googEchoCancellation” vb. alanlar da eklenebilir.
+
+    const stream = await navigator.mediaDevices.getUserMedia(advancedConstraints);
     console.log("Mikrofon erişimi verildi:", stream);
     localStream = stream;
     audioPermissionGranted = true;
@@ -664,10 +668,7 @@ async function requestMicrophoneAccess() {
 }
 
 /*
-  =======================================
-  1) initPeer Fonksiyonunu ÖNCE tanımladık
-  2) Diğer initPeerWithCheck, initPeersForAllUsersInRoom, vb. altta
-  =======================================
+  initPeer => WebRTC Offer/Answer/ICE
 */
 function initPeer(userId, isInitiator) {
   if (!localStream || !audioPermissionGranted) {
@@ -744,7 +745,6 @@ function initPeer(userId, isInitiator) {
   return peer;
 }
 
-/* Teklifi oluşturup yollama */
 async function createOffer(peer, userId) {
   const offer = await peer.createOffer();
   await peer.setLocalDescription(offer);
@@ -752,31 +752,35 @@ async function createOffer(peer, userId) {
 }
 
 /*
-  initPeerWithCheck => mevcuttaki user, odada gördüğü "yeni" userId için peer
+  [ADDED] Örnek bir renegotiation fonksiyonu:
+  Oda geçişinde peer bağlantısını kapatmak yerine, 
+  "peer.restartIce()" veya benzeri adımlar deneyebilirsiniz.
+  Tarayıcılar arası deneme yapmak gerek.
 */
-function initPeerWithCheck(targetId) {
-  if (!peers[targetId] || peers[targetId].connectionState === 'closed') {
-    const isInit = (socket.id < targetId);
-    initPeer(targetId, isInit);
-  }
-}
+function tryRenegotiate() {
+  console.log("tryRenegotiate => Attempting partial renegotiation (EXPERIMENTAL).");
+  Object.keys(peers).forEach(async (pid) => {
+    const p = peers[pid];
+    if (p && p.connectionState === 'connected') {
+      // Deneysel: ICE’i yeniden başlat
+      if (p.restartIce) {
+        p.restartIce();
+      } else {
+        // Bazı tarayıcılarda yok
+        console.warn(`Peer ${pid} => restartIce() not supported.`);
+      }
 
-/*
-  initPeersForAllUsersInRoom => "ben" yeni girdim => lastUserIdsInRoom => hepsine peer kur
-*/
-function initPeersForAllUsersInRoom() {
-  if (!currentRoom || !audioPermissionGranted || !localStream) return;
-  lastUserIdsInRoom.forEach(uid => {
-    if (uid !== socket.id) {
-      if (!peers[uid] || peers[uid].connectionState === 'closed') {
-        const isInit = (socket.id < uid);
-        initPeer(uid, isInit);
+      // Tekrar offer al/gönder
+      if (p.signalingState === 'stable') {
+        const offer = await p.createOffer({ iceRestart: true });
+        await p.setLocalDescription(offer);
+        socket.emit("signal", { to: pid, signal: p.localDescription });
       }
     }
   });
 }
 
-/* WebRTC => Offer/Answer/ICE */
+/* WebRTC => Offer/Answer/ICE => pendingCandidates + setRemoteDescription */
 socket.on("signal", async (data) => {
   if (data.from === socket.id) return;
 
@@ -838,6 +842,7 @@ socket.on("signal", async (data) => {
 /* joinRoomAck => "ben" => yeni giren => odadaki herkese initPeer */
 socket.on('joinRoomAck', ({ groupId, roomId }) => {
   console.log("joinRoomAck =>", groupId, roomId);
+
   if (!audioPermissionGranted || !localStream) {
     requestMicrophoneAccess().then(() => {
       initPeersForAllUsersInRoom();
@@ -847,15 +852,19 @@ socket.on('joinRoomAck', ({ groupId, roomId }) => {
   }
 });
 
-/* roomUsers => "ben" odadayım => eğer yeni user geldiyse => initPeerWithCheck */
+/*
+  Oda içindeki user listesi => roomUsers => 
+  user eklenirse => initPeerWithCheck
+  user çıkarsa => kapat
+*/
 socket.on('roomUsers', (usersInRoom) => {
   console.log("roomUsers => odadaki kisiler:", usersInRoom);
 
   const newSet = new Set(usersInRoom.map(u => u.id));
 
-  // Kapatılması gereken peers
   for (const pid of Object.keys(peers)) {
     if (!newSet.has(pid)) {
+      // Bu peer odadan ayrılmış
       if (peers[pid]) {
         peers[pid].close();
       }
@@ -891,10 +900,21 @@ socket.on('roomUsers', (usersInRoom) => {
   }
 
   lastUserIdsInRoom = newSet;
-
-  // Kartları göster
   renderUsersInMainContent(usersInRoom);
 });
+
+/* Basit => odadaki herkese peer init */
+function initPeersForAllUsersInRoom() {
+  if (!currentRoom || !audioPermissionGranted || !localStream) return;
+  lastUserIdsInRoom.forEach(uid => {
+    if (uid !== socket.id) {
+      if (!peers[uid] || peers[uid].connectionState === 'closed') {
+        const isInit = (socket.id < uid);
+        initPeer(uid, isInit);
+      }
+    }
+  });
+}
 
 /* Kanaldan Ayrıl */
 leaveButton.addEventListener('click', () => {
@@ -1010,7 +1030,7 @@ socket.on("disconnect", () => {
   hideChannelStatusPanel();
 });
 
-/* Konuşma Algılama => startVolumeAnalysis, stopVolumeAnalysis => yukarıda tanımlanmış. */
+/* Konuşma Algılama => startVolumeAnalysis, stopVolumeAnalysis */
 function startVolumeAnalysis(stream, userId) {
   stopVolumeAnalysis(userId);
 
@@ -1021,6 +1041,7 @@ function startVolumeAnalysis(stream, userId) {
   source.connect(analyser);
 
   const dataArray = new Uint8Array(analyser.fftSize);
+
   const interval = setInterval(() => {
     analyser.getByteTimeDomainData(dataArray);
 
@@ -1114,66 +1135,4 @@ function updateCellBars(ping) {
   if (barsActive >= 2) cellBar2.classList.add('active');
   if (barsActive >= 3) cellBar3.classList.add('active');
   if (barsActive >= 4) cellBar4.classList.add('active');
-}
-
-/* leaveButton => Kanaldan Ayrıl => Yukarıda tanımlı */
-leaveButton.addEventListener('click', () => {
-  if (!currentRoom) return;
-  socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
-  closeAllPeers();
-  hideChannelStatusPanel();
-  currentRoom = null;
-
-  document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
-
-  const container = document.getElementById('channelUsersContainer');
-  if (container) {
-    container.innerHTML = '';
-    container.classList.remove(
-      'layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users'
-    );
-  }
-
-  if (currentGroup) {
-    socket.emit('browseGroup', currentGroup);
-  }
-});
-
-/* Kullanıcı Kartları => 1,2,3,4,5+ layout */
-function renderUsersInMainContent(usersArray) {
-  const container = document.getElementById('channelUsersContainer');
-  if (!container) return;
-
-  container.innerHTML = '';
-  container.classList.remove(
-    'layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users'
-  );
-
-  if (usersArray.length === 1) {
-    container.classList.add('layout-1-user');
-  } else if (usersArray.length === 2) {
-    container.classList.add('layout-2-users');
-  } else if (usersArray.length === 3) {
-    container.classList.add('layout-3-users');
-  } else if (usersArray.length === 4) {
-    container.classList.add('layout-4-users');
-  } else {
-    container.classList.add('layout-n-users');
-  }
-
-  usersArray.forEach(u => {
-    const card = document.createElement('div');
-    card.classList.add('user-card');
-
-    const avatar = document.createElement('div');
-    avatar.classList.add('user-card-avatar');
-
-    const label = document.createElement('div');
-    label.classList.add('user-label');
-    label.textContent = u.username || '(İsimsiz)';
-
-    card.appendChild(avatar);
-    card.appendChild(label);
-    container.appendChild(card);
-  });
 }
