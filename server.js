@@ -555,9 +555,14 @@ io.on("connection", (socket) => {
     socket.join(groupId);
     socket.join(`${groupId}::${roomId}`);
 
+    // 1) roomUsers => herkese
     io.to(`${groupId}::${roomId}`).emit('roomUsers', groups[groupId].rooms[roomId].users);
 
+    // 2) allChannelsData => grubun tamamına
     broadcastAllChannelsData(groupId);
+
+    // 3) Yeni: "joinRoomAck" => Bu oda kaydı tamamlandı => client “initPeer”i rahat yapabilir
+    socket.emit('joinRoomAck', { groupId, roomId });
   });
 
   // leaveRoom
