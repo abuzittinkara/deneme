@@ -122,14 +122,13 @@ body {
 /* Sidebar => 65px */
 .sidebar {
   width: 65px;  
-  background: #1a1a1a; 
+  background: #1e1e1e; 
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 1rem 0;
   position: relative;
   box-sizing: border-box;
-  border-right: 1px solid #444; 
 }
 .dm-toggle-btn {
   margin-bottom: 1rem;
@@ -184,11 +183,10 @@ body {
 /* rooms-panel => 300px */
 .rooms-panel {
   width: 300px; 
-  background: #1f1f1f;
+  background: #2d2d2d;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  border-right: 1px solid #444; 
 }
 .room-panel-header {
   min-height: 50px;
@@ -197,7 +195,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 5;
-  background: #1f1f1f;
+  background: #2d2d2d;
   border-bottom: 1px solid #444;
   padding: 0.75rem 1rem;
   box-sizing: border-box;
@@ -254,15 +252,15 @@ body {
   padding: 7px 12px 3px 8px; 
   margin-bottom: 0rem; 
   border-radius: 5px; 
-  background: #1f1f1f;
+  background: #2d2d2d;
   line-height: 1.2;
   box-sizing: border-box;
 }
 .channel-item:hover {
-  background-color: #242424;
+  background-color: #3d3d3d;
 }
 .channel-item.connected {
-  background-color: #2d2d2d;
+  background-color: #3d3d3d;
   padding: 7px 12px 10px 12px;
 }
 
@@ -334,16 +332,14 @@ body {
   position: absolute; 
   left: 65px;      
   width: 300px;    
-  background: #1a1a1a;
+  background: #262626;
   box-sizing: border-box;
-  border-top: 1px solid #444;  
-  border-right: 1px solid #444;
   height: 45px; 
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding: 0.5rem;
-  bottom: 60px; 
+  bottom: 57px; 
   z-index: 10;
 }
 .chan-status-content {
@@ -395,11 +391,10 @@ body {
   position: absolute; 
   left: 65px;
   width: 300px;
-  background: #1a1a1a;
+  background: #262626;
   padding: 0.5rem;
   box-sizing: border-box;
-  border-top: 1px solid #444;  
-  border-right: 1px solid #444;
+  border-top: 1px solid #444;
   bottom: 0; 
   z-index: 10;
 }
@@ -488,8 +483,8 @@ body {
 .main-content {
   flex: 1;
   padding: 0;
+  background: #353535;
   overflow: auto;
-  color: #aaa; 
   position: relative;
   display: flex;
   flex-direction: column;
@@ -498,7 +493,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: #2d2d2d;
+  background: #353535;
   border-bottom: 1px solid #444;
   padding: 0.75rem 1rem;
   min-height: 50px; 
@@ -673,7 +668,7 @@ body {
 /* Kart => 16:9 aspect ratio */
 .user-card {
   position: relative;
-  background: #222;
+  background: #2d2d2d;
   border: 1px solid #444;
   border-radius: 8px;
   display: flex;
