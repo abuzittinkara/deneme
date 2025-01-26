@@ -313,7 +313,12 @@ socket.on('groupsList', (groupArray) => {
       grpItem.classList.add('selected');
 
       selectedGroup = groupObj.id;
-      currentGroup = null;
+
+      // === DÜZELTME EKLENDİ: Yalnızca farklı gruba tıklanırsa currentGroup'ı sıfırla ===
+      if (currentGroup !== groupObj.id) {
+        currentGroup = null;
+      }
+
       groupTitle.textContent = groupObj.name;
       socket.emit('browseGroup', groupObj.id);
 
