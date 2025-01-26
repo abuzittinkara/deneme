@@ -261,7 +261,7 @@ body {
 }
 .channel-item.connected {
   background-color: #3d3d3d;
-  padding: 7px 12px 10px 12px;
+  padding: 7px 12px 10px 8px;
 }
 
 /* channel-header */
