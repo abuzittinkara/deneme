@@ -259,10 +259,14 @@ body {
 .channel-item:hover {
   background-color: #3d3d3d;
 }
-.channel-item.connected {
-  background-color: #3d3d3d;
-  padding: 7px 12px 10px 8px;
-}
+
+/* 
+   .channel-item.connected {
+     background-color: #3d3d3d;
+     padding: 7px 12px 10px 12px;
+   }
+   (KALDIRILDI - çerçeve gösterimini iptal ediyoruz)
+*/
 
 /* channel-header */
 .channel-header {
