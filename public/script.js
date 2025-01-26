@@ -28,6 +28,11 @@ const VOLUME_CHECK_INTERVAL = 100;
 let pingInterval = null;
 
 /* 
+  Sadece bir yerde tanımlıyoruz:
+*/
+let lastUserIdsInRoom = new Set();
+
+/* 
   channel listesinde (roomsList) "volume_up" ikonu göstermek istediğimizde
   createWaveIcon() çağrılır. Hata almamak için bu fonksiyon tanımlı olmalı.
 */
@@ -104,7 +109,6 @@ const leaveButton = document.getElementById('leaveButton');
 const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
 const settingsButton = document.getElementById('settingsButton');
-
 
 /* ====== LOGIN / REGISTER Geçişleri ====== */
 showRegisterScreen.addEventListener('click', () => {
@@ -220,7 +224,7 @@ socket.on('registerResult', (data) => {
   }
 });
 
-/* Grup/Oda oluşturma, DM panel, vb. */
+/* Grup/Oda oluşturma, DM vb. */
 createGroupButton.addEventListener('click', () => {
   document.getElementById('groupModal').style.display = 'flex';
 });
@@ -256,7 +260,6 @@ document.getElementById('joinGroupIdBtn').addEventListener('click', () => {
 document.getElementById('closeJoinGroupModal').addEventListener('click', () => {
   document.getElementById('joinGroupModal').style.display = 'none';
 });
-
 document.getElementById('modalCreateRoomBtn').addEventListener('click', () => {
   const rName = document.getElementById('modalRoomName').value.trim();
   if (!rName) {
@@ -420,7 +423,7 @@ document.addEventListener('click', () => {
   }
 });
 
-/* roomsList => Kanallar */
+/* roomsList => Kanallar (Sol) */
 socket.on('roomsList', (roomsArray) => {
   roomListDiv.innerHTML = '';
 
@@ -442,7 +445,6 @@ socket.on('roomsList', (roomsArray) => {
     channelUsers.className = 'channel-users';
     channelUsers.id = `channel-users-${roomObj.id}`;
 
-    // Ekliyoruz
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
@@ -480,7 +482,7 @@ socket.on('roomsList', (roomsArray) => {
   });
 });
 
-/* allChannelsData => soldaki kanal listesi */
+/* allChannelsData => soldaki kanal listesi (kim var) */
 socket.on('allChannelsData', (channelsObj) => {
   Object.keys(channelsObj).forEach(roomId => {
     const cData = channelsObj[roomId];
@@ -632,7 +634,6 @@ async function requestMicrophoneAccess() {
     applyAudioStates();
     startVolumeAnalysis(stream, socket.id);
 
-    // Tüm remoteAudios'u oynat (selfDeafened değilsek)
     remoteAudios.forEach(audioEl => {
       audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
     });
@@ -641,10 +642,11 @@ async function requestMicrophoneAccess() {
   }
 }
 
-/* 
-  ==============================
-  ÖNCE "initPeer" FONKSİYONUNU TANIMLIYORUZ
-  ==============================
+/*
+  =======================================
+  1) initPeer Fonksiyonunu ÖNCE tanımladık
+  2) Diğer initPeerWithCheck, initPeersForAllUsersInRoom, vb. altta
+  =======================================
 */
 function initPeer(userId, isInitiator) {
   if (!localStream || !audioPermissionGranted) {
@@ -661,7 +663,6 @@ function initPeer(userId, isInitiator) {
 
   console.log("initPeer =>", userId, "isInitiator?", isInitiator);
 
-  // TURN/STUN
   const peer = new RTCPeerConnection({
     iceServers: [
       { urls: "stun:stun.l.google.com:19302" },
@@ -722,14 +723,15 @@ function initPeer(userId, isInitiator) {
   return peer;
 }
 
+/* Teklifi oluşturup yollama */
 async function createOffer(peer, userId) {
   const offer = await peer.createOffer();
   await peer.setLocalDescription(offer);
   socket.emit("signal", { to: userId, signal: peer.localDescription });
 }
 
-/* 
-  initPeerWithCheck => odadaki yeni user'lara peer başlatırken
+/*
+  initPeerWithCheck => mevcuttaki user, odada gördüğü "yeni" userId için peer
 */
 function initPeerWithCheck(targetId) {
   if (!peers[targetId] || peers[targetId].connectionState === 'closed') {
@@ -739,11 +741,10 @@ function initPeerWithCheck(targetId) {
 }
 
 /*
-  initPeersForAllUsersInRoom => "ben" yeni girdim => odadaki herkese peer kurayım
+  initPeersForAllUsersInRoom => "ben" yeni girdim => lastUserIdsInRoom => hepsine peer kur
 */
 function initPeersForAllUsersInRoom() {
   if (!currentRoom || !audioPermissionGranted || !localStream) return;
-  // Odadaki user'ları => roomUsers eventinden
   lastUserIdsInRoom.forEach(uid => {
     if (uid !== socket.id) {
       if (!peers[uid] || peers[uid].connectionState === 'closed') {
@@ -754,7 +755,7 @@ function initPeersForAllUsersInRoom() {
   });
 }
 
-/* WebRTC => Offer/Answer/ICE => devamediyor... */
+/* WebRTC => Offer/Answer/ICE */
 socket.on("signal", async (data) => {
   if (data.from === socket.id) return;
 
@@ -778,7 +779,6 @@ socket.on("signal", async (data) => {
     const answer = await peer.createAnswer();
     await peer.setLocalDescription(answer);
     socket.emit("signal", { to: from, signal: peer.localDescription });
-
   } else if (signal.type === "answer") {
     await peer.setRemoteDescription(new RTCSessionDescription(signal));
     sessionUfrag[from] = parseIceUfrag(signal.sdp);
@@ -803,7 +803,6 @@ socket.on("signal", async (data) => {
       if (sessionUfrag[from] 
           && sessionUfrag[from] !== signal.usernameFragment 
           && signal.usernameFragment !== null) {
-        // Yanlış ufrag => görmezden gel
         return;
       }
       try {
@@ -815,9 +814,7 @@ socket.on("signal", async (data) => {
   }
 });
 
-/*
-  joinRoomAck => ben yeni giren => odadaki herkese initPeer
-*/
+/* joinRoomAck => "ben" => yeni giren => odadaki herkese initPeer */
 socket.on('joinRoomAck', ({ groupId, roomId }) => {
   console.log("joinRoomAck =>", groupId, roomId);
   if (!audioPermissionGranted || !localStream) {
@@ -829,17 +826,15 @@ socket.on('joinRoomAck', ({ groupId, roomId }) => {
   }
 });
 
-/*
-  roomUsers => ben zaten odadayım => eğer yeni user geldiyse => initPeerWithCheck
-*/
-let lastUserIdsInRoom = new Set();
+/* roomUsers => "ben" odadayım => eğer yeni user geldiyse => initPeerWithCheck */
 socket.on('roomUsers', (usersInRoom) => {
   console.log("roomUsers => odadaki kisiler:", usersInRoom);
 
-  // 1) peers'tan ama odada olmayanları kapat
-  const newUserIds = new Set(usersInRoom.map(u => u.id));
+  const newSet = new Set(usersInRoom.map(u => u.id));
+
+  // Kapatılması gereken peers
   for (const pid of Object.keys(peers)) {
-    if (!newUserIds.has(pid)) {
+    if (!newSet.has(pid)) {
       if (peers[pid]) {
         peers[pid].close();
       }
@@ -857,7 +852,7 @@ socket.on('roomUsers', (usersInRoom) => {
     }
   }
 
-  // 2) eğer ben odadaysam => yeni user'a da peer başlatayım
+  // Mevcut user => yeni user'a peer
   if (currentRoom) {
     usersInRoom.forEach(u => {
       if (u.id !== socket.id) {
@@ -874,25 +869,32 @@ socket.on('roomUsers', (usersInRoom) => {
     });
   }
 
-  lastUserIdsInRoom = newUserIds;
+  lastUserIdsInRoom = newSet;
 
-  // 3) Kullanıcı kartları
+  // Kartları göster
   renderUsersInMainContent(usersInRoom);
 });
 
-/* Tüm Peer'leri kapat (oda değiştirirken, disconnect vb.) */
-function closeAllPeers() {
-  for (const userId in peers) {
-    if (peers[userId]) {
-      peers[userId].close();
-      delete peers[userId];
-    }
-    stopVolumeAnalysis(userId);
+/* Kanaldan Ayrıl */
+leaveButton.addEventListener('click', () => {
+  if (!currentRoom) return;
+  socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
+  closeAllPeers();
+  hideChannelStatusPanel();
+  currentRoom = null;
+
+  document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
+
+  const container = document.getElementById('channelUsersContainer');
+  if (container) {
+    container.innerHTML = '';
+    container.classList.remove('layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users');
   }
-  remoteAudios = [];
-  pendingCandidates = {};
-  sessionUfrag = {};
-}
+
+  if (currentGroup) {
+    socket.emit('browseGroup', currentGroup);
+  }
+});
 
 /* Mikrofon & Kulaklık => sunucuya audioStateChanged */
 micToggleButton.addEventListener('click', () => {
@@ -937,7 +939,7 @@ function applyAudioStates() {
   socket.emit('audioStateChanged', { micEnabled, selfDeafened });
 }
 
-/* parseIceUfrag => a=ice-ufrag:... */
+/* parseIceUfrag => a=ice-ufrag:... => kaldı */
 function parseIceUfrag(sdp) {
   const lines = sdp.split('\n');
   for (const line of lines) {
@@ -948,7 +950,7 @@ function parseIceUfrag(sdp) {
   return null;
 }
 
-/* groupRenamed => UI update */
+/* groupRenamed => UI update => */
 socket.on('groupRenamed', (data) => {
   const { groupId, newName } = data;
   if (currentGroup === groupId || selectedGroup === groupId) {
@@ -957,7 +959,7 @@ socket.on('groupRenamed', (data) => {
   socket.emit('set-username', username);
 });
 
-/* groupDeleted => UI reset */
+/* groupDeleted => UI reset => */
 socket.on('groupDeleted', (data) => {
   const { groupId } = data;
   if (currentGroup === groupId) {
@@ -987,7 +989,7 @@ socket.on("disconnect", () => {
   hideChannelStatusPanel();
 });
 
-/* Konuşma Algılama => startVolumeAnalysis, stopVolumeAnalysis */
+/* Konuşma Algılama => startVolumeAnalysis, stopVolumeAnalysis => yukarıda tanımlanmış. */
 function startVolumeAnalysis(stream, userId) {
   stopVolumeAnalysis(userId);
 
@@ -1041,7 +1043,7 @@ function joinRoom(groupId, roomId, roomName) {
   currentRoom = roomId;
 }
 
-/* Kanal Durum Paneli => ping + bars */
+/* Kanal Durum Paneli => ping + bars => vb. => Yukarıda */
 function showChannelStatusPanel() {
   channelStatusPanel.style.display = 'block';
   startPingInterval();
@@ -1093,70 +1095,7 @@ function updateCellBars(ping) {
   if (barsActive >= 4) cellBar4.classList.add('active');
 }
 
-/* roomUsers => main-content => user-card => layout */
-let lastUserIdsInRoom = new Set();
-
-socket.on('roomUsers', (usersInRoom) => {
-  console.log("roomUsers => odadaki kisiler:", usersInRoom);
-
-  const newUserIds = new Set(usersInRoom.map(u => u.id));
-
-  // Peers => odada olmayanları kapat
-  for (const pid of Object.keys(peers)) {
-    if (!newUserIds.has(pid)) {
-      if (peers[pid]) {
-        peers[pid].close();
-      }
-      delete peers[pid];
-      stopVolumeAnalysis(pid);
-
-      remoteAudios = remoteAudios.filter(audioEl => {
-        if (audioEl.dataset && audioEl.dataset.peerId === pid) {
-          try { audioEl.pause(); } catch (e) {}
-          audioEl.srcObject = null;
-          return false;
-        }
-        return true;
-      });
-    }
-  }
-
-  // Ben odadaysam => yeni user'a peer başlat
-  if (currentRoom) {
-    usersInRoom.forEach(u => {
-      if (u.id !== socket.id) {
-        if (!peers[u.id] || peers[u.id].connectionState === 'closed') {
-          if (!audioPermissionGranted || !localStream) {
-            requestMicrophoneAccess().then(() => {
-              initPeerWithCheck(u.id);
-            });
-          } else {
-            initPeerWithCheck(u.id);
-          }
-        }
-      }
-    });
-  }
-
-  lastUserIdsInRoom = newUserIds;
-
-  // Kartlar
-  renderUsersInMainContent(usersInRoom);
-});
-
-/* joinRoomAck => bu user "yeni giren" => odadaki herkese initPeer */
-socket.on('joinRoomAck', ({ groupId, roomId }) => {
-  console.log("joinRoomAck =>", groupId, roomId);
-  if (!audioPermissionGranted || !localStream) {
-    requestMicrophoneAccess().then(() => {
-      initPeersForAllUsersInRoom();
-    });
-  } else {
-    initPeersForAllUsersInRoom();
-  }
-});
-
-/* Kanaldan Ayrıl */
+/* leaveButton => Kanaldan Ayrıl => Yukarıda tanımlı */
 leaveButton.addEventListener('click', () => {
   if (!currentRoom) return;
   socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
@@ -1169,7 +1108,9 @@ leaveButton.addEventListener('click', () => {
   const container = document.getElementById('channelUsersContainer');
   if (container) {
     container.innerHTML = '';
-    container.classList.remove('layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users');
+    container.classList.remove(
+      'layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users'
+    );
   }
 
   if (currentGroup) {
@@ -1177,13 +1118,15 @@ leaveButton.addEventListener('click', () => {
   }
 });
 
-/* Kullanıcı Kartları => 1,2,3,4,5+ layout => aynı */
+/* Kullanıcı Kartları => 1,2,3,4,5+ layout */
 function renderUsersInMainContent(usersArray) {
   const container = document.getElementById('channelUsersContainer');
   if (!container) return;
 
   container.innerHTML = '';
-  container.classList.remove('layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users');
+  container.classList.remove(
+    'layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users'
+  );
 
   if (usersArray.length === 1) {
     container.classList.add('layout-1-user');
@@ -1201,11 +1144,9 @@ function renderUsersInMainContent(usersArray) {
     const card = document.createElement('div');
     card.classList.add('user-card');
 
-    // Orta avatar
     const avatar = document.createElement('div');
     avatar.classList.add('user-card-avatar');
 
-    // alt-solda isim => .user-label
     const label = document.createElement('div');
     label.classList.add('user-label');
     label.textContent = u.username || '(İsimsiz)';
