@@ -110,6 +110,27 @@ const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
 const settingsButton = document.getElementById('settingsButton');
 
+
+/* 
+  =======================================
+  BURADA closeAllPeers() FONKSİYONUNU EKLEDİK
+  =======================================
+*/
+function closeAllPeers() {
+  // Tüm peer bağlantılarını kapatıp temizliyoruz
+  for (const userId in peers) {
+    if (peers[userId]) {
+      peers[userId].close();
+      delete peers[userId];
+    }
+    stopVolumeAnalysis(userId);
+  }
+  remoteAudios = [];
+  pendingCandidates = {};
+  sessionUfrag = {};
+}
+
+
 /* ====== LOGIN / REGISTER Geçişleri ====== */
 showRegisterScreen.addEventListener('click', () => {
   loginScreen.style.display = 'none';
@@ -458,7 +479,7 @@ socket.on('roomsList', (roomsArray) => {
       }
       if (currentRoom && (currentRoom !== roomObj.id || currentGroup !== selectedGroup)) {
         socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
-        closeAllPeers();
+        closeAllPeers();  // <== Artık tanımlı!
         hideChannelStatusPanel();
         currentRoom = null;
       }
