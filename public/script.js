@@ -110,7 +110,6 @@ const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
 const settingsButton = document.getElementById('settingsButton');
 
-
 /* 
   =======================================
   BURADA closeAllPeers() FONKSİYONUNU EKLEDİK
@@ -129,7 +128,6 @@ function closeAllPeers() {
   pendingCandidates = {};
   sessionUfrag = {};
 }
-
 
 /* ====== LOGIN / REGISTER Geçişleri ====== */
 showRegisterScreen.addEventListener('click', () => {
@@ -309,16 +307,15 @@ socket.on('groupsList', (groupArray) => {
     grpItem.title = groupObj.name + " (" + groupObj.id + ")";
 
     grpItem.addEventListener('click', () => {
+      // Değişiklik: Artık "currentGroup = null" yapmıyoruz! (Aşağıdaki satır kaldırıldı)
+      // currentGroup = null;  // <-- Bu satırı kaldırdık. Artık "browse" için mecburen sıfırlamıyoruz.
+      // Yalnızca "selectedGroup" atıyoruz ve "browseGroup" çağırıyoruz.
+      // Bu sayede eğer kullanıcı halihazırda bir kanala bağlı ise "connected" class'ı bozulmuyor.
+
       document.querySelectorAll('.grp-item').forEach(el => el.classList.remove('selected'));
       grpItem.classList.add('selected');
 
       selectedGroup = groupObj.id;
-
-      // === DÜZELTME EKLENDİ: Yalnızca farklı gruba tıklanırsa currentGroup'ı sıfırla ===
-      if (currentGroup !== groupObj.id) {
-        currentGroup = null;
-      }
-
       groupTitle.textContent = groupObj.name;
       socket.emit('browseGroup', groupObj.id);
 
@@ -914,7 +911,9 @@ leaveButton.addEventListener('click', () => {
   const container = document.getElementById('channelUsersContainer');
   if (container) {
     container.innerHTML = '';
-    container.classList.remove('layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users');
+    container.classList.remove(
+      'layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users'
+    );
   }
 
   if (currentGroup) {
