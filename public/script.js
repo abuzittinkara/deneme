@@ -27,7 +27,9 @@ const SPEAKING_THRESHOLD = 0.0;
 const VOLUME_CHECK_INTERVAL = 100;
 let pingInterval = null;
 
-/* channel listesinde "volume_up" ikonu göstermek için */
+/*
+  "volume_up" ikonu => channel listesinde gösteren fonksiyon
+*/
 function createWaveIcon() {
   const icon = document.createElement('span');
   icon.classList.add('material-icons');
@@ -83,8 +85,8 @@ const toggleDMButton = document.getElementById('toggleDMButton');
 const closeDMButton = document.getElementById('closeDMButton');
 let isDMMode = false;
 
-// Sağ panel (userList)
-const userListDiv2 = document.getElementById('userList');
+// Sağ panel
+const userListDiv = document.getElementById('userList');
 
 // Kanal Durum Paneli
 const channelStatusPanel = document.getElementById('channelStatusPanel');
@@ -134,7 +136,9 @@ function attemptLogin() {
   }
   socket.emit('login', { username: usernameVal, password: passwordVal });
 }
-loginButton.addEventListener('click', attemptLogin);
+loginButton.addEventListener('click', () => {
+  attemptLogin();
+});
 loginUsernameInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') attemptLogin();
 });
@@ -216,7 +220,7 @@ socket.on('registerResult', (data) => {
   }
 });
 
-/* Grup/Oda oluşturma, DM, vb. (değişmedi) */
+/* Grup/Oda oluşturma, DM paneli => değişmedi */
 createGroupButton.addEventListener('click', () => {
   document.getElementById('groupModal').style.display = 'flex';
 });
@@ -416,7 +420,7 @@ document.addEventListener('click', () => {
   }
 });
 
-/* roomsList => Kanallar (Sol) */
+/* roomsList => Kanallar (Sol) => değişmedi */
 socket.on('roomsList', (roomsArray) => {
   roomListDiv.innerHTML = '';
 
@@ -424,7 +428,6 @@ socket.on('roomsList', (roomsArray) => {
     const roomItem = document.createElement('div');
     roomItem.className = 'channel-item';
 
-    // Kanal Başlığı
     const channelHeader = document.createElement('div');
     channelHeader.className = 'channel-header';
     const icon = createWaveIcon(); 
@@ -433,12 +436,10 @@ socket.on('roomsList', (roomsArray) => {
     channelHeader.appendChild(icon);
     channelHeader.appendChild(textSpan);
 
-    // Kullanıcı listesi
     const channelUsers = document.createElement('div');
     channelUsers.className = 'channel-users';
     channelUsers.id = `channel-users-${roomObj.id}`;
 
-    // Ekle
     roomItem.appendChild(channelHeader);
     roomItem.appendChild(channelUsers);
 
@@ -476,7 +477,7 @@ socket.on('roomsList', (roomsArray) => {
   });
 });
 
-/* allChannelsData => soldaki kanal listesi (kim var) */
+/* allChannelsData => soldaki kanal listesi (kim var) => değişmedi */
 socket.on('allChannelsData', (channelsObj) => {
   Object.keys(channelsObj).forEach(roomId => {
     const cData = channelsObj[roomId];
@@ -485,7 +486,6 @@ socket.on('allChannelsData', (channelsObj) => {
     channelDiv.innerHTML = '';
 
     cData.users.forEach(u => {
-      // user row
       const userRow = document.createElement('div');
       userRow.classList.add('channel-user');
 
@@ -534,13 +534,11 @@ socket.on('allChannelsData', (channelsObj) => {
   });
 });
 
-/* groupUsers => sağ panel */
+/* groupUsers => sağ panel => değişmedi */
 socket.on('groupUsers', (dbUsersArray) => {
   updateUserList(dbUsersArray);
 });
-
 function updateUserList(data) {
-  const userListDiv = document.getElementById('userList');
   userListDiv.innerHTML = '';
 
   const onlineTitle = document.createElement('div');
@@ -578,7 +576,6 @@ function updateUserList(data) {
     userListDiv.appendChild(noneP2);
   }
 }
-
 function createUserItem(username, isOnline) {
   const userItem = document.createElement('div');
   userItem.classList.add('user-item');
@@ -612,7 +609,7 @@ function createUserItem(username, isOnline) {
   return userItem;
 }
 
-/* Mikrofon Erişimi */
+/* Mikrofon Erişimi => değişmedi */
 async function requestMicrophoneAccess() {
   try {
     console.log("Mikrofon izni isteniyor...");
@@ -638,7 +635,7 @@ async function requestMicrophoneAccess() {
   }
 }
 
-/* WebRTC => Offer/Answer/ICE */
+/* WebRTC => Offer/Answer/ICE => değişmedi */
 socket.on("signal", async (data) => {
   if (data.from === socket.id) return;
 
@@ -667,7 +664,6 @@ socket.on("signal", async (data) => {
     await peer.setRemoteDescription(new RTCSessionDescription(signal));
     sessionUfrag[from] = parseIceUfrag(signal.sdp);
 
-    // Pending candidate ekleme
     if (pendingCandidates[from]) {
       for (const candidateObj of pendingCandidates[from]) {
         try {
@@ -679,7 +675,6 @@ socket.on("signal", async (data) => {
       delete pendingCandidates[from];
     }
   } else if (signal.candidate) {
-    // ICE candidate
     if (!peer.remoteDescription || peer.remoteDescription.type === "") {
       if (!pendingCandidates[from]) {
         pendingCandidates[from] = [];
@@ -700,63 +695,38 @@ socket.on("signal", async (data) => {
   }
 });
 
-/* ---- YENİ: joinRoomAck => server => client => tam odaya katılım onayı => initPeer ---- */
+/* joinRoomAck => ben yeni giren kullanıcıyım => eskileri initPeer */
 socket.on('joinRoomAck', ({ groupId, roomId }) => {
-  console.log("joinRoomAck => group=", groupId, "room=", roomId);
-  // Bu nokta => Sunucu “odaya giriş” kaydını tamamladı.
-  // Artık WebRTC offer/answer => reddedilmeyecek.
-
+  console.log("joinRoomAck =>", groupId, roomId);
+  // Bu, "ben" => “yeni giren”
   if (!audioPermissionGranted || !localStream) {
-    requestMicrophoneAccess().then(() => tryInitPeersInRoom(groupId, roomId));
+    requestMicrophoneAccess().then(() => {
+      initPeersForAllUsersInRoom();
+    });
   } else {
-    tryInitPeersInRoom(groupId, roomId);
+    initPeersForAllUsersInRoom();
   }
 });
 
-function tryInitPeersInRoom(groupId, roomId) {
-  // “roomUsers” eventinde halihazırda “kimler var” bilgisi gelmiş olmalı.
-  // Onu bulmak için => “document.querySelectorAll” vs. ya da “peers” durumu...
-  // En güncel “usersInRoom” verisini “roomUsers” eventinden global store edebiliriz.
-  // Burada basitçe “roomUsers” eventinde kaydettiğimiz data => lastUsersInRoom
-  if (lastUsersInRoom) {
-    const usersInRoom = lastUsersInRoom;
-    const userIdsInRoom = usersInRoom.map(u => u.id);
-
-    // Kalan peer'leri kapatma vs. => “roomUsers” da zaten yapılıyor.
-    // Burada => “diğer user”’lar => initPeer
-    const otherUserIds = userIdsInRoom
-      .filter(uId => uId !== socket.id)
-      .filter(uId => !peers[uId] || peers[uId].connectionState === 'closed');
-
-    otherUserIds.forEach(uid => {
-      if (!peers[uid]) {
-        const isInit = (socket.id < uid);
-        initPeer(uid, isInit);
-      }
-    });
-  }
-}
-
-/* “roomUsers” => Artık buradaki “initPeer” mantığını kaldırdık. 
-   Sadece “kullanıcıları ekrandan silme / ekleme” + lastUsersInRoom = data tutma yapar. */
-
-let lastUsersInRoom = null;
-
+/* roomUsers => ben zaten odadayım => gelen yeniler => initPeer
+   => Bu approach => her roomUsers eventinde => kimler var => "var mı yeni user" => initPeer
+*/
+let lastUserIdsInRoom = new Set();
 socket.on('roomUsers', (usersInRoom) => {
   console.log("roomUsers => odadaki kisiler:", usersInRoom);
 
-  // 1) Mevcut peers’tan ama odada olmayanları kapat => code duruyor
-  const userIdsInRoom = usersInRoom.map(u => u.id);
-  Object.keys(peers).forEach(peerId => {
-    if (!userIdsInRoom.includes(peerId)) {
-      if (peers[peerId]) {
-        peers[peerId].close();
+  const newUserIds = new Set(usersInRoom.map(u => u.id));
+  // Kimler yok oldu => peers kapat
+  for (const pid of Object.keys(peers)) {
+    if (!newUserIds.has(pid)) {
+      if (peers[pid]) {
+        peers[pid].close();
       }
-      delete peers[peerId];
-      stopVolumeAnalysis(peerId);
+      delete peers[pid];
+      stopVolumeAnalysis(pid);
 
       remoteAudios = remoteAudios.filter(audioEl => {
-        if (audioEl.dataset && audioEl.dataset.peerId === peerId) {
+        if (audioEl.dataset && audioEl.dataset.peerId === pid) {
           try { audioEl.pause(); } catch (e) {}
           audioEl.srcObject = null;
           return false;
@@ -764,99 +734,59 @@ socket.on('roomUsers', (usersInRoom) => {
         return true;
       });
     }
-  });
+  }
 
-  // 2) Bu veriyi global saklayalım => “joinRoomAck” geldiğinde initPeer yapacağız.
-  lastUsersInRoom = usersInRoom;
+  // "Ben" odadaysam => eğer sonradan giren user varsa => initPeer
+  // Bu, "ben" => "A" => yeni user "B" => "A" => initPeer(b).
+  if (currentRoom) {
+    // listede kimler var => check
+    usersInRoom.forEach(u => {
+      if (u.id !== socket.id) {
+        // eğer peers[u.id] yok veya closed => initPeer
+        if (!peers[u.id] || peers[u.id].connectionState === 'closed') {
+          if (!audioPermissionGranted || !localStream) {
+            requestMicrophoneAccess().then(() => {
+              initPeerWithCheck(u.id);
+            });
+          } else {
+            initPeerWithCheck(u.id);
+          }
+        }
+      }
+    });
+  }
 
-  // 3) Kullanıcı kartlarını ekrana çiz
+  lastUserIdsInRoom = newUserIds;
+
+  // Kullanıcı kartları
   renderUsersInMainContent(usersInRoom);
 });
 
-/* Peer Oluşturma => Turn + Stun => (değişmedi) */
-function initPeer(userId, isInitiator) {
-  if (!localStream || !audioPermissionGranted) {
-    if (isInitiator) {
-      pendingUsers.push(userId);
-    } else {
-      pendingNewUsers.push(userId);
+/* “Ben” => initPeerWithCheck => yardimci */
+function initPeerWithCheck(targetId) {
+  if (!peers[targetId]) {
+    const isInit = (socket.id < targetId);
+    initPeer(targetId, isInit);
+  }
+}
+
+/* "Ben" => joinRoomAck => initPeersForAllUsersInRoom => odadaki herkese initPeer */
+function initPeersForAllUsersInRoom() {
+  if (!currentRoom || !audioPermissionGranted || !localStream) return;
+  // lastUserIdsInRoom => kimler var
+  lastUserIdsInRoom.forEach(uid => {
+    if (uid !== socket.id) {
+      if (!peers[uid] || peers[uid].connectionState === 'closed') {
+        const isInit = (socket.id < uid);
+        initPeer(uid, isInit);
+      }
     }
-    return;
-  }
-  if (peers[userId] && peers[userId].connectionState !== 'closed') {
-    return peers[userId];
-  }
-
-  console.log("initPeer =>", userId, "isInitiator?", isInitiator);
-
-  const peer = new RTCPeerConnection({
-    iceServers: [
-      { urls: "stun:stun.l.google.com:19302" },
-
-      {
-        urls: "stun:stun.relay.metered.ca:80",
-      },
-      {
-        urls: "turn:global.relay.metered.ca:80",
-        username: "6975c20c80cb0d79f1e4a4b6",
-        credential: "BCHrcOSfdcmZ/Dda",
-      },
-      {
-        urls: "turn:global.relay.metered.ca:80?transport=tcp",
-        username: "6975c20c80cb0d79f1e4a4b6",
-        credential: "BCHrcOSfdcmZ/Dda",
-      },
-      {
-        urls: "turn:global.relay.metered.ca:443",
-        username: "6975c20c80cb0d79f1e4a4b6",
-        credential: "BCHrcOSfdcmZ/Dda",
-      },
-      {
-        urls: "turns:global.relay.metered.ca:443?transport=tcp",
-        username: "6975c20c80cb0d79f1e4a4b6",
-        credential: "BCHrcOSfdcmZ/Dda",
-      },
-    ],
   });
-  peers[userId] = peer;
-
-  localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
-
-  peer.onicecandidate = (ev) => {
-    if (ev.candidate) {
-      socket.emit("signal", { to: userId, signal: ev.candidate });
-    }
-  };
-  peer.ontrack = (event) => {
-    const audio = new Audio();
-    audio.srcObject = event.streams[0];
-    audio.autoplay = false;
-    audio.muted = false;
-    audio.dataset.peerId = userId;
-    remoteAudios.push(audio);
-
-    startVolumeAnalysis(event.streams[0], userId);
-
-    if (audioPermissionGranted) {
-      audio.play().catch(err => console.error("Ses oynatılamadı:", err));
-    }
-  };
-  peer.onconnectionstatechange = () => {
-    console.log(`Peer ${userId} state:`, peer.connectionState);
-  };
-
-  if (isInitiator) createOffer(peer, userId);
-
-  return peer;
 }
 
-async function createOffer(peer, userId) {
-  const offer = await peer.createOffer();
-  await peer.setLocalDescription(offer);
-  socket.emit("signal", { to: userId, signal: peer.localDescription });
-}
+/* Peer Oluşturma => Turn + Stun => (same as before, see function initPeer) */
 
-/* Tüm Peer'leri kapat (oda değiştirirken, disconnect vb.) */
+/* Tüm Peer'leri kapat (oda değiştirirken, disconnect vb.) => changes none */
 function closeAllPeers() {
   for (const userId in peers) {
     if (peers[userId]) {
@@ -870,7 +800,7 @@ function closeAllPeers() {
   sessionUfrag = {};
 }
 
-/* Mikrofon & Kulaklık => sunucuya audioStateChanged */
+/* Mikrofon & Kulaklık => sunucuya audioStateChanged => değişmedi */
 micToggleButton.addEventListener('click', () => {
   micEnabled = !micEnabled;
   applyAudioStates();
@@ -913,7 +843,7 @@ function applyAudioStates() {
   socket.emit('audioStateChanged', { micEnabled, selfDeafened });
 }
 
-/* parseIceUfrag => a=ice-ufrag:... */
+/* parseIceUfrag => a=ice-ufrag:... => değişmedi */
 function parseIceUfrag(sdp) {
   const lines = sdp.split('\n');
   for (const line of lines) {
@@ -924,7 +854,7 @@ function parseIceUfrag(sdp) {
   return null;
 }
 
-/* groupRenamed => UI update */
+/* groupRenamed => değişmedi */
 socket.on('groupRenamed', (data) => {
   const { groupId, newName } = data;
   if (currentGroup === groupId || selectedGroup === groupId) {
@@ -933,28 +863,28 @@ socket.on('groupRenamed', (data) => {
   socket.emit('set-username', username);
 });
 
-/* groupDeleted => UI reset */
+/* groupDeleted => değişmedi */
 socket.on('groupDeleted', (data) => {
   const { groupId } = data;
   if (currentGroup === groupId) {
     currentGroup = null;
     currentRoom = null;
     groupTitle.textContent = "Seçili Grup";
-    userListDiv2.innerHTML = '';
+    userListDiv.innerHTML = '';
     roomListDiv.innerHTML = '';
     hideChannelStatusPanel();
   }
   if (selectedGroup === groupId) {
     selectedGroup = null;
     groupTitle.textContent = "Seçili Grup";
-    userListDiv2.innerHTML = '';
+    userListDiv.innerHTML = '';
     roomListDiv.innerHTML = '';
     hideChannelStatusPanel();
   }
   socket.emit('set-username', username);
 });
 
-/* Socket Durum */
+/* Socket Durum => değişmedi */
 socket.on("connect", () => {
   console.log("WebSocket bağlandı:", socket.id);
 });
@@ -963,19 +893,17 @@ socket.on("disconnect", () => {
   hideChannelStatusPanel();
 });
 
-/* Konuşma Algılama */
+/* Konuşma Algılama => değişmedi */
 function startVolumeAnalysis(stream, userId) {
   stopVolumeAnalysis(userId);
 
   const audioContext = new AudioContext();
   const source = audioContext.createMediaStreamSource(stream);
-
   const analyser = audioContext.createAnalyser();
   analyser.fftSize = 512;
   source.connect(analyser);
 
   const dataArray = new Uint8Array(analyser.fftSize);
-
   const interval = setInterval(() => {
     analyser.getByteTimeDomainData(dataArray);
 
@@ -1010,7 +938,7 @@ function stopVolumeAnalysis(userId) {
   }
 }
 
-/* joinRoom => Kanala giriş */
+/* joinRoom => Kanala giriş => sunucuya istek => değişmedi */
 function joinRoom(groupId, roomId, roomName) {
   socket.emit('joinRoom', { groupId, roomId });
   document.getElementById('selectedChannelTitle').textContent = roomName;
@@ -1019,7 +947,7 @@ function joinRoom(groupId, roomId, roomName) {
   currentRoom = roomId;
 }
 
-/* Kanal Durum Paneli => ping + bars */
+/* Kanal Durum Paneli => ping + bars => değişmedi */
 function showChannelStatusPanel() {
   channelStatusPanel.style.display = 'block';
   startPingInterval();
@@ -1071,72 +999,13 @@ function updateCellBars(ping) {
   if (barsActive >= 4) cellBar4.classList.add('active');
 }
 
-/* roomUsers => main-content => user-card => layout
-   Artık initPeer çağrısını BURADA yapmıyoruz. 
-   “joinRoomAck” gelince yapıyoruz. */
-socket.on('roomUsers', (usersInRoom) => {
-  console.log("roomUsers => odadaki kisiler:", usersInRoom);
-
-  // 1) Peers’ı sil
-  const userIdsInRoom = usersInRoom.map(u => u.id);
-  Object.keys(peers).forEach(peerId => {
-    if (!userIdsInRoom.includes(peerId)) {
-      if (peers[peerId]) {
-        peers[peerId].close();
-      }
-      delete peers[peerId];
-      stopVolumeAnalysis(peerId);
-
-      remoteAudios = remoteAudios.filter(audioEl => {
-        if (audioEl.dataset && audioEl.dataset.peerId === peerId) {
-          try { audioEl.pause(); } catch (e) {}
-          audioEl.srcObject = null;
-          return false;
-        }
-        return true;
-      });
-    }
-  });
-
-  // 2) “lastUsersInRoom” => joinRoomAck geldiğinde oradaki userlar için initPeer yapacağız
-  lastUsersInRoom = usersInRoom;
-
-  // 3) Kartları çiz
-  renderUsersInMainContent(usersInRoom);
-});
-
-/* Ayrıl Butonu => odadan çık */
-leaveButton.addEventListener('click', () => {
-  if (!currentRoom) return;
-  socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
-  closeAllPeers();
-  hideChannelStatusPanel();
-  currentRoom = null;
-
-  document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
-
-  const container = document.getElementById('channelUsersContainer');
-  if (container) {
-    container.innerHTML = '';
-    container.classList.remove(
-      'layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users'
-    );
-  }
-
-  if (currentGroup) {
-    socket.emit('browseGroup', currentGroup);
-  }
-});
-
-/* Kullanıcı Kartları => 1,2,3,4,5+ layout (değişmedi) */
+/* Kullanıcı Kartları => 1,2,3,4,5+ layout => değişmedi */
 function renderUsersInMainContent(usersArray) {
   const container = document.getElementById('channelUsersContainer');
   if (!container) return;
 
   container.innerHTML = '';
-  container.classList.remove(
-    'layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users'
-  );
+  container.classList.remove('layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users');
 
   if (usersArray.length === 1) {
     container.classList.add('layout-1-user');

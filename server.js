@@ -271,7 +271,7 @@ io.on("connection", (socket) => {
     const { username, name, surname, birthdate, email, phone, password, passwordConfirm } = userData;
     if (!username || !name || !surname || !birthdate || !email || !phone ||
         !password || !passwordConfirm) {
-      socket.emit('registerResult', { success: false, message: 'Tüm alanları doldurun.' });
+      socket.emit('registerResult', { success: false, message: 'Tüm alanları doldurunuz.' });
       return;
     }
     if (username !== username.toLowerCase()) {
@@ -555,13 +555,11 @@ io.on("connection", (socket) => {
     socket.join(groupId);
     socket.join(`${groupId}::${roomId}`);
 
-    // 1) roomUsers => herkese
     io.to(`${groupId}::${roomId}`).emit('roomUsers', groups[groupId].rooms[roomId].users);
 
-    // 2) allChannelsData => grubun tamamına
     broadcastAllChannelsData(groupId);
 
-    // 3) Yeni: "joinRoomAck" => Bu oda kaydı tamamlandı => client “initPeer”i rahat yapabilir
+    // “joinRoomAck” => girdiğini onaylayalım (yeni user’daysak)
     socket.emit('joinRoomAck', { groupId, roomId });
   });
 
@@ -719,15 +717,12 @@ io.on("connection", (socket) => {
     const sR = users[socket.id].currentRoom;
     const tR = users[targetId].currentRoom;
 
-    // Önce, ikisi de aynı roomdaysa sinyali anında iletiyoruz:
     if (sG && sG === tG && sR && sR === tR) {
       io.to(targetId).emit("signal", {
         from: socket.id,
         signal: data.signal
       });
-    } 
-    // Değilse, ama aynı group'talar => 200 ms bekleyip tekrar kontrol edelim:
-    else if (sG && tG && sG === tG) {
+    } else if (sG && tG && sG === tG) {
       setTimeout(() => {
         const sG2 = users[socket.id]?.currentGroup;
         const tG2 = users[targetId]?.currentGroup;
@@ -742,7 +737,6 @@ io.on("connection", (socket) => {
         }
       }, 200);
     }
-    // Aksi halde sinyali iletmiyoruz (farklı group).
   });
 
   // Disconnect
