@@ -12,6 +12,9 @@ const User = require('./models/User');
 const Group = require('./models/Group');
 const Channel = require('./models/Channel');
 
+/* Mediasoup import */
+const mediasoup = require('mediasoup');
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
@@ -228,6 +231,50 @@ async function sendGroupsListToUser(socketId) {
   }
   io.to(socketId).emit('groupsList', userGroups);
 }
+
+/* =============== Mediasoup ile ilgili yapı =============== */
+
+/* Not: Gerçek projede, worker sayısı vs. config gerekir */
+let worker;
+let mediasoupWorker;
+let sfuRouters = {}; 
+// sfuRouters[ roomId ] = { router, transports:[], producers:[], consumers:[] }
+
+async function createWorker() {
+  worker = await mediasoup.createWorker({ 
+    rtcMinPort: 40000, 
+    rtcMaxPort: 49999 
+  });
+  console.log("Mediasoup Worker created, PID=", worker.pid);
+
+  worker.on('died', () => {
+    console.error("Mediasoup worker has died!");
+    process.exit(1);
+  });
+  return worker;
+}
+createWorker().then((w) => { mediasoupWorker = w; });
+
+async function getOrCreateRouterForRoom(roomId) {
+  if (sfuRouters[roomId] && sfuRouters[roomId].router) {
+    return sfuRouters[roomId].router;
+  }
+  // Yoksa yarat
+  const router = await mediasoupWorker.createRouter({
+    mediaCodecs: [
+      { kind: 'audio', mimeType: 'audio/opus', clockRate: 48000, channels: 2 }
+    ]
+  });
+  sfuRouters[roomId] = {
+    router,
+    transports: [],
+    producers: [],
+    consumers: []
+  };
+  return router;
+}
+
+/* ====================================================== */
 
 // Socket.IO
 io.on("connection", (socket) => {
@@ -523,7 +570,7 @@ io.on("connection", (socket) => {
   });
 
   // joinRoom
-  socket.on('joinRoom', ({ groupId, roomId }) => {
+  socket.on('joinRoom', async ({ groupId, roomId }) => {
     if (!groups[groupId]) return;
     if (!groups[groupId].rooms[roomId]) return;
 
@@ -559,8 +606,13 @@ io.on("connection", (socket) => {
 
     broadcastAllChannelsData(groupId);
 
-    // “joinRoomAck” => girdiğini onaylayalım (yeni user’daysak)
-    socket.emit('joinRoomAck', { groupId, roomId });
+    // SFU => bir Router var mı, yoksa yarat:
+    const router = await getOrCreateRouterForRoom(roomId);
+
+    // (isteğe bağlı) buradaki router id/rtpCapabilities'i kullanıcıya gönder
+    // ama basitlik için skip.
+
+    // ...
   });
 
   // leaveRoom
@@ -706,40 +758,87 @@ io.on("connection", (socket) => {
     }
   });
 
-  // WebRTC (signal) => RACE CONDITION DÜZELTMESİ
-  socket.on("signal", (data) => {
-    const targetId = data.to;
-    if (socket.id === targetId) return;
-    if (!users[targetId]) return;
+  /* ========= Yeni SFU (Mediasoup) eventleri - produce, consume vs. ======= */
 
-    const sG = users[socket.id].currentGroup;
-    const tG = users[targetId].currentGroup;
-    const sR = users[socket.id].currentRoom;
-    const tR = users[targetId].currentRoom;
+  socket.on('createTransport', async ({ roomId, transportOptions }) => {
+    try {
+      if (!roomId) return;
+      const router = await getOrCreateRouterForRoom(roomId);
 
-    if (sG && sG === tG && sR && sR === tR) {
-      io.to(targetId).emit("signal", {
-        from: socket.id,
-        signal: data.signal
+      const transport = await router.createWebRtcTransport(transportOptions);
+      // store for later
+      sfuRouters[roomId].transports.push({ id: transport.id, transport, socketId: socket.id });
+
+      socket.emit('transportCreated', {
+        transportId: transport.id,
+        iceParameters: transport.iceParameters,
+        iceCandidates: transport.iceCandidates,
+        dtlsParameters: transport.dtlsParameters
       });
-    } else if (sG && tG && sG === tG) {
-      setTimeout(() => {
-        const sG2 = users[socket.id]?.currentGroup;
-        const tG2 = users[targetId]?.currentGroup;
-        const sR2 = users[socket.id]?.currentRoom;
-        const tR2 = users[targetId]?.currentRoom;
-
-        if (sG2 && tG2 && sG2 === tG2 && sR2 && sR2 === tR2) {
-          io.to(targetId).emit("signal", {
-            from: socket.id,
-            signal: data.signal
-          });
-        }
-      }, 200);
+    } catch (err) {
+      console.error("createTransport hata:", err);
     }
   });
 
-  // Disconnect
+  socket.on('connectTransport', async ({ roomId, transportId, dtlsParameters }) => {
+    try {
+      const tObj = sfuRouters[roomId]?.transports.find(t => t.id === transportId);
+      if (!tObj) return;
+      await tObj.transport.connect({ dtlsParameters });
+      socket.emit('transportConnected', { transportId });
+    } catch (err) {
+      console.error("connectTransport hata:", err);
+    }
+  });
+
+  socket.on('produce', async ({ roomId, transportId, kind, rtpParameters }) => {
+    try {
+      const tObj = sfuRouters[roomId]?.transports.find(t => t.id === transportId);
+      if (!tObj) return;
+      const producer = await tObj.transport.produce({ kind, rtpParameters });
+      sfuRouters[roomId].producers.push({ producerId: producer.id, producer, socketId: socket.id });
+
+      socket.emit('produceDone', { producerId: producer.id });
+    } catch (err) {
+      console.error("produce hata:", err);
+    }
+  });
+
+  socket.on('consume', async ({ roomId, transportId, producerId, rtpCapabilities }) => {
+    try {
+      const routerObj = sfuRouters[roomId];
+      if (!routerObj) return;
+      const tObj = routerObj.transports.find(t => t.id === transportId);
+      if (!tObj) return;
+
+      const producerObj = routerObj.producers.find(p => p.producerId === producerId);
+      if (!producerObj) return;
+
+      // check if router can consume
+      if (!routerObj.router.canConsume({
+        producerId: producerObj.producer.id,
+        rtpCapabilities
+      })) {
+        console.error("consume => cannot consume with given rtpCapabilities");
+        return;
+      }
+      const consumer = await tObj.transport.consume({
+        producerId: producerObj.producer.id,
+        rtpCapabilities,
+        paused: false
+      });
+      routerObj.consumers.push({ consumerId: consumer.id, consumer, socketId: socket.id });
+
+      socket.emit('consumeDone', {
+        consumerId: consumer.id,
+        kind: consumer.kind,
+        rtpParameters: consumer.rtpParameters
+      });
+    } catch (err) {
+      console.error("consume hata:", err);
+    }
+  });
+
   socket.on("disconnect", async () => {
     console.log("disconnect:", socket.id);
     const userData = users[socket.id];
