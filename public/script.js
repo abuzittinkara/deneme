@@ -430,7 +430,7 @@ socket.on('roomsList', (roomsArray) => {
     // Kanal Başlığı
     const channelHeader = document.createElement('div');
     channelHeader.className = 'channel-header';
-    const icon = createWaveIcon(); // Burada createWaveIcon() çağrılır
+    const icon = createWaveIcon(); 
     const textSpan = document.createElement('span');
     textSpan.textContent = roomObj.name;
     channelHeader.appendChild(icon);
@@ -543,6 +543,7 @@ socket.on('groupUsers', (dbUsersArray) => {
 });
 
 function updateUserList(data) {
+  const userListDiv = document.getElementById('userList');
   userListDiv.innerHTML = '';
 
   const onlineTitle = document.createElement('div');
@@ -708,7 +709,7 @@ socket.on("signal", async (data) => {
   }
 });
 
-/* Peer Oluşturma */
+/* Peer Oluşturma => Turn + Stun => Metered sunucular Eklendi */
 function initPeer(userId, isInitiator) {
   if (!localStream || !audioPermissionGranted) {
     if (isInitiator) {
@@ -724,8 +725,35 @@ function initPeer(userId, isInitiator) {
 
   console.log("initPeer =>", userId, "isInitiator?", isInitiator);
 
+  // TURN/STUN ekledik => metered.ca + Google STUN fallback
   const peer = new RTCPeerConnection({
-    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+    iceServers: [
+      { urls: "stun:stun.l.google.com:19302" },
+
+      {
+        urls: "stun:stun.relay.metered.ca:80",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:80",
+        username: "6975c20c80cb0d79f1e4a4b6",
+        credential: "BCHrcOSfdcmZ/Dda",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:80?transport=tcp",
+        username: "6975c20c80cb0d79f1e4a4b6",
+        credential: "BCHrcOSfdcmZ/Dda",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:443",
+        username: "6975c20c80cb0d79f1e4a4b6",
+        credential: "BCHrcOSfdcmZ/Dda",
+      },
+      {
+        urls: "turns:global.relay.metered.ca:443?transport=tcp",
+        username: "6975c20c80cb0d79f1e4a4b6",
+        credential: "BCHrcOSfdcmZ/Dda",
+      },
+    ],
   });
   peers[userId] = peer;
 
@@ -837,6 +865,7 @@ function parseIceUfrag(sdp) {
 socket.on('groupRenamed', (data) => {
   const { groupId, newName } = data;
   if (currentGroup === groupId || selectedGroup === groupId) {
+    const groupTitle = document.getElementById('groupTitle');
     groupTitle.textContent = newName;
   }
   socket.emit('set-username', username);
@@ -921,7 +950,8 @@ function stopVolumeAnalysis(userId) {
 /* joinRoom => Kanala giriş */
 function joinRoom(groupId, roomId, roomName) {
   socket.emit('joinRoom', { groupId, roomId });
-  document.getElementById('selectedChannelTitle').textContent = roomName;
+  const selectedChannelTitle = document.getElementById('selectedChannelTitle');
+  selectedChannelTitle.textContent = roomName;
   showChannelStatusPanel();
   currentGroup = groupId;
   currentRoom = roomId;
