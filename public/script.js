@@ -1,8 +1,8 @@
 /**************************************
  * script.js
  **************************************/
-const socket = io();
-let localStream;
+let socket = io();
+let localStream = null;
 let audioPermissionGranted = false;
 let username = null;
 
@@ -17,14 +17,14 @@ let selectedGroup = null;
 
 let pingInterval = null;
 
-/* --- Mediasoup SFU ile ilgili değişkenler --- */
+// Mediasoup-client
+let device = null;
 let sendTransport = null;
 let recvTransport = null;
 let producers = {};
 let consumers = {};
 
-
-// DOM Referansları
+// DOM
 const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
 const callScreen = document.getElementById('callScreen');
@@ -90,7 +90,7 @@ const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
 const settingsButton = document.getElementById('settingsButton');
 
-// ============ Basit Yardımcı Fonksiyon ============
+/* Basit yardimci */
 function createWaveIcon() {
   const icon = document.createElement('span');
   icon.classList.add('material-icons');
@@ -438,17 +438,14 @@ socket.on('roomsList', (roomsArray) => {
     roomItem.appendChild(channelUsers);
 
     // Tıklayınca => Kanala gir
-    roomItem.addEventListener('click', () => {
+    roomItem.addEventListener('click', async () => {
       document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
 
       if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
-        // Aynı kanala tıklıyorsa bir şey yapma
         return;
       }
       if (currentRoom && (currentRoom !== roomObj.id || currentGroup !== selectedGroup)) {
         socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
-        // P2P yok => SFU => sonlandir? produce kapat? vs. 
-        // (basitlik için closeAllTransports vs. diyebilirsiniz.)
         closeAllTransports();
         hideChannelStatusPanel();
         currentRoom = null;
@@ -501,7 +498,6 @@ socket.on('allChannelsData', (channelsObj) => {
       buttonsDiv.classList.add('channel-user-buttons');
 
       if (u.id === socket.id) {
-        // Mic kapalıysa icon
         if (!u.micEnabled) {
           const micIcon = document.createElement('span');
           micIcon.classList.add('material-icons');
@@ -510,7 +506,6 @@ socket.on('allChannelsData', (channelsObj) => {
           micIcon.textContent = 'mic_off';
           buttonsDiv.appendChild(micIcon);
         }
-        // Deaf
         if (u.selfDeafened) {
           const deafIcon = document.createElement('span');
           deafIcon.classList.add('material-icons');
@@ -605,94 +600,267 @@ function createUserItem(username, isOnline) {
   return userItem;
 }
 
-/* Mikrofon Erişimi */
+/* Mikrofon Erişimi => Artık otomatik sayfa yüklenirken değil, kanala girince istiyoruz */
 async function requestMicrophoneAccess() {
+  if (audioPermissionGranted) return;
   try {
-    console.log("Mikrofon izni isteniyor...");
-    const constraints = {
+    console.log("Kullanıcı kanala giriyor, mikrofon izni isteniyor...");
+    const stream = await navigator.mediaDevices.getUserMedia({
       audio: {
         echoCancellation: true,
         noiseSuppression: true,
         autoGainControl: false
       }
-    };
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    });
     console.log("Mikrofon erişimi verildi:", stream);
     localStream = stream;
     audioPermissionGranted = true;
     applyAudioStates();
-    // Bu noktada SFU => produce edebiliriz.
   } catch(err) {
     console.error("Mikrofon izni alınamadı:", err);
   }
 }
 
-/* SFU => basit skeleton => createTransport => produce => consume => vs. */
-async function createSendTransportAndProduce() {
-  if (!audioPermissionGranted || !localStream) {
-    console.warn("Mikrofon yok, produce yapılamıyor");
-    return;
-  }
-  // sunucuya => createTransport
-  const transportOptions = {
-    listenIps: [{ ip: '127.0.0.1', announcedIp: null }],
-    enableUdp: true,
-    enableTcp: true,
-    preferUdp: true
-  };
-  socket.emit('createTransport', { roomId: currentRoom, transportOptions });
-
-  socket.once('transportCreated', async (data) => {
-    console.log("transportCreated =>", data);
-    const { transportId, iceParameters, iceCandidates, dtlsParameters } = data;
-    // Local webrtc transport => client side (ex: using mediasoup-client => normalde)
-    // Bu basit örnekte => puzzle
-    // Ardından => connectTransport => dtls param
-    socket.emit('connectTransport', { 
-      roomId: currentRoom, 
-      transportId, 
-      dtlsParameters 
-    });
-    socket.once('transportConnected', () => {
-      console.log("transportConnected =>", transportId);
-      // produce
-      const rtpParameters = {}; // normalde => mediasoup-client get rtpParam
-      // dummy
-      socket.emit('produce', {
-        roomId: currentRoom,
-        transportId,
-        kind: 'audio',
-        rtpParameters
-      });
-    });
-    socket.once('produceDone', ({ producerId }) => {
-      console.log("Produce success =>", producerId);
+/* Mediasoup => tam akış => device, produce, consume vb. */
+async function loadDevice(roomId) {
+  return new Promise((resolve, reject) => {
+    socket.emit('getRtpCapabilities', roomId);
+    socket.once('routerRtpCapabilities', async (rtpCapabilities) => {
+      try {
+        device = new mediasoupClient.Device();
+        await device.load({ routerRtpCapabilities: rtpCapabilities });
+        resolve(device);
+      } catch (err) {
+        reject(err);
+      }
     });
   });
 }
 
-/* Tüm transportları kapat (oda değiştirirken) */
-function closeAllTransports() {
-  // Basit iskelet => gerçekte => 'producer.close()','transport.close()' vs.
-  sendTransport = null;
-  recvTransport = null;
-  producers = {};
-  consumers = {};
+async function createSendTransport(roomId) {
+  return new Promise((resolve, reject) => {
+    const transportOptions = {
+      listenIps: [{ ip: '127.0.0.1', announcedIp: null }],
+      enableUdp: true,
+      enableTcp: true,
+      preferUdp: true
+    };
+    socket.emit('createTransport', { roomId, transportOptions });
+    socket.once('transportCreated', (data) => {
+      if (!device) {
+        return reject("Device yok");
+      }
+      const { transportId, iceParameters, iceCandidates, dtlsParameters } = data;
+      const sendTransport = device.createSendTransport({
+        id: transportId,
+        iceParameters,
+        iceCandidates,
+        dtlsParameters,
+        // debug log
+        iceServers: []
+      });
+      sendTransport.on('connect', ({ dtlsParameters }, callback, errback) => {
+        socket.emit('connectTransport', { roomId, transportId, dtlsParameters });
+        socket.once('transportConnected', () => {
+          callback();
+        });
+      });
+      sendTransport.on('produce', async (parameters, callback, errback) => {
+        socket.emit('produce', {
+          roomId,
+          transportId: transportId,
+          kind: parameters.kind,
+          rtpParameters: parameters.rtpParameters
+        });
+        socket.once('produceDone', ({ producerId }) => {
+          callback({ id: producerId });
+        });
+      });
+      resolve(sendTransport);
+    });
+  });
 }
 
-/* joinRoom => Kanala giriş */
-function joinRoom(groupId, roomId, roomName) {
-  socket.emit('joinRoom', { groupId, roomId });
+async function createRecvTransport(roomId) {
+  return new Promise((resolve, reject) => {
+    const transportOptions = {
+      listenIps: [{ ip: '127.0.0.1', announcedIp: null }],
+      enableUdp: true,
+      enableTcp: true,
+      preferUdp: true
+    };
+    socket.emit('createTransport', { roomId, transportOptions });
+    socket.once('transportCreated', (data) => {
+      if (!device) {
+        return reject("Device yok");
+      }
+      const { transportId, iceParameters, iceCandidates, dtlsParameters } = data;
+      const recvTransport = device.createRecvTransport({
+        id: transportId,
+        iceParameters,
+        iceCandidates,
+        dtlsParameters
+      });
+      recvTransport.on('connect', ({ dtlsParameters }, callback, errback) => {
+        socket.emit('connectTransport', { roomId, transportId, dtlsParameters });
+        socket.once('transportConnected', () => {
+          callback();
+        });
+      });
+      resolve(recvTransport);
+    });
+  });
+}
+
+async function produceAudioTrack(sendT) {
+  if (!localStream) return;
+  const track = localStream.getAudioTracks()[0];
+  if (!track) {
+    console.warn("No audio track found in localStream");
+    return;
+  }
+  const params = { track };
+  const producer = await sendT.produce(params);
+  producers[producer.id] = producer;
+  console.log("produceAudioTrack => success", producer.id);
+}
+
+function closeAllTransports() {
+  if (sendTransport) {
+    sendTransport.close();
+    sendTransport = null;
+  }
+  if (recvTransport) {
+    recvTransport.close();
+    recvTransport = null;
+  }
+  producers = {};
+  consumers = {};
+  device = null;
+}
+
+/* “joinRoom” => tam akış => 1) loadDevice => 2) createSendTransport => produce => 3) createRecvTransport => handle newProducer */
+async function joinRoom(groupId, roomId, roomName) {
   document.getElementById('selectedChannelTitle').textContent = roomName;
   showChannelStatusPanel();
   currentGroup = groupId;
   currentRoom = roomId;
 
-  // SFU => "createSendTransportAndProduce"
-  createSendTransportAndProduce();
+  socket.emit('joinRoom', { groupId, roomId });
+
+  // 1) mic => request
+  await requestMicrophoneAccess();
+  // 2) load device
+  await loadDevice(roomId);
+  // 3) create sendTransport => produce
+  sendTransport = await createSendTransport(roomId);
+  await produceAudioTrack(sendTransport);
+
+  // 4) create recvTransport
+  recvTransport = await createRecvTransport(roomId);
+
+  // 5) Tüm existing producer'ları consume et => a) sunucuda "newProducer" event yoksa => yoy yoy
+  // Aslında, produce eden user, "newProducer" i broadcast'liyor. 
+  // Ama user girince eski producer'lar da var => onları consume etmeliyiz.
+  // Basit yaklaşım => sunucu "producers" array'ını broadcast edebilir. 
+  // Aşağıda "yeni producer" event yakaladık => orada consume yapacağız.
+
+  // Sunucuda “newProducer” => biz yakalayıp => consume
 }
 
-/* Kanal Durum Paneli => ping + bars => vb. */
+socket.on('newProducer', async ({ producerId }) => {
+  if (!device || !recvTransport) return;
+  console.log("newProducer =>", producerId);
+
+  const rtpCapabilities = device.rtpCapabilities;
+  socket.emit('consume', {
+    roomId: currentRoom,
+    transportId: recvTransport.id,
+    producerId,
+    rtpCapabilities
+  });
+});
+
+socket.on('consumeDone', async ({ consumerId, kind, rtpParameters, producerId }) => {
+  console.log("consumeDone => consumerId=", consumerId, "kind=", kind);
+  const consumer = await recvTransport.consume({
+    id: consumerId,
+    producerId,
+    kind,
+    rtpParameters
+  });
+  consumers[consumer.id] = consumer;
+
+  // Audio track => new Audio
+  const { track } = consumer;
+  const audioStream = new MediaStream([track]);
+  const audioElem = new Audio();
+  audioElem.srcObject = audioStream;
+  audioElem.autoplay = true;
+  audioElem.muted = false;
+  audioElem.play().catch(err => console.error("audio play err:", err));
+});
+
+/* Kanaldan Ayrıl */
+leaveButton.addEventListener('click', () => {
+  if (!currentRoom) return;
+  socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
+  closeAllTransports();
+  hideChannelStatusPanel();
+  currentRoom = null;
+
+  document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
+  const container = document.getElementById('channelUsersContainer');
+  if (container) {
+    container.innerHTML = '';
+    container.classList.remove('layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users');
+  }
+  if (currentGroup) {
+    socket.emit('browseGroup', currentGroup);
+  }
+});
+
+/* Mikrofon & Kulaklık => sunucuya audioStateChanged */
+micToggleButton.addEventListener('click', () => {
+  micEnabled = !micEnabled;
+  applyAudioStates();
+});
+deafenToggleButton.addEventListener('click', () => {
+  if (!selfDeafened) {
+    micWasEnabledBeforeDeaf = micEnabled;
+    selfDeafened = true;
+    micEnabled = false;
+  } else {
+    selfDeafened = false;
+    if (micWasEnabledBeforeDeaf) micEnabled = true;
+  }
+  applyAudioStates();
+});
+
+function applyAudioStates() {
+  if (localStream) {
+    localStream.getAudioTracks().forEach(track => {
+      track.enabled = micEnabled && !selfDeafened;
+    });
+  }
+  if (!micEnabled || selfDeafened) {
+    micToggleButton.innerHTML = `<span class="material-icons">mic_off</span>`;
+    micToggleButton.classList.add('btn-muted');
+  } else {
+    micToggleButton.innerHTML = `<span class="material-icons">mic</span>`;
+    micToggleButton.classList.remove('btn-muted');
+  }
+  if (selfDeafened) {
+    deafenToggleButton.innerHTML = `<span class="material-icons">headset_off</span>`;
+    deafenToggleButton.classList.add('btn-muted');
+  } else {
+    deafenToggleButton.innerHTML = `<span class="material-icons">headset</span>`;
+    deafenToggleButton.classList.remove('btn-muted');
+  }
+  socket.emit('audioStateChanged', { micEnabled, selfDeafened });
+}
+
+/* Kanal Durum Paneli => ping + bars */
 function showChannelStatusPanel() {
   channelStatusPanel.style.display = 'block';
   startPingInterval();
@@ -744,91 +912,6 @@ function updateCellBars(ping) {
   if (barsActive >= 4) cellBar4.classList.add('active');
 }
 
-/* leaveButton => Kanaldan Ayrıl */
-leaveButton.addEventListener('click', () => {
-  if (!currentRoom) return;
-  socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
-  closeAllTransports();
-  hideChannelStatusPanel();
-  currentRoom = null;
-
-  document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
-
-  const container = document.getElementById('channelUsersContainer');
-  if (container) {
-    container.innerHTML = '';
-    container.classList.remove(
-      'layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users'
-    );
-  }
-
-  if (currentGroup) {
-    socket.emit('browseGroup', currentGroup);
-  }
-});
-
-/* Mikrofon & Kulaklık => sunucuya audioStateChanged */
-micToggleButton.addEventListener('click', () => {
-  micEnabled = !micEnabled;
-  applyAudioStates();
-});
-deafenToggleButton.addEventListener('click', () => {
-  if (!selfDeafened) {
-    micWasEnabledBeforeDeaf = micEnabled;
-    selfDeafened = true;
-    micEnabled = false;
-  } else {
-    selfDeafened = false;
-    if (micWasEnabledBeforeDeaf) micEnabled = true;
-  }
-  applyAudioStates();
-});
-
-function applyAudioStates() {
-  if (localStream) {
-    localStream.getAudioTracks().forEach(track => {
-      track.enabled = micEnabled && !selfDeafened;
-    });
-  }
-  if (!micEnabled || selfDeafened) {
-    micToggleButton.innerHTML = `<span class="material-icons">mic_off</span>`;
-    micToggleButton.classList.add('btn-muted');
-  } else {
-    micToggleButton.innerHTML = `<span class="material-icons">mic</span>`;
-    micToggleButton.classList.remove('btn-muted');
-  }
-  if (selfDeafened) {
-    deafenToggleButton.innerHTML = `<span class="material-icons">headset_off</span>`;
-    deafenToggleButton.classList.add('btn-muted');
-  } else {
-    deafenToggleButton.innerHTML = `<span class="material-icons">headset</span>`;
-    deafenToggleButton.classList.remove('btn-muted');
-  }
-  // (SFU) => track mute => sunucuya producePause vs. de yapılabilir
-
-  socket.emit('audioStateChanged', { micEnabled, selfDeafened });
-}
-
-/* Socket Durum */
-socket.on("connect", () => {
-  console.log("WebSocket bağlandı:", socket.id);
-});
-socket.on("disconnect", () => {
-  console.log("WebSocket bağlantısı koptu.");
-  hideChannelStatusPanel();
-});
-
-/* parseIceUfrag => P2P'den kalma => gerek yok ama tutuyoruz */
-function parseIceUfrag(sdp) {
-  const lines = sdp.split('\n');
-  for (const line of lines) {
-    if (line.startsWith('a=ice-ufrag:')) {
-      return line.split(':')[1].trim();
-    }
-  }
-  return null;
-}
-
 /* groupRenamed => UI update */
 socket.on('groupRenamed', (data) => {
   const { groupId, newName } = data;
@@ -859,46 +942,22 @@ socket.on('groupDeleted', (data) => {
   socket.emit('set-username', username);
 });
 
-/* Kullanıcı kartları => 1,2,3,4,5+ layout => benzer kaldı */
-function renderUsersInMainContent(usersArray) {
-  const container = document.getElementById('channelUsersContainer');
-  if (!container) return;
-
-  container.innerHTML = '';
-  container.classList.remove(
-    'layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users'
-  );
-
-  if (usersArray.length === 1) {
-    container.classList.add('layout-1-user');
-  } else if (usersArray.length === 2) {
-    container.classList.add('layout-2-users');
-  } else if (usersArray.length === 3) {
-    container.classList.add('layout-3-users');
-  } else if (usersArray.length === 4) {
-    container.classList.add('layout-4-users');
-  } else {
-    container.classList.add('layout-n-users');
+// (Optional) parseIceUfrag => kaldirdik ama tutabilir
+function parseIceUfrag(sdp) {
+  const lines = sdp.split('\n');
+  for (const line of lines) {
+    if (line.startsWith('a=ice-ufrag:')) {
+      return line.split(':')[1].trim();
+    }
   }
-
-  usersArray.forEach(u => {
-    const card = document.createElement('div');
-    card.classList.add('user-card');
-
-    const avatar = document.createElement('div');
-    avatar.classList.add('user-card-avatar');
-
-    const label = document.createElement('div');
-    label.classList.add('user-label');
-    label.textContent = u.username || '(İsimsiz)';
-
-    card.appendChild(avatar);
-    card.appendChild(label);
-    container.appendChild(card);
-  });
+  return null;
 }
 
-// Sayfa yüklendiğinde:
-console.log("script.js => sayfa yüklendi");
-// Otomatik mik izni
-requestMicrophoneAccess().catch(err=>console.error(err));
+/* Socket Durum */
+socket.on("connect", () => {
+  console.log("WebSocket bağlandı:", socket.id);
+});
+socket.on("disconnect", () => {
+  console.log("WebSocket bağlantısı koptu.");
+  hideChannelStatusPanel();
+});
