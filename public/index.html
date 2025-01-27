@@ -211,8 +211,13 @@
     </div>
   </div>
 
-  <!-- Socket.io ve script.js -->
+  <!-- ÖNEMLİ: Socket.IO ve Mediasoup-client kütüphaneleri önce yüklenmeli -->
   <script src="/socket.io/socket.io.js"></script>
+
+  <!-- Mediasoup-client (CDN) -->
+  <script src="https://unpkg.com/mediasoup-client@3.6.45/dist/mediasoup.min.js"></script>
+
+  <!-- Ardından script.js -->
   <script src="script.js"></script>
 </body>
 </html>
