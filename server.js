@@ -12,7 +12,7 @@ const User = require('./models/User');
 const Group = require('./models/Group');
 const Channel = require('./models/Channel');
 
-// Mediasoup SFU fonksiyonlarını aldığımız sfu.js dosyası
+// Mediasoup SFU fonksiyonlarının olduğu dosya
 const sfu = require('./sfu');
 
 const app = express();
@@ -46,7 +46,7 @@ mongoose.connect(uri)
 
 // Bellek içi tablolar (Anlık takip için)
 const users = {};   // socket.id -> { username, currentGroup, currentRoom, micEnabled, selfDeafened }
-const groups = {};  // groupId -> { owner: <username>, name, users:[], rooms:{} }
+const groups = {};  // groupId -> { owner, name, users:[], rooms:{} }
 
 // Çevrimiçi (online) olan kullanıcı adlarını tutuyoruz
 const onlineUsernames = new Set();
@@ -85,7 +85,7 @@ async function loadChannelsFromDB() {
         groups[gId].rooms[ch.channelId] = {
           name: ch.name,
           users: []
-          // router: yok (SFU), createRoom sırasında oluşturacağız
+          // SFU: router vb. daha sonra createRoom eventinde oluşturulacak
         };
       }
     });
@@ -101,8 +101,6 @@ function getAllChannelsData(groupId) {
   const channelsObj = {};
   Object.keys(groups[groupId].rooms).forEach(roomId => {
     const rm = groups[groupId].rooms[roomId];
-    // rm.users => { id, username }
-    // Her user => micEnabled / selfDeafened de eklenecek
     const userListWithAudio = rm.users.map(u => ({
       id: u.id,
       username: u.username,
@@ -129,7 +127,8 @@ function broadcastAllRoomsUsers(groupId) {
   });
 }
 
-/* Bir kullanıcı hangi gruplarda/odalarda varsa hepsinden çıkarır (socket.leave vb.) */
+/* Bir kullanıcı hangi gruplarda/odalarda varsa hepsinden çıkarır (socket.leave vb.)
+   ve SFU Producer/Consumer/Transport'ları da kapatır. */
 function removeUserFromAllGroupsAndRooms(socket) {
   const socketId = socket.id;
   const userData = users[socketId];
@@ -141,8 +140,39 @@ function removeUserFromAllGroupsAndRooms(socket) {
       grpObj.users = grpObj.users.filter(u => u.id !== socketId);
 
       Object.keys(grpObj.rooms).forEach(rId => {
-        grpObj.rooms[rId].users = grpObj.rooms[rId].users.filter(u => u.id !== socketId);
-        io.to(`${gId}::${rId}`).emit('roomUsers', grpObj.rooms[rId].users);
+        const rmObj = grpObj.rooms[rId];
+        rmObj.users = rmObj.users.filter(u => u.id !== socketId);
+
+        // SFU: Producer/Consumer/Transport kapatma
+        if (rmObj.producers) {
+          Object.keys(rmObj.producers).forEach(pid => {
+            const producer = rmObj.producers[pid];
+            if (producer && producer.appData && producer.appData.peerId === socketId) {
+              sfu.closeProducer(producer);
+              delete rmObj.producers[pid];
+            }
+          });
+        }
+        if (rmObj.consumers) {
+          Object.keys(rmObj.consumers).forEach(cid => {
+            const consumer = rmObj.consumers[cid];
+            if (consumer && consumer.appData && consumer.appData.peerId === socketId) {
+              sfu.closeConsumer(consumer);
+              delete rmObj.consumers[cid];
+            }
+          });
+        }
+        if (rmObj.transports) {
+          Object.keys(rmObj.transports).forEach(tid => {
+            const tr = rmObj.transports[tid];
+            if (tr && tr.appData && tr.appData.peerId === socketId) {
+              sfu.closeTransport(tr);
+              delete rmObj.transports[tid];
+            }
+          });
+        }
+
+        io.to(`${gId}::${rId}`).emit('roomUsers', rmObj.users);
       });
       io.to(gId).emit('allChannelsData', getAllChannelsData(gId));
     }
@@ -535,7 +565,10 @@ io.on("connection", (socket) => {
       groups[groupId].rooms[roomId] = {
         name: trimmed,
         users: [],
-        router: router
+        router: router,
+        producers: {},
+        consumers: {},
+        transports: {}
       };
       console.log(`Yeni oda: group=${groupId}, room=${roomId}, name=${trimmed}`);
 
@@ -583,7 +616,7 @@ io.on("connection", (socket) => {
 
     broadcastAllChannelsData(groupId);
 
-    // “joinRoomAck” => girdiğini onaylayalım (yeni user’daysak)
+    // “joinRoomAck” => girdiğini onaylayalım
     socket.emit('joinRoomAck', { groupId, roomId });
   });
 
@@ -592,9 +625,40 @@ io.on("connection", (socket) => {
     if (!groups[groupId]) return;
     if (!groups[groupId].rooms[roomId]) return;
 
-    groups[groupId].rooms[roomId].users =
-      groups[groupId].rooms[roomId].users.filter(u => u.id !== socket.id);
-    io.to(`${groupId}::${roomId}`).emit('roomUsers', groups[groupId].rooms[roomId].users);
+    // SFU: Bu user'a ait Producer/Consumer/Transport kapat
+    const rmObj = groups[groupId].rooms[roomId];
+
+    // Kullanan socket'tan producer/consumer/transport bul
+    if (rmObj.producers) {
+      Object.keys(rmObj.producers).forEach(pid => {
+        const producer = rmObj.producers[pid];
+        if (producer && producer.appData && producer.appData.peerId === socket.id) {
+          sfu.closeProducer(producer);
+          delete rmObj.producers[pid];
+        }
+      });
+    }
+    if (rmObj.consumers) {
+      Object.keys(rmObj.consumers).forEach(cid => {
+        const consumer = rmObj.consumers[cid];
+        if (consumer && consumer.appData && consumer.appData.peerId === socket.id) {
+          sfu.closeConsumer(consumer);
+          delete rmObj.consumers[cid];
+        }
+      });
+    }
+    if (rmObj.transports) {
+      Object.keys(rmObj.transports).forEach(tid => {
+        const tr = rmObj.transports[tid];
+        if (tr && tr.appData && tr.appData.peerId === socket.id) {
+          sfu.closeTransport(tr);
+          delete rmObj.transports[tid];
+        }
+      });
+    }
+
+    rmObj.users = rmObj.users.filter(u => u.id !== socket.id);
+    io.to(`${groupId}::${roomId}`).emit('roomUsers', rmObj.users);
     socket.leave(`${groupId}::${roomId}`);
 
     users[socket.id].currentRoom = null;
@@ -717,6 +781,7 @@ io.on("connection", (socket) => {
       const gId = groupDoc.groupId;
 
       if (groups[gId] && groups[gId].rooms[channelId]) {
+        // router kapatma da ekleyebilirsiniz (rmObj.router.close());
         delete groups[gId].rooms[channelId];
       }
       broadcastRoomsListToGroup(gId);
@@ -734,8 +799,6 @@ io.on("connection", (socket) => {
    * ==============================
    *   SFU Odaklı Socket.IO Event'ler
    * ==============================
-   * P2P "signal" event'i kaldırıldı.
-   * Aşağıdaki eventler ile Mediasoup SFU oluşturma/bağlantı akışı yönetilir.
    */
 
   // 1) createWebRtcTransport
@@ -744,16 +807,18 @@ io.on("connection", (socket) => {
       if (!groups[groupId] || !groups[groupId].rooms[roomId]) {
         return callback({ error: "Group/Room bulunamadı" });
       }
-      const router = groups[groupId].rooms[roomId].router;
+      const rmObj = groups[groupId].rooms[roomId];
+      const router = rmObj.router;
       if (!router) {
         return callback({ error: "Router tanımsız (room'da yok)" });
       }
 
       const transport = await sfu.createWebRtcTransport(router);
+      // SFU: peerId saklayalım ki kapatma yaparken bilelim
+      transport.appData = { peerId: socket.id };
 
-      // Bu room'a ait transportları saklayalım
-      groups[groupId].rooms[roomId].transports = groups[groupId].rooms[roomId].transports || {};
-      groups[groupId].rooms[roomId].transports[transport.id] = transport;
+      rmObj.transports = rmObj.transports || {};
+      rmObj.transports[transport.id] = transport;
 
       callback({
         transportId: transport.id,
@@ -768,12 +833,12 @@ io.on("connection", (socket) => {
     }
   });
 
-  // 2) connectTransport (DTLS parametreleriyle transport'u bağla)
+  // 2) connectTransport
   socket.on('connectTransport', async ({ groupId, roomId, transportId, dtlsParameters }, callback) => {
     try {
-      const roomObj = groups[groupId]?.rooms[roomId];
-      if (!roomObj) return callback({ error: "Room bulunamadı" });
-      const transport = roomObj.transports?.[transportId];
+      const rmObj = groups[groupId]?.rooms[roomId];
+      if (!rmObj) return callback({ error: "Room bulunamadı" });
+      const transport = rmObj.transports?.[transportId];
       if (!transport) return callback({ error: "Transport bulunamadı" });
 
       await sfu.connectTransport(transport, dtlsParameters);
@@ -784,18 +849,23 @@ io.on("connection", (socket) => {
     }
   });
 
-  // 3) produce (Kullanıcı mikrofon vb. medyayı publish etmek istiyor)
+  // 3) produce
   socket.on('produce', async ({ groupId, roomId, transportId, kind, rtpParameters }, callback) => {
     try {
-      const roomObj = groups[groupId]?.rooms[roomId];
-      if (!roomObj) return callback({ error: "Room bulunamadı" });
-      const transport = roomObj.transports?.[transportId];
+      const rmObj = groups[groupId]?.rooms[roomId];
+      if (!rmObj) return callback({ error: "Room bulunamadı" });
+      const transport = rmObj.transports?.[transportId];
       if (!transport) return callback({ error: "Transport bulunamadı" });
 
       const producer = await sfu.produce(transport, kind, rtpParameters);
-      // Producer'ları da saklayalım
-      roomObj.producers = roomObj.producers || {};
-      roomObj.producers[producer.id] = producer;
+      // peerId saklayalım
+      producer.appData = { peerId: socket.id };
+
+      rmObj.producers = rmObj.producers || {};
+      rmObj.producers[producer.id] = producer;
+
+      // Diğer kullanıcılara "newProducer" bilgisi yayınlayalım
+      socket.broadcast.to(`${groupId}::${roomId}`).emit('newProducer', { producerId: producer.id });
 
       callback({ producerId: producer.id });
     } catch (err) {
@@ -804,20 +874,22 @@ io.on("connection", (socket) => {
     }
   });
 
-  // 4) consume (Diğer kullanıcıların yayınını dinlemek)
+  // 4) consume
   socket.on('consume', async ({ groupId, roomId, transportId, producerId }, callback) => {
     try {
-      const roomObj = groups[groupId]?.rooms[roomId];
-      if (!roomObj) return callback({ error: "Room bulunamadı" });
-      const router = roomObj.router;
+      const rmObj = groups[groupId]?.rooms[roomId];
+      if (!rmObj) return callback({ error: "Room bulunamadı" });
+      const router = rmObj.router;
       if (!router) return callback({ error: "Router yok" });
-      const transport = roomObj.transports?.[transportId];
+      const transport = rmObj.transports?.[transportId];
       if (!transport) return callback({ error: "Transport bulunamadı" });
 
       const consumer = await sfu.consume(router, transport, producerId);
-      // Consumer'ları saklayalım
-      roomObj.consumers = roomObj.consumers || {};
-      roomObj.consumers[consumer.id] = consumer;
+      // peerId sakla
+      consumer.appData = { peerId: socket.id };
+
+      rmObj.consumers = rmObj.consumers || {};
+      rmObj.consumers[consumer.id] = consumer;
 
       const { producerId: prId, id, kind, rtpParameters } = consumer;
       callback({
@@ -832,6 +904,21 @@ io.on("connection", (socket) => {
     }
   });
 
+  // listProducers => Odada mevcut producerId listesini verir.
+  socket.on('listProducers', ({ groupId, roomId }, callback) => {
+    try {
+      const rmObj = groups[groupId]?.rooms[roomId];
+      if (!rmObj || !rmObj.producers) {
+        return callback([]);
+      }
+      const producerIds = Object.keys(rmObj.producers);
+      callback(producerIds);
+    } catch (err) {
+      console.error("listProducers error:", err);
+      callback([]);
+    }
+  });
+
   // Disconnect
   socket.on("disconnect", async () => {
     console.log("disconnect:", socket.id);
@@ -840,21 +927,9 @@ io.on("connection", (socket) => {
       const { username } = userData;
       if (username) {
         onlineUsernames.delete(username);
-        removeUserFromAllGroupsAndRooms(socket);
-
-        try {
-          const userDoc = await User.findOne({ username }).populate('groups');
-          if (userDoc && userDoc.groups.length > 0) {
-            for (const gDoc of userDoc.groups) {
-              broadcastAllChannelsData(gDoc.groupId);
-              await broadcastGroupUsers(gDoc.groupId);
-            }
-          }
-        } catch (err) {
-          console.error("disconnect => userDoc fetch hata:", err);
-        }
       }
     }
+    removeUserFromAllGroupsAndRooms(socket);
     delete users[socket.id];
   });
 });

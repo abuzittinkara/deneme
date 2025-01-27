@@ -15,25 +15,22 @@ let workers = [];
 let nextWorkerIndex = 0;
 
 /**
- * Router'ları burada saklayabilirsiniz.
- * İsterseniz her oda (channel) için Router oluşturup
- * "routers" objesinde tutabilirsiniz.
+ * Projenizde, Router'ları ID bazında saklayabilirsiniz.
+ * Örneğin: routers[roomId] = routerObj
+ * Biz bu dosyada sadece fonksiyonları sunuyoruz.
  */
 const routers = {}; 
-// örnek kullanım: routers[roomId] = <routerObj>
 
 /**
- * Projenizin başında (ör. server.js ayaklanırken)
- * createWorkers() çağırarak Worker'ları oluşturun.
+ * createWorkers() => uygulama başlarken çağrılacak.
  */
 async function createWorkers() {
-  // Sunucunuzda kaç çekirdek varsa, ya da kaç worker istiyorsanız
+  // Sunucunuzda kaç çekirdek varsa (ör. 2)
   const cpuCores = 2; 
   for (let i = 0; i < cpuCores; i++) {
     const worker = await mediasoup.createWorker({
       rtcMinPort: 10000,
       rtcMaxPort: 10100,
-      // worker logLevel vs. isteğe göre
       logLevel: 'warn',
       logTags: [
         'info',
@@ -46,16 +43,13 @@ async function createWorkers() {
     });
     worker.on('died', () => {
       console.error('Mediasoup Worker died, PID=%d', worker.pid);
-      // Burada restart logic vs. uygulayabilirsiniz
+      // restart logic vs...
     });
     workers.push(worker);
   }
   console.log(`SFU: ${workers.length} adet Mediasoup Worker oluşturuldu.`);
 }
 
-/**
- * Round-robin şeklinde sıradaki Worker'ı döndürür.
- */
 function getNextWorker() {
   const worker = workers[nextWorkerIndex];
   nextWorkerIndex = (nextWorkerIndex + 1) % workers.length;
@@ -63,8 +57,8 @@ function getNextWorker() {
 }
 
 /**
- * Yeni bir Router oluşturur. Bunu her oda (room) için
- * veya uygulama gereksiniminize göre çağırabilirsiniz.
+ * createRouter(roomId): yeni bir Router oluşturur.
+ * Medya codec ayarları vs. buradan tanımlanır.
  */
 async function createRouter(roomId) {
   const worker = getNextWorker();
@@ -75,102 +69,72 @@ async function createRouter(roomId) {
       clockRate: 48000,
       channels: 2
     }
-    // Eğer video desteği de verecekseniz, buraya video codec ekleyebilirsiniz
+    // Video desteği için codec ekleyebilirsiniz
   ];
-
   const router = await worker.createRouter({ mediaCodecs });
   routers[roomId] = router;
-  console.log(`SFU: Router oluşturuldu => roomId=${roomId}, workerPID=${worker.pid}`);
   return router;
 }
 
 /**
- * Mevcut Router'ı döndürür. Yoksa createRouter() çağırabilirsiniz.
+ * getRouter(roomId) => varsa döndür.
  */
 function getRouter(roomId) {
   return routers[roomId] || null;
 }
 
 /**
- * Mediasoup'ta bir WebRtcTransport oluşturma fonksiyonu.
- * Genelde Socket.IO event'lerinde (createTransport gibi)
- * kullanacaksınız.
+ * createWebRtcTransport => Router üzerinde Transport oluşturur.
  */
 async function createWebRtcTransport(router) {
-  // Sunucu IP veya harici IP değerlerinizi ayarlayın.
-  // announcedIp gerçek bir VPS ip adresi olabilir.
   const transportOptions = {
     listenIps: [
-      { ip: '0.0.0.0', announcedIp: null } // announcedIp olmadan da çalışır
+      { ip: '0.0.0.0', announcedIp: null } 
+      // announcedIp => public IP'niz varsa burada tanımlayın
     ],
     enableUdp: true,
     enableTcp: true,
-    preferUdp: true,
-    // enableSctp: false, // datachannels
-    // additional config...
+    preferUdp: true
   };
-
   const transport = await router.createWebRtcTransport(transportOptions);
-  console.log('SFU: createWebRtcTransport =>', transport.id);
-
   return transport;
 }
 
 /**
- * Transport'u DTLS parametreleri ile connect eder.
- * İstemci tarafında "transport.on('connect')" olduğunda
- * dtlsParameters buraya gönderilir.
+ * connectTransport => DTLS parametreleriyle bağlanır.
  */
 async function connectTransport(transport, dtlsParameters) {
   await transport.connect({ dtlsParameters });
-  console.log('SFU: connectTransport => transportID=', transport.id);
 }
 
 /**
- * İstemci tarafında "transport.produce()" çağırıldığında
- * sunucuya kind, rtpParameters vs. gelir. Burada Producer oluşturur.
+ * produce => transport üzerinde Producer yaratır.
  */
 async function produce(transport, kind, rtpParameters) {
   const producer = await transport.produce({ kind, rtpParameters });
-  console.log(`SFU: producer created => ID=${producer.id}, kind=${kind}`);
   return producer;
 }
 
 /**
- * Consumer oluşturma (diğer kullanıcıların audio/video'sunu tüketmek).
- * Producer ID'yi parametre olarak alır.
+ * consume => Producer'a abone olmak için Consumer yaratır.
  */
 async function consume(router, transport, producerId) {
   const producer = router.getProducerById(producerId);
-  if (!producer) {
-    throw new Error('Producer bulunamadı');
-  }
+  if (!producer) throw new Error('Producer bulunamadı');
 
   const consumer = await transport.consume({
     producerId: producer.id,
     rtpCapabilities: router.rtpCapabilities,
-    paused: true  // ilk başta paused, sonradan resume edilebilir
+    paused: true
   });
-  console.log(`SFU: consumer created => ID=${consumer.id}, producerID=${producer.id}`);
+  // İster direkt consumer.resume() yapabilirsiniz
+  await consumer.resume();
   return consumer;
 }
 
 /**
- * Producer veya Consumer durdurmak/silmek için.
- * (Odan ayrılınca temizlik yapmanız gerekecek.)
+ * Temizlik fonksiyonları => kapanış
  */
-async function closeProducer(producer) {
-  if (producer && !producer.closed) {
-    await producer.close();
-    console.log(`SFU: producer closed => ID=${producer.id}`);
-  }
-}
-async function closeConsumer(consumer) {
-  if (consumer && !consumer.closed) {
-    await consumer.close();
-    console.log(`SFU: consumer closed => ID=${consumer.id}`);
-  }
-}
 async function closeTransport(transport) {
   if (transport && !transport.closed) {
     await transport.close();
@@ -178,18 +142,29 @@ async function closeTransport(transport) {
   }
 }
 
-/**
- * İhtiyaç duyduğunuz tüm fonksiyonları dışa aktarıyoruz.
- */
+async function closeProducer(producer) {
+  if (producer && !producer.closed) {
+    await producer.close();
+    console.log(`SFU: producer closed => ID=${producer.id}`);
+  }
+}
+
+async function closeConsumer(consumer) {
+  if (consumer && !consumer.closed) {
+    await consumer.close();
+    console.log(`SFU: consumer closed => ID=${consumer.id}`);
+  }
+}
+
 module.exports = {
   createWorkers,
-  getRouter,
   createRouter,
+  getRouter,
   createWebRtcTransport,
   connectTransport,
   produce,
   consume,
+  closeTransport,
   closeProducer,
-  closeConsumer,
-  closeTransport
+  closeConsumer
 };
