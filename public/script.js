@@ -1,41 +1,41 @@
 /**************************************
  * script.js
+ * TAMAMEN SFU MANTIĞINA GEÇİLMİŞ VERSİYON
  **************************************/
-let socket = null; // YALNIZCA tek yerde tanımlıyoruz, global scope.
+let socket = null; 
+let device = null;   // mediasoup-client Device
+let sendTransport = null;
+let recvTransport = null;
 
-let localStream;
-let peers = {};
+// Mikrofon akışı
+let localStream = null;
 let audioPermissionGranted = false;
+
+// Ürettiğimiz producer (mikrofon)
+let localProducer = null;
+
+// Tuttuğumuz remote "consumer" objeleri
+let consumers = {};  // consumerId -> consumer
+
+// Remote audio elementlerini saklayacağız
 let remoteAudios = [];
+
+// Kimlik
 let username = null;
-
-// Mikrofon / Kulaklık
-let micEnabled = true;
-let selfDeafened = false;
-let micWasEnabledBeforeDeaf = false;
-
 let currentGroup = null;
 let currentRoom = null;
 let selectedGroup = null;
 
-let pendingUsers = [];
-let pendingNewUsers = [];
-let pendingCandidates = {};
-let sessionUfrag = {};
+// Bazı UI state
+let micEnabled = true;
+let selfDeafened = false;
+let micWasEnabledBeforeDeaf = false;
 
-let audioAnalyzers = {};
 const SPEAKING_THRESHOLD = 0.0;
 const VOLUME_CHECK_INTERVAL = 100;
-let pingInterval = null;
+let audioAnalyzers = {};
 
-/*
-  Sadece bir yerde tanımlıyoruz:
-  let socket; => yukarıda
-  window.addEventListener('DOMContentLoaded', () => {
-    socket = io();
-    ...
-  });
-*/
+let pingInterval = null;
 
 // DOM Referansları
 const loginScreen = document.getElementById('loginScreen');
@@ -104,39 +104,30 @@ const deafenToggleButton = document.getElementById('deafenToggleButton');
 const settingsButton = document.getElementById('settingsButton');
 
 /*
-  =======================================
-  window.addEventListener('DOMContentLoaded', ...) 
-  => Tüm DOM elementleri yüklendikten sonra 
-  => socket = io(); vb. kuruyoruz.
-  =======================================
+  DOMContentLoaded => Socket.IO başlatalım + eventleri tanımlayalım
 */
 window.addEventListener('DOMContentLoaded', () => {
-  // ÖNCE Socket.IO'yu başlatıyoruz
-  socket = io();
+  socket = io(); 
   console.log("Socket connected =>", socket.id);
 
-  // Aşağıdaki event tanımlamaları vb. bu aşamada 
-  // (veya global’de) yapabilirsiniz.
   initSocketEvents();
   initUIEvents();
 });
 
 /*
-  =======================================
-  initSocketEvents => 
-  Socket ile ilgili listener’ları tanımlıyoruz
-  =======================================
+  ====================================================
+  Socket ile ilgili
+  ====================================================
 */
 function initSocketEvents() {
   socket.on('connect', () => {
     console.log("Socket tekrar bağlandı =>", socket.id);
   });
-
   socket.on('disconnect', () => {
     console.log("Socket disconnect");
   });
 
-  // Server’dan gelen loginResult
+  // LOGIN / REGISTER
   socket.on('loginResult', (data) => {
     if (data.success) {
       username = data.username;
@@ -152,8 +143,6 @@ function initSocketEvents() {
       loginPasswordInput.classList.add('shake');
     }
   });
-
-  // Server’dan gelen registerResult
   socket.on('registerResult', (data) => {
     if (data.success) {
       registerScreen.style.display = 'none';
@@ -167,7 +156,7 @@ function initSocketEvents() {
     }
   });
 
-  // Odalar, gruplar vb. => Aşağıdaki socket.on event’leri
+  // Groups list
   socket.on('groupsList', (groupArray) => {
     groupListDiv.innerHTML = '';
     groupArray.forEach(groupObj => {
@@ -198,6 +187,7 @@ function initSocketEvents() {
     });
   });
 
+  // roomsList
   socket.on('roomsList', (roomsArray) => {
     roomListDiv.innerHTML = '';
     roomsArray.forEach(roomObj => {
@@ -206,7 +196,6 @@ function initSocketEvents() {
 
       const channelHeader = document.createElement('div');
       channelHeader.className = 'channel-header';
-
       const icon = createWaveIcon();
       const textSpan = document.createElement('span');
       textSpan.textContent = roomObj.name;
@@ -227,23 +216,20 @@ function initSocketEvents() {
           roomItem.classList.add('connected');
           return;
         }
+        // Oda değiştirmeden önce => sfuTransportları kapat
         if (currentRoom && (currentRoom !== roomObj.id || currentGroup !== selectedGroup)) {
-          socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
-          closeAllPeers();
-          hideChannelStatusPanel();
-          currentRoom = null;
+          leaveRoomInternal();
         }
         currentGroup = selectedGroup;
         joinRoom(currentGroup, roomObj.id, roomObj.name);
-
         roomItem.classList.add('connected');
       });
 
-      // Sağ tık vs. (ilgili context menu) => es geçebiliriz
       roomListDiv.appendChild(roomItem);
     });
   });
 
+  // allChannelsData
   socket.on('allChannelsData', (channelsObj) => {
     Object.keys(channelsObj).forEach(roomId => {
       const cData = channelsObj[roomId];
@@ -270,7 +256,6 @@ function initSocketEvents() {
 
         const buttonsDiv = document.createElement('div');
         buttonsDiv.classList.add('channel-user-buttons');
-
         if (u.id === socket.id) {
           if (!u.micEnabled) {
             const micIcon = document.createElement('span');
@@ -298,63 +283,33 @@ function initSocketEvents() {
     });
   });
 
+  // groupUsers => sağ panel
   socket.on('groupUsers', (dbUsersArray) => {
     updateUserList(dbUsersArray);
   });
 
+  // “joinRoomAck” => Odaya girdik => SFU akışını başlat
   socket.on('joinRoomAck', ({ groupId, roomId }) => {
     console.log("joinRoomAck =>", groupId, roomId);
+    currentGroup = groupId;
+    currentRoom = roomId;
+
     if (!audioPermissionGranted || !localStream) {
       requestMicrophoneAccess().then(() => {
-        initPeersForAllUsersInRoom();
+        startSfuFlow();
       });
     } else {
-      initPeersForAllUsersInRoom();
+      startSfuFlow();
     }
   });
 
+  // roomUsers => UI render (bu kısımda p2p yok)
   socket.on('roomUsers', (usersInRoom) => {
     console.log("roomUsers => odadaki kisiler:", usersInRoom);
-    const newSet = new Set(usersInRoom.map(u => u.id));
-
-    // Peers kapatma vs.
-    for (const pid of Object.keys(peers)) {
-      if (!newSet.has(pid)) {
-        if (peers[pid]) {
-          peers[pid].close();
-        }
-        delete peers[pid];
-        stopVolumeAnalysis(pid);
-
-        remoteAudios = remoteAudios.filter(audioEl => {
-          if (audioEl.dataset && audioEl.dataset.peerId === pid) {
-            try { audioEl.pause(); } catch (e) {}
-            audioEl.srcObject = null;
-            return false;
-          }
-          return true;
-        });
-      }
-    }
-    if (currentRoom) {
-      usersInRoom.forEach(u => {
-        if (u.id !== socket.id) {
-          if (!peers[u.id] || peers[u.id].connectionState === 'closed') {
-            if (!audioPermissionGranted || !localStream) {
-              requestMicrophoneAccess().then(() => {
-                initPeerWithCheck(u.id);
-              });
-            } else {
-              initPeerWithCheck(u.id);
-            }
-          }
-        }
-      });
-    }
-
     renderUsersInMainContent(usersInRoom);
   });
 
+  // groupRenamed, groupDeleted => UI
   socket.on('groupRenamed', (data) => {
     const { groupId, newName } = data;
     if (currentGroup === groupId || selectedGroup === groupId) {
@@ -362,7 +317,6 @@ function initSocketEvents() {
     }
     socket.emit('set-username', username);
   });
-
   socket.on('groupDeleted', (data) => {
     const { groupId } = data;
     if (currentGroup === groupId) {
@@ -382,13 +336,227 @@ function initSocketEvents() {
     }
     socket.emit('set-username', username);
   });
+
+  // SFU => “newProducer” => Birisi yeni producer üretti => consume edelim
+  socket.on('newProducer', ({ producerId }) => {
+    console.log("newProducer =>", producerId);
+    if (!recvTransport) {
+      console.warn("recvTransport yok => Start SFU flow once more or wait => we'll consume later");
+      return;
+    }
+    consumeProducer(producerId);
+  });
 }
 
 /*
-  =======================================
-  initUIEvents => 
-  Login/Register tuşları, butonlar, DOM event’leri 
-  =======================================
+  ====================================================
+  SFU MANTIKLI Fonksiyonlar
+  ====================================================
+*/
+
+// SFU akışını başlat
+async function startSfuFlow() {
+  console.log("startSfuFlow => group:", currentGroup, "room:", currentRoom);
+  if (!device) {
+    device = new mediasoupClient.Device();
+  }
+
+  // 1) createWebRtcTransport => sunucudan parametre al => device.load
+  // => sendTransport => produce
+  const transportParams = await createTransport(); 
+  if (transportParams.error) {
+    console.error("createTransport error:", transportParams.error);
+    return;
+  }
+  await device.load({ routerRtpCapabilities: transportParams.routerRtpCapabilities });
+  console.log("Device load bitti =>", device.rtpCapabilities);
+
+  // 2) sendTransport
+  sendTransport = device.createSendTransport(transportParams);
+
+  // sendTransport => connect
+  sendTransport.on('connect', ({ dtlsParameters }, callback, errback) => {
+    console.log("sendTransport connect => dtls");
+    socket.emit('connectTransport', {
+      groupId: currentGroup,
+      roomId: currentRoom,
+      transportId: transportParams.transportId,
+      dtlsParameters
+    }, (res) => {
+      if (res && res.error) {
+        errback(res.error);
+      } else {
+        callback();
+      }
+    });
+  });
+
+  // sendTransport => produce
+  sendTransport.on('produce', async (producerOptions, callback, errback) => {
+    console.log("sendTransport produce =>", producerOptions);
+    socket.emit('produce', {
+      groupId: currentGroup,
+      roomId: currentRoom,
+      transportId: transportParams.transportId,
+      kind: producerOptions.kind,
+      rtpParameters: producerOptions.rtpParameters
+    }, (res) => {
+      if (res.error) {
+        errback(res.error);
+      } else {
+        callback({ id: res.producerId });
+      }
+    });
+  });
+
+  // 3) Mikrofon produce
+  if (!localStream) {
+    await requestMicrophoneAccess();
+  }
+  const audioTrack = localStream.getAudioTracks()[0];
+  localProducer = await sendTransport.produce({ track: audioTrack });
+  console.log("Mikrofon produce edildi =>", localProducer.id);
+
+  // 4) recvTransport => createTransport => consume
+  const recvParams = await createTransport();
+  if (recvParams.error) {
+    console.error("createTransport (recv) error:", recvParams.error);
+    return;
+  }
+  recvTransport = device.createRecvTransport(recvParams);
+
+  recvTransport.on('connect', ({ dtlsParameters }, callback, errback) => {
+    console.log("recvTransport connect => dtls");
+    socket.emit('connectTransport', {
+      groupId: currentGroup,
+      roomId: currentRoom,
+      transportId: recvParams.transportId,
+      dtlsParameters
+    }, (res) => {
+      if (res && res.error) {
+        errback(res.error);
+      } else {
+        callback();
+      }
+    });
+  });
+
+  // 5) Odadaki mevcut producer’ları al => consume
+  const producerIds = await listProducers();
+  console.log("Mevcut producerId'ler =>", producerIds);
+  for (const pid of producerIds) {
+    await consumeProducer(pid);
+  }
+  console.log("startSfuFlow => tamamlandı.");
+}
+
+/*
+  Basit helper => sunucuya "createWebRtcTransport"
+*/
+function createTransport() {
+  return new Promise((resolve) => {
+    socket.emit('createWebRtcTransport', {
+      groupId: currentGroup,
+      roomId: currentRoom
+    }, (res) => {
+      resolve(res);
+    });
+  });
+}
+
+/*
+  listProducers => sunucudan producerId listesini al
+*/
+function listProducers() {
+  return new Promise((resolve) => {
+    socket.emit('listProducers', {
+      groupId: currentGroup,
+      roomId: currentRoom
+    }, (producerIds) => {
+      resolve(producerIds || []);
+    });
+  });
+}
+
+/*
+  newProducer geldiğinde veya listProducers'tan => consumeProducer
+*/
+async function consumeProducer(producerId) {
+  if (!recvTransport) {
+    console.warn("consumeProducer => recvTransport yok");
+    return;
+  }
+  const consumeParams = await new Promise((resolve) => {
+    socket.emit('consume', {
+      groupId: currentGroup,
+      roomId: currentRoom,
+      transportId: recvTransport.id,
+      producerId
+    }, (res) => {
+      resolve(res);
+    });
+  });
+  if (consumeParams.error) {
+    console.error("consume error:", consumeParams.error);
+    return;
+  }
+  console.log("consumeProducer =>", consumeParams);
+
+  const consumer = await recvTransport.consume({
+    id: consumeParams.id,
+    producerId: consumeParams.producerId,
+    kind: consumeParams.kind,
+    rtpParameters: consumeParams.rtpParameters
+  });
+  // consumer track => <audio> element
+  const { track } = consumer;
+  const audioEl = document.createElement('audio');
+  audioEl.srcObject = new MediaStream([track]);
+  audioEl.autoplay = true;
+  audioEl.dataset.peerId = consumer.id;
+  remoteAudios.push(audioEl);
+
+  audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
+
+  // Volume analysis
+  startVolumeAnalysis(audioEl.srcObject, consumer.id);
+
+  consumers[consumer.id] = consumer;
+  console.log("Yeni consumer =>", consumer.id);
+}
+
+/*
+  Odadan çıkarken => sendTransport / recvTransport kapat
+*/
+function leaveRoomInternal() {
+  if (localProducer) {
+    localProducer.close();
+    localProducer = null;
+  }
+  if (sendTransport) {
+    sendTransport.close();
+    sendTransport = null;
+  }
+  if (recvTransport) {
+    // Tüm consumers da kapanır
+    recvTransport.close();
+    recvTransport = null;
+  }
+  // Volume analysis
+  for (const cId in consumers) {
+    stopVolumeAnalysis(cId);
+  }
+  consumers = {};
+  remoteAudios.forEach(a => {
+    try { a.pause(); } catch(e){}
+    a.srcObject = null;
+  });
+  remoteAudios = [];
+  console.log("leaveRoomInternal => transportlar kapatıldı");
+}
+
+/*
+  Kullanıcı arayüz
 */
 function initUIEvents() {
   // Login
@@ -445,12 +613,12 @@ function initUIEvents() {
       socket.emit('register', userData);
     }
   });
+
   backToLoginButton.addEventListener('click', () => {
     registerScreen.style.display = 'none';
     loginScreen.style.display = 'block';
   });
 
-  // Ekran geçiş linkleri
   showRegisterScreen.addEventListener('click', () => {
     loginScreen.style.display = 'none';
     registerScreen.style.display = 'block';
@@ -460,7 +628,6 @@ function initUIEvents() {
     loginScreen.style.display = 'block';
   });
 
-  // Grup, oda, DM vb.
   createGroupButton.addEventListener('click', () => {
     document.getElementById('groupModal').style.display = 'flex';
   });
@@ -591,8 +758,10 @@ function initUIEvents() {
   leaveButton.addEventListener('click', () => {
     if (!currentRoom) return;
     socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
-    closeAllPeers();
+    // SFU transportları kapat
+    leaveRoomInternal();
     hideChannelStatusPanel();
+
     currentRoom = null;
     document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
     const container = document.getElementById('channelUsersContainer');
@@ -605,7 +774,7 @@ function initUIEvents() {
     }
   });
 
-  // Mikrofon & Kulaklık => sunucuya audioStateChanged
+  // Mikrofon / Kulaklık => sunucuya audioStateChanged
   micToggleButton.addEventListener('click', () => {
     micEnabled = !micEnabled;
     applyAudioStates();
@@ -622,14 +791,12 @@ function initUIEvents() {
     applyAudioStates();
   });
   settingsButton.addEventListener('click', () => {
-    // Ayarlar butonu
+    // ...
   });
 }
 
 /*
-  =======================================
-  attemptLogin => (login butonunda çalışır)
-  =======================================
+  Login => socket.emit('login')
 */
 function attemptLogin() {
   const usernameVal = loginUsernameInput.value.trim();
@@ -646,23 +813,43 @@ function attemptLogin() {
     loginPasswordInput.classList.add('shake');
     return;
   }
-  // BURADA socket’in null olmaması lazım
   socket.emit('login', { username: usernameVal, password: passwordVal });
 }
 
-/* =========== KALAN SFU / WebRTC Fonksiyonları =========== */
+/* Mikrofon izni */
+async function requestMicrophoneAccess() {
+  try {
+    console.log("Mikrofon izni isteniyor...");
+    const constraints = {
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: false
+      }
+    };
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    console.log("Mikrofon erişimi verildi:", stream);
+    localStream = stream;
+    audioPermissionGranted = true;
+    applyAudioStates();
 
-// createWaveIcon()
-function createWaveIcon() {
-  const icon = document.createElement('span');
-  icon.classList.add('material-icons');
-  icon.classList.add('channel-icon');
-  icon.textContent = 'volume_up';
-  return icon;
+    // Ses seviyesi ölçümü
+    startVolumeAnalysis(stream, socket.id);
+
+    remoteAudios.forEach(audioEl => {
+      audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
+    });
+  } catch(err) {
+    console.error("Mikrofon izni alınamadı:", err);
+  }
 }
 
+/*
+  Basit UI => user list
+*/
 function updateUserList(data) {
   userListDiv.innerHTML = '';
+
   const onlineTitle = document.createElement('div');
   onlineTitle.textContent = 'Çevrimiçi';
   onlineTitle.style.fontWeight = 'normal';
@@ -702,9 +889,11 @@ function updateUserList(data) {
 function createUserItem(username, isOnline) {
   const userItem = document.createElement('div');
   userItem.classList.add('user-item');
+
   const profileThumb = document.createElement('div');
   profileThumb.classList.add('profile-thumb');
   profileThumb.style.backgroundColor = isOnline ? '#2dbf2d' : '#777';
+
   const userNameSpan = document.createElement('span');
   userNameSpan.classList.add('user-name');
   userNameSpan.textContent = username;
@@ -726,68 +915,16 @@ function createUserItem(username, isOnline) {
   userItem.appendChild(profileThumb);
   userItem.appendChild(userNameSpan);
   userItem.appendChild(copyIdBtn);
+
   return userItem;
 }
 
-/* Mikrofon izni */
-async function requestMicrophoneAccess() {
-  try {
-    console.log("Mikrofon izni isteniyor...");
-    const constraints = {
-      audio: {
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: false
-      }
-    };
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-    console.log("Mikrofon erişimi verildi:", stream);
-    localStream = stream;
-    audioPermissionGranted = true;
-    applyAudioStates();
-    startVolumeAnalysis(stream, socket.id);
-    remoteAudios.forEach(audioEl => {
-      audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
-    });
-  } catch(err) {
-    console.error("Mikrofon izni alınamadı:", err);
-  }
-}
-
-function initPeerWithCheck(targetId) {
-  if (!peers[targetId] || peers[targetId].connectionState === 'closed') {
-    const isInit = (socket.id < targetId);
-    initPeer(targetId, isInit);
-  }
-}
-
-function initPeer(userId, isInitiator) {
-  // ... SFU/P2P mantığı
-  // (Varsayalım burası P2P idi, vs.)
-  // Örnek ...
-  return null;
-}
-
-function initPeersForAllUsersInRoom() {
-  if (!currentRoom || !audioPermissionGranted || !localStream) return;
-  // ...
-}
-
-function closeAllPeers() {
-  for (const userId in peers) {
-    if (peers[userId]) {
-      peers[userId].close();
-      delete peers[userId];
-    }
-    stopVolumeAnalysis(userId);
-  }
-  remoteAudios = [];
-  pendingCandidates = {};
-  sessionUfrag = {};
-}
-
+/*
+  Ses seviyesi analizi => local/remote
+*/
 function startVolumeAnalysis(stream, userId) {
   stopVolumeAnalysis(userId);
+
   const audioContext = new AudioContext();
   const source = audioContext.createMediaStreamSource(stream);
   const analyser = audioContext.createAnalyser();
@@ -830,6 +967,9 @@ function stopVolumeAnalysis(userId) {
   }
 }
 
+/*
+  Mikrofon / Deaf => sunucuya bildirme
+*/
 function applyAudioStates() {
   if (localStream) {
     localStream.getAudioTracks().forEach(track => {
@@ -856,13 +996,44 @@ function applyAudioStates() {
   socket.emit('audioStateChanged', { micEnabled, selfDeafened });
 }
 
-/* joinRoom => Kanala giriş */
+/*
+  Kanala giriş => server => joinRoom => ack => startSfuFlow
+*/
 function joinRoom(groupId, roomId, roomName) {
   socket.emit('joinRoom', { groupId, roomId });
   document.getElementById('selectedChannelTitle').textContent = roomName;
   showChannelStatusPanel();
-  currentGroup = groupId;
-  currentRoom = roomId;
+  // currentGroup, currentRoom => set by ack 
+}
+
+/*
+  Kanaldan ayrıl => sunucu => leaveRoom => transportları kapat
+*/
+function leaveRoomInternal() {
+  if (localProducer) {
+    localProducer.close();
+    localProducer = null;
+  }
+  if (sendTransport) {
+    sendTransport.close();
+    sendTransport = null;
+  }
+  if (recvTransport) {
+    recvTransport.close();
+    recvTransport = null;
+  }
+  // Tüm consumer analysis stop
+  for (const cid in consumers) {
+    stopVolumeAnalysis(cid);
+  }
+  consumers = {};
+
+  remoteAudios.forEach(a => {
+    try { a.pause(); } catch(e){}
+    a.srcObject = null;
+  });
+  remoteAudios = [];
+  console.log("leaveRoomInternal => SFU transportlar kapatıldı");
 }
 
 /* Kanal Durum Paneli => ping + bars => vb. */
@@ -917,6 +1088,9 @@ function updateCellBars(ping) {
   if (barsActive >= 4) cellBar4.classList.add('active');
 }
 
+/*
+  Kanal içindeki kullanıcıları göstermek => UI
+*/
 function renderUsersInMainContent(usersArray) {
   const container = document.getElementById('channelUsersContainer');
   if (!container) return;
@@ -953,4 +1127,15 @@ function renderUsersInMainContent(usersArray) {
     card.appendChild(label);
     container.appendChild(card);
   });
+}
+
+/*
+  Basit ikon
+*/
+function createWaveIcon() {
+  const icon = document.createElement('span');
+  icon.classList.add('material-icons');
+  icon.classList.add('channel-icon');
+  icon.textContent = 'volume_up';
+  return icon;
 }
