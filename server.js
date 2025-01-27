@@ -12,15 +12,37 @@ const User = require('./models/User');
 const Group = require('./models/Group');
 const Channel = require('./models/Channel');
 
+// Mediasoup SFU fonksiyonlarını aldığımız sfu.js dosyası
+const sfu = require('./sfu');
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
 // MongoDB bağlantısı
 const uri = process.env.MONGODB_URI || "mongodb+srv://abuzorttin:HWZe7uK5yEAE@cluster0.vdrdy.mongodb.net/myappdb?retryWrites=true&w=majority";
+
+/**
+ * DB bağlantısını kurup, ardından Mediasoup worker’larını
+ * ve bellek içi grup/kanal verilerini yüklüyoruz.
+ */
 mongoose.connect(uri)
-  .then(() => console.log("MongoDB bağlantısı başarılı!"))
-  .catch(err => console.error("MongoDB bağlantı hatası:", err));
+  .then(async () => {
+    console.log("MongoDB bağlantısı başarılı!");
+
+    // Mediasoup Worker'ları oluştur
+    await sfu.createWorkers();
+    console.log("Mediasoup Workers hazır!");
+
+    // Ardından grup ve kanal bilgilerini belleğe yükle
+    await loadGroupsFromDB();
+    await loadChannelsFromDB();
+
+    console.log("Uygulama başlangıç yüklemeleri tamam.");
+  })
+  .catch(err => {
+    console.error("MongoDB bağlantı hatası:", err);
+  });
 
 // Bellek içi tablolar (Anlık takip için)
 const users = {};   // socket.id -> { username, currentGroup, currentRoom, micEnabled, selfDeafened }
@@ -63,6 +85,7 @@ async function loadChannelsFromDB() {
         groups[gId].rooms[ch.channelId] = {
           name: ch.name,
           users: []
+          // router: yok (SFU), createRoom sırasında oluşturacağız
         };
       }
     });
@@ -71,9 +94,6 @@ async function loadChannelsFromDB() {
     console.error("loadChannelsFromDB hatası:", err);
   }
 }
-
-// Uygulama başlarken DB'den verileri yükle
-loadGroupsFromDB().then(() => loadChannelsFromDB());
 
 /* groupId'deki Tüm Oda + Kullanıcı datasını döndürür => UI'ya "allChannelsData" için */
 function getAllChannelsData(groupId) {
@@ -509,9 +529,13 @@ io.on("connection", (socket) => {
       });
       await newChannel.save();
 
+      // Mediasoup Router oluştur => SFU
+      const router = await sfu.createRouter(roomId);
+
       groups[groupId].rooms[roomId] = {
         name: trimmed,
-        users: []
+        users: [],
+        router: router
       };
       console.log(`Yeni oda: group=${groupId}, room=${roomId}, name=${trimmed}`);
 
@@ -706,36 +730,105 @@ io.on("connection", (socket) => {
     }
   });
 
-  // WebRTC (signal) => RACE CONDITION DÜZELTMESİ
-  socket.on("signal", (data) => {
-    const targetId = data.to;
-    if (socket.id === targetId) return;
-    if (!users[targetId]) return;
+  /**
+   * ==============================
+   *   SFU Odaklı Socket.IO Event'ler
+   * ==============================
+   * P2P "signal" event'i kaldırıldı.
+   * Aşağıdaki eventler ile Mediasoup SFU oluşturma/bağlantı akışı yönetilir.
+   */
 
-    const sG = users[socket.id].currentGroup;
-    const tG = users[targetId].currentGroup;
-    const sR = users[socket.id].currentRoom;
-    const tR = users[targetId].currentRoom;
+  // 1) createWebRtcTransport
+  socket.on('createWebRtcTransport', async ({ groupId, roomId }, callback) => {
+    try {
+      if (!groups[groupId] || !groups[groupId].rooms[roomId]) {
+        return callback({ error: "Group/Room bulunamadı" });
+      }
+      const router = groups[groupId].rooms[roomId].router;
+      if (!router) {
+        return callback({ error: "Router tanımsız (room'da yok)" });
+      }
 
-    if (sG && sG === tG && sR && sR === tR) {
-      io.to(targetId).emit("signal", {
-        from: socket.id,
-        signal: data.signal
+      const transport = await sfu.createWebRtcTransport(router);
+
+      // Bu room'a ait transportları saklayalım
+      groups[groupId].rooms[roomId].transports = groups[groupId].rooms[roomId].transports || {};
+      groups[groupId].rooms[roomId].transports[transport.id] = transport;
+
+      callback({
+        transportId: transport.id,
+        iceParameters: transport.iceParameters,
+        iceCandidates: transport.iceCandidates,
+        dtlsParameters: transport.dtlsParameters,
+        routerRtpCapabilities: router.rtpCapabilities
       });
-    } else if (sG && tG && sG === tG) {
-      setTimeout(() => {
-        const sG2 = users[socket.id]?.currentGroup;
-        const tG2 = users[targetId]?.currentGroup;
-        const sR2 = users[socket.id]?.currentRoom;
-        const tR2 = users[targetId]?.currentRoom;
+    } catch (err) {
+      console.error("createWebRtcTransport error:", err);
+      callback({ error: err.message });
+    }
+  });
 
-        if (sG2 && tG2 && sG2 === tG2 && sR2 && sR2 === tR2) {
-          io.to(targetId).emit("signal", {
-            from: socket.id,
-            signal: data.signal
-          });
-        }
-      }, 200);
+  // 2) connectTransport (DTLS parametreleriyle transport'u bağla)
+  socket.on('connectTransport', async ({ groupId, roomId, transportId, dtlsParameters }, callback) => {
+    try {
+      const roomObj = groups[groupId]?.rooms[roomId];
+      if (!roomObj) return callback({ error: "Room bulunamadı" });
+      const transport = roomObj.transports?.[transportId];
+      if (!transport) return callback({ error: "Transport bulunamadı" });
+
+      await sfu.connectTransport(transport, dtlsParameters);
+      callback({ connected: true });
+    } catch (err) {
+      console.error("connectTransport error:", err);
+      callback({ error: err.message });
+    }
+  });
+
+  // 3) produce (Kullanıcı mikrofon vb. medyayı publish etmek istiyor)
+  socket.on('produce', async ({ groupId, roomId, transportId, kind, rtpParameters }, callback) => {
+    try {
+      const roomObj = groups[groupId]?.rooms[roomId];
+      if (!roomObj) return callback({ error: "Room bulunamadı" });
+      const transport = roomObj.transports?.[transportId];
+      if (!transport) return callback({ error: "Transport bulunamadı" });
+
+      const producer = await sfu.produce(transport, kind, rtpParameters);
+      // Producer'ları da saklayalım
+      roomObj.producers = roomObj.producers || {};
+      roomObj.producers[producer.id] = producer;
+
+      callback({ producerId: producer.id });
+    } catch (err) {
+      console.error("produce error:", err);
+      callback({ error: err.message });
+    }
+  });
+
+  // 4) consume (Diğer kullanıcıların yayınını dinlemek)
+  socket.on('consume', async ({ groupId, roomId, transportId, producerId }, callback) => {
+    try {
+      const roomObj = groups[groupId]?.rooms[roomId];
+      if (!roomObj) return callback({ error: "Room bulunamadı" });
+      const router = roomObj.router;
+      if (!router) return callback({ error: "Router yok" });
+      const transport = roomObj.transports?.[transportId];
+      if (!transport) return callback({ error: "Transport bulunamadı" });
+
+      const consumer = await sfu.consume(router, transport, producerId);
+      // Consumer'ları saklayalım
+      roomObj.consumers = roomObj.consumers || {};
+      roomObj.consumers[consumer.id] = consumer;
+
+      const { producerId: prId, id, kind, rtpParameters } = consumer;
+      callback({
+        producerId: prId,
+        id,
+        kind,
+        rtpParameters
+      });
+    } catch (err) {
+      console.error("consume error:", err);
+      callback({ error: err.message });
     }
   });
 
