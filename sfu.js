@@ -1,5 +1,8 @@
 /**************************************
  * sfu.js
+ *
+ * Burada artık "router.getProducerById()" yok.
+ * "consume()" fonksiyonu => transport, producer objesi ve routerRtpCapabilities alıyor.
  **************************************/
 const mediasoup = require('mediasoup');
 
@@ -117,18 +120,15 @@ async function produce(transport, kind, rtpParameters) {
 
 /**
  * consume => Producer'a abone olmak için Consumer yaratır.
+ * Artık producer objesini (producer) ve routerRtpCapabilities parametresini alıyoruz.
  */
-async function consume(router, transport, producerId) {
-  const producer = router.getProducerById(producerId);
-  if (!producer) throw new Error('Producer bulunamadı');
-
+async function consume(transport, producer, rtpCapabilities) {
   const consumer = await transport.consume({
     producerId: producer.id,
-    rtpCapabilities: router.rtpCapabilities,
+    rtpCapabilities,
     paused: true
   });
-  // İster direkt consumer.resume() yapabilirsiniz
-  await consumer.resume();
+  await consumer.resume(); // İster paused bırakılabilir
   return consumer;
 }
 
