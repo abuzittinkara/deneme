@@ -1,7 +1,6 @@
 /**************************************
  * script.js
  * TAMAMEN SFU MANTIĞINA GEÇİLMİŞ VERSİYON
- * (handlerName vb. kaldırıldı, updateUserList / joinRoom fonksiyonları mevcut)
  **************************************/
 let socket = null; 
 let device = null;   // mediasoup-client Device
@@ -105,7 +104,9 @@ const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
 const settingsButton = document.getElementById('settingsButton');
 
-
+/*
+  DOMContentLoaded => Socket.IO başlatalım + eventleri tanımlayalım
+*/
 window.addEventListener('DOMContentLoaded', () => {
   socket = io(); 
   console.log("Socket connected =>", socket.id);
@@ -129,6 +130,9 @@ function initSocketEvents() {
       loginScreen.style.display = 'none';
       callScreen.style.display = 'flex';
       socket.emit('set-username', username);
+
+      // "applyAudioStates()" buradan çağrılınca hata vermez,
+      // fonksiyon tanımlı => AŞAĞIDA
       document.getElementById('leftUserName').textContent = username;
       applyAudioStates();
     } else {
@@ -138,6 +142,7 @@ function initSocketEvents() {
       loginPasswordInput.classList.add('shake');
     }
   });
+
   socket.on('registerResult', (data) => {
     if (data.success) {
       registerScreen.style.display = 'none';
@@ -151,7 +156,7 @@ function initSocketEvents() {
     }
   });
 
-  // GroupsList
+  // groupsList
   socket.on('groupsList', (groupArray) => {
     groupListDiv.innerHTML = '';
     groupArray.forEach(groupObj => {
@@ -215,6 +220,7 @@ function initSocketEvents() {
           leaveRoomInternal();
         }
         currentGroup = selectedGroup;
+        // BURADA "joinRoom" var => TANIM AŞAĞIDA
         joinRoom(currentGroup, roomObj.id, roomObj.name);
         roomItem.classList.add('connected');
       });
@@ -223,7 +229,7 @@ function initSocketEvents() {
     });
   });
 
-  // allChannelsData
+  // allChannelsData => channel-user listesi
   socket.on('allChannelsData', (channelsObj) => {
     Object.keys(channelsObj).forEach(roomId => {
       const cData = channelsObj[roomId];
@@ -251,6 +257,7 @@ function initSocketEvents() {
         const buttonsDiv = document.createElement('div');
         buttonsDiv.classList.add('channel-user-buttons');
         if (u.id === socket.id) {
+          // mic off / selfDeaf
           if (!u.micEnabled) {
             const micIcon = document.createElement('span');
             micIcon.classList.add('material-icons');
@@ -297,11 +304,13 @@ function initSocketEvents() {
     }
   });
 
+  // roomUsers => renderUsersInMainContent
   socket.on('roomUsers', (usersInRoom) => {
     console.log("roomUsers => odadaki kisiler:", usersInRoom);
     renderUsersInMainContent(usersInRoom);
   });
 
+  // groupRenamed
   socket.on('groupRenamed', (data) => {
     const { groupId, newName } = data;
     if (currentGroup === groupId || selectedGroup === groupId) {
@@ -310,6 +319,7 @@ function initSocketEvents() {
     socket.emit('set-username', username);
   });
 
+  // groupDeleted
   socket.on('groupDeleted', (data) => {
     const { groupId } = data;
     if (currentGroup === groupId) {
@@ -330,7 +340,7 @@ function initSocketEvents() {
     socket.emit('set-username', username);
   });
 
-  // SFU => newProducer => consume
+  // newProducer => consume
   socket.on('newProducer', ({ producerId }) => {
     console.log("newProducer =>", producerId);
     if (!recvTransport) {
@@ -348,9 +358,11 @@ async function startSfuFlow() {
   console.log("startSfuFlow => group:", currentGroup, " room:", currentRoom);
 
   if (!device) {
-    device = new mediasoupClient.Device(); // Otomatik handler
+    // Device => auto detect handler
+    device = new mediasoupClient.Device();
   }
 
+  // createTransport => sunucudan WebRtcTransport parametresi
   const transportParams = await createTransport(); 
   if (transportParams.error) {
     console.error("createTransport error:", transportParams.error);
@@ -359,6 +371,7 @@ async function startSfuFlow() {
   await device.load({ routerRtpCapabilities: transportParams.routerRtpCapabilities });
   console.log("Device load bitti =>", device.rtpCapabilities);
 
+  // sendTransport
   sendTransport = device.createSendTransport(transportParams);
   sendTransport.on('connect', ({ dtlsParameters }, callback, errback) => {
     console.log("sendTransport connect => dtls");
@@ -392,6 +405,7 @@ async function startSfuFlow() {
     });
   });
 
+  // Mikrofon yoksa => request
   if (!localStream) {
     await requestMicrophoneAccess();
   }
@@ -399,7 +413,7 @@ async function startSfuFlow() {
   localProducer = await sendTransport.produce({ track: audioTrack });
   console.log("Mikrofon produce edildi =>", localProducer.id);
 
-  // RecvTransport
+  // recvTransport
   const recvParams = await createTransport();
   if (recvParams.error) {
     console.error("createTransport (recv) error:", recvParams.error);
@@ -422,7 +436,7 @@ async function startSfuFlow() {
     });
   });
 
-  // listProducers => consume
+  // Mevcut producer’lar => listProducers => consume
   const producerIds = await listProducers();
   console.log("Mevcut producerId'ler =>", producerIds);
   for (const pid of producerIds) {
@@ -431,6 +445,7 @@ async function startSfuFlow() {
   console.log("startSfuFlow => tamamlandı.");
 }
 
+// createTransport
 function createTransport() {
   return new Promise((resolve) => {
     socket.emit('createWebRtcTransport', {
@@ -441,6 +456,8 @@ function createTransport() {
     });
   });
 }
+
+// listProducers
 function listProducers() {
   return new Promise((resolve) => {
     socket.emit('listProducers', {
@@ -452,6 +469,7 @@ function listProducers() {
   });
 }
 
+// consumeProducer
 async function consumeProducer(producerId) {
   if (!recvTransport) {
     console.warn("consumeProducer => recvTransport yok");
@@ -473,6 +491,7 @@ async function consumeProducer(producerId) {
   }
   console.log("consumeProducer =>", consumeParams);
 
+  // consumer oluştur
   const consumer = await recvTransport.consume({
     id: consumeParams.id,
     producerId: consumeParams.producerId,
@@ -480,6 +499,7 @@ async function consumeProducer(producerId) {
     rtpParameters: consumeParams.rtpParameters
   });
   const { track } = consumer;
+  // <audio> element
   const audioEl = document.createElement('audio');
   audioEl.srcObject = new MediaStream([track]);
   audioEl.autoplay = true;
@@ -488,11 +508,15 @@ async function consumeProducer(producerId) {
 
   audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
 
+  // volume analysis
   startVolumeAnalysis(audioEl.srcObject, consumer.id);
   consumers[consumer.id] = consumer;
   console.log("Yeni consumer =>", consumer.id);
 }
 
+/*
+  Odadan ayrıl => transportları kapat
+*/
 function leaveRoomInternal() {
   if (localProducer) {
     localProducer.close();
@@ -519,15 +543,18 @@ function leaveRoomInternal() {
 }
 
 /*
-  joinRoom => Kanala giriş
+  Kanala giriş => joinRoom
 */
 function joinRoom(groupId, roomId, roomName) {
   socket.emit('joinRoom', { groupId, roomId });
   document.getElementById('selectedChannelTitle').textContent = roomName;
   showChannelStatusPanel();
-  // currentGroup, currentRoom => joinRoomAck da set
+  // currentGroup, currentRoom => ack
 }
 
+/*
+  Login
+*/
 function attemptLogin() {
   const usernameVal = loginUsernameInput.value.trim();
   const passwordVal = loginPasswordInput.value.trim();
@@ -789,7 +816,6 @@ function initUIEvents() {
     }
   });
 
-  // Mikrofon & Kulaklık => sunucuya audioStateChanged
   micToggleButton.addEventListener('click', () => {
     micEnabled = !micEnabled;
     applyAudioStates();
@@ -810,6 +836,44 @@ function initUIEvents() {
   });
 }
 
+/*
+  Kullanıcı Mikrofon / Deaf => localStream track.enabled => sunucuya bildirme
+*/
+function applyAudioStates() {
+  if (localStream) {
+    localStream.getAudioTracks().forEach(track => {
+      track.enabled = micEnabled && !selfDeafened;
+    });
+  }
+
+  // UI ikonu
+  if (!micEnabled || selfDeafened) {
+    micToggleButton.innerHTML = `<span class="material-icons">mic_off</span>`;
+    micToggleButton.classList.add('btn-muted');
+  } else {
+    micToggleButton.innerHTML = `<span class="material-icons">mic</span>`;
+    micToggleButton.classList.remove('btn-muted');
+  }
+  if (selfDeafened) {
+    deafenToggleButton.innerHTML = `<span class="material-icons">headset_off</span>`;
+    deafenToggleButton.classList.add('btn-muted');
+  } else {
+    deafenToggleButton.innerHTML = `<span class="material-icons">headset</span>`;
+    deafenToggleButton.classList.remove('btn-muted');
+  }
+
+  // Tüm remote audios => eğer selfDeafened ise sesi kapat (audio.muted)
+  remoteAudios.forEach(audio => {
+    audio.muted = selfDeafened;
+  });
+
+  // Sunucuya da bildir (allChannelsData güncellenecek)
+  socket.emit('audioStateChanged', { micEnabled, selfDeafened });
+}
+
+/*
+  groupUsers => updateUserList
+*/
 function updateUserList(data) {
   userListDiv.innerHTML = '';
 
@@ -882,7 +946,7 @@ function createUserItem(username, isOnline) {
 }
 
 /*
-  Volume Analysis vb...
+  Mikrofon vs. ses seviyesi -> local & remote
 */
 function startVolumeAnalysis(stream, userId) {
   stopVolumeAnalysis(userId);
