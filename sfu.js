@@ -1,8 +1,5 @@
 /**************************************
  * sfu.js
- *
- * Burada artık "router.getProducerById()" yok.
- * "consume()" fonksiyonu => transport, producer objesi ve routerRtpCapabilities alıyor.
  **************************************/
 const mediasoup = require('mediasoup');
 
@@ -88,17 +85,36 @@ function getRouter(roomId) {
 
 /**
  * createWebRtcTransport => Router üzerinde Transport oluşturur.
+ * 
+ * Render gibi platformlarda sabit bir public IP olmayabilir.
+ * announcedIp: null bırakmak (veya IP'nizi biliyorsanız girmeniz) gerek.
+ * Aynı şekilde STUN/TURN olmazsa NAT arkasında "ICE failed" riski sürer.
  */
 async function createWebRtcTransport(router) {
   const transportOptions = {
     listenIps: [
-      { ip: '0.0.0.0', announcedIp: null } 
-      // announcedIp => public IP'niz varsa burada tanımlayın
+      // announcedIp: null => Public IP'niz yoksa
+      // eğer IP'yi biliyorsanız, "xxx.xx.xx.xx" yazabilirsiniz
+      { ip: '0.0.0.0', announcedIp: null }
     ],
     enableUdp: true,
     enableTcp: true,
-    preferUdp: true
+    preferUdp: true,
+
+    // STUN/TURN sunucuları (tarayıcının NAT aşabilmesi için)
+    iceServers: [
+      // Basit STUN
+      { urls: 'stun:stun.l.google.com:19302' }
+
+      // TURN gerekiyorsa ekleyin:
+      // {
+      //   urls: 'turn:MY_TURN_SERVER:3478?transport=udp',
+      //   username: 'xxx',
+      //   credential: 'xxx'
+      // }
+    ]
   };
+
   const transport = await router.createWebRtcTransport(transportOptions);
   return transport;
 }
@@ -120,15 +136,18 @@ async function produce(transport, kind, rtpParameters) {
 
 /**
  * consume => Producer'a abone olmak için Consumer yaratır.
- * Artık producer objesini (producer) ve routerRtpCapabilities parametresini alıyoruz.
  */
-async function consume(transport, producer, rtpCapabilities) {
+async function consume(router, transport, producerId) {
+  const producer = router.getProducerById(producerId);
+  if (!producer) throw new Error('Producer bulunamadı');
+
   const consumer = await transport.consume({
     producerId: producer.id,
-    rtpCapabilities,
+    rtpCapabilities: router.rtpCapabilities,
     paused: true
   });
-  await consumer.resume(); // İster paused bırakılabilir
+  // İster direkt consumer.resume() yapabilirsiniz
+  await consumer.resume();
   return consumer;
 }
 
