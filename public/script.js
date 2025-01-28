@@ -1,7 +1,7 @@
 /**************************************
  * script.js
  * TAMAMEN SFU MANTIĞINA GEÇİLMİŞ VERSİYON
- * (handlerName = "Chrome70" kaldırıldı)
+ * (handlerName vb. kaldırıldı, updateUserList / joinRoom fonksiyonları mevcut)
  **************************************/
 let socket = null; 
 let device = null;   // mediasoup-client Device
@@ -277,6 +277,7 @@ function initSocketEvents() {
     });
   });
 
+  // groupUsers => updateUserList
   socket.on('groupUsers', (dbUsersArray) => {
     updateUserList(dbUsersArray);
   });
@@ -347,8 +348,7 @@ async function startSfuFlow() {
   console.log("startSfuFlow => group:", currentGroup, " room:", currentRoom);
 
   if (!device) {
-    // handlerName = "Chrome70" vs. KALDIRILDI => auto detect
-    device = new mediasoupClient.Device();
+    device = new mediasoupClient.Device(); // Otomatik handler
   }
 
   const transportParams = await createTransport(); 
@@ -396,11 +396,10 @@ async function startSfuFlow() {
     await requestMicrophoneAccess();
   }
   const audioTrack = localStream.getAudioTracks()[0];
-  // produce => localProducer
   localProducer = await sendTransport.produce({ track: audioTrack });
   console.log("Mikrofon produce edildi =>", localProducer.id);
 
-  // RecvTransport => createTransport
+  // RecvTransport
   const recvParams = await createTransport();
   if (recvParams.error) {
     console.error("createTransport (recv) error:", recvParams.error);
@@ -452,6 +451,7 @@ function listProducers() {
     });
   });
 }
+
 async function consumeProducer(producerId) {
   if (!recvTransport) {
     console.warn("consumeProducer => recvTransport yok");
@@ -516,6 +516,16 @@ function leaveRoomInternal() {
   });
   remoteAudios = [];
   console.log("leaveRoomInternal => SFU transportlar kapatıldı");
+}
+
+/*
+  joinRoom => Kanala giriş
+*/
+function joinRoom(groupId, roomId, roomName) {
+  socket.emit('joinRoom', { groupId, roomId });
+  document.getElementById('selectedChannelTitle').textContent = roomName;
+  showChannelStatusPanel();
+  // currentGroup, currentRoom => joinRoomAck da set
 }
 
 function attemptLogin() {
@@ -800,78 +810,80 @@ function initUIEvents() {
   });
 }
 
-function applyAudioStates() {
-  if (localStream) {
-    localStream.getAudioTracks().forEach(track => {
-      track.enabled = micEnabled && !selfDeafened;
+function updateUserList(data) {
+  userListDiv.innerHTML = '';
+
+  const onlineTitle = document.createElement('div');
+  onlineTitle.textContent = 'Çevrimiçi';
+  onlineTitle.style.fontWeight = 'normal';
+  onlineTitle.style.fontSize = '0.85rem';
+  userListDiv.appendChild(onlineTitle);
+
+  if (data.online && data.online.length > 0) {
+    data.online.forEach(u => {
+      userListDiv.appendChild(createUserItem(u.username, true));
     });
-  }
-  if (!micEnabled || selfDeafened) {
-    micToggleButton.innerHTML = `<span class="material-icons">mic_off</span>`;
-    micToggleButton.classList.add('btn-muted');
   } else {
-    micToggleButton.innerHTML = `<span class="material-icons">mic</span>`;
-    micToggleButton.classList.remove('btn-muted');
+    const noneP = document.createElement('p');
+    noneP.textContent = '(Kimse yok)';
+    noneP.style.fontSize = '0.75rem';
+    userListDiv.appendChild(noneP);
   }
-  if (selfDeafened) {
-    deafenToggleButton.innerHTML = `<span class="material-icons">headset_off</span>`;
-    deafenToggleButton.classList.add('btn-muted');
+
+  const offlineTitle = document.createElement('div');
+  offlineTitle.textContent = 'Çevrimdışı';
+  offlineTitle.style.fontWeight = 'normal';
+  offlineTitle.style.fontSize = '0.85rem';
+  offlineTitle.style.marginTop = '1rem';
+  userListDiv.appendChild(offlineTitle);
+
+  if (data.offline && data.offline.length > 0) {
+    data.offline.forEach(u => {
+      userListDiv.appendChild(createUserItem(u.username, false));
+    });
   } else {
-    deafenToggleButton.innerHTML = `<span class="material-icons">headset</span>`;
-    deafenToggleButton.classList.remove('btn-muted');
+    const noneP2 = document.createElement('p');
+    noneP2.textContent = '(Kimse yok)';
+    noneP2.style.fontSize = '0.75rem';
+    userListDiv.appendChild(noneP2);
   }
-  remoteAudios.forEach(audio => {
-    audio.muted = selfDeafened;
+}
+
+function createUserItem(username, isOnline) {
+  const userItem = document.createElement('div');
+  userItem.classList.add('user-item');
+
+  const profileThumb = document.createElement('div');
+  profileThumb.classList.add('profile-thumb');
+  profileThumb.style.backgroundColor = isOnline ? '#2dbf2d' : '#777';
+
+  const userNameSpan = document.createElement('span');
+  userNameSpan.classList.add('user-name');
+  userNameSpan.textContent = username;
+
+  const copyIdBtn = document.createElement('button');
+  copyIdBtn.classList.add('copy-id-btn');
+  copyIdBtn.textContent = "ID Kopyala";
+  copyIdBtn.dataset.userid = username;
+  copyIdBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(username)
+      .then(() => alert("Kullanıcı kopyalandı: " + username))
+      .catch(err => {
+        console.error("Kopyalama hatası:", err);
+        alert("Kopyalama başarısız!");
+      });
   });
-  socket.emit('audioStateChanged', { micEnabled, selfDeafened });
+
+  userItem.appendChild(profileThumb);
+  userItem.appendChild(userNameSpan);
+  userItem.appendChild(copyIdBtn);
+  return userItem;
 }
 
-function renderUsersInMainContent(usersArray) {
-  const container = document.getElementById('channelUsersContainer');
-  if (!container) return;
-
-  container.innerHTML = '';
-  container.classList.remove(
-    'layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users'
-  );
-
-  if (usersArray.length === 1) {
-    container.classList.add('layout-1-user');
-  } else if (usersArray.length === 2) {
-    container.classList.add('layout-2-users');
-  } else if (usersArray.length === 3) {
-    container.classList.add('layout-3-users');
-  } else if (usersArray.length === 4) {
-    container.classList.add('layout-4-users');
-  } else {
-    container.classList.add('layout-n-users');
-  }
-
-  usersArray.forEach(u => {
-    const card = document.createElement('div');
-    card.classList.add('user-card');
-
-    const avatar = document.createElement('div');
-    avatar.classList.add('user-card-avatar');
-
-    const label = document.createElement('div');
-    label.classList.add('user-label');
-    label.textContent = u.username || '(İsimsiz)';
-
-    card.appendChild(avatar);
-    card.appendChild(label);
-    container.appendChild(card);
-  });
-}
-
-function createWaveIcon() {
-  const icon = document.createElement('span');
-  icon.classList.add('material-icons');
-  icon.classList.add('channel-icon');
-  icon.textContent = 'volume_up';
-  return icon;
-}
-
+/*
+  Volume Analysis vb...
+*/
 function startVolumeAnalysis(stream, userId) {
   stopVolumeAnalysis(userId);
 
@@ -967,4 +979,50 @@ function updateCellBars(ping) {
   if (barsActive >= 2) cellBar2.classList.add('active');
   if (barsActive >= 3) cellBar3.classList.add('active');
   if (barsActive >= 4) cellBar4.classList.add('active');
+}
+
+function createWaveIcon() {
+  const icon = document.createElement('span');
+  icon.classList.add('material-icons');
+  icon.classList.add('channel-icon');
+  icon.textContent = 'volume_up';
+  return icon;
+}
+
+function renderUsersInMainContent(usersArray) {
+  const container = document.getElementById('channelUsersContainer');
+  if (!container) return;
+
+  container.innerHTML = '';
+  container.classList.remove(
+    'layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users'
+  );
+
+  if (usersArray.length === 1) {
+    container.classList.add('layout-1-user');
+  } else if (usersArray.length === 2) {
+    container.classList.add('layout-2-users');
+  } else if (usersArray.length === 3) {
+    container.classList.add('layout-3-users');
+  } else if (usersArray.length === 4) {
+    container.classList.add('layout-4-users');
+  } else {
+    container.classList.add('layout-n-users');
+  }
+
+  usersArray.forEach(u => {
+    const card = document.createElement('div');
+    card.classList.add('user-card');
+
+    const avatar = document.createElement('div');
+    avatar.classList.add('user-card-avatar');
+
+    const label = document.createElement('div');
+    label.classList.add('user-label');
+    label.textContent = u.username || '(İsimsiz)';
+
+    card.appendChild(avatar);
+    card.appendChild(label);
+    container.appendChild(card);
+  });
 }
