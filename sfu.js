@@ -96,7 +96,7 @@ async function createWebRtcTransport(router) {
     preferUdp: true,
 
     /**
-     * TURN sunucularını buraya ekliyoruz:
+     * STUN/TURN sunucularını buraya ekliyoruz:
      */
     iceServers: [
       {
@@ -145,13 +145,13 @@ async function produce(transport, kind, rtpParameters) {
 }
 
 /**
- * consume => Artık "router.getProducerById(producerId)" yerine
- * sunucudaki localProducers map'i kullanıyoruz (producer.id).
+ * consume => router.getProducerById() ile buluyoruz
  */
-async function consume(router, transport, producerId, localProducers) {
-  const producer = localProducers[producerId];
+async function consume(router, transport, producerId) {
+  // Eski yönteme döndük:
+  const producer = router.getProducerById(producerId);
   if (!producer) {
-    throw new Error('Producer bulunamadı (localProducers)!');
+    throw new Error('Producer bulunamadı');
   }
 
   const consumer = await transport.consume({
