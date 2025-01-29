@@ -349,33 +349,35 @@ function initSocketEvents() {
 
 /*
   SFU => startSfuFlow
-
-  DEĞİŞİKLİK: Her seferinde "device" nesnesini yeniden oluşturuyoruz.
 */
 async function startSfuFlow() {
   console.log("startSfuFlow => group:", currentGroup, " room:", currentRoom);
 
-  // Her oda geçişinde Device yeniden oluştur.
-  // Böylece "already loaded" hatası almayız.
-  device = new mediasoupClient.Device();
+  if (!device) {
+    device = new mediasoupClient.Device();
+  }
 
-  // createTransport => sunucudan WebRtcTransport parametresi
+  // 1) Sunucuya => createTransport
   const transportParams = await createTransport(); 
   if (transportParams.error) {
     console.error("createTransport error:", transportParams.error);
     return;
   }
+
+  // 2) device.load
   await device.load({ routerRtpCapabilities: transportParams.routerRtpCapabilities });
   console.log("Device load bitti =>", device.rtpCapabilities);
 
-  // sendTransport
+  // 3) sendTransport
   sendTransport = device.createSendTransport(transportParams);
+
+  // Aşağıda DİKKAT: transportId => transportParams.id
   sendTransport.on('connect', ({ dtlsParameters }, callback, errback) => {
     console.log("sendTransport connect => dtls");
     socket.emit('connectTransport', {
       groupId: currentGroup,
       roomId: currentRoom,
-      transportId: transportParams.transportId,
+      transportId: transportParams.id, // <-- ÖNEMLİ
       dtlsParameters
     }, (res) => {
       if (res && res.error) {
@@ -390,7 +392,7 @@ async function startSfuFlow() {
     socket.emit('produce', {
       groupId: currentGroup,
       roomId: currentRoom,
-      transportId: transportParams.transportId,
+      transportId: transportParams.id, // <-- ÖNEMLİ
       kind: producerOptions.kind,
       rtpParameters: producerOptions.rtpParameters
     }, (res) => {
@@ -410,19 +412,21 @@ async function startSfuFlow() {
   localProducer = await sendTransport.produce({ track: audioTrack });
   console.log("Mikrofon produce edildi =>", localProducer.id);
 
-  // recvTransport
+  // 4) recvTransport
   const recvParams = await createTransport();
   if (recvParams.error) {
     console.error("createTransport (recv) error:", recvParams.error);
     return;
   }
   recvTransport = device.createRecvTransport(recvParams);
+
+  // Aşağıda yine transportId => recvParams.id
   recvTransport.on('connect', ({ dtlsParameters }, callback, errback) => {
     console.log("recvTransport connect => dtls");
     socket.emit('connectTransport', {
       groupId: currentGroup,
       roomId: currentRoom,
-      transportId: recvParams.transportId,
+      transportId: recvParams.id, // <-- ÖNEMLİ
       dtlsParameters
     }, (res) => {
       if (res && res.error) {
@@ -433,7 +437,7 @@ async function startSfuFlow() {
     });
   });
 
-  // Mevcut producer’lar => listProducers => consume
+  // 5) Mevcut producer’ları tüket (consume)
   const producerIds = await listProducers();
   console.log("Mevcut producerId'ler =>", producerIds);
   for (const pid of producerIds) {
@@ -476,7 +480,7 @@ async function consumeProducer(producerId) {
     socket.emit('consume', {
       groupId: currentGroup,
       roomId: currentRoom,
-      transportId: recvTransport.id,
+      transportId: recvTransport.id, // <-- ÖNEMLİ
       producerId
     }, (res) => {
       resolve(res);
@@ -546,7 +550,6 @@ function joinRoom(groupId, roomId, roomName) {
   socket.emit('joinRoom', { groupId, roomId });
   document.getElementById('selectedChannelTitle').textContent = roomName;
   showChannelStatusPanel();
-  // currentGroup, currentRoom => ack
 }
 
 /*
@@ -843,7 +846,6 @@ function applyAudioStates() {
     });
   }
 
-  // UI ikonu
   if (!micEnabled || selfDeafened) {
     micToggleButton.innerHTML = `<span class="material-icons">mic_off</span>`;
     micToggleButton.classList.add('btn-muted');
@@ -859,18 +861,13 @@ function applyAudioStates() {
     deafenToggleButton.classList.remove('btn-muted');
   }
 
-  // Tüm remote audios => eğer selfDeafened ise sesi kapat (audio.muted)
   remoteAudios.forEach(audio => {
     audio.muted = selfDeafened;
   });
 
-  // Sunucuya da bildir (allChannelsData güncellenecek)
   socket.emit('audioStateChanged', { micEnabled, selfDeafened });
 }
 
-/*
-  groupUsers => updateUserList
-*/
 function updateUserList(data) {
   userListDiv.innerHTML = '';
 
