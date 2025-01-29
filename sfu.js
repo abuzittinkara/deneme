@@ -5,7 +5,6 @@ const mediasoup = require('mediasoup');
 
 /**
  * Bu dizi, CPU çekirdeği sayınız kadar Worker tutacak.
- * Her Worker bir veya daha fazla Router barındırabilir.
  */
 let workers = [];
 
@@ -15,9 +14,7 @@ let workers = [];
 let nextWorkerIndex = 0;
 
 /**
- * Projenizde, Router'ları ID bazında saklayabilirsiniz.
- * Örneğin: routers[roomId] = routerObj
- * Biz bu dosyada sadece fonksiyonları sunuyoruz.
+ * İsterseniz Router'ları da ID bazında saklayabilirsiniz: routers[roomId] = ...
  */
 const routers = {}; 
 
@@ -25,7 +22,7 @@ const routers = {};
  * createWorkers() => uygulama başlarken çağrılacak.
  */
 async function createWorkers() {
-  // Sunucunuzda kaç çekirdek varsa (ör. 2)
+  // Sunucunuzda kaç çekirdek varsa (ör. 2 ise 2 worker vb.)
   const cpuCores = 2; 
   for (let i = 0; i < cpuCores; i++) {
     const worker = await mediasoup.createWorker({
@@ -41,10 +38,12 @@ async function createWorkers() {
         'rtcp'
       ]
     });
+
     worker.on('died', () => {
       console.error('Mediasoup Worker died, PID=%d', worker.pid);
       // restart logic vs...
     });
+
     workers.push(worker);
   }
   console.log(`SFU: ${workers.length} adet Mediasoup Worker oluşturuldu.`);
@@ -57,8 +56,7 @@ function getNextWorker() {
 }
 
 /**
- * createRouter(roomId): yeni bir Router oluşturur.
- * Medya codec ayarları vs. buradan tanımlanır.
+ * createRouter(roomId)
  */
 async function createRouter(roomId) {
   const worker = getNextWorker();
@@ -69,7 +67,7 @@ async function createRouter(roomId) {
       clockRate: 48000,
       channels: 2
     }
-    // Video desteği için codec ekleyebilirsiniz
+    // Video codec isterseniz buraya ekleyebilirsiniz
   ];
   const router = await worker.createRouter({ mediaCodecs });
   routers[roomId] = router;
@@ -84,52 +82,44 @@ function getRouter(roomId) {
 }
 
 /**
- * createWebRtcTransport => Router üzerinde Transport oluşturur.
+ * createWebRtcTransport
  * 
- * Burada:
- *  - announcedIp: null => Public IP veya domain kullanmıyoruz.
- *  - iceServers => Basit STUN ekledik.
- *  - TURN kodlarını yoruma aldık (eklemek isterseniz açabilirsiniz).
+ * TURN eklemek istemezseniz, en azından STUN ekleyelim:
+ * iceServers: [{ urls:'stun:stun.l.google.com:19302' }]
  */
 async function createWebRtcTransport(router) {
   const transportOptions = {
     listenIps: [
-      // announcedIp: null => NAT arkasında bir platformdaysanız
-      // sabit IP yoksa mecburen bu şekilde bırakın.
-      // Aksi halde "xxx.xxx.xxx.xxx" yazabilirsiniz.
       { ip: '0.0.0.0', announcedIp: null }
     ],
     enableUdp: true,
     enableTcp: true,
     preferUdp: true,
-
-    // STUN / TURN sunucuları
     iceServers: [
-      // STUN
       { urls: 'stun:stun.l.google.com:19302' },
-
-      // TURN eklemek isterseniz:
+      /*
+      // TURN örneği (kapalı):
       // {
-      //   urls: 'turn:my-turn-server:3478',
+      //   urls: 'turn:YOUR_TURN_SERVER:3478',
       //   username: 'test',
       //   credential: 'test'
       // }
+      */
     ]
   };
-
   const transport = await router.createWebRtcTransport(transportOptions);
   return transport;
 }
 
 /**
- * connectTransport => DTLS parametreleriyle bağlanır.
+ * connectTransport
  */
 async function connectTransport(transport, dtlsParameters) {
   await transport.connect({ dtlsParameters });
 }
 
 /**
- * produce => transport üzerinde Producer yaratır.
+ * produce => transport üzerinde Producer yaratır
  */
 async function produce(transport, kind, rtpParameters) {
   const producer = await transport.produce({ kind, rtpParameters });
@@ -137,26 +127,27 @@ async function produce(transport, kind, rtpParameters) {
 }
 
 /**
- * consume => Producer'a abone olmak için Consumer yaratır.
+ * consume => Artık "router.getProducerById(producerId)" yerine,
+ * sunucunun "rmObj.producers" içinden Producer alıp consume yapıyoruz.
  */
-async function consume(router, transport, producerId) {
-  const producer = router.getProducerById(producerId);
+async function consume(router, transport, producerId, localProducers) {
+  // Artık localProducers[producerId] kullanıyoruz:
+  const producer = localProducers[producerId];
   if (!producer) {
-    throw new Error('Producer bulunamadı');
+    throw new Error('Producer bulunamadı (localProducers)!');
   }
 
   const consumer = await transport.consume({
-    producerId: producer.id,
+    producerId: producer.id,  // Yukarıdaki "producer.id"
     rtpCapabilities: router.rtpCapabilities,
     paused: true
   });
-  // Dilerseniz consumer.resume()'u burada veya sunucuda yapabilirsiniz
   await consumer.resume();
   return consumer;
 }
 
 /**
- * Temizlik fonksiyonları => kapanış
+ * Kapatma yardımcıları
  */
 async function closeTransport(transport) {
   if (transport && !transport.closed) {
