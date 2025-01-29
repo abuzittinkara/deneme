@@ -84,8 +84,7 @@ function getRouter(roomId) {
 /**
  * createWebRtcTransport
  * 
- * TURN eklemek istemezseniz, en azından STUN ekleyelim:
- * iceServers: [{ urls:'stun:stun.l.google.com:19302' }]
+ * Burada TURN sunucunuzu ekliyoruz => "iceServers"
  */
 async function createWebRtcTransport(router) {
   const transportOptions = {
@@ -95,18 +94,37 @@ async function createWebRtcTransport(router) {
     enableUdp: true,
     enableTcp: true,
     preferUdp: true,
+
+    /**
+     * TURN sunucularını buraya ekliyoruz:
+     */
     iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      /*
-      // TURN örneği (kapalı):
-      // {
-      //   urls: 'turn:YOUR_TURN_SERVER:3478',
-      //   username: 'test',
-      //   credential: 'test'
-      // }
-      */
+      {
+        urls: 'stun:stun.relay.metered.ca:80'
+      },
+      {
+        urls: 'turn:global.relay.metered.ca:80',
+        username: '6975c20c80cb0d79f1e4a4b6',
+        credential: 'BCHrcOSfdcmZ/Dda'
+      },
+      {
+        urls: 'turn:global.relay.metered.ca:80?transport=tcp',
+        username: '6975c20c80cb0d79f1e4a4b6',
+        credential: 'BCHrcOSfdcmZ/Dda'
+      },
+      {
+        urls: 'turn:global.relay.metered.ca:443',
+        username: '6975c20c80cb0d79f1e4a4b6',
+        credential: 'BCHrcOSfdcmZ/Dda'
+      },
+      {
+        urls: 'turns:global.relay.metered.ca:443?transport=tcp',
+        username: '6975c20c80cb0d79f1e4a4b6',
+        credential: 'BCHrcOSfdcmZ/Dda'
+      }
     ]
   };
+
   const transport = await router.createWebRtcTransport(transportOptions);
   return transport;
 }
@@ -127,18 +145,17 @@ async function produce(transport, kind, rtpParameters) {
 }
 
 /**
- * consume => Artık "router.getProducerById(producerId)" yerine,
- * sunucunun "rmObj.producers" içinden Producer alıp consume yapıyoruz.
+ * consume => Artık "router.getProducerById(producerId)" yerine
+ * sunucudaki localProducers map'i kullanıyoruz (producer.id).
  */
 async function consume(router, transport, producerId, localProducers) {
-  // Artık localProducers[producerId] kullanıyoruz:
   const producer = localProducers[producerId];
   if (!producer) {
     throw new Error('Producer bulunamadı (localProducers)!');
   }
 
   const consumer = await transport.consume({
-    producerId: producer.id,  // Yukarıdaki "producer.id"
+    producerId: producer.id,
     rtpCapabilities: router.rtpCapabilities,
     paused: true
   });
