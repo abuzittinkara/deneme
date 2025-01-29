@@ -300,7 +300,7 @@ function initSocketEvents() {
     }
   });
 
-  // roomUsers
+  // roomUsers => renderUsersInMainContent
   socket.on('roomUsers', (usersInRoom) => {
     console.log("roomUsers => odadaki kisiler:", usersInRoom);
     renderUsersInMainContent(usersInRoom);
@@ -349,34 +349,27 @@ function initSocketEvents() {
 
 /*
   SFU => startSfuFlow
+
+  DEĞİŞİKLİK: Her seferinde "device" nesnesini yeniden oluşturuyoruz.
 */
 async function startSfuFlow() {
   console.log("startSfuFlow => group:", currentGroup, " room:", currentRoom);
 
-  if (!device) {
-    // Device => auto detect
-    device = new mediasoupClient.Device();
-  }
+  // Her oda geçişinde Device yeniden oluştur.
+  // Böylece "already loaded" hatası almayız.
+  device = new mediasoupClient.Device();
 
-  // 1) createTransport => Sunucudan WebRtcTransport parametresi al
+  // createTransport => sunucudan WebRtcTransport parametresi
   const transportParams = await createTransport(); 
   if (transportParams.error) {
     console.error("createTransport error:", transportParams.error);
     return;
   }
-  // 2) device.load => RouterRtpCapabilities
   await device.load({ routerRtpCapabilities: transportParams.routerRtpCapabilities });
   console.log("Device load bitti =>", device.rtpCapabilities);
 
-  // 3) createSendTransport
-  // Burada "id: transportParams.transportId" şeklinde veriyoruz
-  sendTransport = device.createSendTransport({
-    id: transportParams.transportId,
-    iceParameters: transportParams.iceParameters,
-    iceCandidates: transportParams.iceCandidates,
-    dtlsParameters: transportParams.dtlsParameters
-  });
-
+  // sendTransport
+  sendTransport = device.createSendTransport(transportParams);
   sendTransport.on('connect', ({ dtlsParameters }, callback, errback) => {
     console.log("sendTransport connect => dtls");
     socket.emit('connectTransport', {
@@ -392,7 +385,6 @@ async function startSfuFlow() {
       }
     });
   });
-
   sendTransport.on('produce', async (producerOptions, callback, errback) => {
     console.log("sendTransport produce =>", producerOptions);
     socket.emit('produce', {
@@ -418,20 +410,13 @@ async function startSfuFlow() {
   localProducer = await sendTransport.produce({ track: audioTrack });
   console.log("Mikrofon produce edildi =>", localProducer.id);
 
-  // 4) createRecvTransport
+  // recvTransport
   const recvParams = await createTransport();
   if (recvParams.error) {
     console.error("createTransport (recv) error:", recvParams.error);
     return;
   }
-  // Aynı şekilde "id" verilmesi şart
-  recvTransport = device.createRecvTransport({
-    id: recvParams.transportId,
-    iceParameters: recvParams.iceParameters,
-    iceCandidates: recvParams.iceCandidates,
-    dtlsParameters: recvParams.dtlsParameters
-  });
-
+  recvTransport = device.createRecvTransport(recvParams);
   recvTransport.on('connect', ({ dtlsParameters }, callback, errback) => {
     console.log("recvTransport connect => dtls");
     socket.emit('connectTransport', {
@@ -448,7 +433,7 @@ async function startSfuFlow() {
     });
   });
 
-  // 5) Mevcut producer’ları listeleyip consume
+  // Mevcut producer’lar => listProducers => consume
   const producerIds = await listProducers();
   console.log("Mevcut producerId'ler =>", producerIds);
   for (const pid of producerIds) {
@@ -457,7 +442,7 @@ async function startSfuFlow() {
   console.log("startSfuFlow => tamamlandı.");
 }
 
-// createTransport => Sunucudan "transportId", "iceParameters" vs alır
+// createTransport
 function createTransport() {
   return new Promise((resolve) => {
     socket.emit('createWebRtcTransport', {
@@ -469,7 +454,7 @@ function createTransport() {
   });
 }
 
-// listProducers => Sunucudan o odadaki producerId listesini al
+// listProducers
 function listProducers() {
   return new Promise((resolve) => {
     socket.emit('listProducers', {
@@ -481,7 +466,7 @@ function listProducers() {
   });
 }
 
-// consumeProducer => Bir producerId için consumer oluştur
+// consumeProducer
 async function consumeProducer(producerId) {
   if (!recvTransport) {
     console.warn("consumeProducer => recvTransport yok");
@@ -511,7 +496,6 @@ async function consumeProducer(producerId) {
     rtpParameters: consumeParams.rtpParameters
   });
   const { track } = consumer;
-
   // <audio> element
   const audioEl = document.createElement('audio');
   audioEl.srcObject = new MediaStream([track]);
@@ -562,6 +546,7 @@ function joinRoom(groupId, roomId, roomName) {
   socket.emit('joinRoom', { groupId, roomId });
   document.getElementById('selectedChannelTitle').textContent = roomName;
   showChannelStatusPanel();
+  // currentGroup, currentRoom => ack
 }
 
 /*
@@ -821,9 +806,7 @@ function initUIEvents() {
     const container = document.getElementById('channelUsersContainer');
     if (container) {
       container.innerHTML = '';
-      container.classList.remove(
-        'layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users'
-      );
+      container.classList.remove('layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users');
     }
     if (currentGroup) {
       socket.emit('browseGroup', currentGroup);
