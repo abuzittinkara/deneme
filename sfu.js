@@ -100,7 +100,7 @@ async function createWebRtcTransport(router) {
      */
     iceServers: [
       {
-        urls: 'stun:stun.relay.metered.ca:80'
+        urls: 'stun:stun.l.google.com:19302'
       },
       {
         urls: 'turn:global.relay.metered.ca:80',
