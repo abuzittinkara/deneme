@@ -86,31 +86,33 @@ function getRouter(roomId) {
 /**
  * createWebRtcTransport => Router üzerinde Transport oluşturur.
  * 
- * Render gibi platformlarda sabit bir public IP olmayabilir.
- * announcedIp: null bırakmak (veya IP'nizi biliyorsanız girmeniz) gerek.
- * Aynı şekilde STUN/TURN olmazsa NAT arkasında "ICE failed" riski sürer.
+ * Burada:
+ *  - announcedIp: null => Public IP veya domain kullanmıyoruz.
+ *  - iceServers => Basit STUN ekledik.
+ *  - TURN kodlarını yoruma aldık (eklemek isterseniz açabilirsiniz).
  */
 async function createWebRtcTransport(router) {
   const transportOptions = {
     listenIps: [
-      // announcedIp: null => Public IP'niz yoksa
-      // eğer IP'yi biliyorsanız, "xxx.xx.xx.xx" yazabilirsiniz
+      // announcedIp: null => NAT arkasında bir platformdaysanız
+      // sabit IP yoksa mecburen bu şekilde bırakın.
+      // Aksi halde "xxx.xxx.xxx.xxx" yazabilirsiniz.
       { ip: '0.0.0.0', announcedIp: null }
     ],
     enableUdp: true,
     enableTcp: true,
     preferUdp: true,
 
-    // STUN/TURN sunucuları (tarayıcının NAT aşabilmesi için)
+    // STUN / TURN sunucuları
     iceServers: [
-      // Basit STUN
-      { urls: 'stun:stun.l.google.com:19302' }
+      // STUN
+      { urls: 'stun:stun.l.google.com:19302' },
 
-      // TURN gerekiyorsa ekleyin:
+      // TURN eklemek isterseniz:
       // {
-      //   urls: 'turn:MY_TURN_SERVER:3478?transport=udp',
-      //   username: 'xxx',
-      //   credential: 'xxx'
+      //   urls: 'turn:my-turn-server:3478',
+      //   username: 'test',
+      //   credential: 'test'
       // }
     ]
   };
@@ -139,14 +141,16 @@ async function produce(transport, kind, rtpParameters) {
  */
 async function consume(router, transport, producerId) {
   const producer = router.getProducerById(producerId);
-  if (!producer) throw new Error('Producer bulunamadı');
+  if (!producer) {
+    throw new Error('Producer bulunamadı');
+  }
 
   const consumer = await transport.consume({
     producerId: producer.id,
     rtpCapabilities: router.rtpCapabilities,
     paused: true
   });
-  // İster direkt consumer.resume() yapabilirsiniz
+  // Dilerseniz consumer.resume()'u burada veya sunucuda yapabilirsiniz
   await consumer.resume();
   return consumer;
 }

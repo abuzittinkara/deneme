@@ -1,9 +1,8 @@
 /**************************************
  * server.js
  * 
- * SFU için "joinRoom" içinde router yoksa oluşturma eklendi.
- * Ayrıca "consume" eventinde artık "router.getProducerById" yerine
- * "rmObj.producers[producerId]" kullanıyoruz.
+ * Producer not found / ICE issues için
+ * minik iyileştirmeler ve tutarlılık kontrolleri yapıldı.
  **************************************/
 const http = require("http");
 const express = require("express");
@@ -82,9 +81,8 @@ async function loadChannelsFromDB() {
       if (!groups[gId].rooms[ch.channelId]) {
         groups[gId].rooms[ch.channelId] = {
           name: ch.name,
-          users: [],
-          // router, producers, consumers, transports => 
-          // createRoom eventinde veya joinRoom'da oluşturulur
+          users: []
+          // router, producers, consumers, transports => createRoom eventinde veya joinRoom'da oluşturulur
         };
       }
     });
@@ -588,12 +586,9 @@ io.on("connection", (socket) => {
     }
     if (userData.currentGroup === groupId && userData.currentRoom && groups[groupId].rooms[userData.currentRoom]) {
       // Eski odadan çık
-      groups[groupId].rooms[userData.currentRoom].users =
-        groups[groupId].rooms[userData.currentRoom].users.filter(u => u.id !== socket.id);
-      io.to(`${groupId}::${userData.currentRoom}`).emit(
-        'roomUsers',
-        groups[groupId].rooms[userData.currentRoom].users
-      );
+      const oldRoomObj = groups[groupId].rooms[userData.currentRoom];
+      oldRoomObj.users = oldRoomObj.users.filter(u => u.id !== socket.id);
+      io.to(`${groupId}::${userData.currentRoom}`).emit('roomUsers', oldRoomObj.users);
       socket.leave(`${groupId}::${userData.currentRoom}`);
     } else {
       removeUserFromAllGroupsAndRooms(socket);
@@ -806,62 +801,6 @@ io.on("connection", (socket) => {
   // ==============================
   // SFU (createWebRtcTransport, produce, consume...) 
   // ==============================
-
-  /**
-   * "consume" eventinde => router.getProducerById(producerId) yerine
-   * bellekte sakladığımız producer objesini (rmObj.producers[producerId]) kullanıyoruz.
-   */
-  socket.on('consume', async ({ groupId, roomId, transportId, producerId }, callback) => {
-    try {
-      const rmObj = groups[groupId]?.rooms[roomId];
-      if (!rmObj) return callback({ error: "Room bulunamadı" });
-
-      const router = rmObj.router;
-      if (!router) return callback({ error: "Router yok" });
-
-      const transport = rmObj.transports?.[transportId];
-      if (!transport) return callback({ error: "Transport bulunamadı" });
-
-      // PRODUCER'I router’dan getirmek yerine => rmObj.producers içinden
-      const producer = rmObj.producers[producerId];
-      if (!producer) {
-        return callback({ error: "Producer bulunamadı" });
-      }
-
-      // sfu.consume => artık direkt producer objesi ve router.rtpCapabilities gönderiyoruz
-      const consumer = await sfu.consume(transport, producer, router.rtpCapabilities);
-
-      consumer.appData = { peerId: socket.id };
-      rmObj.consumers = rmObj.consumers || {};
-      rmObj.consumers[consumer.id] = consumer;
-
-      const { producerId: prId, id, kind, rtpParameters } = consumer;
-      callback({
-        producerId: prId,
-        id,
-        kind,
-        rtpParameters
-      });
-    } catch (err) {
-      console.error("consume error:", err);
-      callback({ error: err.message });
-    }
-  });
-
-  socket.on('listProducers', ({ groupId, roomId }, callback) => {
-    try {
-      const rmObj = groups[groupId]?.rooms[roomId];
-      if (!rmObj || !rmObj.producers) {
-        return callback([]);
-      }
-      const producerIds = Object.keys(rmObj.producers);
-      callback(producerIds);
-    } catch (err) {
-      console.error("listProducers error:", err);
-      callback([]);
-    }
-  });
-
   socket.on('createWebRtcTransport', async ({ groupId, roomId }, callback) => {
     try {
       if (!groups[groupId] || !groups[groupId].rooms[roomId]) {
@@ -874,6 +813,7 @@ io.on("connection", (socket) => {
       }
 
       const transport = await sfu.createWebRtcTransport(router);
+      // SFU: peerId saklayalım
       transport.appData = { peerId: socket.id };
       rmObj.transports = rmObj.transports || {};
       rmObj.transports[transport.id] = transport;
@@ -926,6 +866,47 @@ io.on("connection", (socket) => {
     } catch (err) {
       console.error("produce error:", err);
       callback({ error: err.message });
+    }
+  });
+
+  socket.on('consume', async ({ groupId, roomId, transportId, producerId }, callback) => {
+    try {
+      const rmObj = groups[groupId]?.rooms[roomId];
+      if (!rmObj) return callback({ error: "Room bulunamadı" });
+      const router = rmObj.router;
+      if (!router) return callback({ error: "Router yok" });
+      const transport = rmObj.transports?.[transportId];
+      if (!transport) return callback({ error: "Transport bulunamadı" });
+
+      const consumer = await sfu.consume(router, transport, producerId);
+      consumer.appData = { peerId: socket.id };
+      rmObj.consumers = rmObj.consumers || {};
+      rmObj.consumers[consumer.id] = consumer;
+
+      const { producerId: prId, id, kind, rtpParameters } = consumer;
+      callback({
+        producerId: prId,
+        id,
+        kind,
+        rtpParameters
+      });
+    } catch (err) {
+      console.error("consume error:", err);
+      callback({ error: err.message });
+    }
+  });
+
+  socket.on('listProducers', ({ groupId, roomId }, callback) => {
+    try {
+      const rmObj = groups[groupId]?.rooms[roomId];
+      if (!rmObj || !rmObj.producers) {
+        return callback([]);
+      }
+      const producerIds = Object.keys(rmObj.producers);
+      callback(producerIds);
+    } catch (err) {
+      console.error("listProducers error:", err);
+      callback([]);
     }
   });
 
