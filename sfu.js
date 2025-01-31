@@ -89,7 +89,7 @@ function getRouter(roomId) {
 async function createWebRtcTransport(router) {
   const transportOptions = {
     listenIps: [
-      { ip: '0.0.0.0', announcedIp: null }
+      { ip: '0.0.0.0', announcedIp: '52.41.36.82' }
     ],
     enableUdp: true,
     enableTcp: true,
