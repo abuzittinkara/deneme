@@ -89,7 +89,9 @@ function getRouter(roomId) {
 async function createWebRtcTransport(router) {
   const transportOptions = {
     listenIps: [
-      { ip: '0.0.0.0', announcedIp: null }
+      // Dışa açık IP adresinizi buraya girin. Render size statik outbound IP adresleri sunuyorsa,
+      // örneğin aşağıdaki gibi bir IP (52.41.36.82) kullanılabilir.
+      { ip: '0.0.0.0', announcedIp: '52.41.36.82' }
     ],
     enableUdp: true,
     enableTcp: true,
