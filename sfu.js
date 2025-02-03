@@ -89,9 +89,7 @@ function getRouter(roomId) {
 async function createWebRtcTransport(router) {
   const transportOptions = {
     listenIps: [
-      // Dışa açık IP adresinizi buraya girin. Render size statik outbound IP adresleri sunuyorsa,
-      // örneğin aşağıdaki gibi bir IP (52.41.36.82) kullanılabilir.
-      { ip: '0.0.0.0', announcedIp: '52.41.36.82' }
+      { ip: '0.0.0.0', announcedIp: '31.57.154.104' }
     ],
     enableUdp: true,
     enableTcp: true,
@@ -147,11 +145,17 @@ async function produce(transport, kind, rtpParameters) {
 }
 
 /**
- * consume => transport.consume() kullanarak consumer oluşturur.
+ * consume => router.getProducerById() ile buluyoruz
  */
 async function consume(router, transport, producerId) {
+  // Eski yönteme döndük:
+  const producer = router.getProducerById(producerId);
+  if (!producer) {
+    throw new Error('Producer bulunamadı');
+  }
+
   const consumer = await transport.consume({
-    producerId: producerId,
+    producerId: producer.id,
     rtpCapabilities: router.rtpCapabilities,
     paused: true
   });
