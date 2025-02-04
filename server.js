@@ -3,8 +3,7 @@
  * 
  * SFU için "joinRoom" içinde router yoksa oluşturma eklendi.
  **************************************/
-const fs = require('fs');
-const https = require('https');
+const http = require('http');
 const express = require('express');
 const socketIO = require('socket.io');
 const mongoose = require('mongoose');
@@ -18,14 +17,9 @@ const sfu = require('./sfu'); // Mediasoup SFU fonksiyonları
 
 const app = express();
 
-// SSL sertifikası seçenekleri (Lütfen aşağıdaki path'leri geçerli dosya yollarıyla değiştirin)
-const options = {
-  key: fs.readFileSync('path/to/privkey.pem'),
-  cert: fs.readFileSync('path/to/fullchain.pem')
-};
-
-// HTTPS sunucusunu oluşturuyoruz.
-const server = https.createServer(options, app);
+// Cloudflare Flexible SSL/TLS kullanıldığı için
+// sunucumuzun orijini HTTP üzerinden çalışıyor (HTTPS sertifika dosyalarına ihtiyaç yok)
+const server = http.createServer(app);
 const io = socketIO(server);
 
 const uri = process.env.MONGODB_URI || "mongodb+srv://abuzorttin:HWZe7uK5yEAE@cluster0.vdrdy.mongodb.net/myappdb?retryWrites=true&w=majority";
