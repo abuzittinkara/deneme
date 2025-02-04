@@ -109,7 +109,8 @@ const settingsButton = document.getElementById('settingsButton');
 */
 window.addEventListener('DOMContentLoaded', () => {
   // HTTPS üzerinden bağlantı kurulması için URL "https://fisqos.com.tr" olarak belirlendi.
-  socket = io("https://fisqos.com.tr");
+  // Ayrıca, polling yerine sadece websocket transport kullanılacak.
+  socket = io("https://fisqos.com.tr", { transports: ['websocket'] });
   console.log("Socket connected =>", socket.id);
 
   initSocketEvents();
