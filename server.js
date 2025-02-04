@@ -3,9 +3,9 @@
  * 
  * SFU için "joinRoom" içinde router yoksa oluşturma eklendi.
  **************************************/
-const http = require("http");
-const express = require("express");
-const socketIO = require("socket.io");
+const http = require('http');
+const express = require('express');
+const socketIO = require('socket.io');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid'); // UUID
@@ -276,8 +276,8 @@ async function sendGroupsListToUser(socketId) {
 }
 
 /* Socket.IO */
-io.on("connection", (socket) => {
-  console.log("Kullanıcı bağlandı:", socket.id);
+io.on('connection', (socket) => {
+  console.log('Kullanıcı bağlandı:', socket.id);
 
   users[socket.id] = {
     username: null,
@@ -930,7 +930,7 @@ io.on("connection", (socket) => {
 });
 
 // Sunucuyu başlat
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 80;
 server.listen(PORT, () => {
   console.log(`Sunucu çalışıyor: http://localhost:${PORT}`);
 });
