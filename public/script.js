@@ -108,7 +108,8 @@ const settingsButton = document.getElementById('settingsButton');
   DOMContentLoaded => Socket.IO başlatalım + eventleri tanımlayalım
 */
 window.addEventListener('DOMContentLoaded', () => {
-  socket = io(); 
+  // HTTPS üzerinden bağlantı kurulması için URL "https://fisqos.com.tr" olarak belirlendi.
+  socket = io("https://fisqos.com.tr");
   console.log("Socket connected =>", socket.id);
 
   initSocketEvents();

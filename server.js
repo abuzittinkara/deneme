@@ -3,7 +3,8 @@
  * 
  * SFU için "joinRoom" içinde router yoksa oluşturma eklendi.
  **************************************/
-const http = require('http');
+const fs = require('fs');
+const https = require('https');
 const express = require('express');
 const socketIO = require('socket.io');
 const mongoose = require('mongoose');
@@ -16,7 +17,15 @@ const Channel = require('./models/Channel');
 const sfu = require('./sfu'); // Mediasoup SFU fonksiyonları
 
 const app = express();
-const server = http.createServer(app);
+
+// SSL sertifikası seçenekleri (Lütfen aşağıdaki path'leri geçerli dosya yollarıyla değiştirin)
+const options = {
+  key: fs.readFileSync('path/to/privkey.pem'),
+  cert: fs.readFileSync('path/to/fullchain.pem')
+};
+
+// HTTPS sunucusunu oluşturuyoruz.
+const server = https.createServer(options, app);
 const io = socketIO(server);
 
 const uri = process.env.MONGODB_URI || "mongodb+srv://abuzorttin:HWZe7uK5yEAE@cluster0.vdrdy.mongodb.net/myappdb?retryWrites=true&w=majority";
@@ -930,7 +939,7 @@ io.on('connection', (socket) => {
 });
 
 // Sunucuyu başlat
-const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 443;
 server.listen(PORT, () => {
   console.log(`Sunucu çalışıyor: http://localhost:${PORT}`);
 });
