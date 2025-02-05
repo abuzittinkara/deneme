@@ -1,11 +1,10 @@
 /**************************************
  * server.js
- * 
- * SFU için "joinRoom" içinde router yoksa oluşturma eklendi.
  **************************************/
 const http = require('http');
 const express = require('express');
 const socketIO = require('socket.io');
+const WebSocket = require('ws'); // **DEĞİŞİKLİK** => ws paketini dahil ettik
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid'); // UUID
@@ -20,7 +19,11 @@ const app = express();
 // Cloudflare Flexible SSL/TLS kullanıldığı için
 // sunucumuzun orijini HTTP üzerinden çalışıyor (HTTPS sertifika dosyalarına ihtiyaç yok)
 const server = http.createServer(app);
-const io = socketIO(server);
+
+// **DEĞİŞİKLİK** => Socket.IO oluştururken wsEngine'i 'ws' olarak ayarladık.
+const io = socketIO(server, {
+  wsEngine: 'ws' // Bu parametre, Node.js ortamında ws paketini WebSocket olarak kullanmayı sağlar
+});
 
 const uri = process.env.MONGODB_URI || "mongodb+srv://abuzorttin:HWZe7uK5yEAE@cluster0.vdrdy.mongodb.net/myappdb?retryWrites=true&w=majority";
 
@@ -822,11 +825,10 @@ io.on('connection', (socket) => {
       rmObj.transports = rmObj.transports || {};
       rmObj.transports[transport.id] = transport;
 
-      // <-- DİKKAT: 'transportId' yerine 'id' döndürerek
-      // mediasoup-client createSendTransport/ createRecvTransport'un
-      // beklediği parametre adını sağlamış oluyoruz.
+      // mediasoup-client createSendTransport / createRecvTransport'un
+      // beklediği parametre isimlerini dönüyoruz:
       callback({
-        id: transport.id, // <-- DEĞİŞİKLİK
+        id: transport.id,
         iceParameters: transport.iceParameters,
         iceCandidates: transport.iceCandidates,
         dtlsParameters: transport.dtlsParameters,
@@ -866,7 +868,7 @@ io.on('connection', (socket) => {
       rmObj.producers = rmObj.producers || {};
       rmObj.producers[producer.id] = producer;
 
-      // newProducer => odaya
+      // newProducer => odaya duyur
       socket.broadcast.to(`${groupId}::${roomId}`).emit('newProducer', { producerId: producer.id });
 
       callback({ producerId: producer.id });
