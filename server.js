@@ -4,7 +4,7 @@
 const http = require('http');
 const express = require('express');
 const socketIO = require('socket.io');
-const WebSocket = require('ws'); // **DEĞİŞİKLİK** => ws paketini dahil ettik
+const WebSocket = require('ws'); // ws paketini dahil ettik
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid'); // UUID
@@ -20,9 +20,10 @@ const app = express();
 // sunucumuzun orijini HTTP üzerinden çalışıyor (HTTPS sertifika dosyalarına ihtiyaç yok)
 const server = http.createServer(app);
 
-// **DEĞİŞİKLİK** => Socket.IO oluştururken wsEngine'i 'ws' olarak ayarladık.
+// **DEĞİŞİKLİK**
+// Socket.IO oluşturulurken wsEngine'i, ws paketinin Server constructor'ı olarak ayarlıyoruz.
 const io = socketIO(server, {
-  wsEngine: 'ws' // Bu parametre, Node.js ortamında ws paketini WebSocket olarak kullanmayı sağlar
+  wsEngine: WebSocket.Server
 });
 
 const uri = process.env.MONGODB_URI || "mongodb+srv://abuzorttin:HWZe7uK5yEAE@cluster0.vdrdy.mongodb.net/myappdb?retryWrites=true&w=majority";
