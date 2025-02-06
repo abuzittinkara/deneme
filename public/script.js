@@ -4,7 +4,8 @@
  **************************************/
 let socket = null; 
 let device = null;   // mediasoup-client Device
-let deviceIsLoaded = false; // EK: Cihazın (Device) yüklenip yüklenmediğini takip eder.
+// Burada cihazın load edilip edilmediğini takip etmek için kendi değişkenimizi kullanıyoruz.
+let deviceIsLoaded = false;
 let sendTransport = null;
 let recvTransport = null;
 
@@ -213,16 +214,20 @@ function initSocketEvents() {
       roomItem.addEventListener('click', () => {
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
 
-        if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
-          roomItem.classList.add('connected');
-          return;
-        }
+        // Eğer mevcut oda farklıysa, önce eski odayı temizle ve ardından yeni odaya geçiş yap.
         if (currentRoom && (currentRoom !== roomObj.id || currentGroup !== selectedGroup)) {
           leaveRoomInternal();
+          // Kısa bir gecikme vererek sunucu temizlemesinin tamamlanmasını bekleyelim.
+          setTimeout(() => {
+            currentGroup = selectedGroup;
+            joinRoom(currentGroup, roomObj.id, roomObj.name);
+            roomItem.classList.add('connected');
+          }, 500);
+        } else {
+          currentGroup = selectedGroup;
+          joinRoom(currentGroup, roomObj.id, roomObj.name);
+          roomItem.classList.add('connected');
         }
-        currentGroup = selectedGroup;
-        joinRoom(currentGroup, roomObj.id, roomObj.name);
-        roomItem.classList.add('connected');
       });
 
       roomListDiv.appendChild(roomItem);
@@ -342,9 +347,10 @@ function initSocketEvents() {
   // newProducer => consume (kendi producer'ınızı tüketmeyin)
   socket.on('newProducer', ({ producerId }) => {
     console.log("newProducer =>", producerId);
-    // Eğer yeni gelen üreticinin peerId, bizim socket.id’miz ise, bu bizim kendi üretimimizdir.
-    // Bu durumda tüketmeye çalışmayalım.
-    // (Listeden de zaten kendi üretimimizi atlıyoruz.)
+    if (localProducer && producerId === localProducer.id) {
+      console.log("newProducer => Bu, kendi producer'ınız. Tüketme yapılmayacak.");
+      return;
+    }
     if (!recvTransport) {
       console.warn("recvTransport yok => sonra consume edebiliriz");
       return;
@@ -370,7 +376,7 @@ async function startSfuFlow() {
     return;
   }
 
-  // 2) device.load: Eğer cihaz (Device) henüz yüklenmediyse, load() çağrılır; aksi halde atlanır.
+  // 2) device.load: Eğer cihaz (Device) henüz yüklenmediyse load() çağrılır; aksi halde atlanır.
   if (!deviceIsLoaded) {
     await device.load({ routerRtpCapabilities: transportParams.routerRtpCapabilities });
     deviceIsLoaded = true;
@@ -450,12 +456,15 @@ async function startSfuFlow() {
   console.log("Mevcut producerlar =>", producers);
   const localProducerId = localProducer ? localProducer.id : null;
   for (const prod of producers) {
-    // Kendi üretiminizi tüketmeyin. (Kendi socket.id’nizle eşleşen producer'ları atlayın.)
-    if (prod.peerId === socket.id) {
+    if (prod.id === localProducerId) {
       console.log("Kendi producer tespit edildi, tüketme yapılmayacak:", prod.id);
       continue;
     }
-    await consumeProducer(prod.id);
+    try {
+      await consumeProducer(prod.id);
+    } catch (err) {
+      console.error("consumeProducer hata:", err);
+    }
   }
   console.log("startSfuFlow => tamamlandı.");
 }
@@ -502,7 +511,7 @@ async function consumeProducer(producerId) {
   });
   if (consumeParams.error) {
     console.error("consume error:", consumeParams.error);
-    return;
+    throw new Error(consumeParams.error);
   }
   console.log("consumeProducer =>", consumeParams);
 
@@ -614,7 +623,7 @@ async function requestMicrophoneAccess() {
 
 /*
   UI Eventleri
-  (initUIEvents fonksiyonu içindeki kısım, önceki haliyle aynıdır.)
+  (initUIEvents fonksiyonu içinde kalan kısım, önceki haliyle aynı kalmıştır.)
 */
 function initUIEvents() {
   // Login
@@ -1117,7 +1126,7 @@ async function startSfuFlow() {
     return;
   }
 
-  // 2) device.load: Eğer cihaz (Device) henüz yüklenmediyse, load() çağrılır; aksi halde atlanır.
+  // 2) device.load: Eğer cihaz (Device) henüz yüklenmediyse load() çağrılır; aksi halde atlanır.
   if (!deviceIsLoaded) {
     await device.load({ routerRtpCapabilities: transportParams.routerRtpCapabilities });
     deviceIsLoaded = true;
@@ -1197,12 +1206,15 @@ async function startSfuFlow() {
   console.log("Mevcut producerlar =>", producers);
   const localProducerId = localProducer ? localProducer.id : null;
   for (const prod of producers) {
-    // Kendi üretiminizi tüketmeyin.
-    if (prod.peerId === socket.id) {
+    if (prod.id === localProducerId) {
       console.log("Kendi producer tespit edildi, tüketme yapılmayacak:", prod.id);
       continue;
     }
-    await consumeProducer(prod.id);
+    try {
+      await consumeProducer(prod.id);
+    } catch (err) {
+      console.error("consumeProducer hata:", err);
+    }
   }
   console.log("startSfuFlow => tamamlandı.");
 }
@@ -1249,7 +1261,7 @@ async function consumeProducer(producerId) {
   });
   if (consumeParams.error) {
     console.error("consume error:", consumeParams.error);
-    return;
+    throw new Error(consumeParams.error);
   }
   console.log("consumeProducer =>", consumeParams);
 
