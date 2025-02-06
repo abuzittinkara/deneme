@@ -338,10 +338,9 @@ function initSocketEvents() {
     socket.emit('set-username', username);
   });
 
-  // newProducer => consume
+  // newProducer => consume (kendi producer'ınızı tüketmeyin)
   socket.on('newProducer', ({ producerId }) => {
     console.log("newProducer =>", producerId);
-    // DÜZENLEME: Eğer producerId, localProducer'ınızsa tüketme (consume) yapmayın.
     if (localProducer && producerId === localProducer.id) {
       console.log("newProducer => Bu, kendi producer'ınız. Tüketme yapılmayacak.");
       return;
@@ -410,7 +409,6 @@ async function startSfuFlow() {
     });
   });
 
-  // Mikrofon yoksa => request
   if (!localStream) {
     await requestMicrophoneAccess();
   }
@@ -443,12 +441,15 @@ async function startSfuFlow() {
   });
 
   // 5) Mevcut producer’ları tüket (consume)
-  // Kendi producer'ınızı tüketmeyin.
-  const producerIds = await listProducers();
-  console.log("Mevcut producerId'ler =>", producerIds);
-  for (const pid of producerIds) {
-    if (localProducer && pid === localProducer.id) continue;
-    await consumeProducer(pid);
+  const producers = await listProducers();
+  console.log("Mevcut producerlar =>", producers);
+  const localProducerId = localProducer ? localProducer.id : null;
+  for (const prod of producers) {
+    if (prod.id === localProducerId) {
+      console.log("Kendi producer tespit edildi, tüketme yapılmayacak:", prod.id);
+      continue;
+    }
+    await consumeProducer(prod.id);
   }
   console.log("startSfuFlow => tamamlandı.");
 }
@@ -1181,12 +1182,15 @@ async function startSfuFlow() {
   });
 
   // 5) Mevcut producer’ları tüket (consume)
-  // Kendi producer'ınızı tüketmeyin.
-  const producerIds = await listProducers();
-  console.log("Mevcut producerId'ler =>", producerIds);
-  for (const pid of producerIds) {
-    if (localProducer && pid === localProducer.id) continue;
-    await consumeProducer(pid);
+  const producers = await listProducers();
+  console.log("Mevcut producerlar =>", producers);
+  const localProducerId = localProducer ? localProducer.id : null;
+  for (const prod of producers) {
+    if (prod.id === localProducerId) {
+      console.log("Kendi producer tespit edildi, tüketme yapılmayacak:", prod.id);
+      continue;
+    }
+    await consumeProducer(prod.id);
   }
   console.log("startSfuFlow => tamamlandı.");
 }

@@ -920,8 +920,12 @@ io.on('connection', (socket) => {
       if (!rmObj || !rmObj.producers) {
         return callback([]);
       }
-      const producerIds = Object.keys(rmObj.producers);
-      callback(producerIds);
+      // Her üretici için, id ve appData.peerId değerlerini içeren nesne döndürüyoruz.
+      const producers = Object.values(rmObj.producers).map(producer => ({
+        id: producer.id,
+        peerId: (producer.appData && producer.appData.peerId) ? producer.appData.peerId : null
+      }));
+      callback(producers);
     } catch (err) {
       console.error("listProducers error:", err);
       callback([]);
