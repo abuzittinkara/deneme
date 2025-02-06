@@ -149,7 +149,7 @@ async function produce(transport, kind, rtpParameters) {
  */
 async function consume(router, transport, producerId) {
   // Eski yönteme döndük:
-  const producer = router.getProducerById(producerId);
+  const producer = router.producers.get(producerId);
   if (!producer) {
     throw new Error('Producer bulunamadı');
   }

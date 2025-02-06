@@ -1,5 +1,7 @@
 /**************************************
  * server.js
+ * 
+ * SFU için "joinRoom" içinde router yoksa oluşturma eklendi.
  **************************************/
 const http = require('http');
 const express = require('express');
@@ -20,7 +22,6 @@ const app = express();
 // sunucumuzun orijini HTTP üzerinden çalışıyor (HTTPS sertifika dosyalarına ihtiyaç yok)
 const server = http.createServer(app);
 
-// **DEĞİŞİKLİK**
 // Socket.IO oluşturulurken wsEngine'i, ws paketinin Server constructor'ı olarak ayarlıyoruz.
 const io = socketIO(server, {
   wsEngine: WebSocket.Server
@@ -826,8 +827,7 @@ io.on('connection', (socket) => {
       rmObj.transports = rmObj.transports || {};
       rmObj.transports[transport.id] = transport;
 
-      // mediasoup-client createSendTransport / createRecvTransport'un
-      // beklediği parametre isimlerini dönüyoruz:
+      // mediasoup-client createSendTransport / createRecvTransport'un beklediği parametre isimlerini dönüyoruz:
       callback({
         id: transport.id,
         iceParameters: transport.iceParameters,
@@ -936,7 +936,7 @@ io.on('connection', (socket) => {
 });
 
 // Sunucuyu başlat
-const PORT = process.env.PORT || 443;
+const PORT = process.env.PORT || 80;
 server.listen(PORT, () => {
   console.log(`Sunucu çalışıyor: http://localhost:${PORT}`);
 });
