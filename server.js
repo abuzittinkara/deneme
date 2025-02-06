@@ -879,6 +879,8 @@ io.on('connection', (socket) => {
     }
   });
 
+  // *** BURADAKİ KISIM DEĞİŞTİRİLDİ ***
+  // consume => router'dan producerId ile producer almak yerine, rmObj.producers üzerinden producer nesnesini alıyoruz.
   socket.on('consume', async ({ groupId, roomId, transportId, producerId }, callback) => {
     try {
       const rmObj = groups[groupId]?.rooms[roomId];
@@ -888,7 +890,12 @@ io.on('connection', (socket) => {
       const transport = rmObj.transports?.[transportId];
       if (!transport) return callback({ error: "Transport bulunamadı" });
 
-      const consumer = await sfu.consume(router, transport, producerId);
+      // Producer nesnesini rmObj.producers içinden al
+      const producer = rmObj.producers?.[producerId];
+      if (!producer) return callback({ error: "Producer bulunamadı" });
+
+      // sfu.consume artık (router, transport, producer) parametresi bekliyor
+      const consumer = await sfu.consume(router, transport, producer);
       consumer.appData = { peerId: socket.id };
       rmObj.consumers = rmObj.consumers || {};
       rmObj.consumers[consumer.id] = consumer;
@@ -905,6 +912,7 @@ io.on('connection', (socket) => {
       callback({ error: err.message });
     }
   });
+  // *** DEĞİŞTİRİLEN KISIM BİTTİ ***
 
   socket.on('listProducers', ({ groupId, roomId }, callback) => {
     try {

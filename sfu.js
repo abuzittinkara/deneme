@@ -145,11 +145,9 @@ async function produce(transport, kind, rtpParameters) {
 }
 
 /**
- * consume => router.getProducerById() ile buluyoruz
+ * consume => Artık router.producers.get(producerId) yerine direkt producer nesnesi alacağız.
  */
-async function consume(router, transport, producerId) {
-  // Eski yönteme döndük:
-  const producer = router.producers.get(producerId);
+async function consume(router, transport, producer) {
   if (!producer) {
     throw new Error('Producer bulunamadı');
   }
