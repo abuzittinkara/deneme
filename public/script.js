@@ -4,6 +4,7 @@
  **************************************/
 let socket = null; 
 let device = null;   // mediasoup-client Device
+let deviceIsLoaded = false; // <-- EK: Cihazın (Device) yüklenip yüklenmediğini takip eder
 let sendTransport = null;
 let recvTransport = null;
 
@@ -370,9 +371,14 @@ async function startSfuFlow() {
     return;
   }
 
-  // 2) device.load
-  await device.load({ routerRtpCapabilities: transportParams.routerRtpCapabilities });
-  console.log("Device load bitti =>", device.rtpCapabilities);
+  // 2) device.load: Eğer cihaz daha önce yüklenmediyse, yeni RTP capabilities ile yükle.
+  if (!deviceIsLoaded) {
+    await device.load({ routerRtpCapabilities: transportParams.routerRtpCapabilities });
+    deviceIsLoaded = true;
+    console.log("Device load bitti =>", device.rtpCapabilities);
+  } else {
+    console.log("Device zaten yüklü, device.load() çağrılmayacak.");
+  }
 
   // 3) sendTransport
   sendTransport = device.createSendTransport(transportParams);
@@ -1111,9 +1117,14 @@ async function startSfuFlow() {
     return;
   }
 
-  // 2) device.load
-  await device.load({ routerRtpCapabilities: transportParams.routerRtpCapabilities });
-  console.log("Device load bitti =>", device.rtpCapabilities);
+  // 2) device.load: Eğer cihaz daha önce yüklenmediyse yükle; aksi halde atla.
+  if (!deviceIsLoaded) {
+    await device.load({ routerRtpCapabilities: transportParams.routerRtpCapabilities });
+    deviceIsLoaded = true;
+    console.log("Device load bitti =>", device.rtpCapabilities);
+  } else {
+    console.log("Device zaten yüklü, device.load() çağrılmayacak.");
+  }
 
   // 3) sendTransport
   sendTransport = device.createSendTransport(transportParams);
