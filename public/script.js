@@ -4,8 +4,7 @@
  **************************************/
 let socket = null; 
 let device = null;   // mediasoup-client Device
-// Burada cihazın load edilip edilmediğini takip etmek için kendi değişkenimizi kullanıyoruz.
-let deviceIsLoaded = false;
+let deviceIsLoaded = false; // EK: Cihazın (Device) yüklenip yüklenmediğini takip eder.
 let sendTransport = null;
 let recvTransport = null;
 
@@ -214,20 +213,16 @@ function initSocketEvents() {
       roomItem.addEventListener('click', () => {
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
 
-        // Eğer mevcut oda farklıysa, önce eski odayı temizle ve ardından yeni odaya geçiş yap.
+        if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
+          roomItem.classList.add('connected');
+          return;
+        }
         if (currentRoom && (currentRoom !== roomObj.id || currentGroup !== selectedGroup)) {
           leaveRoomInternal();
-          // Kısa bir gecikme vererek sunucu temizlemesinin tamamlanmasını bekleyelim.
-          setTimeout(() => {
-            currentGroup = selectedGroup;
-            joinRoom(currentGroup, roomObj.id, roomObj.name);
-            roomItem.classList.add('connected');
-          }, 500);
-        } else {
-          currentGroup = selectedGroup;
-          joinRoom(currentGroup, roomObj.id, roomObj.name);
-          roomItem.classList.add('connected');
         }
+        currentGroup = selectedGroup;
+        joinRoom(currentGroup, roomObj.id, roomObj.name);
+        roomItem.classList.add('connected');
       });
 
       roomListDiv.appendChild(roomItem);
@@ -347,10 +342,9 @@ function initSocketEvents() {
   // newProducer => consume (kendi producer'ınızı tüketmeyin)
   socket.on('newProducer', ({ producerId }) => {
     console.log("newProducer =>", producerId);
-    if (localProducer && producerId === localProducer.id) {
-      console.log("newProducer => Bu, kendi producer'ınız. Tüketme yapılmayacak.");
-      return;
-    }
+    // Eğer yeni gelen üreticinin peerId, bizim socket.id’miz ise, bu bizim kendi üretimimizdir.
+    // Bu durumda tüketmeye çalışmayalım.
+    // (Listeden de zaten kendi üretimimizi atlıyoruz.)
     if (!recvTransport) {
       console.warn("recvTransport yok => sonra consume edebiliriz");
       return;
@@ -376,7 +370,7 @@ async function startSfuFlow() {
     return;
   }
 
-  // 2) device.load: Eğer cihaz (Device) henüz yüklenmediyse load() çağrılır; aksi halde atlanır.
+  // 2) device.load: Eğer cihaz (Device) henüz yüklenmediyse, load() çağrılır; aksi halde atlanır.
   if (!deviceIsLoaded) {
     await device.load({ routerRtpCapabilities: transportParams.routerRtpCapabilities });
     deviceIsLoaded = true;
@@ -456,15 +450,12 @@ async function startSfuFlow() {
   console.log("Mevcut producerlar =>", producers);
   const localProducerId = localProducer ? localProducer.id : null;
   for (const prod of producers) {
-    if (prod.id === localProducerId) {
+    // Kendi üretiminizi tüketmeyin.
+    if (prod.peerId === socket.id) {
       console.log("Kendi producer tespit edildi, tüketme yapılmayacak:", prod.id);
       continue;
     }
-    try {
-      await consumeProducer(prod.id);
-    } catch (err) {
-      console.error("consumeProducer hata:", err);
-    }
+    await consumeProducer(prod.id);
   }
   console.log("startSfuFlow => tamamlandı.");
 }
@@ -511,7 +502,7 @@ async function consumeProducer(producerId) {
   });
   if (consumeParams.error) {
     console.error("consume error:", consumeParams.error);
-    throw new Error(consumeParams.error);
+    return;
   }
   console.log("consumeProducer =>", consumeParams);
 
@@ -623,7 +614,7 @@ async function requestMicrophoneAccess() {
 
 /*
   UI Eventleri
-  (initUIEvents fonksiyonu içinde kalan kısım, önceki haliyle aynı kalmıştır.)
+  (initUIEvents fonksiyonu içindeki kısım, önceki haliyle aynıdır.)
 */
 function initUIEvents() {
   // Login
@@ -1126,7 +1117,7 @@ async function startSfuFlow() {
     return;
   }
 
-  // 2) device.load: Eğer cihaz (Device) henüz yüklenmediyse load() çağrılır; aksi halde atlanır.
+  // 2) device.load: Eğer cihaz (Device) henüz yüklenmediyse, load() çağrılır; aksi halde atlanır.
   if (!deviceIsLoaded) {
     await device.load({ routerRtpCapabilities: transportParams.routerRtpCapabilities });
     deviceIsLoaded = true;
@@ -1206,15 +1197,12 @@ async function startSfuFlow() {
   console.log("Mevcut producerlar =>", producers);
   const localProducerId = localProducer ? localProducer.id : null;
   for (const prod of producers) {
-    if (prod.id === localProducerId) {
+    // Kendi üretiminizi tüketmeyin.
+    if (prod.peerId === socket.id) {
       console.log("Kendi producer tespit edildi, tüketme yapılmayacak:", prod.id);
       continue;
     }
-    try {
-      await consumeProducer(prod.id);
-    } catch (err) {
-      console.error("consumeProducer hata:", err);
-    }
+    await consumeProducer(prod.id);
   }
   console.log("startSfuFlow => tamamlandı.");
 }
@@ -1261,7 +1249,7 @@ async function consumeProducer(producerId) {
   });
   if (consumeParams.error) {
     console.error("consume error:", consumeParams.error);
-    throw new Error(consumeParams.error);
+    return;
   }
   console.log("consumeProducer =>", consumeParams);
 
@@ -1283,90 +1271,4 @@ async function consumeProducer(producerId) {
   startVolumeAnalysis(audioEl.srcObject, consumer.id);
   consumers[consumer.id] = consumer;
   console.log("Yeni consumer =>", consumer.id);
-}
-
-/*
-  Odadan ayrıl => transportları kapat
-*/
-function leaveRoomInternal() {
-  if (localProducer) {
-    localProducer.close();
-    localProducer = null;
-  }
-  if (sendTransport) {
-    sendTransport.close();
-    sendTransport = null;
-  }
-  if (recvTransport) {
-    recvTransport.close();
-    recvTransport = null;
-  }
-  for (const cid in consumers) {
-    stopVolumeAnalysis(cid);
-  }
-  consumers = {};
-  remoteAudios.forEach(a => {
-    try { a.pause(); } catch(e){}
-    a.srcObject = null;
-  });
-  remoteAudios = [];
-  console.log("leaveRoomInternal => SFU transportlar kapatıldı");
-}
-
-/*
-  Kanala giriş => joinRoom
-*/
-function joinRoom(groupId, roomId, roomName) {
-  socket.emit('joinRoom', { groupId, roomId });
-  document.getElementById('selectedChannelTitle').textContent = roomName;
-  showChannelStatusPanel();
-}
-
-/*
-  Login
-*/
-function attemptLogin() {
-  const usernameVal = loginUsernameInput.value.trim();
-  const passwordVal = loginPasswordInput.value.trim();
-
-  loginErrorMessage.style.display = 'none';
-  loginUsernameInput.classList.remove('shake');
-  loginPasswordInput.classList.remove('shake');
-
-  if (!usernameVal || !passwordVal) {
-    loginErrorMessage.textContent = "Lütfen gerekli alanları doldurunuz";
-    loginErrorMessage.style.display = 'block';
-    loginUsernameInput.classList.add('shake');
-    loginPasswordInput.classList.add('shake');
-    return;
-  }
-  socket.emit('login', { username: usernameVal, password: passwordVal });
-}
-
-/*
-  Mikrofon izni
-*/
-async function requestMicrophoneAccess() {
-  try {
-    console.log("Mikrofon izni isteniyor...");
-    const constraints = {
-      audio: {
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: false
-      }
-    };
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-    console.log("Mikrofon erişimi verildi:", stream);
-    localStream = stream;
-    audioPermissionGranted = true;
-    applyAudioStates();
-    startVolumeAnalysis(stream, socket.id);
-
-    remoteAudios.forEach(audioEl => {
-      audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
-    });
-  } catch(err) {
-    console.error("Mikrofon izni alınamadı:", err);
-  }
 }
