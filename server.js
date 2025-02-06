@@ -930,7 +930,7 @@ io.on('connection', (socket) => {
       console.error("listProducers error:", err);
       callback([]);
     }
-  });
+  });  
 
   // Disconnect
   socket.on("disconnect", async () => {
