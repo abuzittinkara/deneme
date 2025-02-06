@@ -4,7 +4,7 @@
  **************************************/
 let socket = null; 
 let device = null;   // mediasoup-client Device
-// device.loaded özelliğini kullanacağız, bu yüzden ayrıca bir deviceIsLoaded değişkenine gerek yok.
+let deviceIsLoaded = false; // EK: Cihazın (Device) yüklenip yüklenmediğini takip eder.
 let sendTransport = null;
 let recvTransport = null;
 
@@ -342,10 +342,9 @@ function initSocketEvents() {
   // newProducer => consume (kendi producer'ınızı tüketmeyin)
   socket.on('newProducer', ({ producerId }) => {
     console.log("newProducer =>", producerId);
-    if (localProducer && producerId === localProducer.id) {
-      console.log("newProducer => Bu, kendi producer'ınız. Tüketme yapılmayacak.");
-      return;
-    }
+    // Eğer yeni gelen üreticinin peerId, bizim socket.id’miz ise, bu bizim kendi üretimimizdir.
+    // Bu durumda tüketmeye çalışmayalım.
+    // (Listeden de zaten kendi üretimimizi atlıyoruz.)
     if (!recvTransport) {
       console.warn("recvTransport yok => sonra consume edebiliriz");
       return;
@@ -371,9 +370,10 @@ async function startSfuFlow() {
     return;
   }
 
-  // 2) device.load: Eğer cihaz daha önce yüklenmediyse load(); aksi halde atla.
-  if (!device.loaded) {
+  // 2) device.load: Eğer cihaz (Device) henüz yüklenmediyse, load() çağrılır; aksi halde atlanır.
+  if (!deviceIsLoaded) {
     await device.load({ routerRtpCapabilities: transportParams.routerRtpCapabilities });
+    deviceIsLoaded = true;
     console.log("Device load bitti =>", device.rtpCapabilities);
   } else {
     console.log("Device zaten yüklü, device.load() çağrılmayacak.");
@@ -450,7 +450,8 @@ async function startSfuFlow() {
   console.log("Mevcut producerlar =>", producers);
   const localProducerId = localProducer ? localProducer.id : null;
   for (const prod of producers) {
-    if (prod.id === localProducerId) {
+    // Kendi üretiminizi tüketmeyin. (Kendi socket.id’nizle eşleşen producer'ları atlayın.)
+    if (prod.peerId === socket.id) {
       console.log("Kendi producer tespit edildi, tüketme yapılmayacak:", prod.id);
       continue;
     }
@@ -613,7 +614,7 @@ async function requestMicrophoneAccess() {
 
 /*
   UI Eventleri
-  (initUIEvents fonksiyonu içinde kalan kısım, önceki haliyle aynı kalmıştır.)
+  (initUIEvents fonksiyonu içindeki kısım, önceki haliyle aynıdır.)
 */
 function initUIEvents() {
   // Login
@@ -1117,8 +1118,9 @@ async function startSfuFlow() {
   }
 
   // 2) device.load: Eğer cihaz (Device) henüz yüklenmediyse, load() çağrılır; aksi halde atlanır.
-  if (!device.loaded) {
+  if (!deviceIsLoaded) {
     await device.load({ routerRtpCapabilities: transportParams.routerRtpCapabilities });
+    deviceIsLoaded = true;
     console.log("Device load bitti =>", device.rtpCapabilities);
   } else {
     console.log("Device zaten yüklü, device.load() çağrılmayacak.");
@@ -1195,7 +1197,8 @@ async function startSfuFlow() {
   console.log("Mevcut producerlar =>", producers);
   const localProducerId = localProducer ? localProducer.id : null;
   for (const prod of producers) {
-    if (prod.id === localProducerId) {
+    // Kendi üretiminizi tüketmeyin.
+    if (prod.peerId === socket.id) {
       console.log("Kendi producer tespit edildi, tüketme yapılmayacak:", prod.id);
       continue;
     }
