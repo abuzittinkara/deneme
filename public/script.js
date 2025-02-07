@@ -553,6 +553,7 @@ async function consumeProducer(producerId) {
 
 /*
   Odadan ayrıl => transportları kapat
+  (Artık localStream track.stop() yapmıyoruz => Firefox "track ended" sorununa karşı)
 */
 function leaveRoomInternal() {
   if (localProducer) {
@@ -568,11 +569,11 @@ function leaveRoomInternal() {
     recvTransport = null;
   }
 
-  // Mevcut localStream track'lerini kapatıp null yapıyoruz:
-  if (localStream) {
-    localStream.getTracks().forEach(t => t.stop());
-    localStream = null;
-  }
+  // localStream kapatmıyoruz => tekrar produce edebilmek için
+  // if (localStream) {
+  //   localStream.getTracks().forEach(t => t.stop());
+  //   localStream = null;
+  // }
 
   for (const cid in consumers) {
     stopVolumeAnalysis(cid);
