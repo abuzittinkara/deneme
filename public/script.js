@@ -342,9 +342,6 @@ function initSocketEvents() {
   // newProducer => consume (kendi producer'ınızı tüketmeyin)
   socket.on('newProducer', ({ producerId }) => {
     console.log("newProducer =>", producerId);
-    // Eğer yeni gelen üreticinin peerId, bizim socket.id’miz ise, bu bizim kendi üretimimizdir.
-    // Bu durumda tüketmeye çalışmayalım.
-    // (Listeden de zaten kendi üretimimizi atlıyoruz.)
     if (!recvTransport) {
       console.warn("recvTransport yok => sonra consume edebiliriz");
       return;
@@ -359,11 +356,12 @@ function initSocketEvents() {
 async function startSfuFlow() {
   console.log("startSfuFlow => group:", currentGroup, " room:", currentRoom);
 
+  // Eğer device henüz yoksa oluştur
   if (!device) {
     device = new mediasoupClient.Device();
   }
 
-  // Eğer localStream mevcut değil veya mevcut track bitmişse yeniden mikrofon izni iste
+  // Eğer localStream yoksa veya track ended ise => tekrar mikrofon iste
   if (!localStream || localStream.getAudioTracks()[0].readyState === 'ended') {
     await requestMicrophoneAccess();
   }
@@ -375,7 +373,7 @@ async function startSfuFlow() {
     return;
   }
 
-  // 2) device.load: Eğer cihaz (Device) henüz yüklenmediyse, load() çağrılır; aksi halde atlanır.
+  // 2) device.load: Eğer cihaz henüz load edilmediyse yap
   if (!deviceIsLoaded) {
     await device.load({ routerRtpCapabilities: transportParams.routerRtpCapabilities });
     deviceIsLoaded = true;
@@ -419,19 +417,30 @@ async function startSfuFlow() {
     });
   });
 
+  // Mikrofon track => clone + produce
   if (!localStream) {
     await requestMicrophoneAccess();
   }
-  const audioTrack = localStream.getAudioTracks()[0];
+  let audioTrack = localStream.getAudioTracks()[0];
+  // clone => firefox track ended sorununa karşı
+  const clonedTrack = audioTrack.clone();
+
   try {
-    localProducer = await sendTransport.produce({ track: audioTrack });
+    localProducer = await sendTransport.produce({
+      track: clonedTrack,
+      stopTracks: false // Producer kapansa dahi tarayıcının track.stop() yapmaması için
+    });
     console.log("Mikrofon produce edildi =>", localProducer.id);
   } catch (err) {
     if (err.name === "InvalidStateError") {
-      console.error("Audio track ended error, re-requesting microphone access");
+      console.error("Audio track ended error, tekrar mikrofon alınıyor...");
       await requestMicrophoneAccess();
-      const newAudioTrack = localStream.getAudioTracks()[0];
-      localProducer = await sendTransport.produce({ track: newAudioTrack });
+      audioTrack = localStream.getAudioTracks()[0];
+      const newCloned = audioTrack.clone();
+      localProducer = await sendTransport.produce({
+        track: newCloned,
+        stopTracks: false
+      });
       console.log("Mikrofon produce edildi (yeni track) =>", localProducer.id);
     } else {
       throw err;
@@ -465,7 +474,6 @@ async function startSfuFlow() {
   // 5) Mevcut producer’ları tüket (consume)
   const producers = await listProducers();
   console.log("Mevcut producerlar =>", producers);
-  const localProducerId = localProducer ? localProducer.id : null;
   for (const prod of producers) {
     // Kendi üretiminizi tüketmeyin.
     if (prod.peerId === socket.id) {
@@ -559,21 +567,24 @@ function leaveRoomInternal() {
     recvTransport.close();
     recvTransport = null;
   }
+
+  // Mevcut localStream track'lerini kapatıp null yapıyoruz:
+  if (localStream) {
+    localStream.getTracks().forEach(t => t.stop());
+    localStream = null;
+  }
+
   for (const cid in consumers) {
     stopVolumeAnalysis(cid);
   }
   consumers = {};
+
   remoteAudios.forEach(a => {
     try { a.pause(); } catch(e){}
     a.srcObject = null;
   });
   remoteAudios = [];
-  // Yeni: localStream'in tüm audio tracklerini durdurup null'a atıyoruz
-  if (localStream) {
-    localStream.getAudioTracks().forEach(track => track.stop());
-    localStream = null;
-  }
-  console.log("leaveRoomInternal => SFU transportlar kapatıldı ve localStream sıfırlandı");
+  console.log("leaveRoomInternal => SFU transportlar kapatıldı");
 }
 
 /*
@@ -626,6 +637,7 @@ async function requestMicrophoneAccess() {
     applyAudioStates();
     startVolumeAnalysis(stream, socket.id);
 
+    // Var olan tüm remote audio elementlerini (kullanıcı sağır değilse) oynatmaya çalışalım
     remoteAudios.forEach(audioEl => {
       audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
     });
@@ -636,7 +648,6 @@ async function requestMicrophoneAccess() {
 
 /*
   UI Eventleri
-  (initUIEvents fonksiyonu içindeki kısım, önceki haliyle aynıdır.)
 */
 function initUIEvents() {
   // Login
@@ -898,6 +909,7 @@ function applyAudioStates() {
     deafenToggleButton.classList.remove('btn-muted');
   }
 
+  // Remote sesleri kapatalım mı?
   remoteAudios.forEach(audio => {
     audio.muted = selfDeafened;
   });
