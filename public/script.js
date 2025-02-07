@@ -423,8 +423,20 @@ async function startSfuFlow() {
     await requestMicrophoneAccess();
   }
   const audioTrack = localStream.getAudioTracks()[0];
-  localProducer = await sendTransport.produce({ track: audioTrack });
-  console.log("Mikrofon produce edildi =>", localProducer.id);
+  try {
+    localProducer = await sendTransport.produce({ track: audioTrack });
+    console.log("Mikrofon produce edildi =>", localProducer.id);
+  } catch (err) {
+    if (err.name === "InvalidStateError") {
+      console.error("Audio track ended error, re-requesting microphone access");
+      await requestMicrophoneAccess();
+      const newAudioTrack = localStream.getAudioTracks()[0];
+      localProducer = await sendTransport.produce({ track: newAudioTrack });
+      console.log("Mikrofon produce edildi (yeni track) =>", localProducer.id);
+    } else {
+      throw err;
+    }
+  }
 
   // 4) recvTransport
   const recvParams = await createTransport();
