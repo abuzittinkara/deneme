@@ -553,7 +553,7 @@ async function consumeProducer(producerId) {
 
 /*
   Odadan ayrıl => transportları kapat
-  (Artık localStream track.stop() yapmıyoruz => Firefox "track ended" sorununa karşı)
+  (Artık localStream track.stop() yapmıyoruz => Firefox "track ended" sorununa karşı) => Değiştirildi
 */
 function leaveRoomInternal() {
   if (localProducer) {
@@ -569,11 +569,14 @@ function leaveRoomInternal() {
     recvTransport = null;
   }
 
-  // localStream kapatmıyoruz => tekrar produce edebilmek için
-  // if (localStream) {
-  //   localStream.getTracks().forEach(t => t.stop());
-  //   localStream = null;
-  // }
+  // ARTIK localStream'i kapatıyoruz (Yeni Eklendi - track ended hatası önlemek)
+  if (localStream) {
+    localStream.getTracks().forEach(t => t.stop());
+    localStream = null;
+  }
+  // Device yeniden yüklensin - Yeni eklenen satırlar
+  deviceIsLoaded = false;
+  device = null;
 
   for (const cid in consumers) {
     stopVolumeAnalysis(cid);
