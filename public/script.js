@@ -568,7 +568,12 @@ function leaveRoomInternal() {
     a.srcObject = null;
   });
   remoteAudios = [];
-  console.log("leaveRoomInternal => SFU transportlar kapatıldı");
+  // Yeni: localStream'in tüm audio tracklerini durdurup null'a atıyoruz
+  if (localStream) {
+    localStream.getAudioTracks().forEach(track => track.stop());
+    localStream = null;
+  }
+  console.log("leaveRoomInternal => SFU transportlar kapatıldı ve localStream sıfırlandı");
 }
 
 /*
