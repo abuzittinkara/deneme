@@ -257,7 +257,7 @@ function initSocketEvents() {
         const buttonsDiv = document.createElement('div');
         buttonsDiv.classList.add('channel-user-buttons');
 
-        // Burada artık her kullanıcı için mic/deaf ikonlarını render edelim.
+        // Bu kısım: kullanıcının micEnabled ve selfDeafened durumlarını ikon olarak gösteriyor
         if (!u.micEnabled) {
           const micIcon = document.createElement('span');
           micIcon.classList.add('material-icons');
@@ -339,7 +339,7 @@ function initSocketEvents() {
     socket.emit('set-username', username);
   });
 
-  // Kullanıcı ses durumu değiştiğinde => icon güncelle
+  // Kullanıcı ses durumu değişikliği event'i
   socket.on('userAudioStateChanged', (data) => {
     // data: { userId, micEnabled, selfDeafened, roomId }
     if (data.roomId !== currentRoom) return;
@@ -402,7 +402,7 @@ async function startSfuFlow() {
     return;
   }
 
-  // 2) device.load: Eğer cihaz henüz load edilmediyse yap
+  // 2) device.load
   if (!deviceIsLoaded) {
     await device.load({ routerRtpCapabilities: transportParams.routerRtpCapabilities });
     deviceIsLoaded = true;
@@ -451,13 +451,13 @@ async function startSfuFlow() {
     await requestMicrophoneAccess();
   }
   let audioTrack = localStream.getAudioTracks()[0];
-  // clone => firefox track ended sorununa karşı
+  // firefox track ended sorununa karşı clone
   const clonedTrack = audioTrack.clone();
 
   try {
     localProducer = await sendTransport.produce({
       track: clonedTrack,
-      stopTracks: false // Producer kapansa dahi tarayıcının track.stop() yapmaması için
+      stopTracks: false
     });
     console.log("Mikrofon produce edildi =>", localProducer.id);
   } catch (err) {
@@ -500,11 +500,11 @@ async function startSfuFlow() {
     });
   });
 
-  // 5) Mevcut producer’ları tüket (consume)
+  // 5) Var olan producer’ları tüket (consume)
   const producers = await listProducers();
   console.log("Mevcut producerlar =>", producers);
   for (const prod of producers) {
-    // Kendi üretiminizi tüketmeyin.
+    // Kendi üretiminizi tüketmeyin
     if (prod.peerId === socket.id) {
       console.log("Kendi producer tespit edildi, tüketme yapılmayacak:", prod.id);
       continue;
@@ -514,6 +514,7 @@ async function startSfuFlow() {
   console.log("startSfuFlow => tamamlandı.");
 }
 
+// createTransport
 function createTransport() {
   return new Promise((resolve) => {
     socket.emit('createWebRtcTransport', {
@@ -525,6 +526,7 @@ function createTransport() {
   });
 }
 
+// listProducers
 function listProducers() {
   return new Promise((resolve) => {
     socket.emit('listProducers', {
@@ -536,6 +538,7 @@ function listProducers() {
   });
 }
 
+// consumeProducer
 async function consumeProducer(producerId) {
   if (!recvTransport) {
     console.warn("consumeProducer => recvTransport yok");
@@ -563,7 +566,7 @@ async function consumeProducer(producerId) {
     kind: consumeParams.kind,
     rtpParameters: consumeParams.rtpParameters
   });
-  // consumer.appData.peerId: Sunucu tarafında set ediliyorsa oradan, yoksa burada set edilebilir.
+  // consumer.appData.peerId: Sunucu tarafında tanımlanan peerId
   consumer.appData = { peerId: socket.id };
 
   consumers[consumer.id] = consumer;
@@ -577,7 +580,7 @@ async function consumeProducer(producerId) {
 
   audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
 
-  // Ses dalgası analizini başlat
+  // Ses dalgalanma analizi
   startVolumeAnalysis(audioEl.srcObject, consumer.appData.peerId);
 
   console.log("Yeni consumer =>", consumer.id);
@@ -645,6 +648,9 @@ function leaveRoomInternal() {
     recvTransport = null;
   }
 
+  // localStream track'larını durdurmuyoruz, yeniden produce edebilmek için
+  // (İhtiyaç durumuna göre durdurabilirsiniz.)
+
   for (const cid in consumers) {
     stopVolumeAnalysis(cid);
   }
@@ -708,7 +714,7 @@ async function requestMicrophoneAccess() {
     applyAudioStates();
     startVolumeAnalysis(stream, socket.id);
 
-    // Var olan tüm remote audio elementlerini (kullanıcı sağır değilse) oynatmaya çalışalım
+    // Kullanıcı sağır değilse, remoteAudios elemanlarını da yeniden oynatmayı deneyebilir
     remoteAudios.forEach(audioEl => {
       audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
     });
@@ -956,10 +962,25 @@ function initUIEvents() {
 }
 
 /*
-  Kullanıcı Mikrofon / Deaf => localProducer.track.enabled => sunucuya bildirme
+  Kullanıcı Mikrofon / Deaf => localStream track.enabled => sunucuya bildirme
 */
 function applyAudioStates() {
-  // UI buton görünümleri
+  if (localStream) {
+    localStream.getAudioTracks().forEach(track => {
+      track.enabled = micEnabled && !selfDeafened;
+    });
+  }
+
+  // Mikrofon üretiyorsak => pause/resume
+  if (localProducer) {
+    if (micEnabled && !selfDeafened) {
+      localProducer.resume();
+    } else {
+      localProducer.pause();
+    }
+  }
+
+  // UI buton görünüm
   if (!micEnabled || selfDeafened) {
     micToggleButton.innerHTML = `<span class="material-icons">mic_off</span>`;
     micToggleButton.classList.add('btn-muted');
@@ -975,31 +996,12 @@ function applyAudioStates() {
     deafenToggleButton.classList.remove('btn-muted');
   }
 
-  // Local stream track'ini de güncelle (UI önizleme vb. için)
-  if (localStream) {
-    localStream.getAudioTracks().forEach(track => {
-      track.enabled = micEnabled && !selfDeafened;
-    });
-  }
-
-  // **ÖNEMLİ**: localProducer varsa, track'i ve producer'ı duruma göre pause/resume yap
-  // (Burada localProducer.track.enabled'i de set ederek tarayıcı tarafında gerçekten sesi kapatıyoruz)
-  if (localProducer && localProducer.track) {
-    localProducer.track.enabled = micEnabled && !selfDeafened;
-
-    if (micEnabled && !selfDeafened) {
-      localProducer.resume();
-    } else {
-      localProducer.pause();
-    }
-  }
-
-  // Sağırlaştırma durumunda, tüm remote sesleri kapat
+  // Sağırsa, tüm remote audios'u da mute'la
   remoteAudios.forEach(audio => {
     audio.muted = selfDeafened;
   });
 
-  // Sunucuya bildirim
+  // Sunucuya durumu bildir
   socket.emit('audioStateChanged', { micEnabled, selfDeafened });
 }
 
@@ -1109,6 +1111,7 @@ function renderUsersInMainContent(usersArray) {
 
     const avatar = document.createElement('div');
     avatar.classList.add('user-card-avatar');
+    // avatar'a id
     avatar.id = `avatar-${u.id}`;
 
     const label = document.createElement('div');
