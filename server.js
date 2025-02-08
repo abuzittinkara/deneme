@@ -550,6 +550,9 @@ io.on('connection', (socket) => {
       if (!roomName) return;
       const trimmed = roomName.trim();
       if (!trimmed) return;
+      
+      // Eğer channelType gönderilmediyse default "text" olarak ayarla.
+      channelType = channelType || 'text';
 
       const groupDoc = await Group.findOne({ groupId });
       if (!groupDoc) return;
