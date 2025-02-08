@@ -194,26 +194,25 @@ function initSocketEvents() {
     roomsArray.forEach(roomObj => {
       const roomItem = document.createElement('div');
       roomItem.className = 'channel-item';
-  
+
       const channelHeader = document.createElement('div');
       channelHeader.className = 'channel-header';
-      // roomObj.type bilgisini createWaveIcon fonksiyonuna gönderiyoruz.
-      const icon = createWaveIcon(roomObj.type);
+      const icon = createWaveIcon();
       const textSpan = document.createElement('span');
       textSpan.textContent = roomObj.name;
       channelHeader.appendChild(icon);
       channelHeader.appendChild(textSpan);
-  
+
       const channelUsers = document.createElement('div');
       channelUsers.className = 'channel-users';
       channelUsers.id = `channel-users-${roomObj.id}`;
-  
+
       roomItem.appendChild(channelHeader);
       roomItem.appendChild(channelUsers);
-  
+
       roomItem.addEventListener('click', () => {
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
-  
+
         if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
           roomItem.classList.add('connected');
           return;
@@ -225,11 +224,10 @@ function initSocketEvents() {
         joinRoom(currentGroup, roomObj.id, roomObj.name);
         roomItem.classList.add('connected');
       });
-  
+
       roomListDiv.appendChild(roomItem);
     });
-  });  
-  
+  });
 
   // allChannelsData => channel-user listesi
   socket.on('allChannelsData', (channelsObj) => {
@@ -448,17 +446,15 @@ async function startSfuFlow() {
     });
   });
 
-  // Mikrofon track => clone + produce
+  // Mikrofon track => DOĞRUDAN orijinal track (klon yerine)
   if (!localStream) {
     await requestMicrophoneAccess();
   }
   let audioTrack = localStream.getAudioTracks()[0];
-  // firefox track ended sorununa karşı clone
-  const clonedTrack = audioTrack.clone();
 
   try {
     localProducer = await sendTransport.produce({
-      track: clonedTrack,
+      track: audioTrack,
       stopTracks: false
     });
     console.log("Mikrofon produce edildi =>", localProducer.id);
@@ -467,9 +463,8 @@ async function startSfuFlow() {
       console.error("Audio track ended error, tekrar mikrofon alınıyor...");
       await requestMicrophoneAccess();
       audioTrack = localStream.getAudioTracks()[0];
-      const newCloned = audioTrack.clone();
       localProducer = await sendTransport.produce({
-        track: newCloned,
+        track: audioTrack,
         stopTracks: false
       });
       console.log("Mikrofon produce edildi (yeni track) =>", localProducer.id);
@@ -790,8 +785,8 @@ function initUIEvents() {
   });
 
   showRegisterScreen.addEventListener('click', () => {
-    loginScreen.style.display = 'none';
-    registerScreen.style.display = 'block';
+    registerScreen.style.display = 'none';
+    loginScreen.style.display = 'block';
   });
   showLoginScreen.addEventListener('click', () => {
     registerScreen.style.display = 'none';
@@ -968,16 +963,10 @@ function initUIEvents() {
 }
 
 /*
-  Kullanıcı Mikrofon / Deaf => localStream track.enabled => sunucuya bildirme
+  Kullanıcı Mikrofon / Deaf => Sadece Producer’ı pause/resume ediyoruz.
 */
 function applyAudioStates() {
-  if (localStream) {
-    localStream.getAudioTracks().forEach(track => {
-      track.enabled = micEnabled && !selfDeafened;
-    });
-  }
-
-  // Mikrofon üretiyorsak => pause/resume
+  // BURADA track.enabled vs. yok, SADECE Producer durdurup/açıyoruz:
   if (localProducer) {
     if (micEnabled && !selfDeafened) {
       localProducer.resume();
@@ -1082,15 +1071,11 @@ function createUserItem(username, isOnline) {
   return userItem;
 }
 
-function createWaveIcon(type) {
+function createWaveIcon() {
   const icon = document.createElement('span');
   icon.classList.add('material-icons');
   icon.classList.add('channel-icon');
-  if (type === 'text') {
-    icon.textContent = 'tag';
-  } else {
-    icon.textContent = 'volume_up';
-  }
+  icon.textContent = 'volume_up';
   return icon;
 }
 
@@ -1184,5 +1169,3 @@ function updateCellBars(ping) {
   if (barsActive >= 3) cellBar3.classList.add('active');
   if (barsActive >= 4) cellBar4.classList.add('active');
 }
-
-
