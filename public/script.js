@@ -831,18 +831,22 @@ function initUIEvents() {
   document.getElementById('closeJoinGroupModal').addEventListener('click', () => {
     document.getElementById('joinGroupModal').style.display = 'none';
   });
+  // MODAL: Oda oluşturma - güncellendi: kanal türü seçimi eklendi.
   document.getElementById('modalCreateRoomBtn').addEventListener('click', () => {
     const rName = document.getElementById('modalRoomName').value.trim();
     if (!rName) {
       alert("Oda adı girin!");
       return;
     }
+    // Seçili kanal türünü oku (radio butonlardan)
+    const channelType = document.querySelector('input[name="channelType"]:checked').value;
     const grp = currentGroup || selectedGroup;
     if (!grp) {
       alert("Önce bir gruba katılın!");
       return;
     }
-    socket.emit('createRoom', { groupId: grp, roomName: rName });
+    // createRoom event'ine channelType bilgisini de gönderiyoruz
+    socket.emit('createRoom', { groupId: grp, roomName: rName, channelType: channelType });
     document.getElementById('roomModal').style.display = 'none';
   });
   document.getElementById('modalCloseRoomBtn').addEventListener('click', () => {
@@ -1174,3 +1178,5 @@ function updateCellBars(ping) {
   if (barsActive >= 3) cellBar3.classList.add('active');
   if (barsActive >= 4) cellBar4.classList.add('active');
 }
+
+

@@ -204,6 +204,13 @@
     <div class="modal-content">
       <h2>Oda Oluştur</h2>
       <input type="text" id="modalRoomName" class="input-text" placeholder="Oda Adı">
+      <div class="channel-type-options" style="margin-top: 1rem;">
+        <input type="radio" id="textChannel" name="channelType" value="text" checked>
+        <label for="textChannel">Metin Kanalı (Yazılı sohbet)</label>
+        <br>
+        <input type="radio" id="voiceChannel" name="channelType" value="voice">
+        <label for="voiceChannel">Ses Kanalı (Sesli sohbet)</label>
+      </div>
       <div class="modal-buttons">
         <button id="modalCreateRoomBtn" class="btn primary">Oluştur</button>
         <button id="modalCloseRoomBtn" class="btn secondary">Kapat</button>

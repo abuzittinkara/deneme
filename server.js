@@ -92,6 +92,7 @@ async function loadChannelsFromDB() {
       if (!groups[gId].rooms[ch.channelId]) {
         groups[gId].rooms[ch.channelId] = {
           name: ch.name,
+          type: ch.type,
           users: []
           // router, producers, consumers, transports => createRoom eventinde veya joinRoom'da oluşturulur
         };
@@ -543,7 +544,7 @@ io.on('connection', (socket) => {
   });
 
   // createRoom => Odayı oluştururken router da oluşturuyoruz
-  socket.on('createRoom', async ({ groupId, roomName }) => {
+  socket.on('createRoom', async ({ groupId, roomName, channelType }) => {
     try {
       if (!groups[groupId]) return;
       if (!roomName) return;
@@ -554,26 +555,37 @@ io.on('connection', (socket) => {
       if (!groupDoc) return;
 
       const roomId = uuidv4();
+      // Yeni Channel oluşturulurken channelType alanı ekleniyor:
       const newChannel = new Channel({
         channelId: roomId,
         name: trimmed,
         group: groupDoc._id,
+        type: channelType, // 'text' veya 'voice'
         users: []
       });
       await newChannel.save();
 
-      // SFU: Router oluştur
-      const router = await sfu.createRouter(roomId);
-
-      groups[groupId].rooms[roomId] = {
-        name: trimmed,
-        users: [],
-        router: router,
-        producers: {},
-        consumers: {},
-        transports: {}
-      };
-      console.log(`Yeni oda: group=${groupId}, room=${roomId}, name=${trimmed}`);
+      if (channelType === 'voice') {
+        // SFU: Router oluştur (sadece sesli kanal için)
+        const router = await sfu.createRouter(roomId);
+        groups[groupId].rooms[roomId] = {
+          name: trimmed,
+          type: channelType,
+          users: [],
+          router: router,
+          producers: {},
+          consumers: {},
+          transports: {}
+        };
+      } else {
+        // Metin kanalı için SFU tarafı gerekli değil
+        groups[groupId].rooms[roomId] = {
+          name: trimmed,
+          type: channelType,
+          users: []
+        };
+      }
+      console.log(`Yeni oda: group=${groupId}, room=${roomId}, name=${trimmed}, type=${channelType}`);
 
       broadcastRoomsListToGroup(groupId);
       broadcastAllChannelsData(groupId);
@@ -608,9 +620,9 @@ io.on('connection', (socket) => {
       removeUserFromAllGroupsAndRooms(socket);
     }
 
-    // SFU => router yoksa oluştur
+    // Kanal türüne göre: yalnızca sesli kanal için SFU router oluştur
     const rmObj = groups[groupId].rooms[roomId];
-    if (!rmObj.router) {
+    if (rmObj.type === 'voice' && !rmObj.router) {
       console.log(`joinRoom => oda ${roomId} için router yok, şimdi oluşturuyoruz...`);
       const router = await sfu.createRouter(roomId);
       rmObj.router = router;
