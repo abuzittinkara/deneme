@@ -339,6 +339,39 @@ function initSocketEvents() {
     socket.emit('set-username', username);
   });
 
+  // ─── EK: Kullanıcı ses durumu değişikliği event'i ─────────────────────────────
+  socket.on('userAudioStateChanged', (data) => {
+    // data: { userId, micEnabled, selfDeafened, roomId }
+    if (data.roomId !== currentRoom) return;
+    const avatarElem = document.getElementById(`avatar-${data.userId}`);
+    if (avatarElem) {
+      const userRow = avatarElem.closest('.channel-user');
+      if (userRow) {
+        const buttonsDiv = userRow.querySelector('.channel-user-buttons');
+        if (buttonsDiv) {
+          buttonsDiv.innerHTML = '';
+          if (!data.micEnabled) {
+            const micIcon = document.createElement('span');
+            micIcon.classList.add('material-icons');
+            micIcon.style.color = '#c61884';
+            micIcon.style.fontSize = '18px';
+            micIcon.textContent = 'mic_off';
+            buttonsDiv.appendChild(micIcon);
+          }
+          if (data.selfDeafened) {
+            const deafIcon = document.createElement('span');
+            deafIcon.classList.add('material-icons');
+            deafIcon.style.color = '#c61884';
+            deafIcon.style.fontSize = '18px';
+            deafIcon.textContent = 'headset_off';
+            buttonsDiv.appendChild(deafIcon);
+          }
+        }
+      }
+    }
+  });
+  // ─────────────────────────────────────────────────────────────────────────────
+
   // newProducer => consume (kendi producer'ınızı tüketmeyin)
   socket.on('newProducer', ({ producerId }) => {
     console.log("newProducer =>", producerId);
