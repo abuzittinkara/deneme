@@ -256,7 +256,8 @@ function initSocketEvents() {
 
         const buttonsDiv = document.createElement('div');
         buttonsDiv.classList.add('channel-user-buttons');
-        // **Değişiklik Başlangıcı: u.id === socket.id koşulunu kaldırdım, böylece tüm kullanıcılar için durum ikonu gösterilecek**
+
+        // Burada artık her kullanıcı için mic/deaf ikonlarını render edelim.
         if (!u.micEnabled) {
           const micIcon = document.createElement('span');
           micIcon.classList.add('material-icons');
@@ -273,7 +274,6 @@ function initSocketEvents() {
           deafIcon.textContent = 'headset_off';
           buttonsDiv.appendChild(deafIcon);
         }
-        // **Değişiklik Sonu**
 
         userRow.appendChild(leftDiv);
         userRow.appendChild(buttonsDiv);
@@ -339,7 +339,7 @@ function initSocketEvents() {
     socket.emit('set-username', username);
   });
 
-  // ─── EK: Kullanıcı ses durumu değişikliği event'i ─────────────────────────────
+  // Kullanıcı ses durumu değiştiğinde => icon güncelle
   socket.on('userAudioStateChanged', (data) => {
     // data: { userId, micEnabled, selfDeafened, roomId }
     if (data.roomId !== currentRoom) return;
@@ -370,9 +370,8 @@ function initSocketEvents() {
       }
     }
   });
-  // ─────────────────────────────────────────────────────────────────────────────
 
-  // newProducer => consume (kendi producer'ınızı tüketmeyin)
+  // newProducer => consume
   socket.on('newProducer', ({ producerId }) => {
     console.log("newProducer =>", producerId);
     if (!recvTransport) {
@@ -515,7 +514,6 @@ async function startSfuFlow() {
   console.log("startSfuFlow => tamamlandı.");
 }
 
-// createTransport
 function createTransport() {
   return new Promise((resolve) => {
     socket.emit('createWebRtcTransport', {
@@ -527,7 +525,6 @@ function createTransport() {
   });
 }
 
-// listProducers
 function listProducers() {
   return new Promise((resolve) => {
     socket.emit('listProducers', {
@@ -539,7 +536,6 @@ function listProducers() {
   });
 }
 
-// consumeProducer
 async function consumeProducer(producerId) {
   if (!recvTransport) {
     console.warn("consumeProducer => recvTransport yok");
@@ -567,27 +563,21 @@ async function consumeProducer(producerId) {
     kind: consumeParams.kind,
     rtpParameters: consumeParams.rtpParameters
   });
-  // consumer.appData.peerId: Düzenleme: Burada consumer.id yerine socket.id (yani üreticinin peerId’si) kullanılmalı.
+  // consumer.appData.peerId: Sunucu tarafında set ediliyorsa oradan, yoksa burada set edilebilir.
   consumer.appData = { peerId: socket.id };
 
-  // (Sunucu tarafında ilgili consumer bilgileri de update ediliyorsa, consumer.appData.peerId sunucu üzerinden gönderilebilir.)
-
-  // Remote consumers koleksiyonuna ekle (örn: rmObj.consumers varsa)
-  // Burada örnek olarak global consumers nesnesine ekleyelim:
   consumers[consumer.id] = consumer;
 
   const { track } = consumer;
   const audioEl = document.createElement('audio');
   audioEl.srcObject = new MediaStream([track]);
   audioEl.autoplay = true;
-  // Düzenleme: dataset.peerId olarak consumer.appData.peerId kullanıyoruz
   audioEl.dataset.peerId = consumer.appData.peerId;
   remoteAudios.push(audioEl);
 
   audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
 
-  // Düzenleme: startVolumeAnalysis fonksiyonuna consumer.appData.peerId parametresini gönderiyoruz,
-  // böylece ilgili avatar id (avatar-{socket.id}) güncellenir.
+  // Ses dalgası analizini başlat
   startVolumeAnalysis(audioEl.srcObject, consumer.appData.peerId);
 
   console.log("Yeni consumer =>", consumer.id);
@@ -640,7 +630,6 @@ function stopVolumeAnalysis(userId) {
 
 /*
   Odadan ayrıl => transportları kapat
-  (Artık localStream track.stop() yapmıyoruz => tekrar produce edebilmek için)
 */
 function leaveRoomInternal() {
   if (localProducer) {
@@ -655,12 +644,6 @@ function leaveRoomInternal() {
     recvTransport.close();
     recvTransport = null;
   }
-
-  // localStream kapatmıyoruz => tekrar produce edebilmek için
-  // if (localStream) {
-  //   localStream.getTracks().forEach(t => t.stop());
-  //   localStream = null;
-  // }
 
   for (const cid in consumers) {
     stopVolumeAnalysis(cid);
@@ -973,24 +956,10 @@ function initUIEvents() {
 }
 
 /*
-  Kullanıcı Mikrofon / Deaf => localStream track.enabled => sunucuya bildirme
+  Kullanıcı Mikrofon / Deaf => localProducer.track.enabled => sunucuya bildirme
 */
 function applyAudioStates() {
-  if (localStream) {
-    localStream.getAudioTracks().forEach(track => {
-      track.enabled = micEnabled && !selfDeafened;
-    });
-  }
-
-  // EK: Eğer localProducer varsa, mikrofon durumu değişimine göre gönderimi pause/resume yapıyoruz.
-  if (localProducer) {
-    if (micEnabled && !selfDeafened) {
-      localProducer.resume();
-    } else {
-      localProducer.pause();
-    }
-  }
-
+  // UI buton görünümleri
   if (!micEnabled || selfDeafened) {
     micToggleButton.innerHTML = `<span class="material-icons">mic_off</span>`;
     micToggleButton.classList.add('btn-muted');
@@ -1006,11 +975,31 @@ function applyAudioStates() {
     deafenToggleButton.classList.remove('btn-muted');
   }
 
-  // Remote sesleri kapatalım mı?
+  // Local stream track'ini de güncelle (UI önizleme vb. için)
+  if (localStream) {
+    localStream.getAudioTracks().forEach(track => {
+      track.enabled = micEnabled && !selfDeafened;
+    });
+  }
+
+  // **ÖNEMLİ**: localProducer varsa, track'i ve producer'ı duruma göre pause/resume yap
+  // (Burada localProducer.track.enabled'i de set ederek tarayıcı tarafında gerçekten sesi kapatıyoruz)
+  if (localProducer && localProducer.track) {
+    localProducer.track.enabled = micEnabled && !selfDeafened;
+
+    if (micEnabled && !selfDeafened) {
+      localProducer.resume();
+    } else {
+      localProducer.pause();
+    }
+  }
+
+  // Sağırlaştırma durumunda, tüm remote sesleri kapat
   remoteAudios.forEach(audio => {
     audio.muted = selfDeafened;
   });
 
+  // Sunucuya bildirim
   socket.emit('audioStateChanged', { micEnabled, selfDeafened });
 }
 
@@ -1120,8 +1109,6 @@ function renderUsersInMainContent(usersArray) {
 
     const avatar = document.createElement('div');
     avatar.classList.add('user-card-avatar');
-
-    // Her kullanıcının avatarına id olarak "avatar-{kullanıcı id}" veriyoruz.
     avatar.id = `avatar-${u.id}`;
 
     const label = document.createElement('div');
