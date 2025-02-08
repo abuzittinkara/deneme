@@ -982,6 +982,15 @@ function applyAudioStates() {
     });
   }
 
+  // EK: Eğer localProducer varsa, mikrofon durumu değişimine göre gönderimi pause/resume yapıyoruz.
+  if (localProducer) {
+    if (micEnabled && !selfDeafened) {
+      localProducer.resume();
+    } else {
+      localProducer.pause();
+    }
+  }
+
   if (!micEnabled || selfDeafened) {
     micToggleButton.innerHTML = `<span class="material-icons">mic_off</span>`;
     micToggleButton.classList.add('btn-muted');
