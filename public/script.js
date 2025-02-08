@@ -228,7 +228,7 @@ function initSocketEvents() {
   
       roomListDiv.appendChild(roomItem);
     });
-  });
+  });  
   
 
   // allChannelsData => channel-user listesi
