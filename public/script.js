@@ -256,24 +256,24 @@ function initSocketEvents() {
 
         const buttonsDiv = document.createElement('div');
         buttonsDiv.classList.add('channel-user-buttons');
-        if (u.id === socket.id) {
-          if (!u.micEnabled) {
-            const micIcon = document.createElement('span');
-            micIcon.classList.add('material-icons');
-            micIcon.style.color = '#c61884';
-            micIcon.style.fontSize = '18px';
-            micIcon.textContent = 'mic_off';
-            buttonsDiv.appendChild(micIcon);
-          }
-          if (u.selfDeafened) {
-            const deafIcon = document.createElement('span');
-            deafIcon.classList.add('material-icons');
-            deafIcon.style.color = '#c61884';
-            deafIcon.style.fontSize = '18px';
-            deafIcon.textContent = 'headset_off';
-            buttonsDiv.appendChild(deafIcon);
-          }
+        // **Değişiklik Başlangıcı: u.id === socket.id koşulunu kaldırdım, böylece tüm kullanıcılar için durum ikonu gösterilecek**
+        if (!u.micEnabled) {
+          const micIcon = document.createElement('span');
+          micIcon.classList.add('material-icons');
+          micIcon.style.color = '#c61884';
+          micIcon.style.fontSize = '18px';
+          micIcon.textContent = 'mic_off';
+          buttonsDiv.appendChild(micIcon);
         }
+        if (u.selfDeafened) {
+          const deafIcon = document.createElement('span');
+          deafIcon.classList.add('material-icons');
+          deafIcon.style.color = '#c61884';
+          deafIcon.style.fontSize = '18px';
+          deafIcon.textContent = 'headset_off';
+          buttonsDiv.appendChild(deafIcon);
+        }
+        // **Değişiklik Sonu**
 
         userRow.appendChild(leftDiv);
         userRow.appendChild(buttonsDiv);
@@ -350,9 +350,6 @@ function initSocketEvents() {
   });
 }
 
-/*
-  SFU => startSfuFlow
-*/
 async function startSfuFlow() {
   console.log("startSfuFlow => group:", currentGroup, " room:", currentRoom);
 
@@ -537,23 +534,80 @@ async function consumeProducer(producerId) {
     kind: consumeParams.kind,
     rtpParameters: consumeParams.rtpParameters
   });
+  // consumer.appData.peerId: Düzenleme: Burada consumer.id yerine socket.id (yani üreticinin peerId’si) kullanılmalı.
+  consumer.appData = { peerId: socket.id };
+
+  // (Sunucu tarafında ilgili consumer bilgileri de update ediliyorsa, consumer.appData.peerId sunucu üzerinden gönderilebilir.)
+
+  // Remote consumers koleksiyonuna ekle (örn: rmObj.consumers varsa)
+  // Burada örnek olarak global consumers nesnesine ekleyelim:
+  consumers[consumer.id] = consumer;
+
   const { track } = consumer;
   const audioEl = document.createElement('audio');
   audioEl.srcObject = new MediaStream([track]);
   audioEl.autoplay = true;
-  audioEl.dataset.peerId = consumer.id;
+  // Düzenleme: dataset.peerId olarak consumer.appData.peerId kullanıyoruz
+  audioEl.dataset.peerId = consumer.appData.peerId;
   remoteAudios.push(audioEl);
 
   audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
 
-  startVolumeAnalysis(audioEl.srcObject, consumer.id);
-  consumers[consumer.id] = consumer;
+  // Düzenleme: startVolumeAnalysis fonksiyonuna consumer.appData.peerId parametresini gönderiyoruz,
+  // böylece ilgili avatar id (avatar-{socket.id}) güncellenir.
+  startVolumeAnalysis(audioEl.srcObject, consumer.appData.peerId);
+
   console.log("Yeni consumer =>", consumer.id);
+}
+
+function startVolumeAnalysis(stream, userId) {
+  stopVolumeAnalysis(userId);
+
+  const audioContext = new AudioContext();
+  const source = audioContext.createMediaStreamSource(stream);
+  const analyser = audioContext.createAnalyser();
+  analyser.fftSize = 512;
+  source.connect(analyser);
+
+  const dataArray = new Uint8Array(analyser.fftSize);
+  const interval = setInterval(() => {
+    analyser.getByteTimeDomainData(dataArray);
+
+    let sum = 0;
+    for (let i = 0; i < dataArray.length; i++) {
+      const val = (dataArray[i] - 128) / 128.0;
+      sum += Math.abs(val);
+    }
+    const average = sum / dataArray.length;
+    const avatarElem = document.getElementById(`avatar-${userId}`);
+    if (avatarElem) {
+      if (average > SPEAKING_THRESHOLD) {
+        avatarElem.classList.add('speaking');
+      } else {
+        avatarElem.classList.remove('speaking');
+      }
+    }
+  }, VOLUME_CHECK_INTERVAL);
+
+  audioAnalyzers[userId] = {
+    audioContext,
+    analyser,
+    dataArray,
+    interval
+  };
+}
+
+function stopVolumeAnalysis(userId) {
+  if (audioAnalyzers[userId]) {
+    clearInterval(audioAnalyzers[userId].interval);
+    audioAnalyzers[userId].audioContext.close().catch(() => {});
+    delete audioAnalyzers[userId];
+  }
 }
 
 /*
   Odadan ayrıl => transportları kapat
-  (Artık localStream track.stop() yapmıyoruz => Firefox "track ended" sorununa karşı) => Değiştirildi
+  (Artık localStream track.stop() yapmıyoruz => tekrar produce edebilmek için)
 */
 function leaveRoomInternal() {
   if (localProducer) {
@@ -569,14 +623,11 @@ function leaveRoomInternal() {
     recvTransport = null;
   }
 
-  // ARTIK localStream'i kapatıyoruz (Yeni Eklendi - track ended hatası önlemek)
-  if (localStream) {
-    localStream.getTracks().forEach(t => t.stop());
-    localStream = null;
-  }
-  // Device yeniden yüklensin - Yeni eklenen satırlar
-  deviceIsLoaded = false;
-  device = null;
+  // localStream kapatmıyoruz => tekrar produce edebilmek için
+  // if (localStream) {
+  //   localStream.getTracks().forEach(t => t.stop());
+  //   localStream = null;
+  // }
 
   for (const cid in consumers) {
     stopVolumeAnalysis(cid);
@@ -992,55 +1043,55 @@ function createUserItem(username, isOnline) {
   return userItem;
 }
 
-/*
-  Mikrofon vs. ses seviyesi -> local & remote
-*/
-function startVolumeAnalysis(stream, userId) {
-  stopVolumeAnalysis(userId);
-
-  const audioContext = new AudioContext();
-  const source = audioContext.createMediaStreamSource(stream);
-  const analyser = audioContext.createAnalyser();
-  analyser.fftSize = 512;
-  source.connect(analyser);
-
-  const dataArray = new Uint8Array(analyser.fftSize);
-  const interval = setInterval(() => {
-    analyser.getByteTimeDomainData(dataArray);
-
-    let sum = 0;
-    for (let i = 0; i < dataArray.length; i++) {
-      const val = (dataArray[i] - 128) / 128.0;
-      sum += Math.abs(val);
-    }
-    const average = sum / dataArray.length;
-    const avatarElem = document.getElementById(`avatar-${userId}`);
-    if (avatarElem) {
-      if (average > SPEAKING_THRESHOLD) {
-        avatarElem.classList.add('speaking');
-      } else {
-        avatarElem.classList.remove('speaking');
-      }
-    }
-  }, VOLUME_CHECK_INTERVAL);
-
-  audioAnalyzers[userId] = {
-    audioContext,
-    analyser,
-    dataArray,
-    interval
-  };
+function createWaveIcon() {
+  const icon = document.createElement('span');
+  icon.classList.add('material-icons');
+  icon.classList.add('channel-icon');
+  icon.textContent = 'volume_up';
+  return icon;
 }
 
-function stopVolumeAnalysis(userId) {
-  if (audioAnalyzers[userId]) {
-    clearInterval(audioAnalyzers[userId].interval);
-    audioAnalyzers[userId].audioContext.close().catch(() => {});
-    delete audioAnalyzers[userId];
+function renderUsersInMainContent(usersArray) {
+  const container = document.getElementById('channelUsersContainer');
+  if (!container) return;
+
+  container.innerHTML = '';
+  container.classList.remove(
+    'layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users'
+  );
+
+  if (usersArray.length === 1) {
+    container.classList.add('layout-1-user');
+  } else if (usersArray.length === 2) {
+    container.classList.add('layout-2-users');
+  } else if (usersArray.length === 3) {
+    container.classList.add('layout-3-users');
+  } else if (usersArray.length === 4) {
+    container.classList.add('layout-4-users');
+  } else {
+    container.classList.add('layout-n-users');
   }
+
+  usersArray.forEach(u => {
+    const card = document.createElement('div');
+    card.classList.add('user-card');
+
+    const avatar = document.createElement('div');
+    avatar.classList.add('user-card-avatar');
+
+    // Her kullanıcının avatarına id olarak "avatar-{kullanıcı id}" veriyoruz.
+    avatar.id = `avatar-${u.id}`;
+
+    const label = document.createElement('div');
+    label.classList.add('user-label');
+    label.textContent = u.username || '(İsimsiz)';
+
+    card.appendChild(avatar);
+    card.appendChild(label);
+    container.appendChild(card);
+  });
 }
 
-/* Kanal Durum Paneli => ping + bars */
 function showChannelStatusPanel() {
   channelStatusPanel.style.display = 'block';
   startPingInterval();
@@ -1090,50 +1141,4 @@ function updateCellBars(ping) {
   if (barsActive >= 2) cellBar2.classList.add('active');
   if (barsActive >= 3) cellBar3.classList.add('active');
   if (barsActive >= 4) cellBar4.classList.add('active');
-}
-
-function createWaveIcon() {
-  const icon = document.createElement('span');
-  icon.classList.add('material-icons');
-  icon.classList.add('channel-icon');
-  icon.textContent = 'volume_up';
-  return icon;
-}
-
-function renderUsersInMainContent(usersArray) {
-  const container = document.getElementById('channelUsersContainer');
-  if (!container) return;
-
-  container.innerHTML = '';
-  container.classList.remove(
-    'layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users'
-  );
-
-  if (usersArray.length === 1) {
-    container.classList.add('layout-1-user');
-  } else if (usersArray.length === 2) {
-    container.classList.add('layout-2-users');
-  } else if (usersArray.length === 3) {
-    container.classList.add('layout-3-users');
-  } else if (usersArray.length === 4) {
-    container.classList.add('layout-4-users');
-  } else {
-    container.classList.add('layout-n-users');
-  }
-
-  usersArray.forEach(u => {
-    const card = document.createElement('div');
-    card.classList.add('user-card');
-
-    const avatar = document.createElement('div');
-    avatar.classList.add('user-card-avatar');
-
-    const label = document.createElement('div');
-    label.classList.add('user-label');
-    label.textContent = u.username || '(İsimsiz)';
-
-    card.appendChild(avatar);
-    card.appendChild(label);
-    container.appendChild(card);
-  });
 }
