@@ -3,6 +3,9 @@
  * 
  * SFU için "joinRoom" içinde router yoksa oluşturma eklendi.
  **************************************/
+// .env'yi okuyabilmek için:
+require('dotenv').config();
+
 const http = require('http');
 const express = require('express');
 const socketIO = require('socket.io');
@@ -27,6 +30,7 @@ const io = socketIO(server, {
   wsEngine: WebSocket.Server
 });
 
+// .env içinde tanımlanmış MONGODB_URI varsa onu kullan, yoksa sabit URI'ya düş
 const uri = process.env.MONGODB_URI || "mongodb+srv://abuzorttin:HWZe7uK5yEAE@cluster0.vdrdy.mongodb.net/myappdb?retryWrites=true&w=majority";
 
 /**

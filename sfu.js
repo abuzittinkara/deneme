@@ -16,14 +16,14 @@ let nextWorkerIndex = 0;
 /**
  * İsterseniz Router'ları da ID bazında saklayabilirsiniz: routers[roomId] = ...
  */
-const routers = {}; 
+const routers = {};
 
 /**
  * createWorkers() => uygulama başlarken çağrılacak.
  */
 async function createWorkers() {
   // Sunucunuzda kaç çekirdek varsa (ör. 2 ise 2 worker vb.)
-  const cpuCores = 2; 
+  const cpuCores = 2;
   for (let i = 0; i < cpuCores; i++) {
     const worker = await mediasoup.createWorker({
       rtcMinPort: 10000,
@@ -85,11 +85,16 @@ function getRouter(roomId) {
  * createWebRtcTransport
  * 
  * Burada TURN sunucunuzu ekliyoruz => "iceServers"
+ * Değerler .env içindeki ANNOUNCED_IP, TURN_USERNAME, TURN_CREDENTIAL değişkenlerinden okunuyor.
  */
 async function createWebRtcTransport(router) {
   const transportOptions = {
     listenIps: [
-      { ip: '0.0.0.0', announcedIp: '31.57.154.104' }
+      {
+        ip: '0.0.0.0',
+        // .env'de ANNOUNCED_IP tanımlıysa onu kullan, yoksa 31.57.154.104
+        announcedIp: process.env.ANNOUNCED_IP || '31.57.154.104'
+      }
     ],
     enableUdp: true,
     enableTcp: true,
@@ -97,6 +102,7 @@ async function createWebRtcTransport(router) {
 
     /**
      * STUN/TURN sunucularını buraya ekliyoruz:
+     * .env'de TURN_USERNAME / TURN_CREDENTIAL tanımlanmadıysa varsayılan değerler kullanılır.
      */
     iceServers: [
       {
@@ -104,23 +110,23 @@ async function createWebRtcTransport(router) {
       },
       {
         urls: 'turn:global.relay.metered.ca:80',
-        username: '6975c20c80cb0d79f1e4a4b6',
-        credential: 'BCHrcOSfdcmZ/Dda'
+        username: process.env.TURN_USERNAME || '6975c20c80cb0d79f1e4a4b6',
+        credential: process.env.TURN_CREDENTIAL || 'BCHrcOSfdcmZ/Dda'
       },
       {
         urls: 'turn:global.relay.metered.ca:80?transport=tcp',
-        username: '6975c20c80cb0d79f1e4a4b6',
-        credential: 'BCHrcOSfdcmZ/Dda'
+        username: process.env.TURN_USERNAME || '6975c20c80cb0d79f1e4a4b6',
+        credential: process.env.TURN_CREDENTIAL || 'BCHrcOSfdcmZ/Dda'
       },
       {
         urls: 'turn:global.relay.metered.ca:443',
-        username: '6975c20c80cb0d79f1e4a4b6',
-        credential: 'BCHrcOSfdcmZ/Dda'
+        username: process.env.TURN_USERNAME || '6975c20c80cb0d79f1e4a4b6',
+        credential: process.env.TURN_CREDENTIAL || 'BCHrcOSfdcmZ/Dda'
       },
       {
         urls: 'turns:global.relay.metered.ca:443?transport=tcp',
-        username: '6975c20c80cb0d79f1e4a4b6',
-        credential: 'BCHrcOSfdcmZ/Dda'
+        username: process.env.TURN_USERNAME || '6975c20c80cb0d79f1e4a4b6',
+        credential: process.env.TURN_CREDENTIAL || 'BCHrcOSfdcmZ/Dda'
       }
     ]
   };
