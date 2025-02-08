@@ -252,7 +252,8 @@ function sendRoomsListToUser(socketId, groupId) {
   const groupObj = groups[groupId];
   const roomArray = Object.keys(groupObj.rooms).map(rId => ({
     id: rId,
-    name: groupObj.rooms[rId].name
+    name: groupObj.rooms[rId].name,
+    type: groupObj.rooms[rId].type   // EK: Kanalın türünü de gönderiyoruz.
   }));
   io.to(socketId).emit('roomsList', roomArray);
 }

@@ -194,25 +194,26 @@ function initSocketEvents() {
     roomsArray.forEach(roomObj => {
       const roomItem = document.createElement('div');
       roomItem.className = 'channel-item';
-
+  
       const channelHeader = document.createElement('div');
       channelHeader.className = 'channel-header';
-      const icon = createWaveIcon();
+      // roomObj.type bilgisini createWaveIcon fonksiyonuna gönderiyoruz.
+      const icon = createWaveIcon(roomObj.type);
       const textSpan = document.createElement('span');
       textSpan.textContent = roomObj.name;
       channelHeader.appendChild(icon);
       channelHeader.appendChild(textSpan);
-
+  
       const channelUsers = document.createElement('div');
       channelUsers.className = 'channel-users';
       channelUsers.id = `channel-users-${roomObj.id}`;
-
+  
       roomItem.appendChild(channelHeader);
       roomItem.appendChild(channelUsers);
-
+  
       roomItem.addEventListener('click', () => {
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
-
+  
         if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
           roomItem.classList.add('connected');
           return;
@@ -224,10 +225,11 @@ function initSocketEvents() {
         joinRoom(currentGroup, roomObj.id, roomObj.name);
         roomItem.classList.add('connected');
       });
-
+  
       roomListDiv.appendChild(roomItem);
     });
   });
+  
 
   // allChannelsData => channel-user listesi
   socket.on('allChannelsData', (channelsObj) => {
@@ -1080,11 +1082,15 @@ function createUserItem(username, isOnline) {
   return userItem;
 }
 
-function createWaveIcon() {
+function createWaveIcon(type) {
   const icon = document.createElement('span');
   icon.classList.add('material-icons');
   icon.classList.add('channel-icon');
-  icon.textContent = 'volume_up';
+  if (type === 'text') {
+    icon.textContent = 'tag';
+  } else {
+    icon.textContent = 'volume_up';
+  }
   return icon;
 }
 
