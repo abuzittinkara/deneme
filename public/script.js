@@ -446,17 +446,15 @@ async function startSfuFlow() {
     });
   });
 
-  // Mikrofon track => clone + produce
+  // Mikrofon track => DOĞRUDAN orijinal track (klon yerine)
   if (!localStream) {
     await requestMicrophoneAccess();
   }
   let audioTrack = localStream.getAudioTracks()[0];
-  // firefox track ended sorununa karşı clone
-  const clonedTrack = audioTrack.clone();
 
   try {
     localProducer = await sendTransport.produce({
-      track: clonedTrack,
+      track: audioTrack,
       stopTracks: false
     });
     console.log("Mikrofon produce edildi =>", localProducer.id);
@@ -465,9 +463,8 @@ async function startSfuFlow() {
       console.error("Audio track ended error, tekrar mikrofon alınıyor...");
       await requestMicrophoneAccess();
       audioTrack = localStream.getAudioTracks()[0];
-      const newCloned = audioTrack.clone();
       localProducer = await sendTransport.produce({
-        track: newCloned,
+        track: audioTrack,
         stopTracks: false
       });
       console.log("Mikrofon produce edildi (yeni track) =>", localProducer.id);
@@ -966,14 +963,10 @@ function initUIEvents() {
 }
 
 /*
-  Kullanıcı Mikrofon / Deaf => localStream track.enabled => sunucuya bildirme
+  Kullanıcı Mikrofon / Deaf => Sadece Producer’ı pause/resume ediyoruz.
 */
 function applyAudioStates() {
-  if (localStream) {
-    localStream.getAudioTracks().forEach(track => {
-      track.enabled = micEnabled && !selfDeafened;
-    });
-  }
+  // (Eskiden localStream track.enabled ayarı vardı, onu kaldırdık.)
 
   // Mikrofon üretiyorsak => pause/resume
   if (localProducer) {
@@ -1178,5 +1171,3 @@ function updateCellBars(ping) {
   if (barsActive >= 3) cellBar3.classList.add('active');
   if (barsActive >= 4) cellBar4.classList.add('active');
 }
-
-
