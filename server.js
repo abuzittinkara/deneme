@@ -17,7 +17,7 @@ const { v4: uuidv4 } = require('uuid'); // UUID
 const User = require('./models/User');
 const Group = require('./models/Group');
 const Channel = require('./models/Channel');
-const Message = require('./models/Message'); // EK: Mesaj modelini dahil ettik
+const Message = require('./models/Message'); // EK: Mesaj modeli
 const sfu = require('./sfu'); // Mediasoup SFU fonksiyonları
 
 const app = express();
@@ -123,7 +123,7 @@ function getAllChannelsData(groupId) {
     }));
     channelsObj[roomId] = {
       name: rm.name,
-      type: rm.type, // EK: type bilgisi
+      type: rm.type,
       users: userListWithAudio
     };
   });
@@ -247,7 +247,6 @@ function sendAllChannelsDataToOneUser(socketId, groupId) {
 function sendRoomsListToUser(socketId, groupId) {
   if (!groups[groupId]) return;
   const groupObj = groups[groupId];
-  // Her room için name, id, type
   const roomArray = Object.keys(groupObj.rooms).map(rId => ({
     id: rId,
     name: groupObj.rooms[rId].name,
@@ -286,51 +285,6 @@ async function sendGroupsListToUser(socketId) {
   io.to(socketId).emit('groupsList', userGroups);
 }
 
-/* EK: Text kanalına katılma ve mesaj geçmişini yükleme */
-socket.on('joinTextChannel', async ({ groupId, roomId }) => {
-  try {
-    const channelDoc = await Channel.findOne({ channelId: roomId });
-    if (!channelDoc) return;
-    socket.join(roomId); // Text kanalı için odasına katıl
-    const messages = await Message.find({ channel: channelDoc._id })
-                                  .sort({ timestamp: 1 })
-                                  .populate('user')
-                                  .lean();
-    socket.emit('textHistory', messages);
-  } catch (err) {
-    console.error("joinTextChannel error:", err);
-  }
-});
-
-/* EK: Gelen text mesajlarını kaydetme ve yayma */
-socket.on('textMessage', async ({ groupId, roomId, message, username }) => {
-  try {
-    const channelDoc = await Channel.findOne({ channelId: roomId });
-    if (!channelDoc) return;
-    const userDoc = await User.findOne({ username: username });
-    if (!userDoc) return;
-    const newMsg = new Message({
-      channel: channelDoc._id,
-      user: userDoc._id,
-      content: message,
-      timestamp: new Date()
-    });
-    await newMsg.save();
-    // Sadece ilgili text kanal odasındaki socketlere gönder (broadcast; gönderen kendi arayüzünde ekliyor)
-    socket.broadcast.to(roomId).emit('newTextMessage', {
-      channelId: roomId,
-      message: {
-        content: newMsg.content,
-        username: username,
-        timestamp: newMsg.timestamp
-      }
-    });
-  } catch (err) {
-    console.error("textMessage error:", err);
-  }
-});
-
-/* Socket.IO */
 io.on('connection', (socket) => {
   console.log('Kullanıcı bağlandı:', socket.id);
   users[socket.id] = {
@@ -916,7 +870,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // EK: Text kanal mesaj geçmişi ve gerçek zamanlı gönderim
+  /* EK: Text kanalına katılma ve mesaj geçmişini yükleme */
   socket.on('joinTextChannel', async ({ groupId, roomId }) => {
     try {
       const channelDoc = await Channel.findOne({ channelId: roomId });
@@ -932,6 +886,7 @@ io.on('connection', (socket) => {
     }
   });
 
+  /* EK: Gelen text mesajlarını kaydetme ve yayma */
   socket.on('textMessage', async ({ groupId, roomId, message, username }) => {
     try {
       const channelDoc = await Channel.findOne({ channelId: roomId });
@@ -973,7 +928,6 @@ io.on('connection', (socket) => {
   });
 });
 
-// Sunucuyu başlat
 const PORT = process.env.PORT || 80;
 server.listen(PORT, () => {
   console.log(`Sunucu çalışıyor: http://localhost:${PORT}`);
