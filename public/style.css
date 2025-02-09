@@ -517,7 +517,7 @@ body {
 #textMessages {
   flex: 1;
   overflow-y: auto;
-  padding: 1rem; /* İstediğiniz padding değerini ayarlayabilirsiniz */
+  padding: 0;     /* Eğer arzu ederseniz burada az bir padding da verebilirsiniz */
   box-sizing: border-box;
 }
 
