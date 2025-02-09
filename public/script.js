@@ -105,8 +105,18 @@ const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
 const settingsButton = document.getElementById('settingsButton');
 
+/* 
+   Metin kanalındaki mesaj kutusu + Gönder butonu 
+   (isteğe göre event eklenecek)
+*/
+const textChatInputBar = document.getElementById('textChatInputBar');
+const textChannelMessageInput = document.getElementById('textChannelMessageInput');
+const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
+
+/*
+  DOMContentLoaded => Socket.IO başlatalım + eventleri tanımlayalım
+*/
 window.addEventListener('DOMContentLoaded', () => {
-  // Socket.IO bağlantısı
   socket = io("https://fisqos.com.tr", { transports: ['websocket'] });
   console.log("Socket connected =>", socket.id);
 
@@ -186,7 +196,7 @@ function initSocketEvents() {
   });
 
   /**
-   * roomsList => artık "type" bilgisi var
+   * roomsList => "type" bilgisi var
    */
   socket.on('roomsList', (roomsArray) => {
     roomListDiv.innerHTML = '';
@@ -200,7 +210,7 @@ function initSocketEvents() {
       // Icon => voice vs text
       let icon;
       if (roomObj.type === 'voice') {
-        icon = createWaveIcon(); // volume_up
+        icon = createWaveIcon(); // "volume_up"
       } else {
         icon = document.createElement('span');
         icon.classList.add('material-icons', 'channel-icon');
@@ -220,28 +230,31 @@ function initSocketEvents() {
       roomItem.appendChild(channelHeader);
       roomItem.appendChild(channelUsers);
 
-      // Tıklanınca: metin kanalında => sadece "browse" (isim göstermek)
-      //             sesli kanal => join
+      // Metin => sadece başlığı + input box'ı göster
+      // Sesli => join
       roomItem.addEventListener('click', () => {
         if (roomObj.type === 'text') {
-          // Metin kanalı => sadece başlığı göster
           console.log(`Text channel clicked => ${roomObj.name}`);
           document.getElementById('selectedChannelTitle').textContent = roomObj.name;
 
-          // Kanaldan ayrıl butonu vs. gizlemek için:
+          // Mesaj yazma kutusunu göster
+          textChatInputBar.style.display = 'flex';
+
+          // Kanaldan ayrıl butonu vs. gizlemek
           hideChannelStatusPanel();
 
-          // Kullanıcı kartlarını da temizliyoruz (metin kanalda spawn yok):
+          // Kullanıcı kartlarını temizlemek
           const container = document.getElementById('channelUsersContainer');
           container.innerHTML = '';
           container.classList.remove(
             'layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users'
           );
-
-          return; // => voice join yok
+          return;
         }
 
         // Voice channel
+        textChatInputBar.style.display = 'none'; // metin kutusunu gizle
+
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
 
         if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
@@ -641,9 +654,8 @@ function leaveRoomInternal() {
   console.log("leaveRoomInternal => SFU transportlar kapatıldı");
 }
 
-// Metin kanala tıklandığında => "selectedChannelTitle" = roomObj.name (yukarıda yapıyoruz)
-// Voice kanala tıklandığında => joinRoom => selectedChannelTitle = roomName
-
+// Metin kanala tıklandığında => "selectedChannelTitle" = ...
+// Sesli kanala tıklandığında => joinRoom => ...
 function joinRoom(groupId, roomId, roomName) {
   socket.emit('joinRoom', { groupId, roomId });
   document.getElementById('selectedChannelTitle').textContent = roomName;
@@ -756,8 +768,8 @@ function initUIEvents() {
   });
 
   showRegisterScreen.addEventListener('click', () => {
-    loginScreen.style.display = 'none';
-    registerScreen.style.display = 'block';
+    registerScreen.style.display = 'none';
+    loginScreen.style.display = 'block';
   });
   showLoginScreen.addEventListener('click', () => {
     registerScreen.style.display = 'none';
@@ -928,6 +940,14 @@ function initUIEvents() {
   settingsButton.addEventListener('click', () => {
     // ...
   });
+
+  // Örnek: "Gönder" butonuna tıklama -> console.log
+  sendTextMessageBtn.addEventListener('click', () => {
+    const msg = textChannelMessageInput.value.trim();
+    if (!msg) return;
+    console.log("Text channel message:", msg);
+    textChannelMessageInput.value = '';
+  });
 }
 
 /*
@@ -975,6 +995,7 @@ function applyAudioStates() {
 }
 
 function updateUserList(data) {
+  const userListDiv = document.getElementById('userList');
   userListDiv.innerHTML = '';
 
   const onlineTitle = document.createElement('div');

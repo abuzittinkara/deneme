@@ -151,6 +151,19 @@
       <div id="channelContentArea" class="channel-content-area">
         <!-- Buraya kullanıcıların kartları gelecek -->
         <div id="channelUsersContainer" class="channel-users-container"></div>
+
+        <!-- YENİ EKLENEN: Metin kanallarında görünecek mesaj yazma kutusu -->
+        <div id="textChatInputBar" class="text-chat-input-bar" style="display:none;">
+          <input
+            type="text"
+            id="textChannelMessageInput"
+            class="input-text"
+            placeholder="Mesajınızı yazın..."
+          />
+          <button id="sendTextMessageBtn" class="btn primary" style="margin-left:8px;">
+            Gönder
+          </button>
+        </div>
       </div>
     </div>
 

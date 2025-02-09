@@ -260,14 +260,6 @@ body {
   background-color: #3d3d3d;
 }
 
-/* 
-   .channel-item.connected {
-     background-color: #3d3d3d;
-     padding: 7px 12px 10px 12px;
-   }
-   (KALDIRILDI - çerçeve gösterimini iptal ediyoruz)
-*/
-
 /* channel-header */
 .channel-header {
   display: flex;
@@ -518,6 +510,8 @@ body {
   padding: 1rem;
   box-sizing: border-box;
   overflow: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Sağ panel => 200px */
@@ -758,4 +752,18 @@ body {
 .layout-n-users .user-card {
   width: 100%;
   height: auto;
+}
+
+/* Yazılı kanal mesaj girişi => alt */
+.text-chat-input-bar {
+  display: flex;
+  align-items: center;
+  background: #2d2d2d;
+  border-top: 1px solid #444;
+  padding: 0.5rem;
+}
+.text-chat-input-bar .input-text {
+  margin: 0; /* override margin */
+  width: 100%;
+  max-width: none;
 }
