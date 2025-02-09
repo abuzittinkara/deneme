@@ -106,6 +106,7 @@ const deafenToggleButton = document.getElementById('deafenToggleButton');
 const settingsButton = document.getElementById('settingsButton');
 
 window.addEventListener('DOMContentLoaded', () => {
+  // Socket.IO bağlantısı
   socket = io("https://fisqos.com.tr", { transports: ['websocket'] });
   console.log("Socket connected =>", socket.id);
 
@@ -168,6 +169,7 @@ function initSocketEvents() {
         selectedGroup = groupObj.id;
         currentGroup = null;
         groupTitle.textContent = groupObj.name;
+
         socket.emit('browseGroup', groupObj.id);
 
         if (groupObj.owner === username) {
@@ -184,7 +186,7 @@ function initSocketEvents() {
   });
 
   /**
-   * roomsList => Artık "type" bilgisi de var
+   * roomsList => artık "type" bilgisi var
    */
   socket.on('roomsList', (roomsArray) => {
     roomListDiv.innerHTML = '';
@@ -195,17 +197,14 @@ function initSocketEvents() {
       const channelHeader = document.createElement('div');
       channelHeader.className = 'channel-header';
 
-      // Icon
+      // Icon => voice vs text
       let icon;
       if (roomObj.type === 'voice') {
-        // "volume_up"
-        icon = createWaveIcon();
+        icon = createWaveIcon(); // volume_up
       } else {
-        // "text" => chat icon vs.
         icon = document.createElement('span');
-        icon.classList.add('material-icons');
-        icon.classList.add('channel-icon');
-        icon.textContent = 'chat';
+        icon.classList.add('material-icons', 'channel-icon');
+        icon.textContent = 'chat'; // metin simgesi
       }
 
       const textSpan = document.createElement('span');
@@ -221,16 +220,28 @@ function initSocketEvents() {
       roomItem.appendChild(channelHeader);
       roomItem.appendChild(channelUsers);
 
-      // Oda tıklandığında => eğer sesli kanalsa join, metinse sadece browse
+      // Tıklanınca: metin kanalında => sadece "browse" (isim göstermek)
+      //             sesli kanal => join
       roomItem.addEventListener('click', () => {
-        // Metin kanalı => Sadece "browse"
         if (roomObj.type === 'text') {
-          console.log(`Text channel clicked => just browsing => ${roomObj.name}`);
-          // Burada isterseniz "metin sohbeti" arayüzü açabilirsiniz vs.
-          return;
+          // Metin kanalı => sadece başlığı göster
+          console.log(`Text channel clicked => ${roomObj.name}`);
+          document.getElementById('selectedChannelTitle').textContent = roomObj.name;
+
+          // Kanaldan ayrıl butonu vs. gizlemek için:
+          hideChannelStatusPanel();
+
+          // Kullanıcı kartlarını da temizliyoruz (metin kanalda spawn yok):
+          const container = document.getElementById('channelUsersContainer');
+          container.innerHTML = '';
+          container.classList.remove(
+            'layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users'
+          );
+
+          return; // => voice join yok
         }
 
-        // Voice kanalı => normal join
+        // Voice channel
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
 
         if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
@@ -277,7 +288,7 @@ function initSocketEvents() {
         const buttonsDiv = document.createElement('div');
         buttonsDiv.classList.add('channel-user-buttons');
 
-        // Bu kısım: kullanıcının micEnabled ve selfDeafened durumlarını ikon olarak gösteriyor
+        // mic / deafen
         if (!u.micEnabled) {
           const micIcon = document.createElement('span');
           micIcon.classList.add('material-icons');
@@ -353,11 +364,6 @@ function initSocketEvents() {
       hideChannelStatusPanel();
     }
     socket.emit('set-username', username);
-  });
-
-  // userAudioStateChanged => vs. (isteğe bağlı)
-  socket.on('userAudioStateChanged', (data) => {
-    // ...
   });
 
   // newProducer => consume
@@ -635,14 +641,15 @@ function leaveRoomInternal() {
   console.log("leaveRoomInternal => SFU transportlar kapatıldı");
 }
 
-// Kanala giriş => joinRoom
+// Metin kanala tıklandığında => "selectedChannelTitle" = roomObj.name (yukarıda yapıyoruz)
+// Voice kanala tıklandığında => joinRoom => selectedChannelTitle = roomName
+
 function joinRoom(groupId, roomId, roomName) {
   socket.emit('joinRoom', { groupId, roomId });
   document.getElementById('selectedChannelTitle').textContent = roomName;
   showChannelStatusPanel();
 }
 
-// Login
 function attemptLogin() {
   const usernameVal = loginUsernameInput.value.trim();
   const passwordVal = loginPasswordInput.value.trim();
@@ -677,7 +684,6 @@ async function requestMicrophoneAccess() {
     audioPermissionGranted = true;
 
     applyAudioStates();
-    // Benim mikrofonda local analiz => "avatar-{socket.id}"
     startVolumeAnalysis(localStream, socket.id);
 
     remoteAudios.forEach(audioEl => {
@@ -1086,6 +1092,7 @@ function renderUsersInMainContent(usersArray) {
   });
 }
 
+// Kanal Durum Paneli
 function showChannelStatusPanel() {
   channelStatusPanel.style.display = 'block';
   startPingInterval();
