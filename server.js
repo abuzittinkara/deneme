@@ -122,6 +122,7 @@ function getAllChannelsData(groupId) {
     }));
     channelsObj[roomId] = {
       name: rm.name,
+      type: rm.type, // EK: type da gönderebilirsiniz
       users: userListWithAudio
     };
   });
@@ -246,13 +247,18 @@ function sendAllChannelsDataToOneUser(socketId, groupId) {
   io.to(socketId).emit('allChannelsData', channelsObj);
 }
 
-/* Tek user'a => roomsList */
+/**
+ * Değişiklik: metin kanallarının da "type" bilgisini client'a göndermek için
+ * sendRoomsListToUser fonksiyonunu revize ediyoruz.
+ */
 function sendRoomsListToUser(socketId, groupId) {
   if (!groups[groupId]) return;
   const groupObj = groups[groupId];
+  // Her room için name, id, type
   const roomArray = Object.keys(groupObj.rooms).map(rId => ({
     id: rId,
-    name: groupObj.rooms[rId].name
+    name: groupObj.rooms[rId].name,
+    type: groupObj.rooms[rId].type
   }));
   io.to(socketId).emit('roomsList', roomArray);
 }
@@ -898,7 +904,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // *** CONSUME => producer.appData.peerId => producerPeerId
   socket.on('consume', async ({ groupId, roomId, transportId, producerId }, callback) => {
     try {
       const rmObj = groups[groupId]?.rooms[roomId];
@@ -912,17 +917,15 @@ io.on('connection', (socket) => {
       const producer = rmObj.producers?.[producerId];
       if (!producer) return callback({ error: "Producer bulunamadı" });
 
-      // sfu.consume (router, transport, producer)
+      // sfu.consume => (router, transport, producer)
       const consumer = await sfu.consume(router, transport, producer);
 
-      // Değişiklik => consumer.appData'ye producer'ı kimin ürettiğini koyuyoruz
       consumer.appData = { peerId: producer.appData.peerId };
 
       rmObj.consumers = rmObj.consumers || {};
       rmObj.consumers[consumer.id] = consumer;
 
       const { producerId: prId, id, kind, rtpParameters } = consumer;
-      // producerPeerId => client'a yolluyoruz
       callback({
         producerId: prId,
         id,
