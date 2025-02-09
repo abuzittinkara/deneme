@@ -52,7 +52,7 @@ body {
   box-sizing: border-box;
 }
 
-/* Shake */
+/* Shake animasyonu */
 @keyframes shake {
   0% { transform: translateX(0); }
   20% { transform: translateX(-4px); }
@@ -105,7 +105,7 @@ body {
   height: 100vh;
 }
 
-/* Soldaki Panel */
+/* Sol Panel */
 #leftPanels.left-panels {
   display: flex;
   flex-direction: column;
@@ -113,7 +113,6 @@ body {
   width: 365px; 
   box-sizing: border-box;
 }
-
 .groups-rooms {
   display: flex;
   flex-direction: row;
@@ -121,7 +120,6 @@ body {
   flex: 1;
   box-sizing: border-box;
 }
-
 .sidebar {
   width: 65px;  
   background: #1e1e1e; 
@@ -159,7 +157,6 @@ body {
 .circle-btn:hover {
   background-color: #a3156f;
 }
-
 .grp-item {
   width: 43px;
   height: 43px;
@@ -181,7 +178,7 @@ body {
   border-radius: 15px; 
 }
 
-/* rooms-panel */
+/* Odalar Paneli */
 .rooms-panel {
   width: 300px; 
   background: #2d2d2d;
@@ -242,7 +239,7 @@ body {
   margin-top: 1rem;
 }
 
-/* channel-item */
+/* Channel Item */
 .channel-item {
   width: 100%;
   display: flex;
@@ -260,8 +257,6 @@ body {
 .channel-item:hover {
   background-color: #3d3d3d;
 }
-
-/* channel-header */
 .channel-header {
   display: flex;
   align-items: center;
@@ -271,15 +266,13 @@ body {
   margin: 0; 
 }
 .channel-icon {
-  width: 18px;
+  width: 18px; 
   height: 18px;
-  color: #aaa;
+  color: #aaa; 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
-
-/* channel-users */
 .channel-users {
   margin-top: 10px;
   margin-left: 0;
@@ -289,8 +282,6 @@ body {
   width: 100%;
   box-sizing: border-box;
 }
-
-/* channel-user */
 .channel-user {
   width: 100%;
   display: flex;
@@ -306,14 +297,12 @@ body {
   gap: 0.5rem;
 }
 .channel-user-buttons {
-  display: none;
+  display: none; 
   gap: 8px;
 }
 .channel-item.connected .channel-user-buttons {
   display: flex;
 }
-
-/* Avatar */
 .channel-user-avatar {
   width: 24px;
   height: 24px;
@@ -324,19 +313,19 @@ body {
   box-shadow: 0 0 0 2px #c61884;
 }
 
-/* channel-status-panel */
+/* Kanal Durum Paneli */
 .channel-status-panel {
-  position: absolute;
-  left: 65px;
-  width: 300px;
+  position: absolute; 
+  left: 65px;      
+  width: 300px;    
   background: #262626;
   box-sizing: border-box;
-  height: 45px;
+  height: 45px; 
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding: 0.5rem;
-  bottom: 57px;
+  bottom: 57px; 
   z-index: 10;
 }
 .chan-status-content {
@@ -383,9 +372,9 @@ body {
   color: #fff;
 }
 
-/* user-panel */
+/* User Panel */
 .user-panel {
-  position: absolute;
+  position: absolute; 
   left: 65px;
   width: 300px;
   background: #262626;
@@ -436,7 +425,7 @@ body {
   color: #c61884 !important;
 }
 
-/* settings-panel */
+/* Settings Panel */
 .settings-panel {
   position: absolute;
   top: 0;
@@ -476,12 +465,12 @@ body {
   overflow: auto;
 }
 
-/* main-content */
+/* Main Content */
 .main-content {
   flex: 1;
   padding: 0;
   background: #353535;
-  overflow: hidden;
+  overflow: auto;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -504,54 +493,61 @@ body {
   font-weight: 600;
   color: #aaa;
 }
-
-/* channel-content-area */
 .channel-content-area {
   flex: 1;
-  padding: 0; /* Kaldırıldı: boşluk istemiyoruz */
+  padding: 1rem;
   box-sizing: border-box;
-  overflow: hidden;
-  position: relative;
+  overflow: auto;
+  padding-bottom: 60px; /* Alt boşluk, mesaj yazma barı için */
 }
 
-/* Text Channel Container (sadece text kanallarında kullanılır) */
-.text-channel-container {
+/* Text Kanalı: Mesaj geçmişi ve yazma barı kapsayıcı */
+#textChannelContainer {
   position: absolute;
-  top: 0px; /* selected-channel-bar yüksekliği kadar; gerekirse ayarlayın */
   bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
+  left: 65px; /* Sol panelin sağından başlayacak */
+  right: 200px; /* Sağ panelin soluna kadar uzanacak */
+  top: 0;
+  background: #353535;
+  display: none;
   flex-direction: column;
+  box-sizing: border-box;
 }
-.text-messages {
+
+/* Mesaj geçmişi alanı */
+#textMessages {
   flex: 1;
   overflow-y: auto;
-  margin: 0;
-  padding: 0.5rem; /* İsteğe bağlı; istenmeyen boşluk varsa azaltabilirsiniz */
-  background: #353535;
-  color: #fff;
-  font-size: 0.95rem;
+  padding: 1rem;
+  box-sizing: border-box;
 }
-.text-chat-input-bar {
-  margin: 0;
-  padding: 0.5rem;
+
+/* Mesaj yazma kutusu ve gönder butonunu içeren bar */
+.text-channel-footer {
+  position: fixed;
+  bottom: 0;
+  left: 65px;
+  right: 200px;
   background: #333;
-  border-top: 1px solid #444;
   display: flex;
+  padding: 0.5rem;
+  box-sizing: border-box;
+  border-top: 1px solid #444;
   align-items: center;
+  gap: 0.5rem;
+  z-index: 100;
 }
 .chat-input {
   flex: 1;
-  margin: 0;
-  padding: 0.5rem;
+  margin-right: 0.5rem;
   background: #444;
   border: 1px solid #666;
   border-radius: 6px;
   color: #fff;
+  padding: 0.5rem;
 }
 
-/* right-panel */
+/* Right Panel */
 .right-panel {
   width: 200px;
   background: #1f1f1f;
@@ -562,23 +558,17 @@ body {
   color: #aaa;
   border-left: 1px solid #444;
 }
-
-/* user-list */
 .user-list {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
 }
-
-/* user-item */
 .user-item {
   padding: 0.1rem;
   border: none;
   display: flex;
   align-items: center;
   gap: 0.40rem;
-}
-.user-item:hover {
 }
 .profile-thumb {
   width: 30px;
@@ -660,7 +650,7 @@ body {
   left: 0.55rem;
 }
 
-/* context-menu */
+/* Context Menu */
 .context-menu {
   position: absolute;
   background: #2d2d2d;
@@ -694,7 +684,7 @@ body {
   .right-panel { width:200px; }
 }
 
-/* Kullanıcı kartları */
+/* Kullanıcı Kartları */
 .user-card {
   position: relative;
   background: #2d2d2d;

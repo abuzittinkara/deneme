@@ -128,7 +128,6 @@ function initSocketEvents() {
   socket.on('disconnect', () => {
     console.log("Socket disconnect");
   });
-
   socket.on('loginResult', (data) => {
     if (data.success) {
       username = data.username;
@@ -144,7 +143,6 @@ function initSocketEvents() {
       loginPasswordInput.classList.add('shake');
     }
   });
-
   socket.on('registerResult', (data) => {
     if (data.success) {
       registerScreen.style.display = 'none';
@@ -157,7 +155,6 @@ function initSocketEvents() {
       regPasswordConfirmInput.classList.add('shake');
     }
   });
-
   socket.on('groupsList', (groupArray) => {
     groupListDiv.innerHTML = '';
     groupArray.forEach(groupObj => {
@@ -183,7 +180,6 @@ function initSocketEvents() {
       groupListDiv.appendChild(grpItem);
     });
   });
-
   socket.on('roomsList', (roomsArray) => {
     roomListDiv.innerHTML = '';
     roomsArray.forEach(roomObj => {
@@ -212,6 +208,7 @@ function initSocketEvents() {
         if (roomObj.type === 'text') {
           console.log(`Text channel clicked => ${roomObj.name}`);
           document.getElementById('selectedChannelTitle').textContent = roomObj.name;
+          // Metin kanalı görünümü
           textChannelContainer.style.display = 'flex';
           document.getElementById('channelUsersContainer').style.display = 'none';
           hideChannelStatusPanel();
@@ -219,10 +216,10 @@ function initSocketEvents() {
           currentTextChannel = roomObj.id;
           socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: roomObj.id });
           return;
-        } else {
-          textChannelContainer.style.display = 'none';
-          document.getElementById('channelUsersContainer').style.display = 'flex';
         }
+        // Voice channel
+        textChannelContainer.style.display = 'none';
+        document.getElementById('channelUsersContainer').style.display = 'flex';
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
         if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
           roomItem.classList.add('connected');
@@ -238,7 +235,6 @@ function initSocketEvents() {
       roomListDiv.appendChild(roomItem);
     });
   });
-
   socket.on('allChannelsData', (channelsObj) => {
     Object.keys(channelsObj).forEach(roomId => {
       const cData = channelsObj[roomId];
@@ -281,11 +277,9 @@ function initSocketEvents() {
       });
     });
   });
-
   socket.on('groupUsers', (dbUsersArray) => {
     updateUserList(dbUsersArray);
   });
-
   socket.on('joinRoomAck', ({ groupId, roomId }) => {
     console.log("joinRoomAck =>", groupId, roomId);
     currentGroup = groupId;
@@ -298,12 +292,10 @@ function initSocketEvents() {
       startSfuFlow();
     }
   });
-
   socket.on('roomUsers', (usersInRoom) => {
     console.log("roomUsers => odadaki kisiler:", usersInRoom);
     renderUsersInMainContent(usersInRoom);
   });
-
   socket.on('groupRenamed', (data) => {
     const { groupId, newName } = data;
     if (currentGroup === groupId || selectedGroup === groupId) {
@@ -311,7 +303,6 @@ function initSocketEvents() {
     }
     socket.emit('set-username', username);
   });
-
   socket.on('groupDeleted', (data) => {
     const { groupId } = data;
     if (currentGroup === groupId) {
@@ -331,7 +322,6 @@ function initSocketEvents() {
     }
     socket.emit('set-username', username);
   });
-
   socket.on('newProducer', ({ producerId }) => {
     console.log("newProducer =>", producerId);
     if (!recvTransport) {
@@ -340,8 +330,6 @@ function initSocketEvents() {
     }
     consumeProducer(producerId);
   });
-
-  // EK: Gelen geçmiş mesajları textHistory eventiyle alıp textMessages alanına ekle
   socket.on('textHistory', (messages) => {
     textMessages.innerHTML = "";
     messages.forEach(msg => {
@@ -354,8 +342,6 @@ function initSocketEvents() {
     });
     textMessages.scrollTop = textMessages.scrollHeight;
   });
-
-  // EK: Gelen yeni text mesajını dinle
   socket.on('newTextMessage', (data) => {
     if (data.channelId === currentTextChannel) {
       const msg = data.message;
@@ -872,9 +858,9 @@ function initUIEvents() {
   sendTextMessageBtn.addEventListener('click', () => {
     const msg = textChannelMessageInput.value.trim();
     if (!msg) return;
+    const time = new Date().toLocaleTimeString();
     const msgDiv = document.createElement('div');
     msgDiv.className = 'text-message';
-    const time = new Date().toLocaleTimeString();
     msgDiv.innerHTML = `<strong>[${time}] ${username}:</strong> ${msg}`;
     textMessages.appendChild(msgDiv);
     textMessages.scrollTop = textMessages.scrollHeight;
@@ -1028,7 +1014,7 @@ function showChannelStatusPanel() {
 
 function hideChannelStatusPanel() {
   channelStatusPanel.style.display = 'none';
-  startPingInterval(); // Eğer voice kanalındaysanız status paneli aktif kalabilir; text kanallarında bu fonksiyonu çağırıyoruz.
+  startPingInterval(); // Text kanalları için status paneli kapalı kalsın
 }
 
 function startPingInterval() {
