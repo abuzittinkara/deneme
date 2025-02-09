@@ -517,7 +517,7 @@ body {
 /* Text Channel Container (sadece text kanallarında kullanılır) */
 .text-channel-container {
   position: absolute;
-  top: 50px; /* selected-channel-bar yüksekliği kadar; gerekirse ayarlayın */
+  top: 0px; /* selected-channel-bar yüksekliği kadar; gerekirse ayarlayın */
   bottom: 0;
   left: 0;
   right: 0;
@@ -529,7 +529,7 @@ body {
   overflow-y: auto;
   margin: 0;
   padding: 0.5rem; /* İsteğe bağlı; istenmeyen boşluk varsa azaltabilirsiniz */
-  background: #1e1e1e;
+  background: #353535;
   color: #fff;
   font-size: 0.95rem;
 }
