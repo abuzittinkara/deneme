@@ -32,8 +32,11 @@ let micEnabled = true;
 let selfDeafened = false;
 let micWasEnabledBeforeDeaf = false;
 
-// Ses seviyesi analizi
-const SPEAKING_THRESHOLD = 0.0;
+/**
+ * Konuşma algılama hassasiyeti => 0.02
+ * (0.02 genelde "fısıltı" seviyesini ayıklar)
+ */
+const SPEAKING_THRESHOLD = 0.02;
 const VOLUME_CHECK_INTERVAL = 100;
 let audioAnalyzers = {};
 
@@ -564,7 +567,7 @@ async function consumeProducer(producerId) {
     rtpParameters: consumeParams.rtpParameters
   });
   
-  // ÖNEMLİ: Artık consumer.appData.peerId = producerPeerId
+  // ÖNEMLİ: Artık consumer.appData.peerId = producerPeerId (başkası)
   consumer.appData = { peerId: consumeParams.producerPeerId };
 
   consumers[consumer.id] = consumer;
@@ -603,6 +606,7 @@ function startVolumeAnalysis(stream, userId) {
       sum += Math.abs(val);
     }
     const average = sum / dataArray.length;
+
     const avatarElem = document.getElementById(`avatar-${userId}`);
     if (avatarElem) {
       if (average > SPEAKING_THRESHOLD) {
@@ -709,8 +713,12 @@ async function requestMicrophoneAccess() {
     console.log("Mikrofon erişimi verildi:", stream);
     localStream = stream;
     audioPermissionGranted = true;
+
+    // Mute durumu vs. => applyAudioStates() => localProducer.pause() / resume()
     applyAudioStates();
-    startVolumeAnalysis(stream, socket.id);
+
+    // Local konuşma analizi => sadece benim avatar
+    startVolumeAnalysis(localStream, socket.id);
 
     // Kullanıcı sağır değilse, remoteAudios elemanlarını da yeniden oynatmayı deneyebilir
     remoteAudios.forEach(audioEl => {
@@ -967,12 +975,25 @@ function initUIEvents() {
   Kullanıcı Mikrofon / Deaf => sadece Producer pause/resume
 */
 function applyAudioStates() {
-  // Producer'ı durdurup/açıyoruz
   if (localProducer) {
     if (micEnabled && !selfDeafened) {
       localProducer.resume();
+
+      // Yerel analiz yoksa yeniden başlat (örn. mute->unmute)
+      if (!audioAnalyzers[socket.id]) {
+        startVolumeAnalysis(localStream, socket.id);
+      }
     } else {
       localProducer.pause();
+
+      // Mute olduysam => local analiz kapat
+      stopVolumeAnalysis(socket.id);
+
+      // Stroke kalmasın
+      const avatarElem = document.getElementById(`avatar-${socket.id}`);
+      if (avatarElem) {
+        avatarElem.classList.remove('speaking');
+      }
     }
   }
 

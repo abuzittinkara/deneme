@@ -898,7 +898,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // *** DEĞİŞTİRİLEN KISIM ***
+  // *** CONSUME => producer.appData.peerId => producerPeerId
   socket.on('consume', async ({ groupId, roomId, transportId, producerId }, callback) => {
     try {
       const rmObj = groups[groupId]?.rooms[roomId];
@@ -935,7 +935,6 @@ io.on('connection', (socket) => {
       callback({ error: err.message });
     }
   });
-  // *** DEĞİŞTİ = producerPeerId ekledik ***
 
   socket.on('listProducers', ({ groupId, roomId }, callback) => {
     try {
