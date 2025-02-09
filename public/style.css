@@ -105,7 +105,7 @@ body {
   height: 100vh;
 }
 
-/* Soldaki Paneller */
+/* Sol Panel */
 #leftPanels.left-panels {
   display: flex;
   flex-direction: column;
@@ -177,6 +177,8 @@ body {
   border: 2px solid #c61884;
   border-radius: 15px; 
 }
+
+/* Odalar Paneli */
 .rooms-panel {
   width: 300px; 
   background: #2d2d2d;
@@ -236,6 +238,8 @@ body {
   overflow: auto;
   margin-top: 1rem;
 }
+
+/* Channel Item */
 .channel-item {
   width: 100%;
   display: flex;
@@ -308,6 +312,8 @@ body {
 .channel-user-avatar.speaking {
   box-shadow: 0 0 0 2px #c61884;
 }
+
+/* Kanal Durum Paneli */
 .channel-status-panel {
   position: absolute; 
   left: 65px;      
@@ -365,6 +371,8 @@ body {
   border-color: #a3156f;
   color: #fff;
 }
+
+/* User Panel */
 .user-panel {
   position: absolute; 
   left: 65px;
@@ -416,6 +424,8 @@ body {
 .user-panel-btn.btn-muted .material-icons {
   color: #c61884 !important;
 }
+
+/* Settings Panel */
 .settings-panel {
   position: absolute;
   top: 0;
@@ -454,6 +464,8 @@ body {
   flex: 1;
   overflow: auto;
 }
+
+/* Main Content */
 .main-content {
   flex: 1;
   padding: 0;
@@ -486,25 +498,36 @@ body {
   padding: 1rem;
   box-sizing: border-box;
   overflow: auto;
-  /* Alt kısımda mesaj yazma alanı için boşluk bırakıyoruz */
-  padding-bottom: 60px;
+  padding-bottom: 60px; /* Alt boşluk, mesaj yazma barı için */
 }
 
-/* Yeni: Yazı Mesajları Alanı */
-.text-messages {
+/* Text Kanalı: Mesaj geçmişi ve yazma barı kapsayıcı */
+#textChannelContainer {
+  position: absolute;
+  bottom: 0;
+  left: 65px; /* Sol panelin sağından başlayacak */
+  right: 200px; /* Sağ panelin soluna kadar uzanacak */
+  top: 0;
+  background: #353535;
+  display: none;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* Mesaj geçmişi alanı */
+#textMessages {
   flex: 1;
   overflow-y: auto;
   padding: 1rem;
-  background: #2d2d2d;
-  color: #fff;
+  box-sizing: border-box;
 }
 
-/* Yeni: Mesaj Yazma Kutusu (Ekranın en altına sabit) */
-.text-chat-input-bar {
+/* Mesaj yazma kutusu ve gönder butonunu içeren bar */
+.text-channel-footer {
   position: fixed;
   bottom: 0;
-  left: 65px;  /* Sol panelin genişliği kadar boşluk */
-  right: 200px; /* Sağ panel genişliği kadar boşluk */
+  left: 65px;
+  right: 200px;
   background: #333;
   display: flex;
   padding: 0.5rem;
@@ -524,7 +547,7 @@ body {
   padding: 0.5rem;
 }
 
-/* right-panel */
+/* Right Panel */
 .right-panel {
   width: 200px;
   background: #1f1f1f;
@@ -546,8 +569,6 @@ body {
   display: flex;
   align-items: center;
   gap: 0.40rem;
-}
-.user-item:hover {
 }
 .profile-thumb {
   width: 30px;
@@ -603,6 +624,56 @@ body {
   margin-top: 1rem;
   justify-content: center;
 }
+#groupModal,
+#roomModal,
+#actualGroupCreateModal,
+#joinGroupModal {
+  display: none;
+}
+
+/* DM panel */
+.dm-panel {
+  width: 265px;
+  background: #222;
+  color: #fff;
+  padding: 1rem;
+  box-sizing: border-box;
+  overflow: auto;
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+}
+.dm-close-btn {
+  position: absolute;
+  top: 1rem;
+  left: 0.55rem;
+}
+
+/* Context Menu */
+.context-menu {
+  position: absolute;
+  background: #2d2d2d;
+  border: 1px solid #444;
+  border-radius: 6px;
+  z-index: 999999;
+  min-width: 130px;
+  display: none;
+  flex-direction: column;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+.context-menu-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font-size: 0.90rem;
+  border-bottom: 1px solid #444;
+}
+.context-menu-item:last-child {
+  border-bottom: none;
+}
+.context-menu-item:hover {
+  background: #444;
+}
 
 @media (max-width: 600px) {
   .left-panels { width:65px; }
@@ -613,7 +684,7 @@ body {
   .right-panel { width:200px; }
 }
 
-/* Kullanıcı kartları */
+/* Kullanıcı Kartları */
 .user-card {
   position: relative;
   background: #2d2d2d;
