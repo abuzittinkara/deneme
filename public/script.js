@@ -197,7 +197,7 @@ function initSocketEvents() {
       } else {
         icon = document.createElement('span');
         icon.classList.add('material-icons', 'channel-icon');
-        icon.textContent = 'chat';
+        icon.textContent = 'tag';
       }
       const textSpan = document.createElement('span');
       textSpan.textContent = roomObj.name;
