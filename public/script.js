@@ -25,7 +25,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // Kimlik
   let username = null;
   let currentGroup = null;
-  let currentRoom = null; // Hem sesli hem metin kanalları için kullanılacak (kanal ID)
+  let currentRoom = null;
   let selectedGroup = null;
 
   // Mikrofon / Kulaklık
@@ -99,6 +99,11 @@ window.addEventListener('DOMContentLoaded', () => {
   // Ayrıl Butonu
   const leaveButton = document.getElementById('leaveButton');
 
+  // Mikrofon / Kulaklık butonları
+  const micToggleButton = document.getElementById('micToggleButton');
+  const deafenToggleButton = document.getElementById('deafenToggleButton');
+  const settingsButton = document.getElementById('settingsButton');
+
   // Metin kanalındaki mesaj kutusu
   const textChatInputBar = document.getElementById('textChatInputBar');
   const textChannelMessageInput = document.getElementById('textChannelMessageInput');
@@ -149,8 +154,7 @@ window.addEventListener('DOMContentLoaded', () => {
           document.querySelectorAll('.grp-item').forEach(el => el.classList.remove('selected'));
           grpItem.classList.add('selected');
           selectedGroup = groupObj.id;
-          // Text kanallarında currentGroup'ı da güncelleyelim
-          currentGroup = groupObj.id;
+          currentGroup = null;
           groupTitle.textContent = groupObj.name;
           socket.emit('browseGroup', groupObj.id);
           if (groupObj.owner === username) {
@@ -191,22 +195,16 @@ window.addEventListener('DOMContentLoaded', () => {
         roomItem.appendChild(channelUsers);
         roomItem.addEventListener('click', () => {
           if (roomObj.type === 'text') {
-            // Eğer başka bir metin kanalıdaysa, çıkalım.
-            if (currentRoom && currentRoom !== roomObj.id) {
-              socket.leave(currentRoom);
-            }
-            currentGroup = selectedGroup;
-            currentRoom = roomObj.id;
+            console.log(`Text channel clicked => ${roomObj.name}`);
             document.getElementById('selectedChannelTitle').textContent = roomObj.name;
             textChatInputBar.style.display = 'flex';
             hideChannelStatusPanel();
             const container = document.getElementById('channelUsersContainer');
             container.innerHTML = '';
             container.classList.remove('layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users');
-            socket.emit('joinTextChannel', { groupId: currentGroup, roomId: currentRoom });
+            socket.emit('joinTextChannel', { groupId: currentGroup, roomId: roomObj.id });
             return;
           }
-          // Voice kanalları için:
           textChatInputBar.style.display = 'none';
           document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
           if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
@@ -873,7 +871,7 @@ window.addEventListener('DOMContentLoaded', () => {
     sendTextMessageBtn.addEventListener('click', () => {
       const msg = textChannelMessageInput.value.trim();
       if (!msg) return;
-      socket.emit('textMessage', { groupId: currentGroup, roomId: currentRoom, message: msg, username: username });
+      socket.emit('textMessage', { groupId: currentGroup, roomId: selectedGroup, message: msg, username: username });
       textChannelMessageInput.value = '';
     });
   }

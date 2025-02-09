@@ -16,6 +16,7 @@
   <div id="loginScreen" class="screen-container" style="display: block;">
     <div class="card">
       <h1 class="app-title">Oturum Aç</h1>
+      <!-- Giriş Hatası Mesajı -->
       <p id="loginErrorMessage" style="display:none; color:#f44; margin:0 0 0.6rem; font-size:0.9rem;">
         Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin
       </p>
@@ -35,6 +36,7 @@
   <div id="registerScreen" class="screen-container" style="display:none;">
     <div class="card">
       <h1 class="app-title">Kayıt Ol</h1>
+      <!-- Kayıt Hatası Mesajı -->
       <p id="registerErrorMessage" style="display:none; color:#f44; margin:0 0 0.6rem; font-size:0.9rem;">
         Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin
       </p>
@@ -59,7 +61,7 @@
 
   <!-- Görüşme Ekranı -->
   <div id="callScreen" class="screen-container" style="display:none;">
-    <!-- Soldaki Paneller (Gruplar + Kanallar + Kullanıcı Paneli) -->
+    <!-- Soldaki Paneller -->
     <div id="leftPanels" class="left-panels">
       <div id="groupsAndRooms" class="groups-rooms">
         <!-- Sidebar (Gruplar) -->
@@ -87,8 +89,9 @@
           <div id="roomList" class="room-list"></div>
         </div>
       </div>
+
       <!-- Kanal Durum Paneli -->
-      <div id="channelStatusPanel" class="channel-status-panel" style="display: none;">
+      <div id="channelStatusPanel" class="channel-status-panel" style="display:none;">
         <div class="chan-status-content">
           <div id="signalBars" class="signal-bars">
             <div class="cell-bar" id="cellBar1"></div>
@@ -102,6 +105,7 @@
           </button>
         </div>
       </div>
+
       <!-- Kullanıcı Paneli -->
       <div id="leftUserPanel" class="user-panel">
         <div class="user-panel-content">
@@ -126,17 +130,20 @@
         <h2 id="selectedChannelTitle" class="selected-channel-title">Kanal Seçilmedi</h2>
       </div>
       <div id="channelContentArea" class="channel-content-area">
-        <div id="channelUsersContainer" class="channel-users-container"></div>
-        <!-- Gerçek zamanlı mesajların listeleneceği ve mesaj yazma kutusunun bulunduğu alan.
-             Not: Sınıf "text-channel-footer" ile stil verildiği için ekranın en altına sabitlenecek. -->
-        <div id="textChatInputBar" class="text-channel-footer" style="display:none;">
-          <input type="text" id="textChannelMessageInput" class="chat-input" placeholder="Mesajınızı yazın..." />
-          <button id="sendTextMessageBtn" class="btn primary">Gönder</button>
+        <!-- Voice kanallar için -->
+        <div id="channelUsersContainer" class="channel-users-container" style="display:none;"></div>
+        <!-- Text kanallar için: mesajların listeleneceği alan + mesaj yazma kutusu -->
+        <div id="textChannelContainer" class="text-channel-container" style="display:none;">
+          <div id="textMessages" class="text-messages"></div>
+          <div id="textChatInputBar" class="text-chat-input-bar">
+            <input type="text" id="textChannelMessageInput" class="chat-input" placeholder="Mesajınızı yazın..." />
+            <button id="sendTextMessageBtn" class="btn primary">Gönder</button>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Sağ Panel -->
+    <!-- Sağ Panel (Kullanıcılar) -->
     <div class="right-panel" id="rightPanel">
       <div id="userList" class="user-list"></div>
     </div>
