@@ -36,7 +36,7 @@ let micWasEnabledBeforeDeaf = false;
  * Konuşma algılama hassasiyeti => 0.02
  * (0.02 genelde "fısıltı" seviyesini ayıklar)
  */
-const SPEAKING_THRESHOLD = 0.02;
+const SPEAKING_THRESHOLD = 0;
 const VOLUME_CHECK_INTERVAL = 100;
 let audioAnalyzers = {};
 
