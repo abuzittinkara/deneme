@@ -17,7 +17,7 @@ const { v4: uuidv4 } = require('uuid'); // UUID
 const User = require('./models/User');
 const Group = require('./models/Group');
 const Channel = require('./models/Channel');
-const Message = require('./models/Message');  // EK: Message modelini dahil ettik
+const Message = require('./models/Message'); // EK: Mesaj modelini dahil ettik
 const sfu = require('./sfu'); // Mediasoup SFU fonksiyonları
 
 const app = express();
@@ -143,16 +143,13 @@ function removeUserFromAllGroupsAndRooms(socket) {
   const socketId = socket.id;
   const userData = users[socketId];
   if (!userData) return;
-
   Object.keys(groups).forEach(gId => {
     const grpObj = groups[gId];
     if (grpObj.users.some(u => u.id === socketId)) {
       grpObj.users = grpObj.users.filter(u => u.id !== socketId);
-
       Object.keys(grpObj.rooms).forEach(rId => {
         const rmObj = grpObj.rooms[rId];
         rmObj.users = rmObj.users.filter(u => u.id !== socketId);
-
         // SFU => producer/consumer/transport kapat
         if (rmObj.producers) {
           Object.keys(rmObj.producers).forEach(pid => {
@@ -181,10 +178,8 @@ function removeUserFromAllGroupsAndRooms(socket) {
             }
           });
         }
-
         io.to(`${gId}::${rId}`).emit('roomUsers', rmObj.users);
       });
-
       io.to(gId).emit('allChannelsData', getAllChannelsData(gId));
     }
     Object.keys(grpObj.rooms).forEach(rId => {
@@ -192,7 +187,6 @@ function removeUserFromAllGroupsAndRooms(socket) {
     });
     socket.leave(gId);
   });
-
   users[socketId].currentGroup = null;
   users[socketId].currentRoom = null;
 }
@@ -201,10 +195,8 @@ function removeUserFromAllGroupsAndRooms(socket) {
 async function getOnlineOfflineDataForGroup(groupId) {
   const groupDoc = await Group.findOne({ groupId }).populate('users');
   if (!groupDoc) return { online: [], offline: [] };
-
   const online = [];
   const offline = [];
-
   groupDoc.users.forEach(u => {
     if (onlineUsernames.has(u.username)) {
       online.push({ username: u.username });
@@ -278,7 +270,6 @@ async function sendGroupsListToUser(socketId) {
   if (!userData) return;
   const userDoc = await User.findOne({ username: userData.username }).populate('groups');
   if (!userDoc) return;
-
   const userGroups = [];
   for (const g of userDoc.groups) {
     let ownerUsername = null;
@@ -298,7 +289,6 @@ async function sendGroupsListToUser(socketId) {
 /* Socket.IO */
 io.on('connection', (socket) => {
   console.log('Kullanıcı bağlandı:', socket.id);
-
   users[socket.id] = {
     username: null,
     currentGroup: null,
@@ -378,15 +368,12 @@ io.on('connection', (socket) => {
       const trimmedName = usernameVal.trim();
       users[socket.id].username = trimmedName;
       console.log(`User ${socket.id} => set-username => ${trimmedName}`);
-
       onlineUsernames.add(trimmedName);
-
       try {
         await sendGroupsListToUser(socket.id);
       } catch (err) {
         console.error("sendGroupsListToUser hata:", err);
       }
-
       try {
         const userDoc = await User.findOne({ username: trimmedName }).populate('groups');
         if (userDoc && userDoc.groups.length > 0) {
@@ -897,6 +884,34 @@ io.on('connection', (socket) => {
       socket.emit('textHistory', messages);
     } catch (err) {
       console.error("joinTextChannel error:", err);
+    }
+  });
+
+  // EK: Gelen text mesajlarını kaydetme ve yayma
+  socket.on('textMessage', async ({ groupId, roomId, message, username }) => {
+    try {
+      const channelDoc = await Channel.findOne({ channelId: roomId });
+      if (!channelDoc) return;
+      const userDoc = await User.findOne({ username: username });
+      if (!userDoc) return;
+      const newMsg = new Message({
+        channel: channelDoc._id,
+        user: userDoc._id,
+        content: message,
+        timestamp: new Date()
+      });
+      await newMsg.save();
+      // Yayınla: Sadece o text kanalı için yeni mesaj
+      io.to(groupId).emit('newTextMessage', {
+        channelId: roomId,
+        message: {
+          content: newMsg.content,
+          username: username,
+          timestamp: newMsg.timestamp
+        }
+      });
+    } catch (err) {
+      console.error("textMessage error:", err);
     }
   });
 

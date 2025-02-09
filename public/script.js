@@ -197,7 +197,7 @@ function initSocketEvents() {
       } else {
         icon = document.createElement('span');
         icon.classList.add('material-icons', 'channel-icon');
-        icon.textContent = 'tag';
+        icon.textContent = 'chat';
       }
       const textSpan = document.createElement('span');
       textSpan.textContent = roomObj.name;
@@ -221,6 +221,7 @@ function initSocketEvents() {
           return;
         } else {
           textChannelContainer.style.display = 'none';
+          document.getElementById('channelUsersContainer').style.display = 'flex';
         }
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
         if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
@@ -352,6 +353,19 @@ function initSocketEvents() {
       textMessages.appendChild(msgDiv);
     });
     textMessages.scrollTop = textMessages.scrollHeight;
+  });
+
+  // EK: Gelen yeni text mesajını dinle
+  socket.on('newTextMessage', (data) => {
+    if (data.channelId === currentTextChannel) {
+      const msg = data.message;
+      const time = new Date(msg.timestamp).toLocaleTimeString();
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'text-message';
+      msgDiv.innerHTML = `<strong>[${time}] ${msg.username}:</strong> ${msg.content}`;
+      textMessages.appendChild(msgDiv);
+      textMessages.scrollTop = textMessages.scrollHeight;
+    }
   });
 }
 
@@ -1014,7 +1028,7 @@ function showChannelStatusPanel() {
 
 function hideChannelStatusPanel() {
   channelStatusPanel.style.display = 'none';
-  stopPingInterval();
+  startPingInterval(); // Eğer voice kanalındaysanız status paneli aktif kalabilir; text kanallarında bu fonksiyonu çağırıyoruz.
 }
 
 function startPingInterval() {
@@ -1060,3 +1074,15 @@ function updateCellBars(ping) {
   if (barsActive >= 3) cellBar3.classList.add('active');
   if (barsActive >= 4) cellBar4.classList.add('active');
 }
+
+socket.on('newTextMessage', (data) => {
+  if (data.channelId === currentTextChannel) {
+    const msg = data.message;
+    const time = new Date(msg.timestamp).toLocaleTimeString();
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'text-message';
+    msgDiv.innerHTML = `<strong>[${time}] ${msg.username}:</strong> ${msg.content}`;
+    textMessages.appendChild(msgDiv);
+    textMessages.scrollTop = textMessages.scrollHeight;
+  }
+});
