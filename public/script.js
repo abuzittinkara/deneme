@@ -2,7 +2,7 @@
  * script.js
  * TAMAMEN SFU MANTIĞINA GEÇİLMİŞ VERSİYON
  **************************************/
-let socket = null;
+let socket = null; 
 let device = null;   // mediasoup-client Device
 let deviceIsLoaded = false;
 let sendTransport = null;
@@ -210,16 +210,13 @@ function initSocketEvents() {
       roomItem.appendChild(channelUsers);
       roomItem.addEventListener('click', () => {
         if (roomObj.type === 'text') {
-          // Text kanal: join text channel oda
+          console.log(`Text channel clicked => ${roomObj.name}`);
           document.getElementById('selectedChannelTitle').textContent = roomObj.name;
-          // Göndereceğimiz mesajların listeleneceği alanı göster
           textChannelContainer.style.display = 'flex';
-          // Gizlenecek kısım: voice kanal kullanıcı kartları
           document.getElementById('channelUsersContainer').style.display = 'none';
           hideChannelStatusPanel();
           textMessages.innerHTML = "";
           currentTextChannel = roomObj.id;
-          // Join text channel room (socket room)
           socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: roomObj.id });
           return;
         } else {
@@ -343,7 +340,6 @@ function initSocketEvents() {
     consumeProducer(producerId);
   });
 
-  // Yeni: Text mesajları alındığında, mesajları textMessages alanına ekle
   socket.on('textMessage', (data) => {
     // data: { message, username, timestamp }
     const msgDiv = document.createElement('div');
@@ -363,7 +359,7 @@ async function startSfuFlow() {
   if (!localStream || localStream.getAudioTracks()[0].readyState === 'ended') {
     await requestMicrophoneAccess();
   }
-  const transportParams = await createTransport();
+  const transportParams = await createTransport(); 
   if (transportParams.error) {
     console.error("createTransport error:", transportParams.error);
     return;
@@ -858,6 +854,14 @@ function initUIEvents() {
   sendTextMessageBtn.addEventListener('click', () => {
     const msg = textChannelMessageInput.value.trim();
     if (!msg) return;
+    // Mesajı yerel olarak da ekleyelim:
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'text-message';
+    const time = new Date().toLocaleTimeString();
+    msgDiv.innerHTML = `<strong>[${time}] ${username}:</strong> ${msg}`;
+    textMessages.appendChild(msgDiv);
+    textMessages.scrollTop = textMessages.scrollHeight;
+    // Mesajı sunucuya gönderelim:
     socket.emit('textMessage', { groupId: selectedGroup, roomId: currentTextChannel, message: msg, username: username });
     textChannelMessageInput.value = '';
   });
