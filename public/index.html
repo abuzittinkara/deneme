@@ -16,16 +16,12 @@
   <div id="loginScreen" class="screen-container" style="display: block;">
     <div class="card">
       <h1 class="app-title">Oturum Aç</h1>
-
-      <!-- Giriş Hatası Mesajı (varsayılan gizli) -->
+      <!-- Giriş Hatası Mesajı -->
       <p id="loginErrorMessage" style="display:none; color:#f44; margin:0 0 0.6rem; font-size:0.9rem;">
         Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin
       </p>
-
-      <!-- Alt alta inputlar -->
       <input type="text" id="loginUsernameInput" placeholder="Kullanıcı Adı" class="input-text">
       <input type="password" id="loginPasswordInput" placeholder="Parola" class="input-text">
-
       <button id="loginButton" class="btn primary">Giriş Yap</button>
       <p style="margin-top: 1rem;">
         Hesabın yok mu?
@@ -40,13 +36,10 @@
   <div id="registerScreen" class="screen-container" style="display:none;">
     <div class="card">
       <h1 class="app-title">Kayıt Ol</h1>
-
       <!-- Kayıt Hatası Mesajı -->
       <p id="registerErrorMessage" style="display:none; color:#f44; margin:0 0 0.6rem; font-size:0.9rem;">
         Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin
       </p>
-
-      <!-- Kayıt inputları alt alta -->
       <input type="text" id="regUsernameInput" placeholder="Kullanıcı Adı (küçük harf)" class="input-text">
       <input type="text" id="regNameInput" placeholder="İsim" class="input-text">
       <input type="text" id="regSurnameInput" placeholder="Soyisim" class="input-text">
@@ -55,10 +48,8 @@
       <input type="tel" id="regPhoneInput" placeholder="Telefon Numarası" class="input-text">
       <input type="password" id="regPasswordInput" placeholder="Parola" class="input-text">
       <input type="password" id="regPasswordConfirmInput" placeholder="Parola (Tekrar)" class="input-text">
-
       <button id="registerButton" class="btn primary">Kayıt Ol ve Başla</button>
       <button id="backToLoginButton" class="btn secondary">Geri Gel</button>
-
       <p style="margin-top: 1rem;">
         Zaten hesabın var mı?
         <span id="showLoginScreen" style="color:#fff; cursor:pointer; text-decoration:underline;">
@@ -70,23 +61,19 @@
 
   <!-- Görüşme Ekranı -->
   <div id="callScreen" class="screen-container" style="display:none;">
-    <!-- Soldaki Paneller (Gruplar + Kanallar + Kullanıcı Paneli) -->
+    <!-- Soldaki Paneller -->
     <div id="leftPanels" class="left-panels">
       <div id="groupsAndRooms" class="groups-rooms">
         <!-- Sidebar (Gruplar) -->
         <div class="sidebar" id="sidebar">
-          <!-- DM Butonu => "chat" -->
           <button id="toggleDMButton" class="circle-btn dm-toggle-btn">
             <span class="material-icons">chat</span>
           </button>
-          <!-- Gruplar listesi -->
           <div id="groupList" class="group-list"></div>
-          <!-- Grup Oluştur Butonu => "add" -->
           <button id="createGroupButton" class="circle-btn create-group-btn">
             <span class="material-icons">add</span>
           </button>
         </div>
-
         <!-- Odalar Paneli -->
         <div id="roomPanel" class="rooms-panel">
           <div class="room-panel-header">
@@ -103,26 +90,23 @@
         </div>
       </div>
 
-      <!-- KULLANICI PANELİNİN ÜSTÜNDE GÖRÜNECEK "KANAL DURUM" PANELİ -->
+      <!-- Kanal Durum Paneli -->
       <div id="channelStatusPanel" class="channel-status-panel" style="display:none;">
         <div class="chan-status-content">
-          <!-- Hücresel benzeri 4 bar -->
           <div id="signalBars" class="signal-bars">
             <div class="cell-bar" id="cellBar1"></div>
             <div class="cell-bar" id="cellBar2"></div>
             <div class="cell-bar" id="cellBar3"></div>
             <div class="cell-bar" id="cellBar4"></div>
           </div>
-          <!-- Gerçek ping değeri -->
           <span id="pingValue" style="font-size:0.85rem;">-- ms</span>
-          <!-- Kanaldan ayrıl butonu -->
           <button id="leaveButton" class="leave-btn">
             <span class="material-icons">call_end</span>
           </button>
         </div>
       </div>
 
-      <!-- Kullanıcı Paneli (Sol Alt) -->
+      <!-- Kullanıcı Paneli -->
       <div id="leftUserPanel" class="user-panel">
         <div class="user-panel-content">
           <div class="user-profile-pic"></div>
@@ -130,11 +114,8 @@
             <span id="leftUserName" class="left-username">(Kullanıcı)</span>
           </div>
           <div class="user-panel-buttons">
-            <!-- micToggleButton -->
             <button id="micToggleButton" class="user-panel-btn" title="Mikrofon Aç/Kapa" style="width:22px;height:22px;"></button>
-            <!-- deafenToggleButton -->
             <button id="deafenToggleButton" class="user-panel-btn" title="Kendini Sağırlaştır" style="width:22px;height:22px;"></button>
-            <!-- settingsButton -->
             <button id="settingsButton" class="user-panel-btn" style="width:22px;height:22px;" title="Ayarlar">
               <span class="material-icons">settings</span>
             </button>
@@ -143,26 +124,21 @@
       </div>
     </div>
 
-    <!-- Ortadaki ana içerik -->
+    <!-- Ortadaki Ana İçerik -->
     <div class="main-content">
       <div id="selectedChannelBar" class="selected-channel-bar">
         <h2 id="selectedChannelTitle" class="selected-channel-title">Kanal Seçilmedi</h2>
       </div>
       <div id="channelContentArea" class="channel-content-area">
-        <!-- Buraya kullanıcıların kartları gelecek -->
-        <div id="channelUsersContainer" class="channel-users-container"></div>
-
-        <!-- YENİ EKLENEN: Metin kanallarında görünecek mesaj yazma kutusu -->
-        <div id="textChatInputBar" class="text-chat-input-bar" style="display:none;">
-          <input
-            type="text"
-            id="textChannelMessageInput"
-            class="input-text"
-            placeholder="Mesajınızı yazın..."
-          />
-          <button id="sendTextMessageBtn" class="btn primary" style="margin-left:8px;">
-            Gönder
-          </button>
+        <!-- Voice kanallar için -->
+        <div id="channelUsersContainer" class="channel-users-container" style="display:none;"></div>
+        <!-- Text kanallar için: mesajların listeleneceği alan + mesaj yazma kutusu -->
+        <div id="textChannelContainer" class="text-channel-container" style="display:none;">
+          <div id="textMessages" class="text-messages"></div>
+          <div id="textChatInputBar" class="text-chat-input-bar">
+            <input type="text" id="textChannelMessageInput" class="chat-input" placeholder="Mesajınızı yazın..." />
+            <button id="sendTextMessageBtn" class="btn primary">Gönder</button>
+          </div>
         </div>
       </div>
     </div>
@@ -173,7 +149,7 @@
     </div>
   </div>
 
-  <!-- DM paneli -->
+  <!-- DM Paneli -->
   <div id="dmPanel" class="dm-panel" style="display:none;">
     <button id="closeDMButton" class="circle-btn dm-close-btn">
       <span class="material-icons">arrow_back</span>

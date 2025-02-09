@@ -2,8 +2,8 @@
  * script.js
  * TAMAMEN SFU MANTIĞINA GEÇİLMİŞ VERSİYON
  **************************************/
-let socket = null; 
-let device = null;   // mediasoup-client Device
+let socket = null;
+let device = null; // mediasoup-client Device
 let deviceIsLoaded = false;
 let sendTransport = null;
 let recvTransport = null;
@@ -16,7 +16,7 @@ let audioPermissionGranted = false;
 let localProducer = null;
 
 // Remote audio consumer objeleri
-let consumers = {};  // consumerId -> consumer
+let consumers = {}; // consumerId -> consumer
 
 // Remote audio elementlerini saklayalım
 let remoteAudios = [];
@@ -105,21 +105,18 @@ const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
 const settingsButton = document.getElementById('settingsButton');
 
-/* 
-   Metin kanalındaki mesaj kutusu + Gönder butonu 
-   (isteğe göre event eklenecek)
+/*
+  Metin Kanalı Elemanları
 */
+const textChannelContainer = document.getElementById('textChannelContainer');
+const textMessages = document.getElementById('textMessages');
 const textChatInputBar = document.getElementById('textChatInputBar');
 const textChannelMessageInput = document.getElementById('textChannelMessageInput');
 const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
-/*
-  DOMContentLoaded => Socket.IO başlatalım + eventleri tanımlayalım
-*/
 window.addEventListener('DOMContentLoaded', () => {
   socket = io("https://fisqos.com.tr", { transports: ['websocket'] });
   console.log("Socket connected =>", socket.id);
-
   initSocketEvents();
   initUIEvents();
 });
@@ -132,14 +129,12 @@ function initSocketEvents() {
     console.log("Socket disconnect");
   });
 
-  // LOGIN / REGISTER
   socket.on('loginResult', (data) => {
     if (data.success) {
       username = data.username;
       loginScreen.style.display = 'none';
       callScreen.style.display = 'flex';
       socket.emit('set-username', username);
-
       document.getElementById('leftUserName').textContent = username;
       applyAudioStates();
     } else {
@@ -163,7 +158,6 @@ function initSocketEvents() {
     }
   });
 
-  // groupsList
   socket.on('groupsList', (groupArray) => {
     groupListDiv.innerHTML = '';
     groupArray.forEach(groupObj => {
@@ -171,17 +165,13 @@ function initSocketEvents() {
       grpItem.className = 'grp-item';
       grpItem.innerText = groupObj.name[0].toUpperCase();
       grpItem.title = groupObj.name + " (" + groupObj.id + ")";
-
       grpItem.addEventListener('click', () => {
         document.querySelectorAll('.grp-item').forEach(el => el.classList.remove('selected'));
         grpItem.classList.add('selected');
-
         selectedGroup = groupObj.id;
         currentGroup = null;
         groupTitle.textContent = groupObj.name;
-
         socket.emit('browseGroup', groupObj.id);
-
         if (groupObj.owner === username) {
           deleteGroupBtn.style.display = 'block';
           renameGroupBtn.style.display = 'block';
@@ -190,73 +180,50 @@ function initSocketEvents() {
           renameGroupBtn.style.display = 'none';
         }
       });
-
       groupListDiv.appendChild(grpItem);
     });
   });
 
-  /**
-   * roomsList => "type" bilgisi var
-   */
   socket.on('roomsList', (roomsArray) => {
     roomListDiv.innerHTML = '';
     roomsArray.forEach(roomObj => {
       const roomItem = document.createElement('div');
       roomItem.className = 'channel-item';
-
       const channelHeader = document.createElement('div');
       channelHeader.className = 'channel-header';
-
-      // Icon => voice vs text
       let icon;
       if (roomObj.type === 'voice') {
-        icon = createWaveIcon(); // "volume_up"
+        icon = createWaveIcon();
       } else {
         icon = document.createElement('span');
         icon.classList.add('material-icons', 'channel-icon');
-        icon.textContent = 'chat'; // metin simgesi
+        icon.textContent = 'chat';
       }
-
       const textSpan = document.createElement('span');
       textSpan.textContent = roomObj.name;
-
       channelHeader.appendChild(icon);
       channelHeader.appendChild(textSpan);
-
       const channelUsers = document.createElement('div');
       channelUsers.className = 'channel-users';
       channelUsers.id = `channel-users-${roomObj.id}`;
-
       roomItem.appendChild(channelHeader);
       roomItem.appendChild(channelUsers);
 
-      // Metin => sadece başlığı + input box'ı göster
-      // Sesli => join
       roomItem.addEventListener('click', () => {
         if (roomObj.type === 'text') {
-          console.log(`Text channel clicked => ${roomObj.name}`);
+          // Text kanal: sadece başlığı göster, mesaj kutusu gösterilsin.
           document.getElementById('selectedChannelTitle').textContent = roomObj.name;
-
-          // Mesaj yazma kutusunu göster
-          textChatInputBar.style.display = 'flex';
-
-          // Kanaldan ayrıl butonu vs. gizlemek
+          textChannelContainer.style.display = 'flex';
+          document.getElementById('channelUsersContainer').style.display = 'none';
           hideChannelStatusPanel();
-
-          // Kullanıcı kartlarını temizlemek
-          const container = document.getElementById('channelUsersContainer');
-          container.innerHTML = '';
-          container.classList.remove(
-            'layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users'
-          );
+          // Mesajlar listesini temizleyin (isteğe bağlı)
+          textMessages.innerHTML = "";
           return;
+        } else {
+          // Voice kanal: text kanal bölümü gizlensin
+          textChannelContainer.style.display = 'none';
         }
-
-        // Voice channel
-        textChatInputBar.style.display = 'none'; // metin kutusunu gizle
-
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
-
         if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
           roomItem.classList.add('connected');
           return;
@@ -268,40 +235,30 @@ function initSocketEvents() {
         joinRoom(currentGroup, roomObj.id, roomObj.name);
         roomItem.classList.add('connected');
       });
-
       roomListDiv.appendChild(roomItem);
     });
   });
 
-  // allChannelsData => channel-user listesi
   socket.on('allChannelsData', (channelsObj) => {
     Object.keys(channelsObj).forEach(roomId => {
       const cData = channelsObj[roomId];
       const channelDiv = document.getElementById(`channel-users-${roomId}`);
       if (!channelDiv) return;
       channelDiv.innerHTML = '';
-
       cData.users.forEach(u => {
         const userRow = document.createElement('div');
         userRow.classList.add('channel-user');
-
         const leftDiv = document.createElement('div');
         leftDiv.classList.add('channel-user-left');
-
         const avatarDiv = document.createElement('div');
         avatarDiv.classList.add('channel-user-avatar');
         avatarDiv.id = `avatar-${u.id}`;
-
         const nameSpan = document.createElement('span');
         nameSpan.textContent = u.username || '(İsimsiz)';
-
         leftDiv.appendChild(avatarDiv);
         leftDiv.appendChild(nameSpan);
-
         const buttonsDiv = document.createElement('div');
         buttonsDiv.classList.add('channel-user-buttons');
-
-        // mic / deafen
         if (!u.micEnabled) {
           const micIcon = document.createElement('span');
           micIcon.classList.add('material-icons');
@@ -318,10 +275,8 @@ function initSocketEvents() {
           deafIcon.textContent = 'headset_off';
           buttonsDiv.appendChild(deafIcon);
         }
-
         userRow.appendChild(leftDiv);
         userRow.appendChild(buttonsDiv);
-
         channelDiv.appendChild(userRow);
       });
     });
@@ -331,12 +286,10 @@ function initSocketEvents() {
     updateUserList(dbUsersArray);
   });
 
-  // joinRoomAck
   socket.on('joinRoomAck', ({ groupId, roomId }) => {
     console.log("joinRoomAck =>", groupId, roomId);
     currentGroup = groupId;
     currentRoom = roomId;
-
     if (!audioPermissionGranted || !localStream) {
       requestMicrophoneAccess().then(() => {
         startSfuFlow();
@@ -379,7 +332,6 @@ function initSocketEvents() {
     socket.emit('set-username', username);
   });
 
-  // newProducer => consume
   socket.on('newProducer', ({ producerId }) => {
     console.log("newProducer =>", producerId);
     if (!recvTransport) {
@@ -392,21 +344,17 @@ function initSocketEvents() {
 
 async function startSfuFlow() {
   console.log("startSfuFlow => group:", currentGroup, " room:", currentRoom);
-
   if (!device) {
     device = new mediasoupClient.Device();
   }
-
   if (!localStream || localStream.getAudioTracks()[0].readyState === 'ended') {
     await requestMicrophoneAccess();
   }
-
-  const transportParams = await createTransport(); 
+  const transportParams = await createTransport();
   if (transportParams.error) {
     console.error("createTransport error:", transportParams.error);
     return;
   }
-
   if (!deviceIsLoaded) {
     await device.load({ routerRtpCapabilities: transportParams.routerRtpCapabilities });
     deviceIsLoaded = true;
@@ -414,9 +362,7 @@ async function startSfuFlow() {
   } else {
     console.log("Device zaten yüklü...");
   }
-
   sendTransport = device.createSendTransport(transportParams);
-
   sendTransport.on('connect', ({ dtlsParameters }, callback, errback) => {
     console.log("sendTransport connect => dtls");
     socket.emit('connectTransport', {
@@ -448,12 +394,10 @@ async function startSfuFlow() {
       }
     });
   });
-
   if (!localStream) {
     await requestMicrophoneAccess();
   }
   let audioTrack = localStream.getAudioTracks()[0];
-
   try {
     localProducer = await sendTransport.produce({
       track: audioTrack,
@@ -474,14 +418,12 @@ async function startSfuFlow() {
       throw err;
     }
   }
-
   const recvParams = await createTransport();
   if (recvParams.error) {
     console.error("createTransport (recv) error:", recvParams.error);
     return;
   }
   recvTransport = device.createRecvTransport(recvParams);
-
   recvTransport.on('connect', ({ dtlsParameters }, callback, errback) => {
     console.log("recvTransport connect => dtls");
     socket.emit('connectTransport', {
@@ -497,7 +439,6 @@ async function startSfuFlow() {
       }
     });
   });
-
   const producers = await listProducers();
   console.log("Mevcut producerlar =>", producers);
   for (const prod of producers) {
@@ -510,7 +451,6 @@ async function startSfuFlow() {
   console.log("startSfuFlow => tamamlandı.");
 }
 
-// createTransport
 function createTransport() {
   return new Promise((resolve) => {
     socket.emit('createWebRtcTransport', {
@@ -522,7 +462,6 @@ function createTransport() {
   });
 }
 
-// listProducers
 function listProducers() {
   return new Promise((resolve) => {
     socket.emit('listProducers', {
@@ -534,7 +473,6 @@ function listProducers() {
   });
 }
 
-// consumeProducer
 async function consumeProducer(producerId) {
   if (!recvTransport) {
     console.warn("consumeProducer => recvTransport yok");
@@ -555,52 +493,41 @@ async function consumeProducer(producerId) {
     return;
   }
   console.log("consumeProducer =>", consumeParams);
-
   const consumer = await recvTransport.consume({
     id: consumeParams.id,
     producerId: consumeParams.producerId,
     kind: consumeParams.kind,
     rtpParameters: consumeParams.rtpParameters
   });
-  
   consumer.appData = { peerId: consumeParams.producerPeerId };
-
   consumers[consumer.id] = consumer;
-
   const { track } = consumer;
   const audioEl = document.createElement('audio');
   audioEl.srcObject = new MediaStream([track]);
   audioEl.autoplay = true;
   audioEl.dataset.peerId = consumer.appData.peerId;
   remoteAudios.push(audioEl);
-
   audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
-
   startVolumeAnalysis(audioEl.srcObject, consumer.appData.peerId);
-
   console.log("Yeni consumer =>", consumer.id, "=> gerçekte konuşan:", consumer.appData.peerId);
 }
 
 function startVolumeAnalysis(stream, userId) {
   stopVolumeAnalysis(userId);
-
   const audioContext = new AudioContext();
   const source = audioContext.createMediaStreamSource(stream);
   const analyser = audioContext.createAnalyser();
   analyser.fftSize = 512;
   source.connect(analyser);
-
   const dataArray = new Uint8Array(analyser.fftSize);
   const interval = setInterval(() => {
     analyser.getByteTimeDomainData(dataArray);
-
     let sum = 0;
     for (let i = 0; i < dataArray.length; i++) {
       const val = (dataArray[i] - 128) / 128.0;
       sum += Math.abs(val);
     }
     const average = sum / dataArray.length;
-
     const avatarElem = document.getElementById(`avatar-${userId}`);
     if (avatarElem) {
       if (average > SPEAKING_THRESHOLD) {
@@ -610,7 +537,6 @@ function startVolumeAnalysis(stream, userId) {
       }
     }
   }, VOLUME_CHECK_INTERVAL);
-
   audioAnalyzers[userId] = {
     audioContext,
     analyser,
@@ -640,12 +566,10 @@ function leaveRoomInternal() {
     recvTransport.close();
     recvTransport = null;
   }
-
   for (const cid in consumers) {
     stopVolumeAnalysis(cid);
   }
   consumers = {};
-
   remoteAudios.forEach(a => {
     try { a.pause(); } catch(e){}
     a.srcObject = null;
@@ -654,8 +578,6 @@ function leaveRoomInternal() {
   console.log("leaveRoomInternal => SFU transportlar kapatıldı");
 }
 
-// Metin kanala tıklandığında => "selectedChannelTitle" = ...
-// Sesli kanala tıklandığında => joinRoom => ...
 function joinRoom(groupId, roomId, roomName) {
   socket.emit('joinRoom', { groupId, roomId });
   document.getElementById('selectedChannelTitle').textContent = roomName;
@@ -665,11 +587,9 @@ function joinRoom(groupId, roomId, roomName) {
 function attemptLogin() {
   const usernameVal = loginUsernameInput.value.trim();
   const passwordVal = loginPasswordInput.value.trim();
-
   loginErrorMessage.style.display = 'none';
   loginUsernameInput.classList.remove('shake');
   loginPasswordInput.classList.remove('shake');
-
   if (!usernameVal || !passwordVal) {
     loginErrorMessage.textContent = "Lütfen gerekli alanları doldurunuz";
     loginErrorMessage.style.display = 'block';
@@ -694,10 +614,8 @@ async function requestMicrophoneAccess() {
     console.log("Mikrofon erişimi verildi:", stream);
     localStream = stream;
     audioPermissionGranted = true;
-
     applyAudioStates();
     startVolumeAnalysis(localStream, socket.id);
-
     remoteAudios.forEach(audioEl => {
       audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
     });
@@ -707,7 +625,6 @@ async function requestMicrophoneAccess() {
 }
 
 function initUIEvents() {
-  // Login
   loginButton.addEventListener('click', attemptLogin);
   loginUsernameInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') attemptLogin();
@@ -715,8 +632,6 @@ function initUIEvents() {
   loginPasswordInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') attemptLogin();
   });
-
-  // Register
   registerButton.addEventListener('click', () => {
     const userData = {
       username: regUsernameInput.value.trim(),
@@ -728,12 +643,10 @@ function initUIEvents() {
       password: regPasswordInput.value.trim(),
       passwordConfirm: regPasswordConfirmInput.value.trim()
     };
-
     registerErrorMessage.style.display = 'none';
     regUsernameInput.classList.remove('shake');
     regPasswordInput.classList.remove('shake');
     regPasswordConfirmInput.classList.remove('shake');
-
     let isError = false;
     if (!userData.username || !userData.name || !userData.surname ||
         !userData.birthdate || !userData.email || !userData.phone ||
@@ -756,17 +669,14 @@ function initUIEvents() {
       registerErrorMessage.textContent = "Parolalar eşleşmiyor!";
       isError = true;
     }
-
     if (!isError) {
       socket.emit('register', userData);
     }
   });
-
   backToLoginButton.addEventListener('click', () => {
     registerScreen.style.display = 'none';
     loginScreen.style.display = 'block';
   });
-
   showRegisterScreen.addEventListener('click', () => {
     registerScreen.style.display = 'none';
     loginScreen.style.display = 'block';
@@ -775,7 +685,6 @@ function initUIEvents() {
     registerScreen.style.display = 'none';
     loginScreen.style.display = 'block';
   });
-
   createGroupButton.addEventListener('click', () => {
     document.getElementById('groupModal').style.display = 'flex';
   });
@@ -811,7 +720,6 @@ function initUIEvents() {
   document.getElementById('closeJoinGroupModal').addEventListener('click', () => {
     document.getElementById('joinGroupModal').style.display = 'none';
   });
-
   document.getElementById('modalCreateRoomBtn').addEventListener('click', () => {
     const rName = document.getElementById('modalRoomName').value.trim();
     if (!rName) {
@@ -830,7 +738,6 @@ function initUIEvents() {
   document.getElementById('modalCloseRoomBtn').addEventListener('click', () => {
     document.getElementById('roomModal').style.display = 'none';
   });
-
   copyGroupIdBtn.addEventListener('click', () => {
     groupDropdownMenu.style.display = 'none';
     const grp = currentGroup || selectedGroup;
@@ -888,7 +795,6 @@ function initUIEvents() {
       groupDropdownMenu.style.display = 'none';
     }
   });
-
   toggleDMButton.addEventListener('click', () => {
     const dmPanel = document.getElementById('dmPanel');
     if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
@@ -903,13 +809,11 @@ function initUIEvents() {
     document.getElementById('dmPanel').style.display = 'none';
     isDMMode = false;
   });
-
   leaveButton.addEventListener('click', () => {
     if (!currentRoom) return;
     socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
     leaveRoomInternal();
     hideChannelStatusPanel();
-
     currentRoom = null;
     document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
     const container = document.getElementById('channelUsersContainer');
@@ -917,11 +821,10 @@ function initUIEvents() {
       container.innerHTML = '';
       container.classList.remove('layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users');
     }
-    if (currentGroup) {
-      socket.emit('browseGroup', currentGroup);
-    }
+    // Ayrıca, text kanal alanı da temizlensin:
+    textChannelContainer.style.display = 'none';
+    socket.emit('browseGroup', currentGroup);
   });
-
   micToggleButton.addEventListener('click', () => {
     micEnabled = !micEnabled;
     applyAudioStates();
@@ -940,30 +843,24 @@ function initUIEvents() {
   settingsButton.addEventListener('click', () => {
     // ...
   });
-
-  // Örnek: "Gönder" butonuna tıklama -> console.log
   sendTextMessageBtn.addEventListener('click', () => {
     const msg = textChannelMessageInput.value.trim();
     if (!msg) return;
     console.log("Text channel message:", msg);
+    // Buraya mesaj gönderme işlemi eklenebilir
     textChannelMessageInput.value = '';
   });
 }
 
-/*
-  Kullanıcı Mikrofon / Deaf => sadece Producer pause/resume
-*/
 function applyAudioStates() {
   if (localProducer) {
     if (micEnabled && !selfDeafened) {
       localProducer.resume();
-
       if (!audioAnalyzers[socket.id]) {
         startVolumeAnalysis(localStream, socket.id);
       }
     } else {
       localProducer.pause();
-
       stopVolumeAnalysis(socket.id);
       const avatarElem = document.getElementById(`avatar-${socket.id}`);
       if (avatarElem) {
@@ -971,7 +868,6 @@ function applyAudioStates() {
       }
     }
   }
-
   if (!micEnabled || selfDeafened) {
     micToggleButton.innerHTML = `<span class="material-icons">mic_off</span>`;
     micToggleButton.classList.add('btn-muted');
@@ -986,24 +882,19 @@ function applyAudioStates() {
     deafenToggleButton.innerHTML = `<span class="material-icons">headset</span>`;
     deafenToggleButton.classList.remove('btn-muted');
   }
-
   remoteAudios.forEach(audio => {
     audio.muted = selfDeafened;
   });
-
   socket.emit('audioStateChanged', { micEnabled, selfDeafened });
 }
 
 function updateUserList(data) {
-  const userListDiv = document.getElementById('userList');
   userListDiv.innerHTML = '';
-
   const onlineTitle = document.createElement('div');
   onlineTitle.textContent = 'Çevrimiçi';
   onlineTitle.style.fontWeight = 'normal';
   onlineTitle.style.fontSize = '0.85rem';
   userListDiv.appendChild(onlineTitle);
-
   if (data.online && data.online.length > 0) {
     data.online.forEach(u => {
       userListDiv.appendChild(createUserItem(u.username, true));
@@ -1014,14 +905,12 @@ function updateUserList(data) {
     noneP.style.fontSize = '0.75rem';
     userListDiv.appendChild(noneP);
   }
-
   const offlineTitle = document.createElement('div');
   offlineTitle.textContent = 'Çevrimdışı';
   offlineTitle.style.fontWeight = 'normal';
   offlineTitle.style.fontSize = '0.85rem';
   offlineTitle.style.marginTop = '1rem';
   userListDiv.appendChild(offlineTitle);
-
   if (data.offline && data.offline.length > 0) {
     data.offline.forEach(u => {
       userListDiv.appendChild(createUserItem(u.username, false));
@@ -1037,15 +926,12 @@ function updateUserList(data) {
 function createUserItem(username, isOnline) {
   const userItem = document.createElement('div');
   userItem.classList.add('user-item');
-
   const profileThumb = document.createElement('div');
   profileThumb.classList.add('profile-thumb');
   profileThumb.style.backgroundColor = isOnline ? '#2dbf2d' : '#777';
-
   const userNameSpan = document.createElement('span');
   userNameSpan.classList.add('user-name');
   userNameSpan.textContent = username;
-
   const copyIdBtn = document.createElement('button');
   copyIdBtn.classList.add('copy-id-btn');
   copyIdBtn.textContent = "ID Kopyala";
@@ -1059,7 +945,6 @@ function createUserItem(username, isOnline) {
         alert("Kopyalama başarısız!");
       });
   });
-
   userItem.appendChild(profileThumb);
   userItem.appendChild(userNameSpan);
   userItem.appendChild(copyIdBtn);
@@ -1077,12 +962,8 @@ function createWaveIcon() {
 function renderUsersInMainContent(usersArray) {
   const container = document.getElementById('channelUsersContainer');
   if (!container) return;
-
   container.innerHTML = '';
-  container.classList.remove(
-    'layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users'
-  );
-
+  container.classList.remove('layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users');
   if (usersArray.length === 1) {
     container.classList.add('layout-1-user');
   } else if (usersArray.length === 2) {
@@ -1094,26 +975,21 @@ function renderUsersInMainContent(usersArray) {
   } else {
     container.classList.add('layout-n-users');
   }
-
   usersArray.forEach(u => {
     const card = document.createElement('div');
     card.classList.add('user-card');
-
     const avatar = document.createElement('div');
     avatar.classList.add('user-card-avatar');
     avatar.id = `avatar-${u.id}`;
-
     const label = document.createElement('div');
     label.classList.add('user-label');
     label.textContent = u.username || '(İsimsiz)';
-
     card.appendChild(avatar);
     card.appendChild(label);
     container.appendChild(card);
   });
 }
 
-// Kanal Durum Paneli
 function showChannelStatusPanel() {
   channelStatusPanel.style.display = 'block';
   startPingInterval();
@@ -1158,7 +1034,6 @@ function updateCellBars(ping) {
   cellBar2.classList.remove('active');
   cellBar3.classList.remove('active');
   cellBar4.classList.remove('active');
-
   if (barsActive >= 1) cellBar1.classList.add('active');
   if (barsActive >= 2) cellBar2.classList.add('active');
   if (barsActive >= 3) cellBar3.classList.add('active');
