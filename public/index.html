@@ -141,35 +141,28 @@
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Ortadaki ana içerik -->
-    <div class="main-content">
-      <div id="selectedChannelBar" class="selected-channel-bar">
-        <h2 id="selectedChannelTitle" class="selected-channel-title">Kanal Seçilmedi</h2>
-      </div>
-      <div id="channelContentArea" class="channel-content-area">
-        <!-- Buraya kullanıcıların kartları gelecek -->
-        <div id="channelUsersContainer" class="channel-users-container"></div>
-
-        <!-- YENİ EKLENEN: Metin kanallarında görünecek mesaj yazma kutusu -->
-        <div id="textChatInputBar" class="text-chat-input-bar" style="display:none;">
-          <input
-            type="text"
-            id="textChannelMessageInput"
-            class="input-text"
-            placeholder="Mesajınızı yazın..."
-          />
-          <button id="sendTextMessageBtn" class="btn primary" style="margin-left:8px;">
-            Gönder
-          </button>
+      <!-- Ortadaki Ana İçerik -->
+      <div class="main-content" style="position: relative;">
+        <div id="selectedChannelBar" class="selected-channel-bar">
+          <h2 id="selectedChannelTitle" class="selected-channel-title">Kanal Seçilmedi</h2>
+        </div>
+        <div id="channelContentArea" class="channel-content-area">
+          <!-- Buraya kullanıcıların kartları gelecek -->
+          <div id="channelUsersContainer" class="channel-users-container"></div>
         </div>
       </div>
-    </div>
 
-    <!-- Sağ Panel (Kullanıcılar) -->
-    <div class="right-panel" id="rightPanel">
-      <div id="userList" class="user-list"></div>
+      <!-- Sağ Panel (Kullanıcılar) -->
+      <div class="right-panel" id="rightPanel">
+        <div id="userList" class="user-list"></div>
+      </div>
+    <!-- callScreen sonu -->
+
+    <!-- Yazılı Kanal Mesaj Yazma Kutusu (metin kanalları için) -->
+    <div id="textChannelFooter" class="text-channel-footer" style="display:none;">
+      <input id="textMessageInput" type="text" class="chat-input" placeholder="Bir mesaj yaz..." />
+      <button id="sendTextMessageBtn" class="btn primary small-btn">Gönder</button>
     </div>
   </div>
 
