@@ -340,13 +340,17 @@ function initSocketEvents() {
     consumeProducer(producerId);
   });
 
-  socket.on('textMessage', (data) => {
-    // data: { message, username, timestamp }
-    const msgDiv = document.createElement('div');
-    msgDiv.className = 'text-message';
-    const time = new Date(data.timestamp).toLocaleTimeString();
-    msgDiv.innerHTML = `<strong>[${time}] ${data.username}:</strong> ${data.message}`;
-    textMessages.appendChild(msgDiv);
+  // EK: Gelen geçmiş mesajları textHistory eventiyle alıp textMessages alanına ekle
+  socket.on('textHistory', (messages) => {
+    textMessages.innerHTML = "";
+    messages.forEach(msg => {
+      const time = new Date(msg.timestamp).toLocaleTimeString();
+      const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'text-message';
+      msgDiv.innerHTML = `<strong>[${time}] ${sender}:</strong> ${msg.content}`;
+      textMessages.appendChild(msgDiv);
+    });
     textMessages.scrollTop = textMessages.scrollHeight;
   });
 }
@@ -854,14 +858,12 @@ function initUIEvents() {
   sendTextMessageBtn.addEventListener('click', () => {
     const msg = textChannelMessageInput.value.trim();
     if (!msg) return;
-    // Mesajı yerel olarak da ekleyelim:
     const msgDiv = document.createElement('div');
     msgDiv.className = 'text-message';
     const time = new Date().toLocaleTimeString();
     msgDiv.innerHTML = `<strong>[${time}] ${username}:</strong> ${msg}`;
     textMessages.appendChild(msgDiv);
     textMessages.scrollTop = textMessages.scrollHeight;
-    // Mesajı sunucuya gönderelim:
     socket.emit('textMessage', { groupId: selectedGroup, roomId: currentTextChannel, message: msg, username: username });
     textChannelMessageInput.value = '';
   });
@@ -1009,10 +1011,12 @@ function showChannelStatusPanel() {
   channelStatusPanel.style.display = 'block';
   startPingInterval();
 }
+
 function hideChannelStatusPanel() {
   channelStatusPanel.style.display = 'none';
   stopPingInterval();
 }
+
 function startPingInterval() {
   if (pingInterval) clearInterval(pingInterval);
   pingInterval = setInterval(() => {
@@ -1027,6 +1031,7 @@ function startPingInterval() {
     updateCellBars(pingMs);
   }, 1000);
 }
+
 function stopPingInterval() {
   if (pingInterval) {
     clearInterval(pingInterval);
@@ -1035,6 +1040,7 @@ function stopPingInterval() {
   pingValueSpan.textContent = '-- ms';
   updateCellBars(0);
 }
+
 function updateCellBars(ping) {
   let barsActive = 0;
   if (ping >= 1) {
