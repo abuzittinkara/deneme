@@ -1,4 +1,4 @@
-/* Genel Ayarlar */
+* Genel Ayarlar */
 body {
   margin: 0;
   padding: 0;
@@ -494,21 +494,22 @@ body {
   color: #aaa;
 }
 .channel-content-area {
-  .channel-content-area {
-    position: relative;
-    padding: 0; /* İstenirse padding sıfırlanabilir */
-    box-sizing: border-box;
-  }
+  flex: 1;
+  padding: 1rem;
+  box-sizing: border-box;
+  overflow: auto;
+  padding-bottom: 60px; /* Alt boşluk, mesaj yazma barı için */
+}
 
 /* Text Kanalı: Mesaj geçmişi ve yazma barı kapsayıcı */
 #textChannelContainer {
   position: absolute;
-  top: 0;
   bottom: 0;
-  left: 0;
-  right: 0;
+  left: 65px; /* Sol panelin sağından başlayacak */
+  right: 200px; /* Sağ panelin soluna kadar uzanacak */
+  top: 0;
   background: #353535;
-  display: flex;
+  display: none;
   flex-direction: column;
   box-sizing: border-box;
 }
@@ -517,7 +518,7 @@ body {
 #textMessages {
   flex: 1;
   overflow-y: auto;
-  padding: 0;     /* Eğer arzu ederseniz burada az bir padding da verebilirsiniz */
+  padding: 1rem;
   box-sizing: border-box;
 }
 
