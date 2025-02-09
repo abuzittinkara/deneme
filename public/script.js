@@ -197,7 +197,8 @@ function initSocketEvents() {
 
       const channelHeader = document.createElement('div');
       channelHeader.className = 'channel-header';
-      const icon = createWaveIcon();
+      // İkonu oda türüne göre belirle
+      const icon = createWaveIcon(roomObj.type);
       const textSpan = document.createElement('span');
       textSpan.textContent = roomObj.name;
       channelHeader.appendChild(icon);
@@ -221,7 +222,8 @@ function initSocketEvents() {
           leaveRoomInternal();
         }
         currentGroup = selectedGroup;
-        joinRoom(currentGroup, roomObj.id, roomObj.name);
+        // Yeni parametre olarak roomObj.type (kanal türü) da gönderiliyor.
+        joinRoom(currentGroup, roomObj.id, roomObj.name, roomObj.type);
         roomItem.classList.add('connected');
       });
 
@@ -380,6 +382,30 @@ function initSocketEvents() {
     }
     consumeProducer(producerId);
   });
+}
+
+function createWaveIcon(type) {
+  const icon = document.createElement('span');
+  icon.classList.add('material-icons');
+  icon.classList.add('channel-icon');
+  if (type === 'text') {
+    icon.textContent = 'tag';
+  } else {
+    icon.textContent = 'volume_up';
+  }
+  return icon;
+}
+
+function joinRoom(groupId, roomId, roomName, roomType) {
+  if (roomType === 'voice') {
+    socket.emit('joinRoom', { groupId, roomId });
+    showChannelStatusPanel();
+  } else {
+    // Text kanalı için SFU bağlantısı gerekmez, sadece tarayıcıda görüntüle
+    socket.emit('browseGroup', groupId);
+    hideChannelStatusPanel();
+  }
+  document.getElementById('selectedChannelTitle').textContent = roomName;
 }
 
 async function startSfuFlow() {
@@ -645,9 +671,6 @@ function leaveRoomInternal() {
     recvTransport = null;
   }
 
-  // localStream track'larını durdurmuyoruz, yeniden produce edebilmek için
-  // (İhtiyaç durumuna göre durdurabilirsiniz.)
-
   for (const cid in consumers) {
     stopVolumeAnalysis(cid);
   }
@@ -664,10 +687,16 @@ function leaveRoomInternal() {
 /*
   Kanala giriş => joinRoom
 */
-function joinRoom(groupId, roomId, roomName) {
-  socket.emit('joinRoom', { groupId, roomId });
+function joinRoom(groupId, roomId, roomName, roomType) {
+  if (roomType === 'voice') {
+    socket.emit('joinRoom', { groupId, roomId });
+    showChannelStatusPanel();
+  } else {
+    // Text kanalı için SFU bağlantısı gerekmiyor; sadece tarayıcıda o kanalı görüntüle.
+    socket.emit('browseGroup', groupId);
+    hideChannelStatusPanel();
+  }
   document.getElementById('selectedChannelTitle').textContent = roomName;
-  showChannelStatusPanel();
 }
 
 /*
@@ -711,7 +740,6 @@ async function requestMicrophoneAccess() {
     applyAudioStates();
     startVolumeAnalysis(stream, socket.id);
 
-    // Kullanıcı sağır değilse, remoteAudios elemanlarını da yeniden oynatmayı deneyebilir
     remoteAudios.forEach(audioEl => {
       audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
     });
@@ -966,7 +994,6 @@ function initUIEvents() {
   Kullanıcı Mikrofon / Deaf => Sadece Producer’ı pause/resume ediyoruz.
 */
 function applyAudioStates() {
-  // BURADA track.enabled vs. yok, SADECE Producer durdurup/açıyoruz:
   if (localProducer) {
     if (micEnabled && !selfDeafened) {
       localProducer.resume();
@@ -975,7 +1002,6 @@ function applyAudioStates() {
     }
   }
 
-  // UI buton görünüm
   if (!micEnabled || selfDeafened) {
     micToggleButton.innerHTML = `<span class="material-icons">mic_off</span>`;
     micToggleButton.classList.add('btn-muted');
@@ -991,12 +1017,10 @@ function applyAudioStates() {
     deafenToggleButton.classList.remove('btn-muted');
   }
 
-  // Sağırsa, tüm remote audios'u da mute'la
   remoteAudios.forEach(audio => {
     audio.muted = selfDeafened;
   });
 
-  // Sunucuya durumu bildir
   socket.emit('audioStateChanged', { micEnabled, selfDeafened });
 }
 
@@ -1071,14 +1095,6 @@ function createUserItem(username, isOnline) {
   return userItem;
 }
 
-function createWaveIcon() {
-  const icon = document.createElement('span');
-  icon.classList.add('material-icons');
-  icon.classList.add('channel-icon');
-  icon.textContent = 'volume_up';
-  return icon;
-}
-
 function renderUsersInMainContent(usersArray) {
   const container = document.getElementById('channelUsersContainer');
   if (!container) return;
@@ -1106,7 +1122,6 @@ function renderUsersInMainContent(usersArray) {
 
     const avatar = document.createElement('div');
     avatar.classList.add('user-card-avatar');
-    // avatar'a id
     avatar.id = `avatar-${u.id}`;
 
     const label = document.createElement('div');
