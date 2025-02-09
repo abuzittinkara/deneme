@@ -3,7 +3,7 @@
  * TAMAMEN SFU MANTIĞINA GEÇİLMİŞ VERSİYON
  **************************************/
 let socket = null;
-let device = null; // mediasoup-client Device
+let device = null;   // mediasoup-client Device
 let deviceIsLoaded = false;
 let sendTransport = null;
 let recvTransport = null;
@@ -16,7 +16,7 @@ let audioPermissionGranted = false;
 let localProducer = null;
 
 // Remote audio consumer objeleri
-let consumers = {}; // consumerId -> consumer
+let consumers = {};  // consumerId -> consumer
 
 // Remote audio elementlerini saklayalım
 let remoteAudios = [];
@@ -26,6 +26,8 @@ let username = null;
 let currentGroup = null;
 let currentRoom = null;
 let selectedGroup = null;
+// Metin kanalı için seçili kanal id'si
+let currentTextChannel = null;
 
 // Mikrofon / Kulaklık
 let micEnabled = true;
@@ -105,9 +107,7 @@ const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
 const settingsButton = document.getElementById('settingsButton');
 
-/*
-  Metin Kanalı Elemanları
-*/
+/* Metin Kanalı Elemanları */
 const textChannelContainer = document.getElementById('textChannelContainer');
 const textMessages = document.getElementById('textMessages');
 const textChatInputBar = document.getElementById('textChatInputBar');
@@ -208,19 +208,21 @@ function initSocketEvents() {
       channelUsers.id = `channel-users-${roomObj.id}`;
       roomItem.appendChild(channelHeader);
       roomItem.appendChild(channelUsers);
-
       roomItem.addEventListener('click', () => {
         if (roomObj.type === 'text') {
-          // Text kanal: sadece başlığı göster, mesaj kutusu gösterilsin.
+          // Text kanal: join text channel oda
           document.getElementById('selectedChannelTitle').textContent = roomObj.name;
+          // Göndereceğimiz mesajların listeleneceği alanı göster
           textChannelContainer.style.display = 'flex';
+          // Gizlenecek kısım: voice kanal kullanıcı kartları
           document.getElementById('channelUsersContainer').style.display = 'none';
           hideChannelStatusPanel();
-          // Mesajlar listesini temizleyin (isteğe bağlı)
           textMessages.innerHTML = "";
+          currentTextChannel = roomObj.id;
+          // Join text channel room (socket room)
+          socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: roomObj.id });
           return;
         } else {
-          // Voice kanal: text kanal bölümü gizlensin
           textChannelContainer.style.display = 'none';
         }
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
@@ -339,6 +341,17 @@ function initSocketEvents() {
       return;
     }
     consumeProducer(producerId);
+  });
+
+  // Yeni: Text mesajları alındığında, mesajları textMessages alanına ekle
+  socket.on('textMessage', (data) => {
+    // data: { message, username, timestamp }
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'text-message';
+    const time = new Date(data.timestamp).toLocaleTimeString();
+    msgDiv.innerHTML = `<strong>[${time}] ${data.username}:</strong> ${data.message}`;
+    textMessages.appendChild(msgDiv);
+    textMessages.scrollTop = textMessages.scrollHeight;
   });
 }
 
@@ -821,7 +834,6 @@ function initUIEvents() {
       container.innerHTML = '';
       container.classList.remove('layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users');
     }
-    // Ayrıca, text kanal alanı da temizlensin:
     textChannelContainer.style.display = 'none';
     socket.emit('browseGroup', currentGroup);
   });
@@ -846,8 +858,7 @@ function initUIEvents() {
   sendTextMessageBtn.addEventListener('click', () => {
     const msg = textChannelMessageInput.value.trim();
     if (!msg) return;
-    console.log("Text channel message:", msg);
-    // Buraya mesaj gönderme işlemi eklenebilir
+    socket.emit('textMessage', { groupId: selectedGroup, roomId: currentTextChannel, message: msg, username: username });
     textChannelMessageInput.value = '';
   });
 }
