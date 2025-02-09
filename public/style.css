@@ -4,7 +4,7 @@ body {
   padding: 0;
   font-family: 'Roboto', sans-serif;
   background: #2d2d2d;
-  color: #aaa;
+  color: #aaa; 
   font-size: 16px;
 }
 
@@ -21,15 +21,15 @@ body {
   justify-content: center;
 }
 
-/* Kart */
+/* Kart => alt alta inputlar */
 .card {
-  background: #2d2d2d;
+  background: #2d2d2d; 
   padding: 2rem;
   border-radius: 8px;
   min-width: 320px;
   text-align: center;
-  border: none;
-  box-shadow: none;
+  border: none; 
+  box-shadow: none; 
 }
 
 .app-title {
@@ -37,7 +37,7 @@ body {
   font-size: 1.5rem;
 }
 
-/* Input */
+/* Inputları alt alta sıralamak => display:block; */
 .input-text {
   display: block;
   width: 260px;
@@ -48,7 +48,7 @@ body {
   border: 1px solid #666;
   border-radius: 6px;
   font-size: 0.95rem;
-  margin: 0.6rem auto;
+  margin: 0.6rem auto; 
   box-sizing: border-box;
 }
 
@@ -76,7 +76,7 @@ body {
   transition: background 0.3s ease;
 }
 .btn.primary {
-  background: #c61884;
+  background: #c61884; 
   color: #fff;
 }
 .btn.primary:hover {
@@ -89,6 +89,8 @@ body {
 .btn.secondary:hover {
   background: #666;
 }
+
+/* Ek: küçük buton stili */
 .btn.small-btn {
   padding: 0.5rem 0.75rem;
   font-size: 0.9rem;
@@ -105,12 +107,12 @@ body {
   height: 100vh;
 }
 
-/* Soldaki Panel */
+/* Soldaki Ana Panel => (65px sidebar + 300px rooms) => 365px */
 #leftPanels.left-panels {
   display: flex;
   flex-direction: column;
   height: 100%;
-  width: 365px;
+  width: 365px; 
   box-sizing: border-box;
 }
 
@@ -123,10 +125,10 @@ body {
   box-sizing: border-box;
 }
 
-/* Sidebar */
+/* Sidebar => 65px */
 .sidebar {
-  width: 65px;
-  background: #1e1e1e;
+  width: 65px;  
+  background: #1e1e1e; 
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -152,7 +154,7 @@ body {
   height: 48px;
   border-radius: 45%;
   border: none;
-  font-size: 1.5rem;
+  font-size: 1.5rem; 
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -162,7 +164,7 @@ body {
   background-color: #a3156f;
 }
 
-/* grp-item */
+/* grp-item => yuvarlak */
 .grp-item {
   width: 43px;
   height: 43px;
@@ -181,12 +183,12 @@ body {
 }
 .grp-item.selected {
   border: 2px solid #c61884;
-  border-radius: 15px;
+  border-radius: 15px; 
 }
 
-/* rooms-panel */
+/* rooms-panel => 300px */
 .rooms-panel {
-  width: 300px;
+  width: 300px; 
   background: #2d2d2d;
   display: flex;
   flex-direction: column;
@@ -211,7 +213,7 @@ body {
 }
 .dropdown-icon {
   cursor: pointer;
-  font-size: 20px !important;
+  font-size: 20px !important; 
   color: #ccc;
   margin-left: auto;
 }
@@ -250,12 +252,12 @@ body {
   width: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
+  justify-content: center; 
+  align-items: flex-start;  
   cursor: pointer;
-  padding: 7px 12px 3px 8px;
+  padding: 7px 12px 3px 8px; 
   margin-bottom: 0;
-  border-radius: 5px;
+  border-radius: 5px; 
   background: #2d2d2d;
   line-height: 1.2;
   box-sizing: border-box;
@@ -271,12 +273,12 @@ body {
   gap: 0.6rem;
   width: 100%;
   line-height: 1.2;
-  margin: 0;
+  margin: 0; 
 }
 .channel-icon {
-  width: 18px;
+  width: 18px; 
   height: 18px;
-  color: #aaa;
+  color: #aaa; 
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -299,7 +301,7 @@ body {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-between; 
   box-sizing: border-box;
   gap: 0.4rem;
 }
@@ -309,7 +311,7 @@ body {
   gap: 0.5rem;
 }
 .channel-user-buttons {
-  display: none;
+  display: none; 
   gap: 8px;
 }
 .channel-item.connected .channel-user-buttons {
@@ -329,17 +331,17 @@ body {
 
 /* channel-status-panel */
 .channel-status-panel {
-  position: absolute;
-  left: 65px;
-  width: 300px;
+  position: absolute; 
+  left: 65px;      
+  width: 300px;    
   background: #262626;
   box-sizing: border-box;
-  height: 45px;
+  height: 45px; 
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding: 0.5rem;
-  bottom: 57px;
+  bottom: 57px; 
   z-index: 10;
 }
 .chan-status-content {
@@ -388,7 +390,7 @@ body {
 
 /* user-panel */
 .user-panel {
-  position: absolute;
+  position: absolute; 
   left: 65px;
   width: 300px;
   background: #262626;
@@ -518,6 +520,7 @@ body {
 }
 
 /* Yazı kanalı mesaj kutusu */
+/* Değişiklik: mesaj yazma kutusu artık ekranın en altına sabitlenmiş */
 .text-channel-footer {
   position: fixed;
   bottom: 0;
@@ -571,6 +574,7 @@ body {
 }
 .user-item:hover {
 }
+
 .profile-thumb {
   width: 30px;
   height: 30px;
