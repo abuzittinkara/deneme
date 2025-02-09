@@ -505,9 +505,9 @@ body {
 #textChannelContainer {
   position: absolute;
   bottom: 0;
-  left: 65px; /* Sol panelin sağından başlayacak */
-  right: 200px; /* Sağ panelin soluna kadar uzanacak */
-  top: 0;
+  left: 10px; /* Sol panelin sağından başlayacak */
+  right: 5px; /* Sağ panelin soluna kadar uzanacak */
+  top: 50px;
   background: #353535;
   display: none;
   flex-direction: column;
