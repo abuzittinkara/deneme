@@ -197,8 +197,7 @@ function initSocketEvents() {
 
       const channelHeader = document.createElement('div');
       channelHeader.className = 'channel-header';
-      // İkonu oda türüne göre belirle
-      const icon = createWaveIcon(roomObj.type);
+      const icon = createWaveIcon();
       const textSpan = document.createElement('span');
       textSpan.textContent = roomObj.name;
       channelHeader.appendChild(icon);
@@ -222,8 +221,7 @@ function initSocketEvents() {
           leaveRoomInternal();
         }
         currentGroup = selectedGroup;
-        // Yeni parametre olarak roomObj.type (kanal türü) da gönderiliyor.
-        joinRoom(currentGroup, roomObj.id, roomObj.name, roomObj.type);
+        joinRoom(currentGroup, roomObj.id, roomObj.name);
         roomItem.classList.add('connected');
       });
 
@@ -384,30 +382,6 @@ function initSocketEvents() {
   });
 }
 
-function createWaveIcon(type) {
-  const icon = document.createElement('span');
-  icon.classList.add('material-icons');
-  icon.classList.add('channel-icon');
-  if (type === 'text') {
-    icon.textContent = 'tag';
-  } else {
-    icon.textContent = 'volume_up';
-  }
-  return icon;
-}
-
-function joinRoom(groupId, roomId, roomName, roomType) {
-  if (roomType === 'voice') {
-    socket.emit('joinRoom', { groupId, roomId });
-    showChannelStatusPanel();
-  } else {
-    // Text kanalı için SFU bağlantısı gerekmez, sadece tarayıcıda görüntüle
-    socket.emit('browseGroup', groupId);
-    hideChannelStatusPanel();
-  }
-  document.getElementById('selectedChannelTitle').textContent = roomName;
-}
-
 async function startSfuFlow() {
   console.log("startSfuFlow => group:", currentGroup, " room:", currentRoom);
 
@@ -472,7 +446,7 @@ async function startSfuFlow() {
     });
   });
 
-  // Mikrofon track => DOĞRUDAN orijinal track (klon yerine)
+  // Mikrofon track => DOĞRUDAN orijinal track (klon yok)
   if (!localStream) {
     await requestMicrophoneAccess();
   }
@@ -589,8 +563,9 @@ async function consumeProducer(producerId) {
     kind: consumeParams.kind,
     rtpParameters: consumeParams.rtpParameters
   });
-  // consumer.appData.peerId: Sunucu tarafında tanımlanan peerId
-  consumer.appData = { peerId: socket.id };
+  
+  // ÖNEMLİ: Artık consumer.appData.peerId = producerPeerId
+  consumer.appData = { peerId: consumeParams.producerPeerId };
 
   consumers[consumer.id] = consumer;
 
@@ -603,10 +578,10 @@ async function consumeProducer(producerId) {
 
   audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
 
-  // Ses dalgalanma analizi
+  // Ses dalgalanma analizi => kim konuşuyor -> consumer.appData.peerId
   startVolumeAnalysis(audioEl.srcObject, consumer.appData.peerId);
 
-  console.log("Yeni consumer =>", consumer.id);
+  console.log("Yeni consumer =>", consumer.id, "=> gerçekte konuşan:", consumer.appData.peerId);
 }
 
 function startVolumeAnalysis(stream, userId) {
@@ -671,6 +646,9 @@ function leaveRoomInternal() {
     recvTransport = null;
   }
 
+  // localStream track'larını durdurmuyoruz, yeniden produce edebilmek için
+  // (İhtiyaç durumuna göre durdurabilirsiniz.)
+
   for (const cid in consumers) {
     stopVolumeAnalysis(cid);
   }
@@ -687,16 +665,10 @@ function leaveRoomInternal() {
 /*
   Kanala giriş => joinRoom
 */
-function joinRoom(groupId, roomId, roomName, roomType) {
-  if (roomType === 'voice') {
-    socket.emit('joinRoom', { groupId, roomId });
-    showChannelStatusPanel();
-  } else {
-    // Text kanalı için SFU bağlantısı gerekmiyor; sadece tarayıcıda o kanalı görüntüle.
-    socket.emit('browseGroup', groupId);
-    hideChannelStatusPanel();
-  }
+function joinRoom(groupId, roomId, roomName) {
+  socket.emit('joinRoom', { groupId, roomId });
   document.getElementById('selectedChannelTitle').textContent = roomName;
+  showChannelStatusPanel();
 }
 
 /*
@@ -740,6 +712,7 @@ async function requestMicrophoneAccess() {
     applyAudioStates();
     startVolumeAnalysis(stream, socket.id);
 
+    // Kullanıcı sağır değilse, remoteAudios elemanlarını da yeniden oynatmayı deneyebilir
     remoteAudios.forEach(audioEl => {
       audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
     });
@@ -813,8 +786,8 @@ function initUIEvents() {
   });
 
   showRegisterScreen.addEventListener('click', () => {
-    registerScreen.style.display = 'none';
-    loginScreen.style.display = 'block';
+    loginScreen.style.display = 'none';
+    registerScreen.style.display = 'block';
   });
   showLoginScreen.addEventListener('click', () => {
     registerScreen.style.display = 'none';
@@ -991,9 +964,10 @@ function initUIEvents() {
 }
 
 /*
-  Kullanıcı Mikrofon / Deaf => Sadece Producer’ı pause/resume ediyoruz.
+  Kullanıcı Mikrofon / Deaf => sadece Producer pause/resume
 */
 function applyAudioStates() {
+  // Producer'ı durdurup/açıyoruz
   if (localProducer) {
     if (micEnabled && !selfDeafened) {
       localProducer.resume();
@@ -1002,6 +976,7 @@ function applyAudioStates() {
     }
   }
 
+  // UI buton görünüm
   if (!micEnabled || selfDeafened) {
     micToggleButton.innerHTML = `<span class="material-icons">mic_off</span>`;
     micToggleButton.classList.add('btn-muted');
@@ -1017,10 +992,12 @@ function applyAudioStates() {
     deafenToggleButton.classList.remove('btn-muted');
   }
 
+  // Sağırsa, tüm remote audios'u da mute yap
   remoteAudios.forEach(audio => {
     audio.muted = selfDeafened;
   });
 
+  // Sunucuya durumu bildir
   socket.emit('audioStateChanged', { micEnabled, selfDeafened });
 }
 
@@ -1095,6 +1072,14 @@ function createUserItem(username, isOnline) {
   return userItem;
 }
 
+function createWaveIcon() {
+  const icon = document.createElement('span');
+  icon.classList.add('material-icons');
+  icon.classList.add('channel-icon');
+  icon.textContent = 'volume_up';
+  return icon;
+}
+
 function renderUsersInMainContent(usersArray) {
   const container = document.getElementById('channelUsersContainer');
   if (!container) return;
@@ -1122,6 +1107,7 @@ function renderUsersInMainContent(usersArray) {
 
     const avatar = document.createElement('div');
     avatar.classList.add('user-card-avatar');
+    // avatar'a id
     avatar.id = `avatar-${u.id}`;
 
     const label = document.createElement('div');

@@ -252,8 +252,7 @@ function sendRoomsListToUser(socketId, groupId) {
   const groupObj = groups[groupId];
   const roomArray = Object.keys(groupObj.rooms).map(rId => ({
     id: rId,
-    name: groupObj.rooms[rId].name,
-    type: groupObj.rooms[rId].type   // EK: Kanalın türünü de gönderiyoruz.
+    name: groupObj.rooms[rId].name
   }));
   io.to(socketId).emit('roomsList', roomArray);
 }
@@ -899,8 +898,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // *** BURADAKİ KISIM DEĞİŞTİRİLDİ ***
-  // consume => router'dan producerId ile producer almak yerine, rmObj.producers üzerinden producer nesnesini alıyoruz.
+  // *** DEĞİŞTİRİLEN KISIM ***
   socket.on('consume', async ({ groupId, roomId, transportId, producerId }, callback) => {
     try {
       const rmObj = groups[groupId]?.rooms[roomId];
@@ -914,25 +912,30 @@ io.on('connection', (socket) => {
       const producer = rmObj.producers?.[producerId];
       if (!producer) return callback({ error: "Producer bulunamadı" });
 
-      // sfu.consume artık (router, transport, producer) parametresi bekliyor
+      // sfu.consume (router, transport, producer)
       const consumer = await sfu.consume(router, transport, producer);
-      consumer.appData = { peerId: socket.id };
+
+      // Değişiklik => consumer.appData'ye producer'ı kimin ürettiğini koyuyoruz
+      consumer.appData = { peerId: producer.appData.peerId };
+
       rmObj.consumers = rmObj.consumers || {};
       rmObj.consumers[consumer.id] = consumer;
 
       const { producerId: prId, id, kind, rtpParameters } = consumer;
+      // producerPeerId => client'a yolluyoruz
       callback({
         producerId: prId,
         id,
         kind,
-        rtpParameters
+        rtpParameters,
+        producerPeerId: producer.appData.peerId
       });
     } catch (err) {
       console.error("consume error:", err);
       callback({ error: err.message });
     }
   });
-  // *** DEĞİŞTİRİLEN KISIM BİTTİ ***
+  // *** DEĞİŞTİ = producerPeerId ekledik ***
 
   socket.on('listProducers', ({ groupId, roomId }, callback) => {
     try {
