@@ -516,15 +516,16 @@ body {
   padding: 1rem;
   box-sizing: border-box;
   overflow: auto;
-  padding-bottom: 60px; /* Alt boşluk */
+  padding-bottom: 60px;
 }
 
 /* Yazı kanalı mesaj kutusu */
+/* Değişiklik: mesaj yazma kutusu artık ekranın en altına sabitlenmiş */
 .text-channel-footer {
   position: fixed;
   bottom: 0;
-  left: 65px;
-  right: 200px;
+  left: 0;
+  right: 0;
   background: #333;
   display: flex;
   padding: 0.5rem;
@@ -572,7 +573,6 @@ body {
   gap: 0.40rem;
 }
 .user-item:hover {
-  /* background: #444; */
 }
 
 .profile-thumb {
