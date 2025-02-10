@@ -522,7 +522,7 @@ body {
   box-sizing: border-box;
 }
 
-/* Modern Scrollbar - Yalnızca hover durumunda görünsün */
+/* Modern Scrollbar: Varsayılan gizli, sadece scroll yapılınca (".scrolling" sınıfıyla) görünsün */
 
 /* WebKit tarayıcıları için */
 #textMessages::-webkit-scrollbar {
@@ -530,7 +530,7 @@ body {
   background: transparent;
   transition: width 0.3s;
 }
-#textMessages:hover::-webkit-scrollbar {
+#textMessages.scrolling::-webkit-scrollbar {
   width: 8px;
 }
 #textMessages::-webkit-scrollbar-track {
@@ -545,7 +545,7 @@ body {
 #textMessages {
   scrollbar-width: none;
 }
-#textMessages:hover {
+#textMessages.scrolling {
   scrollbar-width: thin;
 }
 
@@ -583,7 +583,7 @@ body {
   display: none; /* JS tarafından kontrol edilir */
 }
 
-/* Send İkonu: Varsayılan durum Outlined (sadece stroke) */
+/* Send İkonu: Varsayılan Outlined (sadece stroke) */
 #sendTextMessageBtn span.send-icon {
   font-family: 'Material Icons Outlined';
   font-size: 24px;
