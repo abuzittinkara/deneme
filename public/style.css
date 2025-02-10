@@ -522,8 +522,7 @@ body {
   box-sizing: border-box;
 }
 
-/* Mesaj yazma kutusu ve gönder butonunu içeren bar (eski .text-channel-footer stiline alternatif olarak kullanılmıyor) */
-/* Düzenlenmiş: Mesaj yazma kutucuğu ve gönder butonunu yatay düzende yerleştirme */
+/* Mesaj yazma kutusu ve gönder butonunu içeren bar */
 /* Yeni tasarım: Gönder ikonu mesaj kutusunun içinde, en sağda konumlandırma */
 .text-chat-input-bar {
   position: relative;
@@ -534,7 +533,6 @@ body {
   padding: 0.5rem;
   box-sizing: border-box;
 }
-
 .text-chat-input-bar .chat-input {
   flex: 1;
   box-sizing: border-box;
@@ -546,10 +544,7 @@ body {
   padding: 0.5rem;
 }
 
-/* Gönder butonunu düzenliyoruz:
-   - Mevcut metin gizlenecek.
-   - ::before ile "send" Material ikonunu ekleyeceğiz.
-*/
+/* Güncellenmiş: #sendTextMessageBtn artık "Gönder" metnini gizleyip, Material Icons'dan "send" ikonunu gösteriyor */
 #sendTextMessageBtn {
   position: absolute;
   right: 10px;
@@ -558,8 +553,7 @@ body {
   background: none;
   border: none;
   cursor: pointer;
-  display: none; /* Başlangıçta gizli; JS kontrol eder */
-  /* Mevcut metni gizle */
+  display: none; /* JS kontrolünde görünür */
   text-indent: -9999px;
   overflow: hidden;
 }
@@ -568,7 +562,6 @@ body {
   font-family: 'Material Icons';
   font-size: 20px;
   color: #aaa;
-  text-indent: 0;
   display: inline-block;
 }
 
