@@ -546,6 +546,10 @@ body {
   padding: 0.5rem;
 }
 
+/* Gönder butonunu düzenliyoruz:
+   - Mevcut metin gizlenecek.
+   - ::before ile "send" Material ikonunu ekleyeceğiz.
+*/
 #sendTextMessageBtn {
   position: absolute;
   right: 10px;
@@ -553,10 +557,19 @@ body {
   transform: translateY(-50%);
   background: none;
   border: none;
-  font-size: 20px;
-  color: #aaa;
   cursor: pointer;
   display: none; /* Başlangıçta gizli; JS kontrol eder */
+  /* Mevcut metni gizle */
+  text-indent: -9999px;
+  overflow: hidden;
+}
+#sendTextMessageBtn::before {
+  content: "send";
+  font-family: 'Material Icons';
+  font-size: 20px;
+  color: #aaa;
+  text-indent: 0;
+  display: inline-block;
 }
 
 /* Right Panel */
