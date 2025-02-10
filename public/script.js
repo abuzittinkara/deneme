@@ -119,17 +119,6 @@ window.addEventListener('DOMContentLoaded', () => {
   console.log("Socket connected =>", socket.id);
   initSocketEvents();
   initUIEvents();
-  
-  // Scroll yapıldığında #textMessages öğesine "scrolling" sınıfını ekle ve 1 saniye sonra kaldır.
-  const scrollElem = document.getElementById('textMessages');
-  let scrollTimeout;
-  scrollElem.addEventListener('scroll', () => {
-    scrollElem.classList.add('scrolling');
-    clearTimeout(scrollTimeout);
-    scrollTimeout = setTimeout(() => {
-      scrollElem.classList.remove('scrolling');
-    }, 1000);
-  });
 });
 
 function initSocketEvents() {
@@ -219,6 +208,7 @@ function initSocketEvents() {
         if (roomObj.type === 'text') {
           console.log(`Text channel clicked => ${roomObj.name}`);
           document.getElementById('selectedChannelTitle').textContent = roomObj.name;
+          // Metin kanalı görünümü
           textChannelContainer.style.display = 'flex';
           document.getElementById('channelUsersContainer').style.display = 'none';
           hideChannelStatusPanel();
@@ -227,6 +217,7 @@ function initSocketEvents() {
           socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: roomObj.id });
           return;
         }
+        // Voice channel
         textChannelContainer.style.display = 'none';
         document.getElementById('channelUsersContainer').style.display = 'flex';
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
@@ -850,7 +841,7 @@ function initUIEvents() {
       container.innerHTML = '';
       container.classList.remove('layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users');
     }
-    document.getElementById('textChannelContainer').style.display = 'none';
+    textChannelContainer.style.display = 'none';
     socket.emit('browseGroup', currentGroup);
   });
   micToggleButton.addEventListener('click', () => {
@@ -884,11 +875,14 @@ function initUIEvents() {
     textMessages.scrollTop = textMessages.scrollHeight;
     socket.emit('textMessage', { groupId: selectedGroup, roomId: currentTextChannel, message: msg, username: username });
     textChannelMessageInput.value = '';
+    // Gönder butonunu tekrar gizle
     sendTextMessageBtn.style.display = "none";
   }
   
+  // Gönder butonuna tıklayınca mesaj gönderilsin.
   sendTextMessageBtn.addEventListener('click', sendTextMessage);
   
+  // Mesaj yazma kutusunda her değişiklikte gönder butonunun görünürlüğünü ayarla.
   textChannelMessageInput.addEventListener('input', () => {
     if (textChannelMessageInput.value.trim() !== "") {
       sendTextMessageBtn.style.display = "block";
@@ -897,6 +891,7 @@ function initUIEvents() {
     }
   });
   
+  // Enter tuşuna basıldığında da mesaj gönder
   textChannelMessageInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -1050,7 +1045,7 @@ function showChannelStatusPanel() {
 
 function hideChannelStatusPanel() {
   channelStatusPanel.style.display = 'none';
-  startPingInterval(); // Text kanalları için status paneli kapalı kalsın
+  startPingInterval();
 }
 
 function startPingInterval() {
@@ -1097,284 +1092,19 @@ function updateCellBars(ping) {
   if (barsActive >= 4) cellBar4.classList.add('active');
 }
 
-/* Modern Scrollbar: Varsayılan gizli, yalnızca scroll hareketi yapıldığında (".scrolling" sınıfı eklenince) görünsün */
-
-/* WebKit tarayıcıları için */
-#textMessages::-webkit-scrollbar {
-  width: 0px;
-  background: transparent;
-  transition: width 0.3s;
-}
-#textMessages.scrolling::-webkit-scrollbar {
-  width: 8px;
-}
-#textMessages::-webkit-scrollbar-track {
-  background: transparent;
-}
-#textMessages::-webkit-scrollbar-thumb {
-  background-color: rgba(198, 24, 132, 0.8);
-  border-radius: 4px;
-}
-
-/* Firefox için */
-#textMessages {
-  scrollbar-width: none;
-}
-#textMessages.scrolling {
-  scrollbar-width: thin;
-}
-
-/* Text Yazma Kutusu ve Gönder Butonu */
-.text-chat-input-bar {
-  position: relative;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  width: 100%;
-  padding: 0.5rem;
-  box-sizing: border-box;
-}
-.text-chat-input-bar .chat-input {
-  flex: 1;
-  box-sizing: border-box;
-  padding-right: 40px; /* Gönder ikonu için boşluk */
-  background: #444;
-  border: 1px solid #666;
-  border-radius: 6px;
-  color: #fff;
-  padding: 0.5rem;
-}
-
-/* Gönder Butonu */
-#sendTextMessageBtn {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  display: none; /* JS tarafından kontrol edilir */
-}
-
-/* Send İkonu: Varsayılan durum Outlined (sadece stroke) */
-#sendTextMessageBtn span.send-icon {
-  font-family: 'Material Icons Outlined';
-  font-size: 24px;
-  transition: color 0.3s ease, font-family 0.3s ease;
-  color: #aaa;
-}
-
-/* Hover durumunda: Dolu ikon ve renk #c61884 */
-#sendTextMessageBtn:hover span.send-icon {
-  font-family: 'Material Icons';
-  color: #c61884;
-}
-
-/* Right Panel */
-.right-panel {
-  width: 200px;
-  background: #1f1f1f;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  color: #aaa;
-  border-left: 1px solid #444;
-}
-.user-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-.user-item {
-  padding: 0.1rem;
-  border: none;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-.profile-thumb {
-  width: 30px;
-  height: 30px;
-  background: #666;
-  border-radius: 45%;
-  flex-shrink: 0;
-}
-.user-name {
-  flex: 1;
-  font-weight: 500;
-  color: #aaa;
-}
-.copy-id-btn {
-  background: #555;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 0.2rem 0.3rem;
-  cursor: pointer;
-  font-size: 0.75rem;
-  transition: background 0.3s ease;
-}
-.copy-id-btn:hover {
-  background: #777;
-}
-
-/* Modal */
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
-}
-.modal-content {
-  background: #2d2d2d;
-  padding: 2rem;
-  border-radius: 8px;
-  min-width: 300px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-  color: #fff;
-  text-align: center;
-}
-.modal-buttons {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
-  justify-content: center;
-}
-#groupModal,
-#roomModal,
-#actualGroupCreateModal,
-#joinGroupModal {
-  display: none;
-}
-
-/* DM panel */
-.dm-panel {
-  width: 265px;
-  background: #222;
-  color: #fff;
-  padding: 1rem;
-  box-sizing: border-box;
-  overflow: auto;
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-}
-.dm-close-btn {
-  position: absolute;
-  top: 1rem;
-  left: 0.55rem;
-}
-
-/* Context Menu */
-.context-menu {
-  position: absolute;
-  background: #2d2d2d;
-  border: 1px solid #444;
-  border-radius: 6px;
-  z-index: 999999;
-  min-width: 130px;
-  display: none;
-  flex-direction: column;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-}
-.context-menu-item {
-  padding: 0.75rem 1rem;
-  cursor: pointer;
-  font-size: 0.9rem;
-  border-bottom: 1px solid #444;
-}
-.context-menu-item:last-child {
-  border-bottom: none;
-}
-.context-menu-item:hover {
-  background: #444;
-}
-
-@media (max-width: 600px) {
-  .left-panels { width:65px; }
-  .rooms-panel { width:300px; }
-  .user-panel { width:300px; }
-  .channel-status-panel { width:300px; }
-  .app-title { font-size:1.2rem; }
-  .right-panel { width:200px; }
-}
-
-/* Kullanıcı Kartları */
-.user-card {
-  position: relative;
-  background: #2d2d2d;
-  border: 1px solid #444;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0.5rem;
-  overflow: hidden;
-  aspect-ratio: 16 / 9;
-}
-.layout-1-user {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  align-items: flex-start;
-  justify-content: flex-start;
-}
-.layout-1-user .user-card {
-  width: 100%;
-  margin: 0;
-  height: auto;
-}
-.layout-2-users {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  width: 100%;
-  height: auto;
-}
-.layout-2-users .user-card {
-  width: 100%;
-  height: auto;
-  margin: 0;
-}
-.layout-3-users {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  width: 100%;
-  height: auto;
-}
-.layout-3-users .user-card:nth-child(3) {
-  grid-column: 1 / span 2;
-  width: 100%;
-}
-.layout-4-users {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  width: 100%;
-  height: auto;
-}
-.layout-4-users .user-card {
-  width: 100%;
-  height: auto;
-}
-.layout-n-users {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  width: 100%;
-  height: auto;
-}
-.layout-n-users .user-card {
-  width: 100%;
-  height: auto;
-}
+/* Yeni: #textMessages alanında scroll yapıldığında "scrolling" sınıfını ekleyecek kodlar
+   Bu sınıf eklendiğinde scrollbar CSS'de görünür hale gelecek.
+*/
+document.addEventListener('DOMContentLoaded', function() {
+  const textMessages = document.getElementById('textMessages');
+  if (textMessages) {
+    let scrollTimeout;
+    textMessages.addEventListener('scroll', function() {
+      textMessages.classList.add('scrolling');
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(function() {
+        textMessages.classList.remove('scrolling');
+      }, 1000);
+    });
+  }
+});
