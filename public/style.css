@@ -555,10 +555,6 @@ body {
   display: none; /* JS tarafından kontrol edilir */
 }
 
-#sendTextMessageBtn .material-icons {
-  font-size: 24px; /* İstediğiniz boyuta göre değeri ayarlayın */
-}
-
 /* Right Panel */
 .right-panel {
   width: 200px;
