@@ -4,7 +4,7 @@ body {
   padding: 0;
   font-family: 'Roboto', sans-serif;
   background: #2d2d2d;
-  color: #aaa; 
+  color: #aaa;
   font-size: 16px;
 }
 
@@ -23,13 +23,13 @@ body {
 
 /* Kart */
 .card {
-  background: #2d2d2d; 
+  background: #2d2d2d;
   padding: 2rem;
   border-radius: 8px;
   min-width: 320px;
   text-align: center;
-  border: none; 
-  box-shadow: none; 
+  border: none;
+  box-shadow: none;
 }
 
 .app-title {
@@ -48,7 +48,7 @@ body {
   border: 1px solid #666;
   border-radius: 6px;
   font-size: 0.95rem;
-  margin: 0.6rem auto; 
+  margin: 0.6rem auto;
   box-sizing: border-box;
 }
 
@@ -76,7 +76,7 @@ body {
   transition: background 0.3s ease;
 }
 .btn.primary {
-  background: #c61884; 
+  background: #c61884;
   color: #fff;
 }
 .btn.primary:hover {
@@ -110,7 +110,7 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
-  width: 365px; 
+  width: 365px;
   box-sizing: border-box;
 }
 .groups-rooms {
@@ -121,8 +121,8 @@ body {
   box-sizing: border-box;
 }
 .sidebar {
-  width: 65px;  
-  background: #1e1e1e; 
+  width: 65px;
+  background: #1e1e1e;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -148,7 +148,7 @@ body {
   height: 48px;
   border-radius: 45%;
   border: none;
-  font-size: 1.5rem; 
+  font-size: 1.5rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -167,7 +167,7 @@ body {
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  transition: all 0.50s ease;
+  transition: all 0.5s ease;
   border: 2px solid transparent;
 }
 .grp-item:hover {
@@ -175,12 +175,12 @@ body {
 }
 .grp-item.selected {
   border: 2px solid #c61884;
-  border-radius: 15px; 
+  border-radius: 15px;
 }
 
 /* Odalar Paneli */
 .rooms-panel {
-  width: 300px; 
+  width: 300px;
   background: #2d2d2d;
   display: flex;
   flex-direction: column;
@@ -205,7 +205,7 @@ body {
 }
 .dropdown-icon {
   cursor: pointer;
-  font-size: 20px !important; 
+  font-size: 20px !important;
   color: #ccc;
   margin-left: auto;
 }
@@ -244,12 +244,12 @@ body {
   width: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center; 
-  align-items: flex-start;  
+  justify-content: center;
+  align-items: flex-start;
   cursor: pointer;
-  padding: 7px 12px 3px 8px; 
+  padding: 7px 12px 3px 8px;
   margin-bottom: 0;
-  border-radius: 5px; 
+  border-radius: 5px;
   background: #2d2d2d;
   line-height: 1.2;
   box-sizing: border-box;
@@ -263,12 +263,12 @@ body {
   gap: 0.6rem;
   width: 100%;
   line-height: 1.2;
-  margin: 0; 
+  margin: 0;
 }
 .channel-icon {
-  width: 18px; 
+  width: 18px;
   height: 18px;
-  color: #aaa; 
+  color: #aaa;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -287,7 +287,7 @@ body {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between; 
+  justify-content: space-between;
   box-sizing: border-box;
   gap: 0.4rem;
 }
@@ -297,7 +297,7 @@ body {
   gap: 0.5rem;
 }
 .channel-user-buttons {
-  display: none; 
+  display: none;
   gap: 8px;
 }
 .channel-item.connected .channel-user-buttons {
@@ -315,17 +315,17 @@ body {
 
 /* Kanal Durum Paneli */
 .channel-status-panel {
-  position: absolute; 
-  left: 65px;      
-  width: 300px;    
+  position: absolute;
+  left: 65px;
+  width: 300px;
   background: #262626;
   box-sizing: border-box;
-  height: 45px; 
+  height: 45px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding: 0.5rem;
-  bottom: 57px; 
+  bottom: 57px;
   z-index: 10;
 }
 .chan-status-content {
@@ -374,7 +374,7 @@ body {
 
 /* User Panel */
 .user-panel {
-  position: absolute; 
+  position: absolute;
   left: 65px;
   width: 300px;
   background: #262626;
@@ -498,16 +498,16 @@ body {
   padding: 1rem;
   box-sizing: border-box;
   overflow: auto;
-  padding-bottom: 60px; /* Alt boşluk, mesaj yazma barı için */
+  padding-bottom: 60px;
 }
 
 /* Text Kanalı: Mesaj geçmişi ve yazma barı kapsayıcı */
 #textChannelContainer {
   position: absolute;
   bottom: 0;
-  left: 10px; /* Sol panelin sağından başlayacak */
-  right: 5px; /* Sağ panelin soluna kadar uzanacak */
-  top: 60px;  /* selectedChannelBar'ın altına inmesi için ayarlandı */
+  left: 10px;
+  right: 5px;
+  top: 60px;
   background: #353535;
   display: none;
   flex-direction: column;
@@ -522,8 +522,7 @@ body {
   box-sizing: border-box;
 }
 
-/* Mesaj yazma kutusu ve gönder butonunu içeren bar */
-/* Yeni tasarım: Gönder ikonu mesaj kutusunun içinde, en sağda konumlandırma */
+/* Text Yazma Kutusu ve Gönder Butonu */
 .text-chat-input-bar {
   position: relative;
   display: flex;
@@ -544,7 +543,7 @@ body {
   padding: 0.5rem;
 }
 
-/* Güncellenmiş: #sendTextMessageBtn artık "Gönder" metnini gizleyip, Material Icons'dan "send" ikonunu gösteriyor */
+/* Gönder Butonu */
 #sendTextMessageBtn {
   position: absolute;
   right: 10px;
@@ -553,16 +552,7 @@ body {
   background: none;
   border: none;
   cursor: pointer;
-  display: none; /* JS kontrolünde görünür */
-  text-indent: -9999px;
-  overflow: hidden;
-}
-#sendTextMessageBtn::before {
-  content: "send";
-  font-family: 'Material Icons';
-  font-size: 20px;
-  color: #aaa;
-  display: inline-block;
+  display: none; /* JS tarafından kontrol edilir */
 }
 
 /* Right Panel */
@@ -586,7 +576,7 @@ body {
   border: none;
   display: flex;
   align-items: center;
-  gap: 0.40rem;
+  gap: 0.4rem;
 }
 .profile-thumb {
   width: 30px;
@@ -605,7 +595,7 @@ body {
   color: #fff;
   border: none;
   border-radius: 6px;
-  padding: 0.2rem 0.30rem;
+  padding: 0.2rem 0.3rem;
   cursor: pointer;
   font-size: 0.75rem;
   transition: background 0.3s ease;
@@ -683,7 +673,7 @@ body {
 .context-menu-item {
   padding: 0.75rem 1rem;
   cursor: pointer;
-  font-size: 0.90rem;
+  font-size: 0.9rem;
   border-bottom: 1px solid #444;
 }
 .context-menu-item:last-child {
