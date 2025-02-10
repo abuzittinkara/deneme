@@ -558,7 +558,7 @@ body {
 /* Yeni: Send İkonu Stili */
 #sendTextMessageBtn span.send-icon {
   font-family: 'Material Icons Outlined';
-  font-size: 24px;
+  font-size: 22px;
   transition: color 0.3s ease, font-family 0.3s ease;
   color: #aaa;
 }
