@@ -561,7 +561,7 @@ body {
   transition: color 0.3s ease;
 }
 #sendTextMessageBtn:hover span.material-icons {
-  color: pink;
+  color: #c61884;
 }
 
 /* Right Panel */
