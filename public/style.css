@@ -547,6 +547,26 @@ body {
   padding: 0.5rem;
 }
 
+/* Yeni eklenen düzenlemeler: Mesaj yazma butonununun genişliği channelContentArea ile aynı */
+.text-chat-input-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem;
+  box-sizing: border-box;
+}
+
+.text-chat-input-bar .chat-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#sendTextMessageBtn {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 /* Right Panel */
 .right-panel {
   width: 200px;
