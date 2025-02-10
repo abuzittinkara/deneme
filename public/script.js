@@ -219,7 +219,6 @@ function initSocketEvents() {
         if (roomObj.type === 'text') {
           console.log(`Text channel clicked => ${roomObj.name}`);
           document.getElementById('selectedChannelTitle').textContent = roomObj.name;
-          // Metin kanalı görünümü
           textChannelContainer.style.display = 'flex';
           document.getElementById('channelUsersContainer').style.display = 'none';
           hideChannelStatusPanel();
@@ -228,7 +227,6 @@ function initSocketEvents() {
           socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: roomObj.id });
           return;
         }
-        // Voice channel
         textChannelContainer.style.display = 'none';
         document.getElementById('channelUsersContainer').style.display = 'flex';
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
