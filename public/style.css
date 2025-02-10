@@ -539,6 +539,11 @@ body {
   flex: 1;
   box-sizing: border-box;
   padding-right: 40px; /* Send ikonu için boşluk */
+  background: #444;
+  border: 1px solid #666;
+  border-radius: 6px;
+  color: #fff;
+  padding: 0.5rem;
 }
 
 #sendTextMessageBtn {
