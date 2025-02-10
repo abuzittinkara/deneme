@@ -119,6 +119,19 @@ window.addEventListener('DOMContentLoaded', () => {
   console.log("Socket connected =>", socket.id);
   initSocketEvents();
   initUIEvents();
+  
+  // Scroll event listener: "scrolling" sınıfı yalnızca kullanıcı en alt (en yeni mesajda) değilken eklenecek
+  const tm = document.getElementById('textMessages');
+  if (tm) {
+    tm.addEventListener('scroll', function() {
+      const atBottom = tm.scrollTop + tm.clientHeight >= tm.scrollHeight - 5;
+      if (atBottom) {
+        tm.classList.remove('scrolling');
+      } else {
+        tm.classList.add('scrolling');
+      }
+    });
+  }
 });
 
 function initSocketEvents() {
@@ -208,7 +221,6 @@ function initSocketEvents() {
         if (roomObj.type === 'text') {
           console.log(`Text channel clicked => ${roomObj.name}`);
           document.getElementById('selectedChannelTitle').textContent = roomObj.name;
-          // Metin kanalı görünümü
           textChannelContainer.style.display = 'flex';
           document.getElementById('channelUsersContainer').style.display = 'none';
           hideChannelStatusPanel();
@@ -217,7 +229,6 @@ function initSocketEvents() {
           socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: roomObj.id });
           return;
         }
-        // Voice channel
         textChannelContainer.style.display = 'none';
         document.getElementById('channelUsersContainer').style.display = 'flex';
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
@@ -875,7 +886,7 @@ function initUIEvents() {
     textMessages.scrollTop = textMessages.scrollHeight;
     socket.emit('textMessage', { groupId: selectedGroup, roomId: currentTextChannel, message: msg, username: username });
     textChannelMessageInput.value = '';
-    // Gönder butonunu tekrar gizle
+    // Mesaj gönder butonunu tekrar gizle
     sendTextMessageBtn.style.display = "none";
   }
   
@@ -1092,19 +1103,20 @@ function updateCellBars(ping) {
   if (barsActive >= 4) cellBar4.classList.add('active');
 }
 
-/* Yeni: #textMessages alanında scroll yapıldığında "scrolling" sınıfını ekleyecek kodlar
-   Bu sınıf eklendiğinde scrollbar CSS'de görünür hale gelecek.
+/* Yeni: #textMessages alanında scroll yapıldığında "scrolling" sınıfını ekle
+   Ancak, kullanıcı en alt (en yeni mesaj) konumdaysa bu sınıf kaldırılacak.
 */
 document.addEventListener('DOMContentLoaded', function() {
-  const textMessages = document.getElementById('textMessages');
-  if (textMessages) {
-    let scrollTimeout;
-    textMessages.addEventListener('scroll', function() {
-      textMessages.classList.add('scrolling');
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(function() {
-        textMessages.classList.remove('scrolling');
-      }, 1000);
+  const tm = document.getElementById('textMessages');
+  if (tm) {
+    tm.addEventListener('scroll', function() {
+      const atBottom = tm.scrollTop + tm.clientHeight >= tm.scrollHeight - 5;
+      if (atBottom) {
+        tm.classList.remove('scrolling');
+      } else {
+        tm.classList.add('scrolling');
+      }
     });
   }
 });
+
