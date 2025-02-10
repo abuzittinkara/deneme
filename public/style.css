@@ -522,7 +522,7 @@ body {
   box-sizing: border-box;
 }
 
-/* Mesaj yazma kutusu ve gönder butonunu içeren bar */
+/* Mesaj yazma kutusu ve gönder butonunu içeren bar (eski .text-channel-footer stiline alternatif olarak kullanılmıyor) */
 .text-channel-footer {
   position: fixed;
   bottom: 0;
@@ -547,10 +547,10 @@ body {
   padding: 0.5rem;
 }
 
-/* Yeni eklenen düzenlemeler: Mesaj yazma butonununun genişliği channelContentArea ile aynı */
+/* Düzenlenmiş: Mesaj yazma kutucuğu ve gönder butonunu yatay düzende yerleştirme */
 .text-chat-input-bar {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 0.5rem;
   width: 100%;
   padding: 0.5rem;
@@ -558,12 +558,12 @@ body {
 }
 
 .text-chat-input-bar .chat-input {
-  width: 100%;
+  flex: 1;
   box-sizing: border-box;
 }
 
 #sendTextMessageBtn {
-  width: 100%;
+  width: auto;
   box-sizing: border-box;
 }
 
