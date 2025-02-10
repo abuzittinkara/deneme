@@ -875,12 +875,23 @@ function initUIEvents() {
     textMessages.scrollTop = textMessages.scrollHeight;
     socket.emit('textMessage', { groupId: selectedGroup, roomId: currentTextChannel, message: msg, username: username });
     textChannelMessageInput.value = '';
+    // Mesaj gönder butonunu tekrar gizle
+    sendTextMessageBtn.style.display = "none";
   }
   
-  // Mevcut buton tıklama eventi yerine sendTextMessage fonksiyonunu çağırıyoruz.
+  // Yeni: Gönder ikonuna tıklayınca mesaj gönderilsin.
   sendTextMessageBtn.addEventListener('click', sendTextMessage);
   
-  // Yeni: Enter tuşuna basıldığında da mesajı gönder
+  // Yeni: Mesaj yazma kutusunda her değişiklikte gönder ikonunun görünürlüğünü ayarla.
+  textChannelMessageInput.addEventListener('input', () => {
+    if (textChannelMessageInput.value.trim() !== "") {
+      sendTextMessageBtn.style.display = "block";
+    } else {
+      sendTextMessageBtn.style.display = "none";
+    }
+  });
+  
+  // Yeni: Enter tuşuna basıldığında da mesaj gönder
   textChannelMessageInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();

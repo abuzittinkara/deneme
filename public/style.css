@@ -523,36 +523,13 @@ body {
 }
 
 /* Mesaj yazma kutusu ve gönder butonunu içeren bar (eski .text-channel-footer stiline alternatif olarak kullanılmıyor) */
-.text-channel-footer {
-  position: fixed;
-  bottom: 0;
-  left: 65px;
-  right: 200px;
-  background: #333;
-  display: flex;
-  padding: 0.5rem;
-  box-sizing: border-box;
-  border-top: 1px solid #444;
-  align-items: center;
-  gap: 0.5rem;
-  z-index: 100;
-}
-.chat-input {
-  flex: 1;
-  height: 40px;
-  margin-right: 0.5rem;
-  background: #444;
-  border: 1px solid #666;
-  border-radius: 6px;
-  color: #fff;
-  padding: 0.5rem;
-}
-
 /* Düzenlenmiş: Mesaj yazma kutucuğu ve gönder butonunu yatay düzende yerleştirme */
+/* Yeni tasarım: Gönder ikonu mesaj kutusunun içinde, en sağda konumlandırma */
 .text-chat-input-bar {
+  position: relative;
   display: flex;
   flex-direction: row;
-  gap: 0.5rem;
+  align-items: center;
   width: 100%;
   padding: 0.5rem;
   box-sizing: border-box;
@@ -561,11 +538,20 @@ body {
 .text-chat-input-bar .chat-input {
   flex: 1;
   box-sizing: border-box;
+  padding-right: 40px; /* Send ikonu için boşluk */
 }
 
 #sendTextMessageBtn {
-  width: auto;
-  box-sizing: border-box;
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #aaa;
+  cursor: pointer;
+  display: none; /* Başlangıçta gizli; JS kontrol eder */
 }
 
 /* Right Panel */
