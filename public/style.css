@@ -555,12 +555,16 @@ body {
   display: none; /* JS tarafından kontrol edilir */
 }
 
-/* Yeni: Gönder ikonunun boyutunu büyüt ve hover durumunda renk değiştir */
-#sendTextMessageBtn span.material-icons {
+/* Yeni: Send İkonu Stili */
+#sendTextMessageBtn span.send-icon {
+  font-family: 'Material Icons Outlined';
   font-size: 24px;
-  transition: color 0.3s ease;
+  transition: color 0.3s ease, font-family 0.3s ease;
+  color: #aaa;
 }
-#sendTextMessageBtn:hover span.material-icons {
+
+#sendTextMessageBtn:hover span.send-icon {
+  font-family: 'Material Icons';
   color: #c61884;
 }
 
