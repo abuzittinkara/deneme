@@ -72,7 +72,7 @@ body {
   border-radius: 6px;
   font-size: 1rem;
   cursor: pointer;
-  margin-top: 1rem;
+  margin-top: 0rem;
   transition: background 0.3s ease;
 }
 .btn.primary {
@@ -507,7 +507,7 @@ body {
   bottom: 0;
   left: 10px; /* Sol panelin sağından başlayacak */
   right: 5px; /* Sağ panelin soluna kadar uzanacak */
-  top: 20px;  /* Değiştirildi: Önce 50px idi, şimdi 20px */
+  top: 0px;  /* Değiştirildi: Önce 50px idi, şimdi 20px */
   background: #353535;
   display: none;
   flex-direction: column;
@@ -539,6 +539,7 @@ body {
 }
 .chat-input {
   flex: 1;
+  height: 40px;
   margin-right: 0.5rem;
   background: #444;
   border: 1px solid #666;
