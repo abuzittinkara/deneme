@@ -120,15 +120,24 @@ window.addEventListener('DOMContentLoaded', () => {
   initSocketEvents();
   initUIEvents();
   
-  // Scroll event listener: "scrolling" sınıfı yalnızca kullanıcı en alt (en yeni mesajda) değilken eklenecek
+  // Scroll event listener: Scrollbar "scrolling" sınıfı, 
+  // yalnızca kullanıcı en altta değilken 1 saniye bekleyip kaldırılacak.
   const tm = document.getElementById('textMessages');
+  let removeScrollingTimeout;
   if (tm) {
     tm.addEventListener('scroll', function() {
       const atBottom = tm.scrollTop + tm.clientHeight >= tm.scrollHeight - 5;
-      if (atBottom) {
-        tm.classList.remove('scrolling');
-      } else {
+      if (!atBottom) {
+        clearTimeout(removeScrollingTimeout);
         tm.classList.add('scrolling');
+      } else {
+        removeScrollingTimeout = setTimeout(() => {
+          // Kontrol ediyoruz, eğer hala en alt konumdaysa, sınıfı kaldırıyoruz
+          const stillAtBottom = tm.scrollTop + tm.clientHeight >= tm.scrollHeight - 5;
+          if (stillAtBottom) {
+            tm.classList.remove('scrolling');
+          }
+        }, 1000);
       }
     });
   }
@@ -1103,20 +1112,57 @@ function updateCellBars(ping) {
   if (barsActive >= 4) cellBar4.classList.add('active');
 }
 
-/* Yeni: #textMessages alanında scroll yapıldığında "scrolling" sınıfını ekle
-   Ancak, kullanıcı en alt (en yeni mesaj) konumdaysa bu sınıf kaldırılacak.
+/* Yeni: #textMessages alanında scroll yapıldığında "scrolling" sınıfını ekle.
+   Ancak, kullanıcı en alt konumdaysa 1 saniye bekleyip "scrolling" sınıfını kaldır.
 */
 document.addEventListener('DOMContentLoaded', function() {
   const tm = document.getElementById('textMessages');
+  let removeScrollingTimeout;
   if (tm) {
     tm.addEventListener('scroll', function() {
       const atBottom = tm.scrollTop + tm.clientHeight >= tm.scrollHeight - 5;
-      if (atBottom) {
-        tm.classList.remove('scrolling');
-      } else {
+      if (!atBottom) {
+        clearTimeout(removeScrollingTimeout);
         tm.classList.add('scrolling');
+      } else {
+        removeScrollingTimeout = setTimeout(() => {
+          const stillAtBottom = tm.scrollTop + tm.clientHeight >= tm.scrollHeight - 5;
+          if (stillAtBottom) {
+            tm.classList.remove('scrolling');
+          }
+        }, 1000);
       }
     });
   }
 });
+  
+function sendTextMessage() {
+  const msg = textChannelMessageInput.value.trim();
+  if (!msg) return;
+  const time = new Date().toLocaleTimeString();
+  const msgDiv = document.createElement('div');
+  msgDiv.className = 'text-message';
+  msgDiv.innerHTML = `<strong>[${time}] ${username}:</strong> ${msg}`;
+  textMessages.appendChild(msgDiv);
+  textMessages.scrollTop = textMessages.scrollHeight;
+  socket.emit('textMessage', { groupId: selectedGroup, roomId: currentTextChannel, message: msg, username: username });
+  textChannelMessageInput.value = '';
+  sendTextMessageBtn.style.display = "none";
+}
 
+sendTextMessageBtn.addEventListener('click', sendTextMessage);
+
+textChannelMessageInput.addEventListener('input', () => {
+  if (textChannelMessageInput.value.trim() !== "") {
+    sendTextMessageBtn.style.display = "block";
+  } else {
+    sendTextMessageBtn.style.display = "none";
+  }
+});
+
+textChannelMessageInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    sendTextMessage();
+  }
+});
