@@ -522,6 +522,33 @@ body {
   box-sizing: border-box;
 }
 
+/* Modern Scrollbar - Yalnızca hover durumunda görünsün */
+
+/* WebKit tarayıcıları için */
+#textMessages::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+  transition: width 0.3s;
+}
+#textMessages:hover::-webkit-scrollbar {
+  width: 8px;
+}
+#textMessages::-webkit-scrollbar-track {
+  background: transparent;
+}
+#textMessages::-webkit-scrollbar-thumb {
+  background-color: rgba(198, 24, 132, 0.8);
+  border-radius: 4px;
+}
+
+/* Firefox için */
+#textMessages {
+  scrollbar-width: none;
+}
+#textMessages:hover {
+  scrollbar-width: thin;
+}
+
 /* Text Yazma Kutusu ve Gönder Butonu */
 .text-chat-input-bar {
   position: relative;
@@ -556,14 +583,15 @@ body {
   display: none; /* JS tarafından kontrol edilir */
 }
 
-/* Yeni: Send İkonu Stili */
+/* Send İkonu: Varsayılan durum Outlined (sadece stroke) */
 #sendTextMessageBtn span.send-icon {
   font-family: 'Material Icons Outlined';
-  font-size: 22px;
+  font-size: 24px;
   transition: color 0.3s ease, font-family 0.3s ease;
   color: #aaa;
 }
 
+/* Hover durumunda: Dolu ikon ve renk #c61884 */
 #sendTextMessageBtn:hover span.send-icon {
   font-family: 'Material Icons';
   color: #c61884;
