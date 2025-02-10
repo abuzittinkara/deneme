@@ -107,10 +107,10 @@ const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
 const settingsButton = document.getElementById('settingsButton');
 
-/* Metin Kanalı Elemanları */
+// Metin Kanalı Elemanları
 const textChannelContainer = document.getElementById('textChannelContainer');
 const textMessages = document.getElementById('textMessages');
-const textChatInputBar = document.getElementById('textChatInputBar');
+const textChatInputBar = document.getElementById('text-chat-input-bar');
 const textChannelMessageInput = document.getElementById('textChannelMessageInput');
 const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
@@ -355,14 +355,21 @@ function initSocketEvents() {
   });
 }
 
-async function startSfuFlow() {
+function startSfuFlow() {
   console.log("startSfuFlow => group:", currentGroup, " room:", currentRoom);
   if (!device) {
     device = new mediasoupClient.Device();
   }
   if (!localStream || localStream.getAudioTracks()[0].readyState === 'ended') {
-    await requestMicrophoneAccess();
+    requestMicrophoneAccess().then(() => {
+      createTransportFlow();
+    });
+  } else {
+    createTransportFlow();
   }
+}
+
+async function createTransportFlow() {
   const transportParams = await createTransport(); 
   if (transportParams.error) {
     console.error("createTransport error:", transportParams.error);
@@ -855,7 +862,9 @@ function initUIEvents() {
   settingsButton.addEventListener('click', () => {
     // ...
   });
-  sendTextMessageBtn.addEventListener('click', () => {
+  
+  // Yeni: Mesaj gönderme işlemi için sendTextMessage fonksiyonunu tanımlıyoruz.
+  function sendTextMessage() {
     const msg = textChannelMessageInput.value.trim();
     if (!msg) return;
     const time = new Date().toLocaleTimeString();
@@ -866,6 +875,17 @@ function initUIEvents() {
     textMessages.scrollTop = textMessages.scrollHeight;
     socket.emit('textMessage', { groupId: selectedGroup, roomId: currentTextChannel, message: msg, username: username });
     textChannelMessageInput.value = '';
+  }
+  
+  // Mevcut buton tıklama eventi yerine sendTextMessage fonksiyonunu çağırıyoruz.
+  sendTextMessageBtn.addEventListener('click', sendTextMessage);
+  
+  // Yeni: Enter tuşuna basıldığında da mesajı gönder
+  textChannelMessageInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      sendTextMessage();
+    }
   });
 }
 
@@ -1060,15 +1080,3 @@ function updateCellBars(ping) {
   if (barsActive >= 3) cellBar3.classList.add('active');
   if (barsActive >= 4) cellBar4.classList.add('active');
 }
-
-socket.on('newTextMessage', (data) => {
-  if (data.channelId === currentTextChannel) {
-    const msg = data.message;
-    const time = new Date(msg.timestamp).toLocaleTimeString();
-    const msgDiv = document.createElement('div');
-    msgDiv.className = 'text-message';
-    msgDiv.innerHTML = `<strong>[${time}] ${msg.username}:</strong> ${msg.content}`;
-    textMessages.appendChild(msgDiv);
-    textMessages.scrollTop = textMessages.scrollHeight;
-  }
-});
