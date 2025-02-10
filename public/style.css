@@ -523,7 +523,6 @@ body {
 }
 
 /* Modern Scrollbar – Varsayılan gizli; "scrolling" sınıfı eklendiğinde görünür */
-
 /* WebKit tarayıcıları için */
 #textMessages::-webkit-scrollbar {
   width: 0px;
@@ -533,11 +532,11 @@ body {
 #textMessages.scrolling::-webkit-scrollbar {
   width: 4px;
 }
-#textMessages::-webkit-scrollbar-track {
-  background: transparent;
+#textMessages.scrolling::-webkit-scrollbar-track {
+  background: #2dbf2d;
 }
 #textMessages.scrolling::-webkit-scrollbar-thumb {
-  background-color: rgba(198,24,132,0.8);
+  background-color: #2dbf2d;
   border-radius: 2px;
 }
 
@@ -547,6 +546,7 @@ body {
 }
 #textMessages.scrolling {
   scrollbar-width: thin;
+  scrollbar-color: #2dbf2d #2dbf2d;
 }
 
 /* Text Yazma Kutusu ve Gönder Butonu */
@@ -568,7 +568,6 @@ body {
   border-radius: 6px;
   color: #fff;
   padding: 0.5rem;
-  height: 45px; /* Burada yüksekliği ayarlıyorsunuz */
 }
 
 /* Gönder Butonu */
@@ -580,10 +579,10 @@ body {
   background: none;
   border: none;
   cursor: pointer;
-  display: none; /* JS tarafından kontrol edilir */
+  display: none;
 }
 
-/* Send İkonu: Varsayılan durum Outlined (sadece stroke) */
+/* Send İkonu: Varsayılan Outlined (sadece stroke) */
 #sendTextMessageBtn span.send-icon {
   font-family: 'Material Icons Outlined';
   font-size: 24px;
