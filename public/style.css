@@ -533,10 +533,10 @@ body {
   width: 4px;
 }
 #textMessages.scrolling::-webkit-scrollbar-track {
-  background: #2dbf2d;
+  background: #353535;
 }
 #textMessages.scrolling::-webkit-scrollbar-thumb {
-  background-color: #2dbf2d;
+  background-color: #353535;
   border-radius: 2px;
 }
 
@@ -546,7 +546,7 @@ body {
 }
 #textMessages.scrolling {
   scrollbar-width: thin;
-  scrollbar-color: #2dbf2d #2dbf2d;
+  scrollbar-color: #666 #353535;
 }
 
 /* Text Yazma Kutusu ve Gönder Butonu */
