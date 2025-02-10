@@ -535,7 +535,7 @@ body {
 .text-chat-input-bar .chat-input {
   flex: 1;
   box-sizing: border-box;
-  padding-right: 40px; /* Send ikonu için boşluk */
+  padding-right: 40px; /* Gönder ikonu için boşluk */
   background: #444;
   border: 1px solid #666;
   border-radius: 6px;
@@ -553,6 +553,15 @@ body {
   border: none;
   cursor: pointer;
   display: none; /* JS tarafından kontrol edilir */
+}
+
+/* Yeni: Gönder ikonunun boyutunu büyüt ve hover durumunda renk değiştir */
+#sendTextMessageBtn span.material-icons {
+  font-size: 24px;
+  transition: color 0.3s ease;
+}
+#sendTextMessageBtn:hover span.material-icons {
+  color: pink;
 }
 
 /* Right Panel */
