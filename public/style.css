@@ -507,7 +507,7 @@ body {
   bottom: 0;
   left: 10px; /* Sol panelin sağından başlayacak */
   right: 5px; /* Sağ panelin soluna kadar uzanacak */
-  top: 50px;
+  top: 20px;  /* Değiştirildi: Önce 50px idi, şimdi 20px */
   background: #353535;
   display: none;
   flex-direction: column;
@@ -538,16 +538,13 @@ body {
   z-index: 100;
 }
 .chat-input {
-  flex: 1;               /* Esnek genişlik */
-  width: 100%;           /* Eğer tam genişlik istiyorsanız */
-  height: 40px;          /* Yüksekliği 40px olarak ayarladık */
+  flex: 1;
   margin-right: 0.5rem;
   background: #444;
   border: 1px solid #666;
   border-radius: 6px;
   color: #fff;
   padding: 0.5rem;
-  box-sizing: border-box; /* Genişlik ve yükseklik hesaplamalarında padding'in dahil edilmesi için */
 }
 
 /* Düzenlenmiş: Mesaj yazma kutucuğu ve gönder butonunu yatay düzende yerleştirme */
