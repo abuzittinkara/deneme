@@ -117,13 +117,15 @@ const textChatInputBar = document.getElementById('text-chat-input-bar');
 const textChannelMessageInput = document.getElementById('textChannelMessageInput');
 const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
+// Tüm DOMContentLoaded işlemlerini tek bir event listener içerisine alıyoruz.
 window.addEventListener('DOMContentLoaded', () => {
+  // Socket başlatılıyor.
   socket = io("https://fisqos.com.tr", { transports: ['websocket'] });
   console.log("Socket connected =>", socket.id);
   initSocketEvents();
   initUIEvents();
   
-  // Scroll event listener: Eğer kullanıcı en alta (en yeni mesaja) geldiyse 1 saniye bekleyip "scrolling" sınıfını kaldır.
+  // #textMessages için scroll event listener
   const tm = document.getElementById('textMessages');
   let removeScrollingTimeout;
   if (tm) {
@@ -234,7 +236,7 @@ function initSocketEvents() {
           document.getElementById('selectedChannelTitle').textContent = roomObj.name;
           textChannelContainer.style.display = 'flex';
           document.getElementById('channelUsersContainer').style.display = 'none';
-          // Eğer kullanıcı voice kanalındaysa, ChannelStatusPanel'i kapatma.
+          // Eğer kullanıcı voice kanalında bağlı değilse ChannelStatusPanel gizlensin; aksi halde bırak.
           if (!(currentRoom && currentRoomType === 'voice')) {
             hideChannelStatusPanel();
             currentRoomType = "text";
@@ -311,7 +313,7 @@ function initSocketEvents() {
     console.log("joinRoomAck =>", groupId, roomId);
     currentGroup = groupId;
     currentRoom = roomId;
-    // Voice kanalına katılırken currentRoomType'ı "voice" olarak ayarla.
+    // Voice kanalına katılırken currentRoomType "voice" olarak ayarlanır.
     currentRoomType = "voice";
     if (!audioPermissionGranted || !localStream) {
       requestMicrophoneAccess().then(() => {
@@ -360,7 +362,7 @@ function initSocketEvents() {
     consumeProducer(producerId);
   });
   
-  // Mesaj geçmişi (textHistory) render edilirken, ardışık mesajlarda yalnızca ilk mesajda avatar gösterilecek.
+  // Text mesajların render edilmesi (textHistory)
   socket.on('textHistory', (messages) => {
     textMessages.innerHTML = "";
     let lastSender = null;
@@ -368,41 +370,35 @@ function initSocketEvents() {
       const time = new Date(msg.timestamp).toLocaleTimeString();
       const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
       const msgDiv = document.createElement('div');
-      
       if (sender === username) {
         msgDiv.className = 'text-message sent-message';
-        // Kendi mesajlarınızda avatar göstermiyoruz.
         msgDiv.innerHTML = `<strong>[${time}] ${sender}:</strong> ${msg.content}`;
       } else {
         msgDiv.className = 'text-message received-message';
-        // Eğer ardışık aynı kullanıcıdan geliyorsa avatarı göstermeyelim.
         if (sender !== lastSender) {
-          // Avatar HTML: Basit bir yuvarlak div içinde gönderenin adının ilk harfi
           const avatarHTML = `<div class="message-avatar">${sender.charAt(0).toUpperCase()}</div>`;
           msgDiv.innerHTML = `${avatarHTML}<div class="message-content"><strong>[${time}] ${sender}:</strong> ${msg.content}</div>`;
         } else {
-          // Aynı kullanıcıdan ardışık mesaj: avatar eklenmez
           msgDiv.innerHTML = `<div class="message-content"><strong>[${time}] ${sender}:</strong> ${msg.content}</div>`;
         }
         lastSender = sender;
       }
+      msgDiv.setAttribute('data-sender', sender);
       textMessages.appendChild(msgDiv);
     });
     textMessages.scrollTop = textMessages.scrollHeight;
   });
   
-  // Yeni gelen metin mesajı render edilirken, gönderici kontrolü yapılır.
+  // Yeni metin mesajı geldiğinde (newTextMessage)
   socket.on('newTextMessage', (data) => {
     if (data.channelId === currentTextChannel) {
       const msg = data.message;
       const time = new Date(msg.timestamp).toLocaleTimeString();
       const msgDiv = document.createElement('div');
       let lastSender = null;
-      // Eğer mevcut son mesajın göndericisini takip edebilmek için, textMessages içerisindeki son mesajı kontrol edelim.
       if (textMessages.lastElementChild && textMessages.lastElementChild.getAttribute('data-sender')) {
         lastSender = textMessages.lastElementChild.getAttribute('data-sender');
       }
-      
       if (msg.username === username) {
         msgDiv.className = 'text-message sent-message';
         msgDiv.innerHTML = `<strong>[${time}] ${msg.username}:</strong> ${msg.content}`;
@@ -415,7 +411,6 @@ function initSocketEvents() {
           msgDiv.innerHTML = `<div class="message-content"><strong>[${time}] ${msg.username}:</strong> ${msg.content}</div>`;
         }
       }
-      // Set attribute to track sender for consecutive messages
       msgDiv.setAttribute('data-sender', msg.username);
       textMessages.appendChild(msgDiv);
       textMessages.scrollTop = textMessages.scrollHeight;
@@ -670,7 +665,7 @@ function joinRoom(groupId, roomId, roomName) {
   socket.emit('joinRoom', { groupId, roomId });
   document.getElementById('selectedChannelTitle').textContent = roomName;
   showChannelStatusPanel();
-  // Voice kanala katılırken currentRoomType "voice" olarak ayarlanır (text kanalı render edildiğinde kontrol edilecek)
+  // Voice kanalına katılırken currentRoomType "voice" olarak ayarlanır.
   currentRoomType = "voice";
 }
 
@@ -941,7 +936,6 @@ function initUIEvents() {
     const msgDiv = document.createElement('div');
     msgDiv.className = 'text-message sent-message';
     msgDiv.innerHTML = `<strong>[${time}] ${username}:</strong> ${msg}`;
-    // Kendi mesajlarınızda avatar gösterilmiyor
     msgDiv.setAttribute('data-sender', username);
     textMessages.appendChild(msgDiv);
     textMessages.scrollTop = textMessages.scrollHeight;
@@ -1112,7 +1106,7 @@ function showChannelStatusPanel() {
 }
 
 function hideChannelStatusPanel() {
-  // ChannelStatusPanel'i gizlemek sadece voice kanalında değilken yapılır.
+  // ChannelStatusPanel gizlenirken, eğer kullanıcı hâlâ voice kanalında ise kapatma.
   if (currentRoomType !== 'voice') {
     channelStatusPanel.style.display = 'none';
     startPingInterval();
@@ -1187,7 +1181,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
   
-// Text mesajların render edilmesinde, ardışık aynı kullanıcıdan gelen mesajlarda avatar sadece ilkinde gösterilsin.
+// Text mesajların render edilmesi: textHistory
 socket.on('textHistory', (messages) => {
   textMessages.innerHTML = "";
   let lastSender = null;
@@ -1201,11 +1195,9 @@ socket.on('textHistory', (messages) => {
     } else {
       msgDiv.className = 'text-message received-message';
       if (sender !== lastSender) {
-        // İlk mesajda avatar göster
         const avatarHTML = `<div class="message-avatar">${sender.charAt(0).toUpperCase()}</div>`;
         msgDiv.innerHTML = `${avatarHTML}<div class="message-content"><strong>[${time}] ${sender}:</strong> ${msg.content}</div>`;
       } else {
-        // Aynı kullanıcı ardışık mesajı, avatar eklenmez
         msgDiv.innerHTML = `<div class="message-content"><strong>[${time}] ${sender}:</strong> ${msg.content}</div>`;
       }
       lastSender = sender;
@@ -1216,12 +1208,12 @@ socket.on('textHistory', (messages) => {
   textMessages.scrollTop = textMessages.scrollHeight;
 });
   
+// Yeni gelen metin mesajı (newTextMessage)
 socket.on('newTextMessage', (data) => {
   if (data.channelId === currentTextChannel) {
     const msg = data.message;
     const time = new Date(msg.timestamp).toLocaleTimeString();
     const msgDiv = document.createElement('div');
-    // Alınan mesajlarda, önceki göndericiyi kontrol etmek için textMessages içindeki son mesajın data-sender değerine bakıyoruz.
     let lastSender = null;
     if (textMessages.lastElementChild && textMessages.lastElementChild.getAttribute('data-sender')) {
       lastSender = textMessages.lastElementChild.getAttribute('data-sender');
@@ -1243,7 +1235,7 @@ socket.on('newTextMessage', (data) => {
     textMessages.scrollTop = textMessages.scrollHeight;
   }
 });
-
+  
 function sendTextMessage() {
   const msg = textChannelMessageInput.value.trim();
   if (!msg) return;
