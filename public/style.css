@@ -531,16 +531,35 @@ body {
   border-radius: 8px;
   max-width: 70%;
   word-wrap: break-word;
+  display: flex;
+  align-items: flex-start;
 }
 .sent-message {
   background-color: #dcf8c6;
   align-self: flex-end;
   text-align: right;
+  flex-direction: row-reverse;
 }
 .received-message {
   background-color: #fff;
   align-self: flex-start;
   text-align: left;
+  flex-direction: row;
+}
+.message-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #ddd;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 8px;
+}
+.message-content {
+  flex: 1;
 }
 
 /* Modern Scrollbar – Varsayılan gizli; "scrolling" sınıfı eklendiğinde görünür */
