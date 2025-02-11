@@ -29,6 +29,9 @@ let selectedGroup = null;
 // Metin kanalı için seçili kanal id'si
 let currentTextChannel = null;
 
+// Kullanıcının bağlı olduğu kanalın türü ("voice" veya "text"). Eğer voice bağlıysa bu değeri "voice" olarak ayarlayacağız.
+let currentRoomType = null;
+
 // Mikrofon / Kulaklık
 let micEnabled = true;
 let selfDeafened = false;
@@ -120,8 +123,7 @@ window.addEventListener('DOMContentLoaded', () => {
   initSocketEvents();
   initUIEvents();
   
-  // Scroll event listener: 
-  // Eğer kullanıcı en alta gelirse 1 saniye bekleyip "scrolling" sınıfını kaldırıyoruz.
+  // Scroll event listener: Eğer kullanıcı en alta gelirse 1 saniye bekleyip "scrolling" sınıfını kaldır.
   const tm = document.getElementById('textMessages');
   let removeScrollingTimeout;
   if (tm) {
@@ -225,18 +227,25 @@ function initSocketEvents() {
       channelUsers.id = `channel-users-${roomObj.id}`;
       roomItem.appendChild(channelHeader);
       roomItem.appendChild(channelUsers);
+      
       roomItem.addEventListener('click', () => {
         if (roomObj.type === 'text') {
           console.log(`Text channel clicked => ${roomObj.name}`);
           document.getElementById('selectedChannelTitle').textContent = roomObj.name;
           textChannelContainer.style.display = 'flex';
           document.getElementById('channelUsersContainer').style.display = 'none';
-          hideChannelStatusPanel();
+          // Eğer kullanıcı voice kanalına bağlı değilse, ChannelStatusPanel gizlensin.
+          if (!(currentRoom && currentRoomType === 'voice')) {
+            hideChannelStatusPanel();
+            // Ayrıca, currentRoomType'ı "text" olarak ayarlayabilirsiniz.
+            currentRoomType = "text";
+          }
           textMessages.innerHTML = "";
           currentTextChannel = roomObj.id;
           socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: roomObj.id });
           return;
         }
+        // Voice channel için:
         textChannelContainer.style.display = 'none';
         document.getElementById('channelUsersContainer').style.display = 'flex';
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
@@ -303,6 +312,8 @@ function initSocketEvents() {
     console.log("joinRoomAck =>", groupId, roomId);
     currentGroup = groupId;
     currentRoom = roomId;
+    // Voice kanalına katılma fonksiyonu kullanılıyorsa currentRoomType "voice" olarak ayarlanacak.
+    currentRoomType = "voice";
     if (!audioPermissionGranted || !localStream) {
       requestMicrophoneAccess().then(() => {
         startSfuFlow();
@@ -629,6 +640,8 @@ function joinRoom(groupId, roomId, roomName) {
   socket.emit('joinRoom', { groupId, roomId });
   document.getElementById('selectedChannelTitle').textContent = roomName;
   showChannelStatusPanel();
+  // Voice kanala katılırken currentRoomType'ı "voice" olarak ayarla.
+  currentRoomType = "voice";
 }
 
 function attemptLogin() {
@@ -896,7 +909,6 @@ function initUIEvents() {
     if (!msg) return;
     const time = new Date().toLocaleTimeString();
     const msgDiv = document.createElement('div');
-    // Kendi mesajlarımız "sent-message" olarak
     msgDiv.className = 'text-message sent-message';
     msgDiv.innerHTML = `<strong>[${time}] ${username}:</strong> ${msg}`;
     textMessages.appendChild(msgDiv);
