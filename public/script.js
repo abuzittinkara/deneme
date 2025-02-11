@@ -120,8 +120,8 @@ window.addEventListener('DOMContentLoaded', () => {
   initSocketEvents();
   initUIEvents();
   
-  // Scroll event listener: Scrollbar "scrolling" sınıfı, 
-  // yalnızca kullanıcı en altta değilken 1 saniye bekleyip kaldırılacak.
+  // Scroll event listener: 
+  // Eğer kullanıcı en alta gelirse 1 saniye bekleyip "scrolling" sınıfını kaldırıyoruz.
   const tm = document.getElementById('textMessages');
   let removeScrollingTimeout;
   if (tm) {
@@ -132,7 +132,6 @@ window.addEventListener('DOMContentLoaded', () => {
         tm.classList.add('scrolling');
       } else {
         removeScrollingTimeout = setTimeout(() => {
-          // Kontrol ediyoruz, eğer hala en alt konumdaysa, sınıfı kaldırıyoruz
           const stillAtBottom = tm.scrollTop + tm.clientHeight >= tm.scrollHeight - 5;
           if (stillAtBottom) {
             tm.classList.remove('scrolling');
@@ -356,7 +355,11 @@ function initSocketEvents() {
       const time = new Date(msg.timestamp).toLocaleTimeString();
       const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
       const msgDiv = document.createElement('div');
-      msgDiv.className = 'text-message';
+      if (sender === username) {
+        msgDiv.className = 'text-message sent-message';
+      } else {
+        msgDiv.className = 'text-message received-message';
+      }
       msgDiv.innerHTML = `<strong>[${time}] ${sender}:</strong> ${msg.content}`;
       textMessages.appendChild(msgDiv);
     });
@@ -367,7 +370,11 @@ function initSocketEvents() {
       const msg = data.message;
       const time = new Date(msg.timestamp).toLocaleTimeString();
       const msgDiv = document.createElement('div');
-      msgDiv.className = 'text-message';
+      if (msg.username === username) {
+        msgDiv.className = 'text-message sent-message';
+      } else {
+        msgDiv.className = 'text-message received-message';
+      }
       msgDiv.innerHTML = `<strong>[${time}] ${msg.username}:</strong> ${msg.content}`;
       textMessages.appendChild(msgDiv);
       textMessages.scrollTop = textMessages.scrollHeight;
@@ -889,13 +896,13 @@ function initUIEvents() {
     if (!msg) return;
     const time = new Date().toLocaleTimeString();
     const msgDiv = document.createElement('div');
-    msgDiv.className = 'text-message';
+    // Kendi mesajlarımız "sent-message" olarak
+    msgDiv.className = 'text-message sent-message';
     msgDiv.innerHTML = `<strong>[${time}] ${username}:</strong> ${msg}`;
     textMessages.appendChild(msgDiv);
     textMessages.scrollTop = textMessages.scrollHeight;
     socket.emit('textMessage', { groupId: selectedGroup, roomId: currentTextChannel, message: msg, username: username });
     textChannelMessageInput.value = '';
-    // Mesaj gönder butonunu tekrar gizle
     sendTextMessageBtn.style.display = "none";
   }
   
@@ -1113,7 +1120,7 @@ function updateCellBars(ping) {
 }
 
 /* Yeni: #textMessages alanında scroll yapıldığında "scrolling" sınıfını ekle.
-   Ancak, kullanıcı en alt konumdaysa 1 saniye bekleyip "scrolling" sınıfını kaldır.
+   Eğer kullanıcı en alta (en yeni mesaja) geldiyse 1 saniye bekleyip kaldır.
 */
 document.addEventListener('DOMContentLoaded', function() {
   const tm = document.getElementById('textMessages');
@@ -1141,7 +1148,7 @@ function sendTextMessage() {
   if (!msg) return;
   const time = new Date().toLocaleTimeString();
   const msgDiv = document.createElement('div');
-  msgDiv.className = 'text-message';
+  msgDiv.className = 'text-message sent-message';
   msgDiv.innerHTML = `<strong>[${time}] ${username}:</strong> ${msg}`;
   textMessages.appendChild(msgDiv);
   textMessages.scrollTop = textMessages.scrollHeight;

@@ -516,10 +516,31 @@ body {
 
 /* Mesaj geçmişi alanı */
 #textMessages {
+  display: flex;
+  flex-direction: column;
   flex: 1;
   overflow-y: auto;
   padding: 1rem;
   box-sizing: border-box;
+}
+
+/* Mesaj Stili */
+.text-message {
+  margin: 5px 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  max-width: 70%;
+  word-wrap: break-word;
+}
+.sent-message {
+  background-color: #dcf8c6;
+  align-self: flex-end;
+  text-align: right;
+}
+.received-message {
+  background-color: #fff;
+  align-self: flex-start;
+  text-align: left;
 }
 
 /* Modern Scrollbar – Varsayılan gizli; "scrolling" sınıfı eklendiğinde görünür */
