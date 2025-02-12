@@ -535,13 +535,13 @@ body {
   align-items: flex-start;
 }
 .sent-message {
-  background-color: #dcf8c6;
+  background-color: #353535;
   align-self: flex-end;
   text-align: right;
   flex-direction: row-reverse;
 }
 .received-message {
-  background-color: #fff;
+  background-color: #353535;
   align-self: flex-start;
   text-align: left;
   flex-direction: row;
