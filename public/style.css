@@ -526,7 +526,8 @@ body {
 
 /* Mesaj Stili */
 .text-message {
-  margin: 0; /* Varsayılan margin'i sıfırla */
+  /* Kapsayıcı marginini sıfırlıyoruz; iç kısımdaki boşluklar kullanılacak */
+  margin: 0;
   padding: 8px 12px;
   border-radius: 8px;
   max-width: 70%;
@@ -535,37 +536,47 @@ body {
   align-items: flex-start;
 }
 
-/* 
-  Aynı kullanıcının ardışık mesajlarında
-  (.text-message .without-avatar vs.)
-  daha küçük bir boşluk (neredeyse yapışık).
-  Farklı kullanıcıya (yeni blok) geçiş yapan
-  ilk mesajda (.text-message .with-avatar) 
-  daha büyük boşluk bırakalım.
-*/
-
-/* Ardışık mesaj = .without-avatar => Çok küçük boşluk */
-.text-message .without-avatar {
-  margin-top: 2px; /* neredeyse yapışık */
-}
-
-/* Farklı kullanıcı bloğunun ilk mesajı = .with-avatar => biraz daha boşluk */
-.text-message .with-avatar {
-  margin-top: 12px; /* daha belirgin boşluk */
-}
-
+/* Gönderilen mesajlar için */
 .sent-message {
   background-color: #353535;
   align-self: flex-end;
   text-align: right;
   flex-direction: row-reverse;
+  margin-top: 5px;
 }
-.received-message {
-  background-color: #353535;
+
+/* Received mesajlar için – Tüm received mesajlara varsayılan margin */
+.text-message.received-message {
   align-self: flex-start;
   text-align: left;
   flex-direction: row;
+  /* Her yeni blok için üst boşluk */
+  margin-top: 12px;
 }
+
+/* Ardışık aynı kullanıcının received mesajlarında boşluğu minimuma indiriyoruz.
+   Bu kural, eğer ardışık received mesajlar aynı kullanıcıdan ise,
+   aralarındaki margin-top'u 0px yapar. */
+.text-message.received-message + .text-message.received-message {
+  margin-top: 0;
+}
+
+/* Eğer mesajın içinde avatar varsa (ilk mesaj bloğu) */
+.message-content.with-avatar {
+  /* Bu iç kapsayıcıda, içerik ile avatar arasında ekstra boşluk bırakılıyor */
+  margin-top: 0; /* Bu kısım dış container marginleriyle ayarlanıyor */
+}
+
+/* Eğer mesajın içinde avatar yoksa (ardışık mesajlar) */
+.message-content.without-avatar {
+  margin-top: 0;
+}
+
+.received-message .message-avatar {
+  margin-right: 8px;
+}
+
+/* Mesaj Avatarı */
 .message-avatar {
   width: 32px;
   height: 32px;
@@ -577,9 +588,6 @@ body {
   justify-content: center;
   font-weight: bold;
   margin-right: 8px;
-}
-.message-content {
-  flex: 1;
 }
 
 /* Modern Scrollbar – Varsayılan gizli; "scrolling" sınıfı eklendiğinde görünür */
