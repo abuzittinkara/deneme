@@ -524,71 +524,6 @@ body {
   box-sizing: border-box;
 }
 
-/* Mesaj Stili */
-.text-message {
-  margin: 5px 0;
-  padding: 8px 12px;
-  border-radius: 8px;
-  max-width: 70%;
-  word-wrap: break-word;
-  display: flex;
-  align-items: flex-start;
-}
-.sent-message {
-  background-color: #353535;
-  align-self: flex-end;
-  text-align: right;
-  flex-direction: row-reverse;
-}
-.received-message {
-  background-color: #353535;
-  align-self: flex-start;
-  text-align: left;
-  flex-direction: row;
-}
-.message-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background-color: #353535;
-  color: #333;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  margin-right: 8px;
-}
-.message-content {
-  flex: 1;
-}
-
-/* Modern Scrollbar – Varsayılan gizli; "scrolling" sınıfı eklendiğinde görünür */
-/* WebKit tarayıcıları için */
-#textMessages::-webkit-scrollbar {
-  width: 0px;
-  background: transparent;
-  transition: width 0.3s;
-}
-#textMessages.scrolling::-webkit-scrollbar {
-  width: 4px;
-}
-#textMessages.scrolling::-webkit-scrollbar-track {
-  background: #353535;
-}
-#textMessages.scrolling::-webkit-scrollbar-thumb {
-  background-color: #353535;
-  border-radius: 2px;
-}
-
-/* Firefox için */
-#textMessages {
-  scrollbar-width: none;
-}
-#textMessages.scrolling {
-  scrollbar-width: thin;
-  scrollbar-color: #666 #353535;
-}
-
 /* Text Yazma Kutusu ve Gönder Butonu */
 .text-chat-input-bar {
   position: relative;
@@ -842,4 +777,49 @@ body {
 .layout-n-users .user-card {
   width: 100%;
   height: auto;
+}
+
+/* Mesaj Stili (Text Kanalı) */
+.text-message {
+  margin: 2px 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  max-width: 70%;
+  word-wrap: break-word;
+  display: flex;
+  align-items: flex-start;
+}
+.sent-message {
+  background-color: #353535;
+  align-self: flex-end;
+  text-align: right;
+  flex-direction: row-reverse;
+  margin-top: 4px;
+}
+.received-message {
+  background-color: #353535;
+  align-self: flex-start;
+  text-align: left;
+  flex-direction: row;
+  /* Varsayılan olarak farklı kullanıcının ilk mesajı daha fazla boşluk bıraksın */
+  margin-top: 8px;
+  
+}
+
+/* Mesaj içeriklerinin boşluk ayarı: 
+   Aynı kullanıcının ardışık mesajlarında (without-avatar) daha az boşluk,
+   farklı kullanıcının ilk mesajında (with-avatar) daha fazla boşluk olacak şekilde ayarlanmıştır. */
+.received-message .message-content.with-avatar {
+  margin-top: 0;
+}
+.received-message .message-content.without-avatar {
+  margin-top: 0;
+}
+
+/* Eğer tarayıcı :has() desteği varsa, aynı kullanıcının ardışık mesajları için margin-top'u azalt */
+.text-message.received-message:has(.message-content.without-avatar) {
+  margin-top: 2px;
+}
+.text-message.received-message:has(.message-content.with-avatar) {
+  margin-top: 8px;
 }
