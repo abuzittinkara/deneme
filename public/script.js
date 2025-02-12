@@ -377,13 +377,12 @@ function initSocketEvents() {
       } else {
         msgDiv.className = 'text-message received-message';
         if (sender !== lastSender) {
-          // İlk mesaj: gösterilecek avatar (profil fotoğrafı, varsa) ve içerik
-          const avatarSrc = (msg.user && msg.user.avatar) ? msg.user.avatar : 'default-avatar.png';
-          const avatarHTML = `<img class="message-avatar" src="${avatarSrc}" alt="${sender}">`;
+          // İlk mesajda avatar olarak userPanel'de kullanılan profil fotoğrafı stilinde bir "profile-thumb" divi oluşturuluyor.
+          const avatarHTML = `<div class="message-avatar profile-thumb">${sender.charAt(0).toUpperCase()}</div>`;
           msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
-          // Ardışık mesaj: avatar eklenmese de aynı boşluk bırakılarak hizalama sağlanır.
-          const avatarPlaceholder = `<div class="message-avatar empty"></div>`;
+          // Ardışık mesajlarda da aynı boşluk/girinti için boş bir avatar placeholder kullanılıyor.
+          const avatarPlaceholder = `<div class="message-avatar empty profile-thumb"></div>`;
           msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
         }
         lastSender = sender;
@@ -414,11 +413,10 @@ function initSocketEvents() {
       } else {
         msgDiv.className = 'text-message received-message';
         if (msg.username !== lastSender) {
-          const avatarSrc = msg.avatar ? msg.avatar : 'default-avatar.png';
-          const avatarHTML = `<img class="message-avatar" src="${avatarSrc}" alt="${msg.username}">`;
+          const avatarHTML = `<div class="message-avatar profile-thumb">${msg.username.charAt(0).toUpperCase()}</div>`;
           msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
-          const avatarPlaceholder = `<div class="message-avatar empty"></div>`;
+          const avatarPlaceholder = `<div class="message-avatar empty profile-thumb"></div>`;
           msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
         }
       }
@@ -1216,12 +1214,12 @@ socket.on('textHistory', (messages) => {
     } else {
       msgDiv.className = 'text-message received-message';
       if (sender !== lastSender) {
-        const avatarSrc = (msg.user && msg.user.avatar) ? msg.user.avatar : 'default-avatar.png';
-        const avatarHTML = `<img class="message-avatar" src="${avatarSrc}" alt="${sender}">`;
+        // İlk mesajda, avatarı user paneldeki profil thumb stiliyle oluşturuyoruz
+        const avatarHTML = `<div class="message-avatar profile-thumb">${sender.charAt(0).toUpperCase()}</div>`;
         msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
-        // Burada, avatar eklenmese bile aynı girinti için boş bir placeholder ekleniyor.
-        const avatarPlaceholder = `<div class="message-avatar empty"></div>`;
+        // Ardışık mesajlarda, avatar placeholder aynı boyutta boş olarak eklenir
+        const avatarPlaceholder = `<div class="message-avatar empty profile-thumb"></div>`;
         msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
       }
       lastSender = sender;
@@ -1252,11 +1250,10 @@ socket.on('newTextMessage', (data) => {
     } else {
       msgDiv.className = 'text-message received-message';
       if (msg.username !== lastSender) {
-        const avatarSrc = msg.avatar ? msg.avatar : 'default-avatar.png';
-        const avatarHTML = `<img class="message-avatar" src="${avatarSrc}" alt="${msg.username}">`;
+        const avatarHTML = `<div class="message-avatar profile-thumb">${msg.username.charAt(0).toUpperCase()}</div>`;
         msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
-        const avatarPlaceholder = `<div class="message-avatar empty"></div>`;
+        const avatarPlaceholder = `<div class="message-avatar empty profile-thumb"></div>`;
         msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
       }
     }
