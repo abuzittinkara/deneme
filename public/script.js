@@ -372,17 +372,17 @@ function initSocketEvents() {
         if (lastSender !== sender) {
           msgDiv.innerHTML = `${msg.content} <span class="timestamp">${time}</span>`;
         } else {
-          msgDiv.innerHTML = `${msg.content}`;
+          msgDiv.innerHTML = msg.content;
         }
       } else {
         msgDiv.className = 'text-message received-message';
         if (sender !== lastSender) {
-          const avatarHTML = `<div class="message-avatar">${sender.charAt(0).toUpperCase()}</div>`;
-          msgDiv.innerHTML = `${avatarHTML}<div class="message-content"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
+          // Kullanıcının profil fotoğrafı (userPanel'deki avatar verisi varsa onu kullanıyoruz)
+          const avatarSrc = (msg.user && msg.user.avatar) ? msg.user.avatar : 'default-avatar.png';
+          const avatarHTML = `<img class="message-avatar" src="${avatarSrc}" alt="${sender}">`;
+          msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
-          // Ardışık mesajlarda, avatar yerine boş placeholder ekleyip, mesaj içerik kısmını aynı hizaya getiriyoruz.
-          const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
-          msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content">${msg.content}</div>`;
+          msgDiv.innerHTML = `<div class="message-content without-avatar">${msg.content}</div>`;
         }
         lastSender = sender;
       }
@@ -412,11 +412,11 @@ function initSocketEvents() {
       } else {
         msgDiv.className = 'text-message received-message';
         if (msg.username !== lastSender) {
-          const avatarHTML = `<div class="message-avatar">${msg.username.charAt(0).toUpperCase()}</div>`;
-          msgDiv.innerHTML = `${avatarHTML}<div class="message-content"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
+          const avatarSrc = msg.avatar ? msg.avatar : 'default-avatar.png';
+          const avatarHTML = `<img class="message-avatar" src="${avatarSrc}" alt="${msg.username}">`;
+          msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
-          const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
-          msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content">${msg.content}</div>`;
+          msgDiv.innerHTML = `<div class="message-content without-avatar">${msg.content}</div>`;
         }
       }
       msgDiv.setAttribute('data-sender', msg.username);
@@ -935,7 +935,7 @@ function initUIEvents() {
     // ...
   });
   
-  // Mesaj gönderme işlemi için sendTextMessage fonksiyonu (kendi mesajlarınız için)
+  // Mesaj gönderme işlemi için sendTextMessage fonksiyonu
   function sendTextMessage() {
     const msg = textChannelMessageInput.value.trim();
     if (!msg) return;
@@ -1172,7 +1172,7 @@ function updateCellBars(ping) {
 }
 
 /* Yeni: #textMessages alanında scroll yapıldığında "scrolling" sınıfını ekle.
-   Eğer kullanıcı en alta geldiyse 1 saniye bekleyip kaldır.
+   Eğer kullanıcı en alta (en yeni mesaja) geldiyse 1 saniye bekleyip kaldır.
 */
 document.addEventListener('DOMContentLoaded', function() {
   const tm = document.getElementById('textMessages');
@@ -1208,16 +1208,17 @@ socket.on('textHistory', (messages) => {
       if (lastSender !== sender) {
         msgDiv.innerHTML = `${msg.content} <span class="timestamp">${time}</span>`;
       } else {
-        msgDiv.innerHTML = `${msg.content}`;
+        msgDiv.innerHTML = msg.content;
       }
     } else {
       msgDiv.className = 'text-message received-message';
       if (sender !== lastSender) {
-        const avatarHTML = `<div class="message-avatar">${sender.charAt(0).toUpperCase()}</div>`;
-        msgDiv.innerHTML = `${avatarHTML}<div class="message-content"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
+        // Kullanıcının profil fotoğrafını kullan: msg.user.avatar varsa onu, yoksa default
+        const avatarSrc = (msg.user && msg.user.avatar) ? msg.user.avatar : 'default-avatar.png';
+        const avatarHTML = `<img class="message-avatar" src="${avatarSrc}" alt="${sender}">`;
+        msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
-        const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
-        msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content">${msg.content}</div>`;
+        msgDiv.innerHTML = `<div class="message-content without-avatar">${msg.content}</div>`;
       }
       lastSender = sender;
     }
@@ -1247,11 +1248,11 @@ socket.on('newTextMessage', (data) => {
     } else {
       msgDiv.className = 'text-message received-message';
       if (msg.username !== lastSender) {
-        const avatarHTML = `<div class="message-avatar">${msg.username.charAt(0).toUpperCase()}</div>`;
-        msgDiv.innerHTML = `${avatarHTML}<div class="message-content"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
+        const avatarSrc = msg.avatar ? msg.avatar : 'default-avatar.png';
+        const avatarHTML = `<img class="message-avatar" src="${avatarSrc}" alt="${msg.username}">`;
+        msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
-        const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
-        msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content">${msg.content}</div>`;
+        msgDiv.innerHTML = `<div class="message-content without-avatar">${msg.content}</div>`;
       }
     }
     msgDiv.setAttribute('data-sender', msg.username);
