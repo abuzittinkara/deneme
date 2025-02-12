@@ -526,7 +526,7 @@ body {
 
 /* Mesaj Stili */
 .text-message {
-  margin: 5px 0;
+  margin: 0; /* Varsayılan margin'i sıfırla */
   padding: 8px 12px;
   border-radius: 8px;
   max-width: 70%;
@@ -534,6 +534,26 @@ body {
   display: flex;
   align-items: flex-start;
 }
+
+/* 
+  Aynı kullanıcının ardışık mesajlarında
+  (.text-message .without-avatar vs.)
+  daha küçük bir boşluk (neredeyse yapışık).
+  Farklı kullanıcıya (yeni blok) geçiş yapan
+  ilk mesajda (.text-message .with-avatar) 
+  daha büyük boşluk bırakalım.
+*/
+
+/* Ardışık mesaj = .without-avatar => Çok küçük boşluk */
+.text-message .without-avatar {
+  margin-top: 2px; /* neredeyse yapışık */
+}
+
+/* Farklı kullanıcı bloğunun ilk mesajı = .with-avatar => biraz daha boşluk */
+.text-message .with-avatar {
+  margin-top: 12px; /* daha belirgin boşluk */
+}
+
 .sent-message {
   background-color: #353535;
   align-self: flex-end;
