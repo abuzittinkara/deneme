@@ -377,12 +377,14 @@ function initSocketEvents() {
       } else {
         msgDiv.className = 'text-message received-message';
         if (sender !== lastSender) {
-          // Kullanıcının profil fotoğrafı (userPanel'deki avatar verisi varsa onu kullanıyoruz)
+          // İlk mesaj: gösterilecek avatar (profil fotoğrafı, varsa) ve içerik
           const avatarSrc = (msg.user && msg.user.avatar) ? msg.user.avatar : 'default-avatar.png';
           const avatarHTML = `<img class="message-avatar" src="${avatarSrc}" alt="${sender}">`;
           msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
-          msgDiv.innerHTML = `<div class="message-content without-avatar">${msg.content}</div>`;
+          // Ardışık mesaj: avatar eklenmese de aynı boşluk bırakılarak hizalama sağlanır.
+          const avatarPlaceholder = `<div class="message-avatar empty"></div>`;
+          msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
         }
         lastSender = sender;
       }
@@ -416,7 +418,8 @@ function initSocketEvents() {
           const avatarHTML = `<img class="message-avatar" src="${avatarSrc}" alt="${msg.username}">`;
           msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
-          msgDiv.innerHTML = `<div class="message-content without-avatar">${msg.content}</div>`;
+          const avatarPlaceholder = `<div class="message-avatar empty"></div>`;
+          msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
         }
       }
       msgDiv.setAttribute('data-sender', msg.username);
@@ -1213,12 +1216,13 @@ socket.on('textHistory', (messages) => {
     } else {
       msgDiv.className = 'text-message received-message';
       if (sender !== lastSender) {
-        // Kullanıcının profil fotoğrafını kullan: msg.user.avatar varsa onu, yoksa default
         const avatarSrc = (msg.user && msg.user.avatar) ? msg.user.avatar : 'default-avatar.png';
         const avatarHTML = `<img class="message-avatar" src="${avatarSrc}" alt="${sender}">`;
         msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
-        msgDiv.innerHTML = `<div class="message-content without-avatar">${msg.content}</div>`;
+        // Burada, avatar eklenmese bile aynı girinti için boş bir placeholder ekleniyor.
+        const avatarPlaceholder = `<div class="message-avatar empty"></div>`;
+        msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
       }
       lastSender = sender;
     }
@@ -1252,7 +1256,8 @@ socket.on('newTextMessage', (data) => {
         const avatarHTML = `<img class="message-avatar" src="${avatarSrc}" alt="${msg.username}">`;
         msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
-        msgDiv.innerHTML = `<div class="message-content without-avatar">${msg.content}</div>`;
+        const avatarPlaceholder = `<div class="message-avatar empty"></div>`;
+        msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
       }
     }
     msgDiv.setAttribute('data-sender', msg.username);
