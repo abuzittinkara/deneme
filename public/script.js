@@ -117,9 +117,8 @@ const textChatInputBar = document.getElementById('text-chat-input-bar');
 const textChannelMessageInput = document.getElementById('textChannelMessageInput');
 const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
-// Tüm DOMContentLoaded işlemlerini tek bir event listener içerisine alıyoruz.
+// Tüm DOMContentLoaded işlemlerini tek bir event listener içine alıyoruz.
 window.addEventListener('DOMContentLoaded', () => {
-  // Socket başlatılıyor.
   socket = io("https://fisqos.com.tr", { transports: ['websocket'] });
   console.log("Socket connected =>", socket.id);
   initSocketEvents();
@@ -236,7 +235,7 @@ function initSocketEvents() {
           document.getElementById('selectedChannelTitle').textContent = roomObj.name;
           textChannelContainer.style.display = 'flex';
           document.getElementById('channelUsersContainer').style.display = 'none';
-          // Eğer kullanıcı voice kanalında bağlı değilse ChannelStatusPanel gizlensin; aksi halde bırak.
+          // Eğer kullanıcı voice kanalındaysa ChannelStatusPanel'i kapatma.
           if (!(currentRoom && currentRoomType === 'voice')) {
             hideChannelStatusPanel();
             currentRoomType = "text";
@@ -362,53 +361,68 @@ function initSocketEvents() {
     consumeProducer(producerId);
   });
   
-  // Text mesajların render edilmesi (textHistory)
+  // Text mesajların render edilmesi: textHistory
   socket.on('textHistory', (messages) => {
     textMessages.innerHTML = "";
     let lastSender = null;
     messages.forEach(msg => {
-      const time = new Date(msg.timestamp).toLocaleTimeString();
+      // Zamanı HH:MM formatında alalım.
+      const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
       const msgDiv = document.createElement('div');
+      // Eğer mesajı gönderen kendimizse
       if (sender === username) {
         msgDiv.className = 'text-message sent-message';
-        msgDiv.innerHTML = `<strong>[${time}] ${sender}:</strong> ${msg.content}`;
+        if (lastSender !== sender) {
+          // İlk mesaj: mesaj içeriği ve zaman
+          msgDiv.innerHTML = `${msg.content} <span class="timestamp">${time}</span>`;
+        } else {
+          // Ardışık mesaj: sadece mesaj içeriği
+          msgDiv.innerHTML = `${msg.content}`;
+        }
       } else {
+        // Alınan mesajlar için
         msgDiv.className = 'text-message received-message';
         if (sender !== lastSender) {
+          // İlk mesajda avatar, kullanıcı adı ve zaman gösterilsin
           const avatarHTML = `<div class="message-avatar">${sender.charAt(0).toUpperCase()}</div>`;
-          msgDiv.innerHTML = `${avatarHTML}<div class="message-content"><strong>[${time}] ${sender}:</strong> ${msg.content}</div>`;
+          msgDiv.innerHTML = `${avatarHTML}<div class="message-content"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
-          msgDiv.innerHTML = `<div class="message-content"><strong>[${time}] ${sender}:</strong> ${msg.content}</div>`;
+          // Ardışık mesaj: sadece mesaj içeriği
+          msgDiv.innerHTML = `<div class="message-content">${msg.content}</div>`;
         }
-        lastSender = sender;
       }
       msgDiv.setAttribute('data-sender', sender);
       textMessages.appendChild(msgDiv);
+      lastSender = sender;
     });
     textMessages.scrollTop = textMessages.scrollHeight;
   });
   
-  // Yeni metin mesajı geldiğinde (newTextMessage)
+  // Yeni gelen metin mesajı (newTextMessage)
   socket.on('newTextMessage', (data) => {
     if (data.channelId === currentTextChannel) {
       const msg = data.message;
-      const time = new Date(msg.timestamp).toLocaleTimeString();
+      const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const msgDiv = document.createElement('div');
-      let lastSender = null;
+      let lastSender = "";
       if (textMessages.lastElementChild && textMessages.lastElementChild.getAttribute('data-sender')) {
         lastSender = textMessages.lastElementChild.getAttribute('data-sender');
       }
       if (msg.username === username) {
         msgDiv.className = 'text-message sent-message';
-        msgDiv.innerHTML = `<strong>[${time}] ${msg.username}:</strong> ${msg.content}`;
+        if (lastSender !== msg.username) {
+          msgDiv.innerHTML = `${msg.content} <span class="timestamp">${time}</span>`;
+        } else {
+          msgDiv.innerHTML = `${msg.content}`;
+        }
       } else {
         msgDiv.className = 'text-message received-message';
         if (msg.username !== lastSender) {
           const avatarHTML = `<div class="message-avatar">${msg.username.charAt(0).toUpperCase()}</div>`;
-          msgDiv.innerHTML = `${avatarHTML}<div class="message-content"><strong>[${time}] ${msg.username}:</strong> ${msg.content}</div>`;
+          msgDiv.innerHTML = `${avatarHTML}<div class="message-content"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
-          msgDiv.innerHTML = `<div class="message-content"><strong>[${time}] ${msg.username}:</strong> ${msg.content}</div>`;
+          msgDiv.innerHTML = `<div class="message-content">${msg.content}</div>`;
         }
       }
       msgDiv.setAttribute('data-sender', msg.username);
@@ -932,10 +946,19 @@ function initUIEvents() {
   function sendTextMessage() {
     const msg = textChannelMessageInput.value.trim();
     if (!msg) return;
-    const time = new Date().toLocaleTimeString();
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const msgDiv = document.createElement('div');
     msgDiv.className = 'text-message sent-message';
-    msgDiv.innerHTML = `<strong>[${time}] ${username}:</strong> ${msg}`;
+    // Eğer önceki mesaj aynı kullanıcıdan değilse; ilk mesajda zaman bilgisi ekle
+    let lastSender = "";
+    if (textMessages.lastElementChild && textMessages.lastElementChild.getAttribute('data-sender')) {
+      lastSender = textMessages.lastElementChild.getAttribute('data-sender');
+    }
+    if (lastSender !== username) {
+      msgDiv.innerHTML = `${msg} <span class="timestamp">${time}</span>`;
+    } else {
+      msgDiv.innerHTML = msg;
+    }
     msgDiv.setAttribute('data-sender', username);
     textMessages.appendChild(msgDiv);
     textMessages.scrollTop = textMessages.scrollHeight;
@@ -1106,7 +1129,7 @@ function showChannelStatusPanel() {
 }
 
 function hideChannelStatusPanel() {
-  // ChannelStatusPanel gizlenirken, eğer kullanıcı hâlâ voice kanalında ise kapatma.
+  // Eğer kullanıcı voice kanalında bağlıysa gizlemiyoruz.
   if (currentRoomType !== 'voice') {
     channelStatusPanel.style.display = 'none';
     startPingInterval();
@@ -1186,48 +1209,58 @@ socket.on('textHistory', (messages) => {
   textMessages.innerHTML = "";
   let lastSender = null;
   messages.forEach(msg => {
-    const time = new Date(msg.timestamp).toLocaleTimeString();
+    const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
     const msgDiv = document.createElement('div');
     if (sender === username) {
       msgDiv.className = 'text-message sent-message';
-      msgDiv.innerHTML = `<strong>[${time}] ${sender}:</strong> ${msg.content}`;
+      if (lastSender !== sender) {
+        // İlk mesaj: yalnızca mesaj metni + zaman
+        msgDiv.innerHTML = `${msg.content} <span class="timestamp">${time}</span>`;
+      } else {
+        msgDiv.innerHTML = `${msg.content}`;
+      }
     } else {
       msgDiv.className = 'text-message received-message';
       if (sender !== lastSender) {
+        // İlk mesajda avatar, gönderici adı ve zaman ekle
         const avatarHTML = `<div class="message-avatar">${sender.charAt(0).toUpperCase()}</div>`;
-        msgDiv.innerHTML = `${avatarHTML}<div class="message-content"><strong>[${time}] ${sender}:</strong> ${msg.content}</div>`;
+        msgDiv.innerHTML = `${avatarHTML}<div class="message-content"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
-        msgDiv.innerHTML = `<div class="message-content"><strong>[${time}] ${sender}:</strong> ${msg.content}</div>`;
+        msgDiv.innerHTML = `<div class="message-content">${msg.content}</div>`;
       }
-      lastSender = sender;
     }
     msgDiv.setAttribute('data-sender', sender);
     textMessages.appendChild(msgDiv);
+    lastSender = sender;
   });
   textMessages.scrollTop = textMessages.scrollHeight;
 });
   
-// Yeni gelen metin mesajı (newTextMessage)
+// Yeni gelen metin mesajı: newTextMessage
 socket.on('newTextMessage', (data) => {
   if (data.channelId === currentTextChannel) {
     const msg = data.message;
-    const time = new Date(msg.timestamp).toLocaleTimeString();
+    const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const msgDiv = document.createElement('div');
-    let lastSender = null;
+    let lastSender = "";
     if (textMessages.lastElementChild && textMessages.lastElementChild.getAttribute('data-sender')) {
       lastSender = textMessages.lastElementChild.getAttribute('data-sender');
     }
     if (msg.username === username) {
       msgDiv.className = 'text-message sent-message';
-      msgDiv.innerHTML = `<strong>[${time}] ${msg.username}:</strong> ${msg.content}`;
+      if (lastSender !== msg.username) {
+        msgDiv.innerHTML = `${msg.content} <span class="timestamp">${time}</span>`;
+      } else {
+        msgDiv.innerHTML = `${msg.content}`;
+      }
     } else {
       msgDiv.className = 'text-message received-message';
       if (msg.username !== lastSender) {
         const avatarHTML = `<div class="message-avatar">${msg.username.charAt(0).toUpperCase()}</div>`;
-        msgDiv.innerHTML = `${avatarHTML}<div class="message-content"><strong>[${time}] ${msg.username}:</strong> ${msg.content}</div>`;
+        msgDiv.innerHTML = `${avatarHTML}<div class="message-content"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
-        msgDiv.innerHTML = `<div class="message-content"><strong>[${time}] ${msg.username}:</strong> ${msg.content}</div>`;
+        msgDiv.innerHTML = `<div class="message-content">${msg.content}</div>`;
       }
     }
     msgDiv.setAttribute('data-sender', msg.username);
@@ -1239,10 +1272,18 @@ socket.on('newTextMessage', (data) => {
 function sendTextMessage() {
   const msg = textChannelMessageInput.value.trim();
   if (!msg) return;
-  const time = new Date().toLocaleTimeString();
+  const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const msgDiv = document.createElement('div');
   msgDiv.className = 'text-message sent-message';
-  msgDiv.innerHTML = `<strong>[${time}] ${username}:</strong> ${msg}`;
+  let lastSender = "";
+  if (textMessages.lastElementChild && textMessages.lastElementChild.getAttribute('data-sender')) {
+    lastSender = textMessages.lastElementChild.getAttribute('data-sender');
+  }
+  if (lastSender !== username) {
+    msgDiv.innerHTML = `${msg} <span class="timestamp">${time}</span>`;
+  } else {
+    msgDiv.innerHTML = `${msg}`;
+  }
   msgDiv.setAttribute('data-sender', username);
   textMessages.appendChild(msgDiv);
   textMessages.scrollTop = textMessages.scrollHeight;
