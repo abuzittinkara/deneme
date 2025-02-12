@@ -235,7 +235,6 @@ function initSocketEvents() {
           document.getElementById('selectedChannelTitle').textContent = roomObj.name;
           textChannelContainer.style.display = 'flex';
           document.getElementById('channelUsersContainer').style.display = 'none';
-          // Eğer kullanıcı voice kanalındaysa ChannelStatusPanel'i kapatma.
           if (!(currentRoom && currentRoomType === 'voice')) {
             hideChannelStatusPanel();
             currentRoomType = "text";
@@ -312,7 +311,6 @@ function initSocketEvents() {
     console.log("joinRoomAck =>", groupId, roomId);
     currentGroup = groupId;
     currentRoom = roomId;
-    // Voice kanalına katılırken currentRoomType "voice" olarak ayarlanır.
     currentRoomType = "voice";
     if (!audioPermissionGranted || !localStream) {
       requestMicrophoneAccess().then(() => {
@@ -366,40 +364,35 @@ function initSocketEvents() {
     textMessages.innerHTML = "";
     let lastSender = null;
     messages.forEach(msg => {
-      // Zamanı HH:MM formatında alalım.
       const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
       const msgDiv = document.createElement('div');
-      // Eğer mesajı gönderen kendimizse
       if (sender === username) {
         msgDiv.className = 'text-message sent-message';
         if (lastSender !== sender) {
-          // İlk mesaj: mesaj içeriği ve zaman
           msgDiv.innerHTML = `${msg.content} <span class="timestamp">${time}</span>`;
         } else {
-          // Ardışık mesaj: sadece mesaj içeriği
           msgDiv.innerHTML = `${msg.content}`;
         }
       } else {
-        // Alınan mesajlar için
         msgDiv.className = 'text-message received-message';
         if (sender !== lastSender) {
-          // İlk mesajda avatar, kullanıcı adı ve zaman gösterilsin
           const avatarHTML = `<div class="message-avatar">${sender.charAt(0).toUpperCase()}</div>`;
           msgDiv.innerHTML = `${avatarHTML}<div class="message-content"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
-          // Ardışık mesaj: sadece mesaj içeriği
-          msgDiv.innerHTML = `<div class="message-content">${msg.content}</div>`;
+          // Ardışık mesajlarda, avatar yerine boş placeholder ekleyip, mesaj içerik kısmını aynı hizaya getiriyoruz.
+          const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
+          msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content">${msg.content}</div>`;
         }
+        lastSender = sender;
       }
       msgDiv.setAttribute('data-sender', sender);
       textMessages.appendChild(msgDiv);
-      lastSender = sender;
     });
     textMessages.scrollTop = textMessages.scrollHeight;
   });
   
-  // Yeni gelen metin mesajı (newTextMessage)
+  // Yeni gelen metin mesajı: newTextMessage
   socket.on('newTextMessage', (data) => {
     if (data.channelId === currentTextChannel) {
       const msg = data.message;
@@ -422,7 +415,8 @@ function initSocketEvents() {
           const avatarHTML = `<div class="message-avatar">${msg.username.charAt(0).toUpperCase()}</div>`;
           msgDiv.innerHTML = `${avatarHTML}<div class="message-content"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
-          msgDiv.innerHTML = `<div class="message-content">${msg.content}</div>`;
+          const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
+          msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content">${msg.content}</div>`;
         }
       }
       msgDiv.setAttribute('data-sender', msg.username);
@@ -679,7 +673,6 @@ function joinRoom(groupId, roomId, roomName) {
   socket.emit('joinRoom', { groupId, roomId });
   document.getElementById('selectedChannelTitle').textContent = roomName;
   showChannelStatusPanel();
-  // Voice kanalına katılırken currentRoomType "voice" olarak ayarlanır.
   currentRoomType = "voice";
 }
 
@@ -942,14 +935,13 @@ function initUIEvents() {
     // ...
   });
   
-  // Mesaj gönderme işlemi için sendTextMessage fonksiyonu
+  // Mesaj gönderme işlemi için sendTextMessage fonksiyonu (kendi mesajlarınız için)
   function sendTextMessage() {
     const msg = textChannelMessageInput.value.trim();
     if (!msg) return;
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const msgDiv = document.createElement('div');
     msgDiv.className = 'text-message sent-message';
-    // Eğer önceki mesaj aynı kullanıcıdan değilse; ilk mesajda zaman bilgisi ekle
     let lastSender = "";
     if (textMessages.lastElementChild && textMessages.lastElementChild.getAttribute('data-sender')) {
       lastSender = textMessages.lastElementChild.getAttribute('data-sender');
@@ -1129,7 +1121,6 @@ function showChannelStatusPanel() {
 }
 
 function hideChannelStatusPanel() {
-  // Eğer kullanıcı voice kanalında bağlıysa gizlemiyoruz.
   if (currentRoomType !== 'voice') {
     channelStatusPanel.style.display = 'none';
     startPingInterval();
@@ -1181,7 +1172,7 @@ function updateCellBars(ping) {
 }
 
 /* Yeni: #textMessages alanında scroll yapıldığında "scrolling" sınıfını ekle.
-   Eğer kullanıcı en alta (en yeni mesaja) geldiyse 1 saniye bekleyip kaldır.
+   Eğer kullanıcı en alta geldiyse 1 saniye bekleyip kaldır.
 */
 document.addEventListener('DOMContentLoaded', function() {
   const tm = document.getElementById('textMessages');
@@ -1215,7 +1206,6 @@ socket.on('textHistory', (messages) => {
     if (sender === username) {
       msgDiv.className = 'text-message sent-message';
       if (lastSender !== sender) {
-        // İlk mesaj: yalnızca mesaj metni + zaman
         msgDiv.innerHTML = `${msg.content} <span class="timestamp">${time}</span>`;
       } else {
         msgDiv.innerHTML = `${msg.content}`;
@@ -1223,16 +1213,16 @@ socket.on('textHistory', (messages) => {
     } else {
       msgDiv.className = 'text-message received-message';
       if (sender !== lastSender) {
-        // İlk mesajda avatar, gönderici adı ve zaman ekle
         const avatarHTML = `<div class="message-avatar">${sender.charAt(0).toUpperCase()}</div>`;
         msgDiv.innerHTML = `${avatarHTML}<div class="message-content"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
-        msgDiv.innerHTML = `<div class="message-content">${msg.content}</div>`;
+        const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
+        msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content">${msg.content}</div>`;
       }
+      lastSender = sender;
     }
     msgDiv.setAttribute('data-sender', sender);
     textMessages.appendChild(msgDiv);
-    lastSender = sender;
   });
   textMessages.scrollTop = textMessages.scrollHeight;
 });
@@ -1260,7 +1250,8 @@ socket.on('newTextMessage', (data) => {
         const avatarHTML = `<div class="message-avatar">${msg.username.charAt(0).toUpperCase()}</div>`;
         msgDiv.innerHTML = `${avatarHTML}<div class="message-content"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
-        msgDiv.innerHTML = `<div class="message-content">${msg.content}</div>`;
+        const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
+        msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content">${msg.content}</div>`;
       }
     }
     msgDiv.setAttribute('data-sender', msg.username);
@@ -1282,7 +1273,7 @@ function sendTextMessage() {
   if (lastSender !== username) {
     msgDiv.innerHTML = `${msg} <span class="timestamp">${time}</span>`;
   } else {
-    msgDiv.innerHTML = `${msg}`;
+    msgDiv.innerHTML = msg;
   }
   msgDiv.setAttribute('data-sender', username);
   textMessages.appendChild(msgDiv);
