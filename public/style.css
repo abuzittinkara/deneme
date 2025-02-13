@@ -534,10 +534,14 @@ body {
   word-wrap: break-word;
   display: flex;
   align-items: flex-start;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, width 0.2s ease;
   position: relative;
 }
 .text-message:hover {
+  background-color: #2d2d2d;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
   background-color: #2d2d2d;
 }
 
