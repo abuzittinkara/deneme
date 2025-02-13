@@ -461,17 +461,40 @@ function initSocketEvents() {
     textMessages.scrollTop = textMessages.scrollHeight;
   });
   
+  /**
+   * newTextMessage: Yeni mesaj geldiğinde gün farkını kontrol ederken,
+   * bazen son eleman bir .date-separator olabilir. Bu nedenle,
+   * "gerçekten son mesaj" elemanını bulup onun tarihini kontrol ediyoruz.
+   */
   socket.on('newTextMessage', (data) => {
     if (data.channelId === currentTextChannel) {
       const msg = data.message;
       const time = formatTimestamp(msg.timestamp);
+
+      // 1) Son gerçek mesaj (date-separator olmayan) elemanı bulalım:
       let lastMsgDiv = textMessages.lastElementChild;
-      let lastSender = lastMsgDiv ? lastMsgDiv.getAttribute('data-sender') : null;
-      if (!lastMsgDiv || (lastMsgDiv.getAttribute('data-timestamp') && isDifferentDay(lastMsgDiv.getAttribute('data-timestamp'), msg.timestamp))) {
-        insertDateSeparator(msg.timestamp);
+      while (lastMsgDiv && lastMsgDiv.classList.contains('date-separator')) {
+        lastMsgDiv = lastMsgDiv.previousElementSibling;
       }
-      const isFirst = (!lastMsgDiv || lastSender !== msg.username || (lastMsgDiv.getAttribute('data-timestamp') && isDifferentDay(lastMsgDiv.getAttribute('data-timestamp'), msg.timestamp)));
-      if (lastMsgDiv && lastSender === msg.username) {
+
+      // 2) Eğer hiç mesaj yoksa veya gün farkı varsa separator ekle
+      if (!lastMsgDiv) {
+        insertDateSeparator(msg.timestamp);
+      } else {
+        const lastMsgTime = lastMsgDiv.getAttribute('data-timestamp');
+        if (lastMsgTime && isDifferentDay(lastMsgTime, msg.timestamp)) {
+          insertDateSeparator(msg.timestamp);
+        }
+      }
+
+      // 3) Ardından normal "yeni mesaj" oluşturma
+      const isFirst = (
+        !lastMsgDiv ||
+        (lastMsgDiv.getAttribute('data-sender') !== msg.username) ||
+        (lastMsgDiv.getAttribute('data-timestamp') &&
+          isDifferentDay(lastMsgDiv.getAttribute('data-timestamp'), msg.timestamp))
+      );
+      if (lastMsgDiv && lastMsgDiv.getAttribute('data-sender') === msg.username) {
         lastMsgDiv.classList.remove('last-message');
       }
       
@@ -498,6 +521,7 @@ function initSocketEvents() {
           msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}<span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span></div>`;
         }
       }
+      
       msgDiv.setAttribute('data-timestamp', msg.timestamp);
       msgDiv.setAttribute('data-sender', msg.username);
       textMessages.appendChild(msgDiv);
@@ -1335,17 +1359,40 @@ socket.on('textHistory', (messages) => {
   textMessages.scrollTop = textMessages.scrollHeight;
 });
   
+/**
+ * newTextMessage: Yeni mesaj geldiğinde gün farkını kontrol ederken,
+ * bazen son eleman bir .date-separator olabilir. Bu nedenle,
+ * "gerçekten son mesaj" elemanını bulup onun tarihini kontrol ediyoruz.
+ */
 socket.on('newTextMessage', (data) => {
   if (data.channelId === currentTextChannel) {
     const msg = data.message;
     const time = formatTimestamp(msg.timestamp);
+
+    // 1) Son gerçek mesaj (date-separator olmayan) elemanı bulalım:
     let lastMsgDiv = textMessages.lastElementChild;
-    let lastSender = lastMsgDiv ? lastMsgDiv.getAttribute('data-sender') : null;
-    if (!lastMsgDiv || (lastMsgDiv.getAttribute('data-timestamp') && isDifferentDay(lastMsgDiv.getAttribute('data-timestamp'), msg.timestamp))) {
-      insertDateSeparator(msg.timestamp);
+    while (lastMsgDiv && lastMsgDiv.classList.contains('date-separator')) {
+      lastMsgDiv = lastMsgDiv.previousElementSibling;
     }
-    const isFirst = (!lastMsgDiv || lastSender !== msg.username || (lastMsgDiv.getAttribute('data-timestamp') && isDifferentDay(lastMsgDiv.getAttribute('data-timestamp'), msg.timestamp)));
-    if (lastMsgDiv && lastSender === msg.username) {
+
+    // 2) Eğer hiç mesaj yoksa veya gün farkı varsa separator ekle
+    if (!lastMsgDiv) {
+      insertDateSeparator(msg.timestamp);
+    } else {
+      const lastMsgTime = lastMsgDiv.getAttribute('data-timestamp');
+      if (lastMsgTime && isDifferentDay(lastMsgTime, msg.timestamp)) {
+        insertDateSeparator(msg.timestamp);
+      }
+    }
+
+    // 3) Ardından normal "yeni mesaj" oluşturma
+    const isFirst = (
+      !lastMsgDiv ||
+      (lastMsgDiv.getAttribute('data-sender') !== msg.username) ||
+      (lastMsgDiv.getAttribute('data-timestamp') &&
+        isDifferentDay(lastMsgDiv.getAttribute('data-timestamp'), msg.timestamp))
+    );
+    if (lastMsgDiv && lastMsgDiv.getAttribute('data-sender') === msg.username) {
       lastMsgDiv.classList.remove('last-message');
     }
     
@@ -1372,6 +1419,7 @@ socket.on('newTextMessage', (data) => {
         msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}<span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span></div>`;
       }
     }
+    
     msgDiv.setAttribute('data-timestamp', msg.timestamp);
     msgDiv.setAttribute('data-sender', msg.username);
     textMessages.appendChild(msgDiv);
