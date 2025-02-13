@@ -529,12 +529,11 @@ body {
 .text-message {
   margin: 0;
   padding: 0px 12px;
-  border-radius: 8px;
+  border-radius: 4px;
   max-width: 70%;
   word-wrap: break-word;
   display: flex;
   align-items: flex-start;
-  transition: background-color 0.2s ease, width 0.2s ease;
   position: relative;
 }
 .text-message:hover {
@@ -590,6 +589,7 @@ body {
   align-items: center;
   justify-content: center;
   font-weight: bold;
+  margin-top: 4px;
   margin-right: 8px;
 }
 
@@ -609,6 +609,7 @@ body {
   font-weight: 300;
   font-size: 0.8em;
   margin-left: 4px;
+  color: #636363;
 }
 
 /* Kendi mesajlarınızın tarih stili */
@@ -616,6 +617,7 @@ body {
   font-weight: 300;
   font-size: 0.8em;
   margin-right: 4px;
+  color: #636363;
 }
 
 /* Metin kanallarında kullanıcı adı (kalın) */
