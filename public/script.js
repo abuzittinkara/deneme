@@ -51,9 +51,7 @@ let pingInterval = null;
 function formatTimestamp(timestamp) {
   const date = new Date(timestamp);
   const now = new Date();
-  // Bugünün başlangıcı (sadece tarih, saat sıfırlı)
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  // Dün
   const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
   
   if (date >= today) {
@@ -69,6 +67,16 @@ function formatTimestamp(timestamp) {
   }
 }
 
+/* YENİ: Tam tarih formatı (ör. "21 Ocak 2025") */
+function formatFullDate(timestamp) {
+  const date = new Date(timestamp);
+  const day = date.getDate();
+  const year = date.getFullYear();
+  const months = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+  const monthName = months[date.getMonth()];
+  return `${day} ${monthName} ${year}`;
+}
+
 /* YENİ: İki timestamp'in gün bazında farklı olup olmadığını kontrol eder */
 function isDifferentDay(ts1, ts2) {
   const d1 = new Date(ts1);
@@ -76,6 +84,14 @@ function isDifferentDay(ts1, ts2) {
   return d1.getFullYear() !== d2.getFullYear() ||
          d1.getMonth() !== d2.getMonth() ||
          d1.getDate() !== d2.getDate();
+}
+
+/* YENİ: Tarih ayırıcı elementi oluşturur */
+function createDateSeparator(dateText) {
+  const separator = document.createElement('div');
+  separator.className = 'date-separator';
+  separator.innerHTML = `<span>${dateText}</span>`;
+  return separator;
 }
 
 /*
@@ -404,12 +420,15 @@ function initSocketEvents() {
       const msg = messages[i];
       const time = formatTimestamp(msg.timestamp);
       const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
-      // Mesaj grubu başı: ya sender farklı ya da önceki mesajın günü farklı
-      const isFirst = (i === 0 || 
-                       ((messages[i - 1].user && messages[i - 1].user.username) !== sender) ||
-                       isDifferentDay(messages[i - 1].timestamp, msg.timestamp));
-      const isLast = (i === messages.length - 1 || 
-                      ((messages[i + 1].user && messages[i + 1].user.username) !== sender));
+      
+      // Eğer ilk mesaj veya önceki mesajın günü farklı ise önce tarih ayırıcı ekle
+      if (i === 0 || isDifferentDay(messages[i - 1].timestamp, msg.timestamp)) {
+        const sep = createDateSeparator(formatFullDate(msg.timestamp));
+        textMessages.appendChild(sep);
+      }
+      
+      const isFirst = (i === 0 || ((messages[i - 1].user && messages[i - 1].user.username) !== sender) || isDifferentDay(messages[i - 1].timestamp, msg.timestamp));
+      const isLast = (i === messages.length - 1 || ((messages[i + 1].user && messages[i + 1].user.username) !== sender));
       
       let className = 'text-message ';
       className += (sender === username) ? 'sent-message ' : 'received-message ';
@@ -423,7 +442,6 @@ function initSocketEvents() {
       
       if (sender === username) {
         if (isFirst) {
-          // Kendi mesajınızın ilkinde; kullanıcı adı gösterilmeden, eğer gün farkı varsa tarih yanına eklenir
           msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
         } else {
           msgDiv.innerHTML = msg.content;
@@ -437,6 +455,7 @@ function initSocketEvents() {
           msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
         }
       }
+      msgDiv.setAttribute('data-timestamp', msg.timestamp);
       msgDiv.setAttribute('data-sender', sender);
       textMessages.appendChild(msgDiv);
     }
@@ -450,10 +469,18 @@ function initSocketEvents() {
       const time = formatTimestamp(msg.timestamp);
       let lastMsgDiv = textMessages.lastElementChild;
       let lastSender = lastMsgDiv ? lastMsgDiv.getAttribute('data-sender') : null;
-      // Eğer son mesaj ile yeni mesaj arasında gün farkı varsa, yeni mesajda tarih göster
-      const isFirst = !(lastMsgDiv && lastSender === msg.username && !isDifferentDay(lastMsgDiv.getAttribute('data-timestamp') || "", msg.timestamp));
       
-      // Kaydetmek için, her mesaj elemanına timestamp bilgisini data-timestamp özelliği olarak ekleyelim
+      // Eğer son mesaj yoksa ya da gün farklıysa, ekrana tarih ayırıcı ekle
+      if (!lastMsgDiv || lastSender !== msg.username || (lastMsgDiv.getAttribute('data-timestamp') && isDifferentDay(lastMsgDiv.getAttribute('data-timestamp'), msg.timestamp))) {
+        const sep = createDateSeparator(formatFullDate(msg.timestamp));
+        textMessages.appendChild(sep);
+      }
+      
+      const isFirst = (!lastMsgDiv || lastSender !== msg.username || (lastMsgDiv.getAttribute('data-timestamp') && isDifferentDay(lastMsgDiv.getAttribute('data-timestamp'), msg.timestamp)));
+      if (lastMsgDiv && lastSender === msg.username) {
+        lastMsgDiv.classList.remove('last-message');
+      }
+      
       let className = 'text-message ';
       className += (msg.username === username) ? 'sent-message ' : 'received-message ';
       className += isFirst ? 'first-message ' : 'subsequent-message ';
@@ -477,7 +504,6 @@ function initSocketEvents() {
           msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
         }
       }
-      // Mesaj elemanına gönderim zamanını data-timestamp olarak ekleyelim
       msgDiv.setAttribute('data-timestamp', msg.timestamp);
       msgDiv.setAttribute('data-sender', msg.username);
       textMessages.appendChild(msgDiv);
@@ -488,7 +514,6 @@ function initSocketEvents() {
   // ========================
   // METİN MESAJLARININ RENDER İŞLEMLERİ SONU
   // ========================
-  
 }
 
 function startSfuFlow() {
@@ -1007,8 +1032,7 @@ function initUIEvents() {
     const time = formatTimestamp(new Date());
     let lastMsgDiv = textMessages.lastElementChild;
     let lastSender = lastMsgDiv ? lastMsgDiv.getAttribute('data-sender') : null;
-    // Eğer önceki mesaj aynı gönderene aitse ve aynı günse isFirst false, 
-    // aksi halde (gün farklıysa) isFirst true olarak kabul edelim.
+    // Eğer önceki mesaj yoksa ya da farklı gönderene aitse veya gün farklıysa
     const isFirst = (!lastMsgDiv || lastSender !== username || (lastMsgDiv.getAttribute('data-timestamp') && isDifferentDay(lastMsgDiv.getAttribute('data-timestamp'), new Date())));
     if (lastMsgDiv && lastSender === username) {
       lastMsgDiv.classList.remove('last-message');
@@ -1017,12 +1041,10 @@ function initUIEvents() {
     const msgDiv = document.createElement('div');
     msgDiv.className = className;
     if (isFirst) {
-      // Kendi mesajınızın ilkinde sadece tarih (solda, "own-timestamp" ile) ve mesaj içeriği
       msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg}</div>`;
     } else {
       msgDiv.innerHTML = msg;
     }
-    // Mesajın gönderildiği zamanı data-timestamp olarak ekleyelim
     msgDiv.setAttribute('data-timestamp', new Date());
     msgDiv.setAttribute('data-sender', username);
     textMessages.appendChild(msgDiv);
@@ -1278,6 +1300,13 @@ socket.on('textHistory', (messages) => {
     const msg = messages[i];
     const time = formatTimestamp(msg.timestamp);
     const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
+    
+    // Eğer ilk mesaj veya önceki mesajın günü farklı ise tarih ayırıcı ekle
+    if (i === 0 || isDifferentDay(messages[i - 1].timestamp, msg.timestamp)) {
+      const sep = createDateSeparator(formatFullDate(msg.timestamp));
+      textMessages.appendChild(sep);
+    }
+    
     const isFirst = (i === 0 || ((messages[i - 1].user && messages[i - 1].user.username) !== sender) || isDifferentDay(messages[i - 1].timestamp, msg.timestamp));
     const isLast = (i === messages.length - 1 || ((messages[i + 1].user && messages[i + 1].user.username) !== sender));
     
@@ -1293,7 +1322,6 @@ socket.on('textHistory', (messages) => {
     
     if (sender === username) {
       if (isFirst) {
-        // Kendi mesajınızın ilkinde; sadece tarih (solda, "own-timestamp" ile) ve mesaj içeriği
         msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
       } else {
         msgDiv.innerHTML = msg.content;
@@ -1307,7 +1335,6 @@ socket.on('textHistory', (messages) => {
         msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
       }
     }
-    // Her mesaj için timestamp bilgisini data-timestamp olarak ekliyoruz (tarih ayrımını kontrol etmek için)
     msgDiv.setAttribute('data-timestamp', msg.timestamp);
     msgDiv.setAttribute('data-sender', sender);
     textMessages.appendChild(msgDiv);
@@ -1321,7 +1348,12 @@ socket.on('newTextMessage', (data) => {
     const time = formatTimestamp(msg.timestamp);
     let lastMsgDiv = textMessages.lastElementChild;
     let lastSender = lastMsgDiv ? lastMsgDiv.getAttribute('data-sender') : null;
-    // Eğer son mesaj ile yeni mesaj aynı gönderene aitse fakat gün farklıysa, bunu isFirst olarak kabul et
+    // Eğer son mesaj yok veya gün farkı varsa ekrana tarih ayırıcı ekle
+    if (!lastMsgDiv || lastSender !== msg.username || (lastMsgDiv.getAttribute('data-timestamp') && isDifferentDay(lastMsgDiv.getAttribute('data-timestamp'), msg.timestamp))) {
+      const sep = createDateSeparator(formatFullDate(msg.timestamp));
+      textMessages.appendChild(sep);
+    }
+    
     const isFirst = (!lastMsgDiv || lastSender !== msg.username || (lastMsgDiv.getAttribute('data-timestamp') && isDifferentDay(lastMsgDiv.getAttribute('data-timestamp'), msg.timestamp)));
     if (lastMsgDiv && lastSender === msg.username) {
       lastMsgDiv.classList.remove('last-message');

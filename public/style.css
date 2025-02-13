@@ -904,3 +904,22 @@ body {
   width: 100%;
   height: auto;
 }
+
+/* Tarih Ayırıcı Stili */
+.date-separator {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+}
+.date-separator::before,
+.date-separator::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #666;
+  margin: 0 10px;
+}
+.date-separator span {
+  font-size: 0.8em;
+  color: #aaa;
+  white-space: nowrap;
+}
