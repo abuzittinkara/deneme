@@ -363,9 +363,9 @@ function initSocketEvents() {
   // METİN MESAJLARININ RENDER İŞLEMLERİ
   // ========================
   
-  // Tüm mesaj geçmişini render eden bölümde,
-  // her mesaj için; önceki ve sonraki mesajın göndereni kontrol edilerek
+  // textHistory: Geçmiş mesajları render ederken, gelen mesajların ardışıklığına göre
   // 'first-message', 'subsequent-message' ve 'last-message' sınıfları ekleniyor.
+  // Ayrıca, diğer kullanıcıların ardışık mesajlarında; eğer mesaj grubunun son mesajı ise avatar placeholder eklenmiyor.
   socket.on('textHistory', (messages) => {
     textMessages.innerHTML = "";
     for (let i = 0; i < messages.length; i++) {
@@ -393,11 +393,17 @@ function initSocketEvents() {
         }
       } else {
         if (isFirst) {
+          // İlk mesaj: gerçek avatar kullanılarak.
           const avatarHTML = `<div class="message-avatar profile-thumb">${sender.charAt(0).toUpperCase()}</div>`;
           msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
-          const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
-          msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
+          // Ardışık mesajlar: Eğer son mesaj ise avatar gösterilmez, değilse placeholder eklenir.
+          if (isLast) {
+            msgDiv.innerHTML = `<div class="message-content without-avatar">${msg.content}</div>`;
+          } else {
+            const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
+            msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
+          }
         }
       }
       msgDiv.setAttribute('data-sender', sender);
@@ -406,9 +412,9 @@ function initSocketEvents() {
     textMessages.scrollTop = textMessages.scrollHeight;
   });
   
-  // Yeni gelen metin mesajı için:
-  // Eğer son mesaj aynı gönderene aitse, onun 'last-message' sınıfı kaldırılıp
-  // yeni mesaj 'last-message' olarak eklenecek.
+  // newTextMessage: Yeni gelen mesajı render ederken, eğer önceki mesaj aynı gönderene aitse
+  // önceki mesajın 'last-message' sınıfı kaldırılıp, yeni mesaj 'last-message' olarak ekleniyor.
+  // Burada da diğer kullanıcılar için, eğer mesaj grup sonuncası ise avatar placeholder eklenmiyor.
   socket.on('newTextMessage', (data) => {
     if (data.channelId === currentTextChannel) {
       const msg = data.message;
@@ -439,8 +445,13 @@ function initSocketEvents() {
           const avatarHTML = `<div class="message-avatar profile-thumb">${msg.username.charAt(0).toUpperCase()}</div>`;
           msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
-          const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
-          msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
+          // Eğer önceki mesaj aynı gönderene ait ve bu mesaj grup sonuncasıysa, avatar gösterilmez.
+          if (true) { // Çünkü newTextMessage her zaman yeni eklenen son mesaj olarak kabul ediliyor.
+            msgDiv.innerHTML = `<div class="message-content without-avatar">${msg.content}</div>`;
+          } else {
+            const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
+            msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
+          }
         }
       }
       msgDiv.setAttribute('data-sender', msg.username);
@@ -975,7 +986,7 @@ function initUIEvents() {
     if (lastMsgDiv && lastSender === username) {
       lastMsgDiv.classList.remove('last-message');
     }
-    const className = 'text-message sent-message ' + (isFirst ? 'first-message' : 'subsequent-message') + ' last-message';
+    const className = 'text-message sent-message ' + (isFirst ? 'first-message ' : 'subsequent-message') + ' last-message';
     const msgDiv = document.createElement('div');
     msgDiv.className = className;
     if (isFirst) {
@@ -1258,11 +1269,17 @@ socket.on('textHistory', (messages) => {
       }
     } else {
       if (isFirst) {
+        // İlk mesaj: gerçek avatar kullanılarak
         const avatarHTML = `<div class="message-avatar profile-thumb">${sender.charAt(0).toUpperCase()}</div>`;
         msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
-        const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
-        msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
+        // Eğer son mesaj ise avatar placeholder eklenmiyor
+        if (isLast) {
+          msgDiv.innerHTML = `<div class="message-content without-avatar">${msg.content}</div>`;
+        } else {
+          const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
+          msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
+        }
       }
     }
     msgDiv.setAttribute('data-sender', sender);
@@ -1301,8 +1318,8 @@ socket.on('newTextMessage', (data) => {
         const avatarHTML = `<div class="message-avatar profile-thumb">${msg.username.charAt(0).toUpperCase()}</div>`;
         msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
-        const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
-        msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
+        // Eğer önceki mesaj aynı gönderene ait ve bu yeni mesaj grup sonuncası ise avatar eklenmiyor
+        msgDiv.innerHTML = `<div class="message-content without-avatar">${msg.content}</div>`;
       }
     }
     msgDiv.setAttribute('data-sender', msg.username);
