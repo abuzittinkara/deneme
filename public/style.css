@@ -535,6 +535,7 @@ body {
   display: flex;
   align-items: flex-start;
   transition: background-color 0.2s ease;
+  position: relative;
 }
 .text-message:hover {
   background-color: rgba(255,255,255,0.1);
@@ -618,9 +619,9 @@ body {
   margin-right: 8px;
 }
 
-/* Timestamp hover – yalnızca received, ardışık (ilk olmayan) mesajlarda hover ile gösterilecek */
+/* Timestamp hover – yalnızca received, ardışık (ilk olmayan) mesajlarda sadece hover ile gösterilecek */
 .timestamp-hover {
-  display: none;
+  display: none !important;
   position: absolute;
   left: -60px;
   top: 50%;
@@ -629,10 +630,8 @@ body {
   font-size: 0.8em;
   color: #aaa;
 }
-
-/* Received mesajlarda, ilk olmayan mesaj üzerine gelindiğinde timestamp-hover gösterilsin */
 .text-message.received-message:not(.first-message):hover .timestamp-hover {
-  display: block;
+  display: block !important;
 }
 
 /* Tarih Ayırıcı Stili */
@@ -771,7 +770,8 @@ body {
 .copy-id-btn:hover {
   background: #777;
 }
-* Modal */
+
+/* Modal */
 .modal {
   position: fixed;
   top: 0;
