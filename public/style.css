@@ -603,6 +603,18 @@ body {
   margin-bottom: 25px;
 }
 
+/* Yeni: Kullanıcı adı ve gönderim saati stilleri */
+.sender-name {
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+.timestamp {
+  font-weight: 300;
+  font-size: 0.8em;
+  margin-left: 4px;
+}
+
 /* Modern Scrollbar – Varsayılan gizli; "scrolling" sınıfı eklendiğinde görünür */
 /* WebKit tarayıcıları için */
 #textMessages::-webkit-scrollbar {
