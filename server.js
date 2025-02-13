@@ -187,8 +187,8 @@ function removeUserFromAllGroupsAndRooms(socket) {
     });
     socket.leave(gId);
   });
-  users[socketId].currentGroup = null;
-  users[socketId].currentRoom = null;
+  users[socket.id].currentGroup = null;
+  users[socket.id].currentRoom = null;
 }
 
 /* Grubun online/offline kullanıcıları */
@@ -556,6 +556,8 @@ io.on('connection', (socket) => {
         };
       }
       console.log(`Yeni oda: group=${groupId}, room=${roomId}, name=${trimmed}, type=${channelType}`);
+      // Yeni oluşturulan oda listesini hem bu socket'e hem de tüm gruba gönderiyoruz
+      sendRoomsListToUser(socket.id, groupId);
       broadcastRoomsListToGroup(groupId);
       broadcastAllChannelsData(groupId);
     } catch (err) {
