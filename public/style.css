@@ -590,6 +590,19 @@ body {
   margin-right: 8px;
 }
 
+/* Yeni: Mesaj gruplarını ayırmak için ek sınıflar */
+.text-message.first-message {
+  margin-top: 10px;
+}
+
+.text-message.subsequent-message {
+  margin-top: 2px;
+}
+
+.text-message.last-message {
+  margin-bottom: 12px;
+}
+
 /* Modern Scrollbar – Varsayılan gizli; "scrolling" sınıfı eklendiğinde görünür */
 /* WebKit tarayıcıları için */
 #textMessages::-webkit-scrollbar {
