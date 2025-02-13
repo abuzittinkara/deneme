@@ -388,8 +388,7 @@ function initSocketEvents() {
   // METİN MESAJLARININ RENDER İŞLEMLERİ
   // ========================
   
-  // textHistory: Geçmiş mesajları render ederken, gelen mesajların ardışıklığına göre
-  // 'first-message', 'subsequent-message' ve 'last-message' sınıfları ekleniyor.
+  // textHistory: Geçmiş mesajları render ederken
   socket.on('textHistory', (messages) => {
     textMessages.innerHTML = "";
     for (let i = 0; i < messages.length; i++) {
@@ -411,8 +410,8 @@ function initSocketEvents() {
       
       if (sender === username) {
         if (isFirst) {
-          // Kendi mesajında da karşı taraf gibi kullanıcı adı ve zaman gösterilsin
-          msgDiv.innerHTML = `<div class="message-content with-avatar"><span class="sender-name">${username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
+          // Kendi mesajınızın ilkinde kullanıcı adını göstermeden sadece tarih ile mesaj içeriği
+          msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
           msgDiv.innerHTML = msg.content;
         }
@@ -431,8 +430,7 @@ function initSocketEvents() {
     textMessages.scrollTop = textMessages.scrollHeight;
   });
   
-  // newTextMessage: Yeni gelen mesajı render ederken, eğer önceki mesaj aynı gönderene aitse
-  // önceki mesajın 'last-message' sınıfı kaldırılıp, yeni mesaj 'last-message' olarak ekleniyor.
+  // newTextMessage: Yeni gelen mesajı render ederken
   socket.on('newTextMessage', (data) => {
     if (data.channelId === currentTextChannel) {
       const msg = data.message;
@@ -454,7 +452,7 @@ function initSocketEvents() {
       
       if (msg.username === username) {
         if (isFirst) {
-          msgDiv.innerHTML = `<div class="message-content with-avatar"><span class="sender-name">${username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
+          msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
           msgDiv.innerHTML = msg.content;
         }
@@ -1003,7 +1001,8 @@ function initUIEvents() {
     const msgDiv = document.createElement('div');
     msgDiv.className = className;
     if (isFirst) {
-      msgDiv.innerHTML = `<div class="message-content with-avatar"><span class="sender-name">${username}</span> <span class="timestamp">${time}</span><br>${msg}</div>`;
+      // Kendi mesajınızın ilkinde sadece tarih ve mesaj içeriği; kullanıcı adı gösterilmiyor
+      msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="timestamp">${time}</span><br>${msg}</div>`;
     } else {
       msgDiv.innerHTML = msg;
     }
@@ -1276,8 +1275,8 @@ socket.on('textHistory', (messages) => {
     
     if (sender === username) {
       if (isFirst) {
-        // Kendi mesajında da karşı taraf gibi kullanıcı adı ve zaman gösterilsin
-        msgDiv.innerHTML = `<div class="message-content with-avatar"><span class="sender-name">${username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
+        // Kendi mesajınızın ilkinde; kullanıcı adı gösterilmeden, sadece tarih ve mesaj içeriği, arada boşluk bırakılarak
+        msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
         msgDiv.innerHTML = msg.content;
       }
@@ -1317,7 +1316,7 @@ socket.on('newTextMessage', (data) => {
     
     if (msg.username === username) {
       if (isFirst) {
-        msgDiv.innerHTML = `<div class="message-content with-avatar"><span class="sender-name">${username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
+        msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
         msgDiv.innerHTML = msg.content;
       }
