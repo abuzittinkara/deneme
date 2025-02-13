@@ -410,8 +410,9 @@ function initSocketEvents() {
       
       if (sender === username) {
         if (isFirst) {
-          // Kendi mesajınızın ilkinde; kullanıcı adı gösterilmeden sadece tarih (solda) ve mesaj içeriği
-          msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="timestamp">${time}</span> ${msg.content}</div>`;
+          // Kendi mesajınızın ilkinde; sadece tarih (solda) ve mesaj içeriği; kullanıcı adı gösterilmiyor.
+          // Burada tarih için "own-timestamp" sınıfı kullanılıyor.
+          msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
         } else {
           msgDiv.innerHTML = msg.content;
         }
@@ -452,7 +453,7 @@ function initSocketEvents() {
       
       if (msg.username === username) {
         if (isFirst) {
-          msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="timestamp">${time}</span> ${msg.content}</div>`;
+          msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
         } else {
           msgDiv.innerHTML = msg.content;
         }
@@ -1001,8 +1002,8 @@ function initUIEvents() {
     const msgDiv = document.createElement('div');
     msgDiv.className = className;
     if (isFirst) {
-      // Kendi mesajınızın ilkinde sadece tarih ve mesaj içeriği; tarih mesajın solunda yer alsın
-      msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="timestamp">${time}</span> ${msg}</div>`;
+      // Kendi mesajınızın ilkinde sadece tarih (solda) ve mesaj içeriği; tarih için "own-timestamp" sınıfı kullanılıyor
+      msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg}</div>`;
     } else {
       msgDiv.innerHTML = msg;
     }
@@ -1275,8 +1276,8 @@ socket.on('textHistory', (messages) => {
     
     if (sender === username) {
       if (isFirst) {
-        // Kendi mesajınızın ilkinde; sadece tarih ve mesaj içeriği (tarih sol tarafta)
-        msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="timestamp">${time}</span> ${msg.content}</div>`;
+        // Kendi mesajınızın ilkinde; sadece tarih (solda, "own-timestamp" ile) ve mesaj içeriği
+        msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
       } else {
         msgDiv.innerHTML = msg.content;
       }
@@ -1316,7 +1317,7 @@ socket.on('newTextMessage', (data) => {
     
     if (msg.username === username) {
       if (isFirst) {
-        msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="timestamp">${time}</span> ${msg.content}</div>`;
+        msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
       } else {
         msgDiv.innerHTML = msg.content;
       }
