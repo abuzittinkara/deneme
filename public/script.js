@@ -368,19 +368,21 @@ function initSocketEvents() {
       const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
       const msgDiv = document.createElement('div');
       if (sender === username) {
-        msgDiv.className = 'text-message sent-message';
         if (lastSender !== sender) {
+          msgDiv.className = 'text-message sent-message first-message';
           msgDiv.innerHTML = `${msg.content} <span class="timestamp">${time}</span>`;
         } else {
+          msgDiv.className = 'text-message sent-message subsequent-message';
           msgDiv.innerHTML = msg.content;
         }
       } else {
-        msgDiv.className = 'text-message received-message';
         if (sender !== lastSender) {
+          msgDiv.className = 'text-message received-message first-message';
           // İlk mesaj: gerçek avatar (user panel'deki stil uygulanmış) kullanılarak
           const avatarHTML = `<div class="message-avatar profile-thumb">${sender.charAt(0).toUpperCase()}</div>`;
           msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
+          msgDiv.className = 'text-message received-message subsequent-message';
           // Ardışık mesajlarda, avatar placeholder için "placeholder" sınıfı kullanılıyor
           const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
           msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
@@ -404,18 +406,20 @@ function initSocketEvents() {
         lastSender = textMessages.lastElementChild.getAttribute('data-sender');
       }
       if (msg.username === username) {
-        msgDiv.className = 'text-message sent-message';
         if (lastSender !== msg.username) {
+          msgDiv.className = 'text-message sent-message first-message';
           msgDiv.innerHTML = `${msg.content} <span class="timestamp">${time}</span>`;
         } else {
+          msgDiv.className = 'text-message sent-message subsequent-message';
           msgDiv.innerHTML = `${msg.content}`;
         }
       } else {
-        msgDiv.className = 'text-message received-message';
         if (msg.username !== lastSender) {
+          msgDiv.className = 'text-message received-message first-message';
           const avatarHTML = `<div class="message-avatar profile-thumb">${msg.username.charAt(0).toUpperCase()}</div>`;
           msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
+          msgDiv.className = 'text-message received-message subsequent-message';
           const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
           msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
         }
@@ -942,14 +946,11 @@ function initUIEvents() {
     if (!msg) return;
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const msgDiv = document.createElement('div');
-    msgDiv.className = 'text-message sent-message';
-    let lastSender = "";
-    if (textMessages.lastElementChild && textMessages.lastElementChild.getAttribute('data-sender')) {
-      lastSender = textMessages.lastElementChild.getAttribute('data-sender');
-    }
-    if (lastSender !== username) {
+    if (textMessages.lastElementChild && textMessages.lastElementChild.getAttribute('data-sender') !== username) {
+      msgDiv.className = 'text-message sent-message first-message';
       msgDiv.innerHTML = `${msg} <span class="timestamp">${time}</span>`;
     } else {
+      msgDiv.className = 'text-message sent-message subsequent-message';
       msgDiv.innerHTML = msg;
     }
     msgDiv.setAttribute('data-sender', username);
@@ -1205,20 +1206,22 @@ socket.on('textHistory', (messages) => {
     const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
     const msgDiv = document.createElement('div');
     if (sender === username) {
-      msgDiv.className = 'text-message sent-message';
       if (lastSender !== sender) {
+        msgDiv.className = 'text-message sent-message first-message';
         msgDiv.innerHTML = `${msg.content} <span class="timestamp">${time}</span>`;
       } else {
+        msgDiv.className = 'text-message sent-message subsequent-message';
         msgDiv.innerHTML = msg.content;
       }
     } else {
-      msgDiv.className = 'text-message received-message';
       if (sender !== lastSender) {
-        // İlk mesajda gerçek avatar; burada user paneldeki avatar stilinde (profile-thumb) kullanılıyor.
+        msgDiv.className = 'text-message received-message first-message';
+        // İlk mesaj: gerçek avatar (user panel'deki stil uygulanmış) kullanılarak
         const avatarHTML = `<div class="message-avatar profile-thumb">${sender.charAt(0).toUpperCase()}</div>`;
         msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
-        // Ardışık mesajlarda, avatar placeholder için "placeholder" sınıfı kullanılıyor.
+        msgDiv.className = 'text-message received-message subsequent-message';
+        // Ardışık mesajlarda, avatar placeholder için "placeholder" sınıfı kullanılıyor
         const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
         msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
       }
@@ -1241,18 +1244,20 @@ socket.on('newTextMessage', (data) => {
       lastSender = textMessages.lastElementChild.getAttribute('data-sender');
     }
     if (msg.username === username) {
-      msgDiv.className = 'text-message sent-message';
       if (lastSender !== msg.username) {
+        msgDiv.className = 'text-message sent-message first-message';
         msgDiv.innerHTML = `${msg.content} <span class="timestamp">${time}</span>`;
       } else {
+        msgDiv.className = 'text-message sent-message subsequent-message';
         msgDiv.innerHTML = `${msg.content}`;
       }
     } else {
-      msgDiv.className = 'text-message received-message';
       if (msg.username !== lastSender) {
+        msgDiv.className = 'text-message received-message first-message';
         const avatarHTML = `<div class="message-avatar profile-thumb">${msg.username.charAt(0).toUpperCase()}</div>`;
         msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
+        msgDiv.className = 'text-message received-message subsequent-message';
         const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
         msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
       }
@@ -1260,45 +1265,5 @@ socket.on('newTextMessage', (data) => {
     msgDiv.setAttribute('data-sender', msg.username);
     textMessages.appendChild(msgDiv);
     textMessages.scrollTop = textMessages.scrollHeight;
-  }
-});
-  
-function sendTextMessage() {
-  const msg = textChannelMessageInput.value.trim();
-  if (!msg) return;
-  const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  const msgDiv = document.createElement('div');
-  msgDiv.className = 'text-message sent-message';
-  let lastSender = "";
-  if (textMessages.lastElementChild && textMessages.lastElementChild.getAttribute('data-sender')) {
-    lastSender = textMessages.lastElementChild.getAttribute('data-sender');
-  }
-  if (lastSender !== username) {
-    msgDiv.innerHTML = `${msg} <span class="timestamp">${time}</span>`;
-  } else {
-    msgDiv.innerHTML = msg;
-  }
-  msgDiv.setAttribute('data-sender', username);
-  textMessages.appendChild(msgDiv);
-  textMessages.scrollTop = textMessages.scrollHeight;
-  socket.emit('textMessage', { groupId: selectedGroup, roomId: currentTextChannel, message: msg, username: username });
-  textChannelMessageInput.value = '';
-  sendTextMessageBtn.style.display = "none";
-}
-
-sendTextMessageBtn.addEventListener('click', sendTextMessage);
-
-textChannelMessageInput.addEventListener('input', () => {
-  if (textChannelMessageInput.value.trim() !== "") {
-    sendTextMessageBtn.style.display = "block";
-  } else {
-    sendTextMessageBtn.style.display = "none";
-  }
-});
-
-textChannelMessageInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    sendTextMessage();
   }
 });
