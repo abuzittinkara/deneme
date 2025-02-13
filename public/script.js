@@ -67,6 +67,12 @@ function formatTimestamp(timestamp) {
   }
 }
 
+/* Yalnızca saat bilgisini döndüren fonksiyon */
+function formatTimeOnly(timestamp) {
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
 /* Uzun tarih biçimi (ör. "21 Ocak 2025") */
 function formatLongDate(timestamp) {
   const date = new Date(timestamp);
@@ -437,7 +443,7 @@ function initSocketEvents() {
         if (isFirst) {
           msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
         } else {
-          msgDiv.innerHTML = `<div class="message-content without-timestamp">${msg.content}<span class="timestamp-hover">${time}</span></div>`;
+          msgDiv.innerHTML = `<div class="message-content without-timestamp">${msg.content}<span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span></div>`;
         }
       } else {
         if (isFirst) {
@@ -445,7 +451,7 @@ function initSocketEvents() {
           msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
           const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
-          msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}<span class="timestamp-hover">${time}</span></div>`;
+          msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}<span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span></div>`;
         }
       }
       msgDiv.setAttribute('data-timestamp', msg.timestamp);
@@ -481,7 +487,7 @@ function initSocketEvents() {
         if (isFirst) {
           msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
         } else {
-          msgDiv.innerHTML = `<div class="message-content without-timestamp">${msg.content}<span class="timestamp-hover">${time}</span></div>`;
+          msgDiv.innerHTML = `<div class="message-content without-timestamp">${msg.content}<span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span></div>`;
         }
       } else {
         if (isFirst) {
@@ -489,7 +495,7 @@ function initSocketEvents() {
           msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
           const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
-          msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}<span class="timestamp-hover">${time}</span></div>`;
+          msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}<span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span></div>`;
         }
       }
       msgDiv.setAttribute('data-timestamp', msg.timestamp);
@@ -1018,6 +1024,7 @@ function initUIEvents() {
     const msg = textChannelMessageInput.value.trim();
     if (!msg) return;
     const time = formatTimestamp(new Date());
+    const timeOnly = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     let lastMsgDiv = textMessages.lastElementChild;
     let lastSender = lastMsgDiv ? lastMsgDiv.getAttribute('data-sender') : null;
     const isFirst = (!lastMsgDiv || lastSender !== username || (lastMsgDiv.getAttribute('data-timestamp') && isDifferentDay(lastMsgDiv.getAttribute('data-timestamp'), new Date())));
@@ -1030,7 +1037,7 @@ function initUIEvents() {
     if (isFirst) {
       msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg}</div>`;
     } else {
-      msgDiv.innerHTML = `<div class="message-content without-timestamp">${msg}<span class="timestamp-hover">${time}</span></div>`;
+      msgDiv.innerHTML = `<div class="message-content without-timestamp">${msg}<span class="timestamp-hover">${timeOnly}</span></div>`;
     }
     msgDiv.setAttribute('data-timestamp', new Date());
     msgDiv.setAttribute('data-sender', username);
@@ -1310,7 +1317,7 @@ socket.on('textHistory', (messages) => {
       if (isFirst) {
         msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
       } else {
-        msgDiv.innerHTML = `<div class="message-content without-timestamp">${msg.content}<span class="timestamp-hover">${time}</span></div>`;
+        msgDiv.innerHTML = `<div class="message-content without-timestamp">${msg.content}<span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span></div>`;
       }
     } else {
       if (isFirst) {
@@ -1318,7 +1325,7 @@ socket.on('textHistory', (messages) => {
         msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
         const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
-        msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}<span class="timestamp-hover">${time}</span></div>`;
+        msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}<span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span></div>`;
       }
     }
     msgDiv.setAttribute('data-timestamp', msg.timestamp);
@@ -1354,7 +1361,7 @@ socket.on('newTextMessage', (data) => {
       if (isFirst) {
         msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
       } else {
-        msgDiv.innerHTML = `<div class="message-content without-timestamp">${msg.content}<span class="timestamp-hover">${time}</span></div>`;
+        msgDiv.innerHTML = `<div class="message-content without-timestamp">${msg.content}<span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span></div>`;
       }
     } else {
       if (isFirst) {
@@ -1362,7 +1369,7 @@ socket.on('newTextMessage', (data) => {
         msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
         const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
-        msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}<span class="timestamp-hover">${time}</span></div>`;
+        msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}<span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span></div>`;
       }
     }
     msgDiv.setAttribute('data-timestamp', msg.timestamp);
