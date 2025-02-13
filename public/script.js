@@ -44,6 +44,31 @@ let audioAnalyzers = {};
 
 let pingInterval = null;
 
+/* YENİ: Zaman biçimlendirme fonksiyonu
+   Eğer mesaj bugüne aitse "Bugün HH:MM", düne aitse "Dün HH:MM",
+   aksi halde "DD.MM.YYYY HH:MM" formatında döner.
+*/
+function formatTimestamp(timestamp) {
+  const date = new Date(timestamp);
+  const now = new Date();
+  // Bugünün başlangıcı (sadece tarih, saat sıfırlı)
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  // Dün
+  const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+  
+  if (date >= today) {
+    return "Bugün " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } else if (date >= yesterday && date < today) {
+    return "Dün " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } else {
+    const day = ("0" + date.getDate()).slice(-2);
+    const month = ("0" + (date.getMonth() + 1)).slice(-2);
+    const year = date.getFullYear();
+    const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return `${day}.${month}.${year} ${timeStr}`;
+  }
+}
+
 /*
   DOM element referansları
 */
@@ -365,12 +390,11 @@ function initSocketEvents() {
   
   // textHistory: Geçmiş mesajları render ederken, gelen mesajların ardışıklığına göre
   // 'first-message', 'subsequent-message' ve 'last-message' sınıfları ekleniyor.
-  // Diğer kullanıcıların mesajlarında; eğer mesaj ilk değilse, avatar placeholder her durumda ekleniyor.
   socket.on('textHistory', (messages) => {
     textMessages.innerHTML = "";
     for (let i = 0; i < messages.length; i++) {
       const msg = messages[i];
-      const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const time = formatTimestamp(msg.timestamp);
       const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
       const isFirst = (i === 0 || ((messages[i - 1].user && messages[i - 1].user.username) !== sender));
       const isLast = (i === messages.length - 1 || ((messages[i + 1].user && messages[i + 1].user.username) !== sender));
@@ -393,11 +417,10 @@ function initSocketEvents() {
         }
       } else {
         if (isFirst) {
-          // İlk mesaj: gerçek avatar kullanılarak
           const avatarHTML = `<div class="message-avatar profile-thumb">${sender.charAt(0).toUpperCase()}</div>`;
           msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
-          // Ardışık mesajlarda; artık isLast kontrolüne bakılmaksızın placeholder ekleniyor.
+          // Ardışık mesajlarda, placeholder her durumda ekleniyor
           const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
           msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
         }
@@ -410,11 +433,10 @@ function initSocketEvents() {
   
   // newTextMessage: Yeni gelen mesajı render ederken, eğer önceki mesaj aynı gönderene aitse
   // önceki mesajın 'last-message' sınıfı kaldırılıp, yeni mesaj 'last-message' olarak ekleniyor.
-  // Burada da diğer kullanıcılar için, placeholder her durumda ekleniyor.
   socket.on('newTextMessage', (data) => {
     if (data.channelId === currentTextChannel) {
       const msg = data.message;
-      const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const time = formatTimestamp(msg.timestamp);
       let lastMsgDiv = textMessages.lastElementChild;
       let lastSender = lastMsgDiv ? lastMsgDiv.getAttribute('data-sender') : null;
       if (lastMsgDiv && lastSender === msg.username) {
@@ -441,7 +463,6 @@ function initSocketEvents() {
           const avatarHTML = `<div class="message-avatar profile-thumb">${msg.username.charAt(0).toUpperCase()}</div>`;
           msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
-          // Diğer kullanıcıların mesajlarında, placeholder her durumda ekleniyor.
           const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
           msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
         }
@@ -971,7 +992,7 @@ function initUIEvents() {
   function sendTextMessage() {
     const msg = textChannelMessageInput.value.trim();
     if (!msg) return;
-    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const time = formatTimestamp(new Date());
     let lastMsgDiv = textMessages.lastElementChild;
     let lastSender = lastMsgDiv ? lastMsgDiv.getAttribute('data-sender') : null;
     const isFirst = !(lastMsgDiv && lastSender === username);
@@ -1238,7 +1259,7 @@ socket.on('textHistory', (messages) => {
   textMessages.innerHTML = "";
   for (let i = 0; i < messages.length; i++) {
     const msg = messages[i];
-    const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const time = formatTimestamp(msg.timestamp);
     const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
     const isFirst = (i === 0 || ((messages[i - 1].user && messages[i - 1].user.username) !== sender));
     const isLast = (i === messages.length - 1 || ((messages[i + 1].user && messages[i + 1].user.username) !== sender));
@@ -1279,7 +1300,7 @@ socket.on('textHistory', (messages) => {
 socket.on('newTextMessage', (data) => {
   if (data.channelId === currentTextChannel) {
     const msg = data.message;
-    const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const time = formatTimestamp(msg.timestamp);
     let lastMsgDiv = textMessages.lastElementChild;
     let lastSender = lastMsgDiv ? lastMsgDiv.getAttribute('data-sender') : null;
     if (lastMsgDiv && lastSender === msg.username) {
@@ -1306,7 +1327,6 @@ socket.on('newTextMessage', (data) => {
         const avatarHTML = `<div class="message-avatar profile-thumb">${msg.username.charAt(0).toUpperCase()}</div>`;
         msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
-        // Diğer kullanıcıların mesajlarında placeholder her zaman ekleniyor
         const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
         msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
       }
