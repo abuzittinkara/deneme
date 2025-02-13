@@ -359,67 +359,86 @@ function initSocketEvents() {
     consumeProducer(producerId);
   });
   
-  // Text mesajların render edilmesi: textHistory
+  // ========================
+  // METİN MESAJLARININ RENDER İŞLEMLERİ
+  // ========================
+  
+  // Tüm mesaj geçmişini render eden bölümde,
+  // her mesaj için; önceki ve sonraki mesajın göndereni kontrol edilerek
+  // 'first-message', 'subsequent-message' ve 'last-message' sınıfları ekleniyor.
   socket.on('textHistory', (messages) => {
     textMessages.innerHTML = "";
-    let lastSender = null;
-    messages.forEach(msg => {
+    for (let i = 0; i < messages.length; i++) {
+      const msg = messages[i];
       const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
+      const isFirst = (i === 0 || ((messages[i - 1].user && messages[i - 1].user.username) !== sender));
+      const isLast = (i === messages.length - 1 || ((messages[i + 1].user && messages[i + 1].user.username) !== sender));
+      
+      let className = 'text-message ';
+      className += (sender === username) ? 'sent-message ' : 'received-message ';
+      className += (isFirst) ? 'first-message ' : 'subsequent-message ';
+      if (isLast) {
+        className += 'last-message';
+      }
+      
       const msgDiv = document.createElement('div');
+      msgDiv.className = className;
+      
       if (sender === username) {
-        if (lastSender !== sender) {
-          msgDiv.className = 'text-message sent-message first-message';
+        if (isFirst) {
           msgDiv.innerHTML = `${msg.content} <span class="timestamp">${time}</span>`;
         } else {
-          msgDiv.className = 'text-message sent-message subsequent-message';
           msgDiv.innerHTML = msg.content;
         }
       } else {
-        if (sender !== lastSender) {
-          msgDiv.className = 'text-message received-message first-message';
-          // İlk mesaj: gerçek avatar (user panel'deki stil uygulanmış) kullanılarak
+        if (isFirst) {
           const avatarHTML = `<div class="message-avatar profile-thumb">${sender.charAt(0).toUpperCase()}</div>`;
           msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
-          msgDiv.className = 'text-message received-message subsequent-message';
-          // Ardışık mesajlarda, avatar placeholder için "placeholder" sınıfı kullanılıyor
           const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
           msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
         }
-        lastSender = sender;
       }
       msgDiv.setAttribute('data-sender', sender);
       textMessages.appendChild(msgDiv);
-    });
+    }
     textMessages.scrollTop = textMessages.scrollHeight;
   });
   
-  // Yeni gelen metin mesajı: newTextMessage
+  // Yeni gelen metin mesajı için:
+  // Eğer son mesaj aynı gönderene aitse, onun 'last-message' sınıfı kaldırılıp
+  // yeni mesaj 'last-message' olarak eklenecek.
   socket.on('newTextMessage', (data) => {
     if (data.channelId === currentTextChannel) {
       const msg = data.message;
       const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const msgDiv = document.createElement('div');
-      let lastSender = "";
-      if (textMessages.lastElementChild && textMessages.lastElementChild.getAttribute('data-sender')) {
-        lastSender = textMessages.lastElementChild.getAttribute('data-sender');
+      let lastMsgDiv = textMessages.lastElementChild;
+      let lastSender = lastMsgDiv ? lastMsgDiv.getAttribute('data-sender') : null;
+      if (lastMsgDiv && lastSender === msg.username) {
+        lastMsgDiv.classList.remove('last-message');
       }
+      const isFirst = !(lastMsgDiv && lastSender === msg.username);
+      
+      let className = 'text-message ';
+      className += (msg.username === username) ? 'sent-message ' : 'received-message ';
+      className += isFirst ? 'first-message ' : 'subsequent-message ';
+      className += 'last-message';
+      
+      const msgDiv = document.createElement('div');
+      msgDiv.className = className;
+      
       if (msg.username === username) {
-        if (lastSender !== msg.username) {
-          msgDiv.className = 'text-message sent-message first-message';
+        if (isFirst) {
           msgDiv.innerHTML = `${msg.content} <span class="timestamp">${time}</span>`;
         } else {
-          msgDiv.className = 'text-message sent-message subsequent-message';
-          msgDiv.innerHTML = `${msg.content}`;
+          msgDiv.innerHTML = msg.content;
         }
       } else {
-        if (msg.username !== lastSender) {
-          msgDiv.className = 'text-message received-message first-message';
+        if (isFirst) {
           const avatarHTML = `<div class="message-avatar profile-thumb">${msg.username.charAt(0).toUpperCase()}</div>`;
           msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
-          msgDiv.className = 'text-message received-message subsequent-message';
           const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
           msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
         }
@@ -429,6 +448,11 @@ function initSocketEvents() {
       textMessages.scrollTop = textMessages.scrollHeight;
     }
   });
+  
+  // ========================
+  // METİN MESAJLARININ RENDER İŞLEMLERİ SONU
+  // ========================
+  
 }
 
 function startSfuFlow() {
@@ -945,12 +969,18 @@ function initUIEvents() {
     const msg = textChannelMessageInput.value.trim();
     if (!msg) return;
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    let lastMsgDiv = textMessages.lastElementChild;
+    let lastSender = lastMsgDiv ? lastMsgDiv.getAttribute('data-sender') : null;
+    const isFirst = !(lastMsgDiv && lastSender === username);
+    if (lastMsgDiv && lastSender === username) {
+      lastMsgDiv.classList.remove('last-message');
+    }
+    const className = 'text-message sent-message ' + (isFirst ? 'first-message' : 'subsequent-message') + ' last-message';
     const msgDiv = document.createElement('div');
-    if (textMessages.lastElementChild && textMessages.lastElementChild.getAttribute('data-sender') !== username) {
-      msgDiv.className = 'text-message sent-message first-message';
+    msgDiv.className = className;
+    if (isFirst) {
       msgDiv.innerHTML = `${msg} <span class="timestamp">${time}</span>`;
     } else {
-      msgDiv.className = 'text-message sent-message subsequent-message';
       msgDiv.innerHTML = msg;
     }
     msgDiv.setAttribute('data-sender', username);
@@ -1197,67 +1227,80 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
   
-// Text mesajların render edilmesi: textHistory
+// ========================
+// METİN MESAJLARININ RENDER İŞLEMLERİ (textHistory & newTextMessage)
+// ========================
+
 socket.on('textHistory', (messages) => {
   textMessages.innerHTML = "";
-  let lastSender = null;
-  messages.forEach(msg => {
+  for (let i = 0; i < messages.length; i++) {
+    const msg = messages[i];
     const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
+    const isFirst = (i === 0 || ((messages[i - 1].user && messages[i - 1].user.username) !== sender));
+    const isLast = (i === messages.length - 1 || ((messages[i + 1].user && messages[i + 1].user.username) !== sender));
+    
+    let className = 'text-message ';
+    className += (sender === username) ? 'sent-message ' : 'received-message ';
+    className += (isFirst) ? 'first-message ' : 'subsequent-message ';
+    if (isLast) {
+      className += 'last-message';
+    }
+    
     const msgDiv = document.createElement('div');
+    msgDiv.className = className;
+    
     if (sender === username) {
-      if (lastSender !== sender) {
-        msgDiv.className = 'text-message sent-message first-message';
+      if (isFirst) {
         msgDiv.innerHTML = `${msg.content} <span class="timestamp">${time}</span>`;
       } else {
-        msgDiv.className = 'text-message sent-message subsequent-message';
         msgDiv.innerHTML = msg.content;
       }
     } else {
-      if (sender !== lastSender) {
-        msgDiv.className = 'text-message received-message first-message';
-        // İlk mesaj: gerçek avatar (user panel'deki stil uygulanmış) kullanılarak
+      if (isFirst) {
         const avatarHTML = `<div class="message-avatar profile-thumb">${sender.charAt(0).toUpperCase()}</div>`;
         msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
-        msgDiv.className = 'text-message received-message subsequent-message';
-        // Ardışık mesajlarda, avatar placeholder için "placeholder" sınıfı kullanılıyor
         const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
         msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
       }
-      lastSender = sender;
     }
     msgDiv.setAttribute('data-sender', sender);
     textMessages.appendChild(msgDiv);
-  });
+  }
   textMessages.scrollTop = textMessages.scrollHeight;
 });
   
-// Yeni gelen metin mesajı: newTextMessage
 socket.on('newTextMessage', (data) => {
   if (data.channelId === currentTextChannel) {
     const msg = data.message;
     const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const msgDiv = document.createElement('div');
-    let lastSender = "";
-    if (textMessages.lastElementChild && textMessages.lastElementChild.getAttribute('data-sender')) {
-      lastSender = textMessages.lastElementChild.getAttribute('data-sender');
+    let lastMsgDiv = textMessages.lastElementChild;
+    let lastSender = lastMsgDiv ? lastMsgDiv.getAttribute('data-sender') : null;
+    if (lastMsgDiv && lastSender === msg.username) {
+      lastMsgDiv.classList.remove('last-message');
     }
+    const isFirst = !(lastMsgDiv && lastSender === msg.username);
+    
+    let className = 'text-message ';
+    className += (msg.username === username) ? 'sent-message ' : 'received-message ';
+    className += isFirst ? 'first-message ' : 'subsequent-message ';
+    className += 'last-message';
+    
+    const msgDiv = document.createElement('div');
+    msgDiv.className = className;
+    
     if (msg.username === username) {
-      if (lastSender !== msg.username) {
-        msgDiv.className = 'text-message sent-message first-message';
+      if (isFirst) {
         msgDiv.innerHTML = `${msg.content} <span class="timestamp">${time}</span>`;
       } else {
-        msgDiv.className = 'text-message sent-message subsequent-message';
-        msgDiv.innerHTML = `${msg.content}`;
+        msgDiv.innerHTML = msg.content;
       }
     } else {
-      if (msg.username !== lastSender) {
-        msgDiv.className = 'text-message received-message first-message';
+      if (isFirst) {
         const avatarHTML = `<div class="message-avatar profile-thumb">${msg.username.charAt(0).toUpperCase()}</div>`;
         msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
-        msgDiv.className = 'text-message received-message subsequent-message';
         const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
         msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
       }
@@ -1267,3 +1310,7 @@ socket.on('newTextMessage', (data) => {
     textMessages.scrollTop = textMessages.scrollHeight;
   }
 });
+
+// ========================
+// METİN MESAJLARININ RENDER İŞLEMLERİ SONU
+// ========================
