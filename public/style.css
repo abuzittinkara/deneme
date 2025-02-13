@@ -771,3 +771,180 @@ body {
 .copy-id-btn:hover {
   background: #777;
 }
+* Modal */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+.modal-content {
+  background: #2d2d2d;
+  padding: 2rem;
+  border-radius: 8px;
+  min-width: 300px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  color: #fff;
+  text-align: center;
+}
+.modal-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  justify-content: center;
+}
+#groupModal,
+#roomModal,
+#actualGroupCreateModal,
+#joinGroupModal {
+  display: none;
+}
+
+/* DM panel */
+.dm-panel {
+  width: 265px;
+  background: #222;
+  color: #fff;
+  padding: 1rem;
+  box-sizing: border-box;
+  overflow: auto;
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+}
+.dm-close-btn {
+  position: absolute;
+  top: 1rem;
+  left: 0.55rem;
+}
+
+/* Context Menu */
+.context-menu {
+  position: absolute;
+  background: #2d2d2d;
+  border: 1px solid #444;
+  border-radius: 6px;
+  z-index: 999999;
+  min-width: 130px;
+  display: none;
+  flex-direction: column;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+.context-menu-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #444;
+}
+.context-menu-item:last-child {
+  border-bottom: none;
+}
+.context-menu-item:hover {
+  background: #444;
+}
+
+@media (max-width: 600px) {
+  .left-panels { width:65px; }
+  .rooms-panel { width:300px; }
+  .user-panel { width:300px; }
+  .channel-status-panel { width:300px; }
+  .app-title { font-size:1.2rem; }
+  .right-panel { width:200px; }
+}
+
+/* Kullanıcı Kartları */
+.user-card {
+  position: relative;
+  background: #2d2d2d;
+  border: 1px solid #444;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0.5rem;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+}
+.layout-1-user {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+.layout-1-user .user-card {
+  width: 100%;
+  margin: 0;
+  height: auto;
+}
+.layout-2-users {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  width: 100%;
+  height: auto;
+}
+.layout-2-users .user-card {
+  width: 100%;
+  height: auto;
+  margin: 0;
+}
+.layout-3-users {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  width: 100%;
+  height: auto;
+}
+.layout-3-users .user-card:nth-child(3) {
+  grid-column: 1 / span 2;
+  width: 100%;
+}
+.layout-4-users {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  width: 100%;
+  height: auto;
+}
+.layout-4-users .user-card {
+  width: 100%;
+  height: auto;
+}
+.layout-n-users {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  width: 100%;
+  height: auto;
+}
+.layout-n-users .user-card {
+  width: 100%;
+  height: auto;
+}
+
+/* Tarih Ayırıcı Stili */
+.date-separator {
+  display: flex;
+  align-items: center;
+  margin: 10px 0;
+}
+.date-separator::before,
+.date-separator::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #666;
+  margin: 0 10px;
+}
+.date-separator span {
+  font-size: 0.8em;
+  color: #aaa;
+  white-space: nowrap;
+}
