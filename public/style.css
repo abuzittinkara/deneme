@@ -570,14 +570,16 @@ body {
   margin-top: 0;
 }
 
-.received-message .message-avatar {
-  margin-right: 8px;
+/* Konumlandırma için: Ardışık mesajlarda timestamp hover'ı gösterebilmek için */
+.message-content.without-timestamp,
+.message-content.without-avatar {
+  position: relative;
 }
 
 /* Mesaj Avatarı */
 .message-avatar {
   width: 32px;
-  height: 0px;
+  height: 32px;
   border-radius: 50%;
   background-color: #353535;
   color: #333;
@@ -619,38 +621,30 @@ body {
   margin-right: 8px;
 }
 
-/* Timestamp hover – yalnızca received, ardışık (ilk olmayan) mesajlarda sadece hover ile gösterilecek */
+/* Timestamp hover – varsayılan olarak gizli, hover ile gösterilecek */
 .timestamp-hover {
   display: none !important;
   position: absolute;
-  left: -60px;
-  top: 50%;
-  transform: translateY(-50%);
   font-weight: 300;
   font-size: 0.8em;
   color: #aaa;
 }
+
+/* Received mesajlar için: Hover durumunda sol tarafta göster */
 .text-message.received-message:not(.first-message):hover .timestamp-hover {
   display: block !important;
+  left: -60px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
-/* Tarih Ayırıcı Stili */
-.date-separator {
-  display: flex;
-  align-items: center;
-  margin: 10px 0;
-}
-.date-separator::before,
-.date-separator::after {
-  content: "";
-  flex: 1;
-  border-bottom: 1px solid #666;
-  margin: 0 10px;
-}
-.date-separator span {
-  font-size: 0.8em;
-  color: #aaa;
-  white-space: nowrap;
+/* Sent mesajlar için: Hover durumunda sağ tarafta göster */
+.text-message.sent-message:not(.first-message):hover .timestamp-hover {
+  display: block !important;
+  right: -60px;
+  top: 50%;
+  transform: translateY(-50%);
+  left: auto;
 }
 
 /* Modern Scrollbar – WebKit */
@@ -750,7 +744,6 @@ body {
   height: 30px;
   background: #666;
   border-radius: 45%;
-  flex-shrink: 0;
 }
 .user-name {
   flex: 1;
@@ -850,6 +843,7 @@ body {
   background: #444;
 }
 
+/* Media Query */
 @media (max-width: 600px) {
   .left-panels { width:65px; }
   .rooms-panel { width:300px; }

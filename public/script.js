@@ -437,7 +437,7 @@ function initSocketEvents() {
         if (isFirst) {
           msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
         } else {
-          msgDiv.innerHTML = msg.content;
+          msgDiv.innerHTML = `<div class="message-content without-timestamp">${msg.content}<span class="timestamp-hover">${time}</span></div>`;
         }
       } else {
         if (isFirst) {
@@ -445,8 +445,7 @@ function initSocketEvents() {
           msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
           const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
-          // Eklenen timestamp, hover ile gösterilmek üzere CSS tarafından gizlenecek
-          msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar"><span class="timestamp">${time}</span>${msg.content}</div>`;
+          msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}<span class="timestamp-hover">${time}</span></div>`;
         }
       }
       msgDiv.setAttribute('data-timestamp', msg.timestamp);
@@ -456,7 +455,6 @@ function initSocketEvents() {
     textMessages.scrollTop = textMessages.scrollHeight;
   });
   
-  // newTextMessage: Yeni gelen mesajı render ederken, gün ayrımı kontrolü
   socket.on('newTextMessage', (data) => {
     if (data.channelId === currentTextChannel) {
       const msg = data.message;
@@ -483,7 +481,7 @@ function initSocketEvents() {
         if (isFirst) {
           msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
         } else {
-          msgDiv.innerHTML = msg.content;
+          msgDiv.innerHTML = `<div class="message-content without-timestamp">${msg.content}<span class="timestamp-hover">${time}</span></div>`;
         }
       } else {
         if (isFirst) {
@@ -491,7 +489,7 @@ function initSocketEvents() {
           msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
           const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
-          msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar"><span class="timestamp">${time}</span>${msg.content}</div>`;
+          msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}<span class="timestamp-hover">${time}</span></div>`;
         }
       }
       msgDiv.setAttribute('data-timestamp', msg.timestamp);
@@ -1026,13 +1024,13 @@ function initUIEvents() {
     if (lastMsgDiv && lastSender === username) {
       lastMsgDiv.classList.remove('last-message');
     }
-    const className = 'text-message sent-message ' + (isFirst ? 'first-message ' : 'subsequent-message') + ' last-message';
+    const className = 'text-message sent-message ' + (isFirst ? 'first-message ' : 'subsequent-message ') + 'last-message';
     const msgDiv = document.createElement('div');
     msgDiv.className = className;
     if (isFirst) {
       msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg}</div>`;
     } else {
-      msgDiv.innerHTML = msg;
+      msgDiv.innerHTML = `<div class="message-content without-timestamp">${msg}<span class="timestamp-hover">${time}</span></div>`;
     }
     msgDiv.setAttribute('data-timestamp', new Date());
     msgDiv.setAttribute('data-sender', username);
@@ -1312,7 +1310,7 @@ socket.on('textHistory', (messages) => {
       if (isFirst) {
         msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
       } else {
-        msgDiv.innerHTML = msg.content;
+        msgDiv.innerHTML = `<div class="message-content without-timestamp">${msg.content}<span class="timestamp-hover">${time}</span></div>`;
       }
     } else {
       if (isFirst) {
@@ -1320,8 +1318,7 @@ socket.on('textHistory', (messages) => {
         msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
         const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
-        // Burada timestamp'i ekliyoruz; CSS ile hover'da görünecek.
-        msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar"><span class="timestamp">${time}</span>${msg.content}</div>`;
+        msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}<span class="timestamp-hover">${time}</span></div>`;
       }
     }
     msgDiv.setAttribute('data-timestamp', msg.timestamp);
@@ -1357,7 +1354,7 @@ socket.on('newTextMessage', (data) => {
       if (isFirst) {
         msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
       } else {
-        msgDiv.innerHTML = msg.content;
+        msgDiv.innerHTML = `<div class="message-content without-timestamp">${msg.content}<span class="timestamp-hover">${time}</span></div>`;
       }
     } else {
       if (isFirst) {
@@ -1365,7 +1362,7 @@ socket.on('newTextMessage', (data) => {
         msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
         const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
-        msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar"><span class="timestamp">${time}</span>${msg.content}</div>`;
+        msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}<span class="timestamp-hover">${time}</span></div>`;
       }
     }
     msgDiv.setAttribute('data-timestamp', msg.timestamp);
