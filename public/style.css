@@ -617,6 +617,12 @@ body {
   margin-right: 4px;
 }
 
+/* Yeni: Metin kanallarında kullanıcı adının stili */
+.sender-name {
+  font-weight: bold;
+  margin-right: 8px;
+}
+
 /* Modern Scrollbar – Varsayılan gizli; "scrolling" sınıfı eklendiğinde görünür */
 /* WebKit tarayıcıları için */
 #textMessages::-webkit-scrollbar {
