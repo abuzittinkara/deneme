@@ -519,14 +519,14 @@ body {
   display: flex;
   flex-direction: column;
   flex: 1;
-  overflow-y: scroll;
-  scrollbar-gutter: stable;
+  overflow-y: auto;
   padding: 1rem;
   box-sizing: border-box;
 }
 
 /* Mesaj Stili */
 .text-message {
+  /* Kapsayıcı marginini sıfırlıyoruz; iç kısımdaki boşluklar kullanılacak */
   margin: 0;
   padding: 0px 12px;
   border-radius: 8px;
@@ -545,22 +545,29 @@ body {
   margin-top: 5px;
 }
 
-/* Received mesajlar için */
+/* Received mesajlar için – Tüm received mesajlara varsayılan margin */
 .text-message.received-message {
   align-self: flex-start;
   text-align: left;
   flex-direction: row;
+  /* Her yeni blok için üst boşluk */
   margin-top: 12px;
 }
+
+/* Ardışık aynı kullanıcının received mesajlarında boşluğu minimuma indiriyoruz.
+   Bu kural, eğer ardışık received mesajlar aynı kullanıcıdan ise,
+   aralarındaki margin-top'u 0px yapar. */
 .text-message.received-message + .text-message.received-message {
   margin-top: 0;
 }
 
-/* Eğer mesajın içinde avatar varsa */
+/* Eğer mesajın içinde avatar varsa (ilk mesaj bloğu) */
 .message-content.with-avatar {
-  margin-top: 0;
+  /* Bu iç kapsayıcıda, içerik ile avatar arasında ekstra boşluk bırakılıyor */
+  margin-top: 0; /* Bu kısım dış container marginleriyle ayarlanıyor */
 }
-/* Eğer mesajın içinde avatar yoksa */
+
+/* Eğer mesajın içinde avatar yoksa (ardışık mesajlar) */
 .message-content.without-avatar {
   margin-top: 0;
 }
@@ -583,57 +590,41 @@ body {
   margin-right: 8px;
 }
 
-/* Mesaj gruplarını ayırmak için ek sınıflar */
+/* Yeni: Mesaj gruplarını ayırmak için ek sınıflar */
 .text-message.first-message {
   margin-top: 10px;
 }
+
 .text-message.subsequent-message {
   margin-top: 2px;
 }
+
 .text-message.last-message {
   margin-bottom: 25px;
 }
 
-/* Karşı tarafın tarih stili */
+/* Yeni: Karşı tarafın tarih stili */
 .timestamp {
   font-weight: 300;
   font-size: 0.8em;
   margin-left: 4px;
 }
 
-/* Kendi mesajlarınızın tarih stili */
+/* Yeni: Kendi mesajlarınızın tarih stili */
 .own-timestamp {
   font-weight: 300;
   font-size: 0.8em;
   margin-right: 4px;
 }
 
-/* Metin kanallarında kullanıcı adının stili (kalın) */
+/* Yeni: Metin kanallarında kullanıcı adının stili */
 .sender-name {
   font-weight: bold;
   margin-right: 8px;
 }
 
-/* Tarih ayracı */
-.date-separator {
-  display: flex;
-  align-items: center;
-  margin: 10px 0;
-}
-.date-separator::before,
-.date-separator::after {
-  content: "";
-  flex: 1;
-  border-bottom: 1px solid #666;
-  margin: 0 10px;
-}
-.date-separator span {
-  font-size: 0.8em;
-  color: #aaa;
-  white-space: nowrap;
-}
-
-/* Modern Scrollbar – WebKit */
+/* Modern Scrollbar – Varsayılan gizli; "scrolling" sınıfı eklendiğinde görünür */
+/* WebKit tarayıcıları için */
 #textMessages::-webkit-scrollbar {
   width: 0px;
   background: transparent;
@@ -650,8 +641,11 @@ body {
   border-radius: 2px;
 }
 
-/* Firefox Scrollbar */
+/* Firefox için */
 #textMessages {
+  scrollbar-width: none;
+}
+#textMessages.scrolling {
   scrollbar-width: thin;
   scrollbar-color: #666 #353535;
 }
@@ -669,7 +663,7 @@ body {
 .text-chat-input-bar .chat-input {
   flex: 1;
   box-sizing: border-box;
-  padding-right: 40px;
+  padding-right: 40px; /* Gönder ikonu için boşluk */
   background: #444;
   border: 1px solid #666;
   border-radius: 6px;
@@ -688,12 +682,16 @@ body {
   cursor: pointer;
   display: none;
 }
+
+/* Send İkonu: Varsayılan Outlined (sadece stroke) */
 #sendTextMessageBtn span.send-icon {
   font-family: 'Material Icons Outlined';
   font-size: 24px;
   transition: color 0.3s ease, font-family 0.3s ease;
   color: #aaa;
 }
+
+/* Hover durumunda: Dolu ikon ve renk #c61884 */
 #sendTextMessageBtn:hover span.send-icon {
   font-family: 'Material Icons';
   color: #c61884;
@@ -714,8 +712,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
-  overflow-y: scroll;
-  scrollbar-gutter: stable;
 }
 .user-item {
   padding: 0.1rem;
