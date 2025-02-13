@@ -528,7 +528,7 @@ body {
 .text-message {
   /* Kapsayıcı marginini sıfırlıyoruz; iç kısımdaki boşluklar kullanılacak */
   margin: 0;
-  padding: 8px 12px;
+  padding: 0px 12px;
   border-radius: 8px;
   max-width: 70%;
   word-wrap: break-word;
@@ -579,7 +579,7 @@ body {
 /* Mesaj Avatarı */
 .message-avatar {
   width: 32px;
-  height: 32px;
+  height: 0px;
   border-radius: 50%;
   background-color: #353535;
   color: #333;
@@ -600,7 +600,7 @@ body {
 }
 
 .text-message.last-message {
-  margin-bottom: 12px;
+  margin-bottom: 25px;
 }
 
 /* Modern Scrollbar – Varsayılan gizli; "scrolling" sınıfı eklendiğinde görünür */
