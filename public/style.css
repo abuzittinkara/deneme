@@ -603,16 +603,18 @@ body {
   margin-bottom: 25px;
 }
 
-/* Yeni: Kullanıcı adı ve gönderim saati stilleri */
-.sender-name {
-  font-weight: bold;
-  margin-right: 8px;
-}
-
+/* Yeni: Karşı tarafın tarih stili */
 .timestamp {
   font-weight: 300;
   font-size: 0.8em;
   margin-left: 4px;
+}
+
+/* Yeni: Kendi mesajlarınızın tarih stili */
+.own-timestamp {
+  font-weight: 300;
+  font-size: 0.8em;
+  margin-right: 4px;
 }
 
 /* Modern Scrollbar – Varsayılan gizli; "scrolling" sınıfı eklendiğinde görünür */
