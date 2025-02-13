@@ -411,7 +411,8 @@ function initSocketEvents() {
       
       if (sender === username) {
         if (isFirst) {
-          msgDiv.innerHTML = `${msg.content} <span class="timestamp">${time}</span>`;
+          // Kendi mesajında da karşı taraf gibi kullanıcı adı ve zaman gösterilsin
+          msgDiv.innerHTML = `<div class="message-content with-avatar"><span class="sender-name">${username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
           msgDiv.innerHTML = msg.content;
         }
@@ -420,7 +421,6 @@ function initSocketEvents() {
           const avatarHTML = `<div class="message-avatar profile-thumb">${sender.charAt(0).toUpperCase()}</div>`;
           msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
-          // Ardışık mesajlarda, placeholder her durumda ekleniyor
           const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
           msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
         }
@@ -454,7 +454,7 @@ function initSocketEvents() {
       
       if (msg.username === username) {
         if (isFirst) {
-          msgDiv.innerHTML = `${msg.content} <span class="timestamp">${time}</span>`;
+          msgDiv.innerHTML = `<div class="message-content with-avatar"><span class="sender-name">${username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
           msgDiv.innerHTML = msg.content;
         }
@@ -1003,7 +1003,7 @@ function initUIEvents() {
     const msgDiv = document.createElement('div');
     msgDiv.className = className;
     if (isFirst) {
-      msgDiv.innerHTML = `${msg} <span class="timestamp">${time}</span>`;
+      msgDiv.innerHTML = `<div class="message-content with-avatar"><span class="sender-name">${username}</span> <span class="timestamp">${time}</span><br>${msg}</div>`;
     } else {
       msgDiv.innerHTML = msg;
     }
@@ -1276,17 +1276,16 @@ socket.on('textHistory', (messages) => {
     
     if (sender === username) {
       if (isFirst) {
-        msgDiv.innerHTML = `${msg.content} <span class="timestamp">${time}</span>`;
+        // Kendi mesajında da karşı taraf gibi kullanıcı adı ve zaman gösterilsin
+        msgDiv.innerHTML = `<div class="message-content with-avatar"><span class="sender-name">${username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
         msgDiv.innerHTML = msg.content;
       }
     } else {
       if (isFirst) {
-        // İlk mesaj: gerçek avatar kullanılarak
         const avatarHTML = `<div class="message-avatar profile-thumb">${sender.charAt(0).toUpperCase()}</div>`;
         msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
-        // Ardışık mesajlarda, placeholder her durumda ekleniyor
         const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
         msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}</div>`;
       }
@@ -1318,7 +1317,7 @@ socket.on('newTextMessage', (data) => {
     
     if (msg.username === username) {
       if (isFirst) {
-        msgDiv.innerHTML = `${msg.content} <span class="timestamp">${time}</span>`;
+        msgDiv.innerHTML = `<div class="message-content with-avatar"><span class="sender-name">${username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
       } else {
         msgDiv.innerHTML = msg.content;
       }
