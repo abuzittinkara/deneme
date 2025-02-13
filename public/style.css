@@ -538,7 +538,7 @@ body {
   position: relative;
 }
 .text-message:hover {
-  background-color: rgba(255,255,255,0.1);
+  background-color: #2d2d2d;
 }
 
 /* Gönderilen mesajlar için */
@@ -579,8 +579,7 @@ body {
 /* Mesaj Avatarı */
 .message-avatar {
   width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  height: 0px;
   background-color: #353535;
   color: #333;
   display: flex;
@@ -633,7 +632,7 @@ body {
 /* Received mesajlar için: Hover durumunda sol tarafta göster */
 .text-message.received-message:not(.first-message):hover .timestamp-hover {
   display: block !important;
-  left: -60px;
+  left: -42px;
   top: 50%;
   transform: translateY(-50%);
 }
@@ -941,4 +940,13 @@ body {
   font-size: 0.8em;
   color: #aaa;
   white-space: nowrap;
+}
+
+/* Hover effect for placeholder avatars in text messages */
+.message-avatar.placeholder {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.text-message:hover .message-avatar.placeholder {
+  background-color: #2d2d2d;
 }
