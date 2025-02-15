@@ -56,6 +56,16 @@
   // Text Chat Başlangıç
   function initTextChatClient(socket, username) {
     console.log("[initTextChatClient] Başlatıldı. Kullanıcı:", username);
+    
+    // Text kanalının kapsayıcısını zorla görünür yapalım
+    const textChannelContainer = document.getElementById('textChannelContainer');
+    if (textChannelContainer) {
+      textChannelContainer.style.display = 'flex';
+      console.log("[initTextChatClient] textChannelContainer görünür yapıldı.");
+    } else {
+      console.error("[initTextChatClient] 'textChannelContainer' elementi bulunamadı.");
+    }
+    
     // DOM referansları
     const textMessages = document.getElementById('textMessages');
     if (!textMessages) {
@@ -67,9 +77,9 @@
   
     // Gelen mesaj geçmişi (textHistory)
     socket.on('textHistory', (messages) => {
-      console.log("[textHistory] Gelen mesaj sayısı:", messages ? messages.length : 0);
+      console.log("[textHistory] Event alındı. Gelen mesaj sayısı:", messages ? messages.length : 0);
       if (!textMessages) {
-        console.error("[textHistory] textMessages elementi bulunamadı.");
+        console.error("[textHistory] 'textMessages' elementi bulunamadı.");
         return;
       }
       textMessages.innerHTML = "";
@@ -144,7 +154,7 @@
   
     // Gelen yeni mesajlar (newTextMessage)
     socket.on('newTextMessage', (data) => {
-      console.log("[newTextMessage] Gelen veri:", data);
+      console.log("[newTextMessage] Event alındı. Gelen veri:", data);
       const { channelId, message: msg } = data;
       if (!textMessages) return;
       let lastMsgDiv = textMessages.lastElementChild;
@@ -216,7 +226,7 @@
       textMessages.scrollTop = textMessages.scrollHeight;
     });
   
-    // Mesaj gönderme fonksiyonu (sendTextMessage)
+    // Mesaj gönderme fonksiyonu
     function sendTextMessage() {
       const msg = textChannelMessageInput.value.trim();
       if (!msg) return;
