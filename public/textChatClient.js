@@ -3,7 +3,7 @@
  * İstemcide (tarayıcıda) yazılı sohbet (text chat) ile ilgili kodlar
  **************************************/
 (function() {
-  // Yardımcı Fonksiyonlar (formatTimestamp, formatTimeOnly, isDifferentDay, formatLongDate, insertDateSeparator)
+  // Yardımcı Fonksiyonlar
   function formatTimestamp(timestamp) {
     const date = new Date(timestamp);
     const now = new Date();
@@ -21,12 +21,12 @@
       return `${day}.${month}.${year} ${timeStr}`;
     }
   }
-
+  
   function formatTimeOnly(timestamp) {
     const date = new Date(timestamp);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
-
+  
   function isDifferentDay(ts1, ts2) {
     const d1 = new Date(ts1);
     const d2 = new Date(ts2);
@@ -34,7 +34,7 @@
            d1.getMonth() !== d2.getMonth() ||
            d1.getDate() !== d2.getDate();
   }
-
+  
   function formatLongDate(timestamp) {
     const date = new Date(timestamp);
     const day = date.getDate();
@@ -43,7 +43,7 @@
     const year = date.getFullYear();
     return `${day} ${month} ${year}`;
   }
-
+  
   function insertDateSeparator(timestamp) {
     const textMessages = document.getElementById('textMessages');
     if (!textMessages) return;
@@ -52,28 +52,39 @@
     separator.innerHTML = `<span class="separator-text">${formatLongDate(timestamp)}</span>`;
     textMessages.appendChild(separator);
   }
-
+  
   // Text Chat Başlangıç
   function initTextChatClient(socket, username) {
+    console.log("[initTextChatClient] Başlatıldı. Kullanıcı:", username);
     // DOM referansları
     const textMessages = document.getElementById('textMessages');
+    if (!textMessages) {
+      console.error("[initTextChatClient] 'textMessages' elementi bulunamadı.");
+      return;
+    }
     const textChannelMessageInput = document.getElementById('textChannelMessageInput');
     const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
-
-    // Geçmiş mesajları (textHistory)
+  
+    // Gelen mesaj geçmişi (textHistory)
     socket.on('textHistory', (messages) => {
-      console.log("[textHistory] Gelen mesajlar:", messages);
-      if (!textMessages) return;
+      console.log("[textHistory] Gelen mesaj sayısı:", messages ? messages.length : 0);
+      if (!textMessages) {
+        console.error("[textHistory] textMessages elementi bulunamadı.");
+        return;
+      }
       textMessages.innerHTML = "";
+      if (!messages || messages.length === 0) {
+        console.log("[textHistory] Mesaj geçmişi boş.");
+        return;
+      }
       for (let i = 0; i < messages.length; i++) {
         const msg = messages[i];
-        // Gün ayracı kontrolü
+        // Gün ayracı ekle
         if (i === 0 || isDifferentDay(messages[i - 1].timestamp, msg.timestamp)) {
           insertDateSeparator(msg.timestamp);
         }
         const time = formatTimestamp(msg.timestamp);
         const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
-        // Mesaj stilini belirle
         const isFirst = (
           i === 0 ||
           ((messages[i - 1].user && messages[i - 1].user.username) !== sender) ||
@@ -130,8 +141,8 @@
       }
       textMessages.scrollTop = textMessages.scrollHeight;
     });
-
-    // Yeni mesajları dinleme (newTextMessage)
+  
+    // Gelen yeni mesajlar (newTextMessage)
     socket.on('newTextMessage', (data) => {
       console.log("[newTextMessage] Gelen veri:", data);
       const { channelId, message: msg } = data;
@@ -204,8 +215,8 @@
       textMessages.appendChild(msgDiv);
       textMessages.scrollTop = textMessages.scrollHeight;
     });
-
-    // Mesaj gönderme fonksiyonu
+  
+    // Mesaj gönderme fonksiyonu (sendTextMessage)
     function sendTextMessage() {
       const msg = textChannelMessageInput.value.trim();
       if (!msg) return;
@@ -224,7 +235,7 @@
       textChannelMessageInput.value = '';
       sendTextMessageBtn.style.display = "none";
     }
-
+  
     function appendOwnMessage(msg) {
       if (!textMessages) return;
       let lastMsgDiv = textMessages.lastElementChild;
@@ -273,7 +284,7 @@
       textMessages.appendChild(msgDiv);
       textMessages.scrollTop = textMessages.scrollHeight;
     }
-
+  
     if (sendTextMessageBtn) {
       sendTextMessageBtn.addEventListener('click', sendTextMessage);
     }
@@ -293,6 +304,6 @@
       });
     }
   }
-  // Global olarak erişilebilir kılıyoruz
+  
   window.initTextChatClient = initTextChatClient;
 })();
