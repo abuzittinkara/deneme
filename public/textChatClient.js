@@ -2,18 +2,13 @@
  * textChatClient.js
  * İstemcide (tarayıcıda) yazılı sohbet (text chat) ile ilgili kodlar
  **************************************/
-
 (function() {
-  // ========================
-  // Yardımcı Fonksiyonlar
-  // ========================
-
+  // Yardımcı Fonksiyonlar (formatTimestamp, formatTimeOnly, isDifferentDay, formatLongDate, insertDateSeparator)
   function formatTimestamp(timestamp) {
     const date = new Date(timestamp);
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-    
     if (date >= today) {
       return "Bugün " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } else if (date >= yesterday && date < today) {
@@ -58,32 +53,27 @@
     textMessages.appendChild(separator);
   }
 
-  // ========================
   // Text Chat Başlangıç
-  // ========================
-
   function initTextChatClient(socket, username) {
     // DOM referansları
     const textMessages = document.getElementById('textMessages');
     const textChannelMessageInput = document.getElementById('textChannelMessageInput');
     const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
-    // 1) Geçmiş mesajlar (textHistory)
+    // Geçmiş mesajları (textHistory)
     socket.on('textHistory', (messages) => {
+      console.log("[textHistory] Gelen mesajlar:", messages);
       if (!textMessages) return;
       textMessages.innerHTML = "";
       for (let i = 0; i < messages.length; i++) {
         const msg = messages[i];
-
-        // Gün ayracı
+        // Gün ayracı kontrolü
         if (i === 0 || isDifferentDay(messages[i - 1].timestamp, msg.timestamp)) {
           insertDateSeparator(msg.timestamp);
         }
-
         const time = formatTimestamp(msg.timestamp);
         const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
-
-        // Sıralı mesajlarda "first-message" / "subsequent-message"
+        // Mesaj stilini belirle
         const isFirst = (
           i === 0 ||
           ((messages[i - 1].user && messages[i - 1].user.username) !== sender) ||
@@ -93,19 +83,15 @@
           i === messages.length - 1 ||
           ((messages[i + 1] && messages[i + 1].user && messages[i + 1].user.username) !== sender)
         );
-
         let className = 'text-message ';
         className += (sender === username) ? 'sent-message ' : 'received-message ';
         className += isFirst ? 'first-message ' : 'subsequent-message ';
         if (isLast) { className += 'last-message'; }
-
         const msgDiv = document.createElement('div');
         msgDiv.className = className;
         msgDiv.setAttribute('data-timestamp', msg.timestamp);
         msgDiv.setAttribute('data-sender', sender);
-
         if (sender === username) {
-          // Kendi mesajlarımız
           if (isFirst) {
             msgDiv.innerHTML = `
               <div class="message-content with-timestamp">
@@ -119,7 +105,6 @@
               </div>`;
           }
         } else {
-          // Başkasının mesajı
           if (isFirst) {
             const avatarHTML = `<div class="message-avatar profile-thumb">
               ${sender.charAt(0).toUpperCase()}
@@ -141,25 +126,20 @@
               </div>`;
           }
         }
-
         textMessages.appendChild(msgDiv);
       }
       textMessages.scrollTop = textMessages.scrollHeight;
     });
 
-    // 2) Yeni mesaj (newTextMessage)
+    // Yeni mesajları dinleme (newTextMessage)
     socket.on('newTextMessage', (data) => {
+      console.log("[newTextMessage] Gelen veri:", data);
       const { channelId, message: msg } = data;
-      // Eğer aktif kanal kontrolü yapmak isterseniz => "if (channelId !== currentTextChannel) return;"
-
       if (!textMessages) return;
-
       let lastMsgDiv = textMessages.lastElementChild;
       while (lastMsgDiv && lastMsgDiv.classList.contains('date-separator')) {
         lastMsgDiv = lastMsgDiv.previousElementSibling;
       }
-
-      // Gün ayracı
       if (!lastMsgDiv) {
         insertDateSeparator(msg.timestamp);
       } else {
@@ -168,30 +148,24 @@
           insertDateSeparator(msg.timestamp);
         }
       }
-
-      // Yeni mesaj
       const time = formatTimestamp(msg.timestamp);
       const sender = msg.username || "Anon";
       const isFirst = (
         !lastMsgDiv ||
         (lastMsgDiv.getAttribute('data-sender') !== sender) ||
-        (lastMsgDiv.getAttribute('data-timestamp') &&
-          isDifferentDay(lastMsgDiv.getAttribute('data-timestamp'), msg.timestamp))
+        (lastMsgDiv.getAttribute('data-timestamp') && isDifferentDay(lastMsgDiv.getAttribute('data-timestamp'), msg.timestamp))
       );
       if (lastMsgDiv && lastMsgDiv.getAttribute('data-sender') === sender) {
         lastMsgDiv.classList.remove('last-message');
       }
-
       let className = 'text-message ';
       className += (sender === username) ? 'sent-message ' : 'received-message ';
       className += isFirst ? 'first-message ' : 'subsequent-message ';
       className += 'last-message';
-
       const msgDiv = document.createElement('div');
       msgDiv.className = className;
       msgDiv.setAttribute('data-timestamp', msg.timestamp);
       msgDiv.setAttribute('data-sender', sender);
-
       if (sender === username) {
         if (isFirst) {
           msgDiv.innerHTML = `
@@ -227,32 +201,26 @@
             </div>`;
         }
       }
-
       textMessages.appendChild(msgDiv);
       textMessages.scrollTop = textMessages.scrollHeight;
     });
 
-    // 3) Mesaj Gönder
+    // Mesaj gönderme fonksiyonu
     function sendTextMessage() {
       const msg = textChannelMessageInput.value.trim();
       if (!msg) return;
-
-      // "currentTextChannel" ve "selectedGroup" değişkenlerinin script.js tarafında global olduğunu varsayıyoruz.
-      // Sunucuya gönderirken groupId ve roomId'yi iletmeniz gerekir:
-      const roomId = window.currentTextChannel; 
+      const roomId = window.currentTextChannel;
       const groupId = window.selectedGroup || null;
-
-      // Önce kendi ekranda göster
+      console.log("[sendTextMessage] Gönderiliyor:", { groupId, roomId, message: msg, username });
+      // Kendi mesajımızı ekrana ekleyelim
       appendOwnMessage(msg);
-
-      // Sunucuya gönder
+      // Sunucuya mesajı gönderiyoruz
       socket.emit('textMessage', {
         groupId,
         roomId,
         message: msg,
         username
       });
-
       textChannelMessageInput.value = '';
       sendTextMessageBtn.style.display = "none";
     }
@@ -263,7 +231,6 @@
       while (lastMsgDiv && lastMsgDiv.classList.contains('date-separator')) {
         lastMsgDiv = lastMsgDiv.previousElementSibling;
       }
-
       const now = new Date();
       if (!lastMsgDiv) {
         insertDateSeparator(now);
@@ -273,7 +240,6 @@
           insertDateSeparator(now);
         }
       }
-
       const time = formatTimestamp(now);
       const timeOnly = formatTimeOnly(now);
       const sender = username;
@@ -282,20 +248,16 @@
         lastMsgDiv.getAttribute('data-sender') !== sender ||
         (lastMsgDiv.getAttribute('data-timestamp') && isDifferentDay(lastMsgDiv.getAttribute('data-timestamp'), now))
       );
-
       if (lastMsgDiv && lastMsgDiv.getAttribute('data-sender') === sender) {
         lastMsgDiv.classList.remove('last-message');
       }
-
       let className = 'text-message sent-message ';
       className += isFirst ? 'first-message ' : 'subsequent-message ';
       className += 'last-message';
-
       const msgDiv = document.createElement('div');
       msgDiv.className = className;
       msgDiv.setAttribute('data-timestamp', now);
       msgDiv.setAttribute('data-sender', sender);
-
       if (isFirst) {
         msgDiv.innerHTML = `
           <div class="message-content with-timestamp">
@@ -308,7 +270,6 @@
             <span class="timestamp-hover">${timeOnly}</span>
           </div>`;
       }
-
       textMessages.appendChild(msgDiv);
       textMessages.scrollTop = textMessages.scrollHeight;
     }
@@ -316,7 +277,6 @@
     if (sendTextMessageBtn) {
       sendTextMessageBtn.addEventListener('click', sendTextMessage);
     }
-
     if (textChannelMessageInput) {
       textChannelMessageInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
@@ -333,7 +293,6 @@
       });
     }
   }
-
-  // Global değişkene atıyoruz:
+  // Global olarak erişilebilir kılıyoruz
   window.initTextChatClient = initTextChatClient;
 })();
