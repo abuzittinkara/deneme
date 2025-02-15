@@ -22,13 +22,13 @@ function initTextChatHandlers(io, socket) {
       const groupDoc = await Group.findOne({ groupId });
       if (!groupDoc) {
         console.error("joinTextChannel: Group not found for groupId:", groupId);
+        socket.emit('textHistory', []);
         return;
       }
       // Kanalı, hem channelId hem de grup ilişkisini dikkate alarak sorguluyoruz.
       const channelDoc = await Channel.findOne({ channelId: roomId, group: groupDoc._id });
       if (!channelDoc) {
         console.error("joinTextChannel: Channel not found for roomId:", roomId);
-        // Kanal bulunamazsa, boş mesaj geçmişi gönderiyoruz.
         socket.emit('textHistory', []);
         return;
       }

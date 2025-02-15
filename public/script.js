@@ -286,11 +286,12 @@ function initSocketEvents() {
       
       roomItem.addEventListener('click', () => {
         if (roomObj.type === 'text') {
-          console.log(`Text channel clicked => ${roomObj.name}`);
+          // Güncellenmiş log: hem isim hem id görüntülensin
+          console.log(`Text channel clicked => name: ${roomObj.name}, id: ${roomObj.id}`);
           document.getElementById('selectedChannelTitle').textContent = roomObj.name;
           textChannelContainer.style.display = 'flex';
           document.getElementById('channelUsersContainer').style.display = 'none';
-
+    
           // Voice kanaldan ayrılmadıysak, voice'a ait paneli gizleyelim:
           if (!(currentRoom && currentRoomType === 'voice')) {
             hideChannelStatusPanel();
