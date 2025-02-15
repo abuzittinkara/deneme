@@ -60,3 +60,70 @@
   overflow: auto;
   margin-top: 1rem;
 }
+
+/* Kanal Öğeleri (Channel Item) */
+.channel-item {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  cursor: pointer;
+  padding: 7px 12px 3px 8px;
+  margin-bottom: 0;
+  border-radius: 5px;
+  background: #2d2d2d;
+  line-height: 1.2;
+  box-sizing: border-box;
+  transition: background-color 0.3s ease;
+}
+.channel-item:hover {
+  background-color: #3d3d3d;
+}
+
+/* Kanal Header: İkon ve Kanal İsmi */
+.channel-header {
+  display: flex;
+  align-items: center; /* Dikeyde ortala */
+  gap: 0.6rem;
+  width: 100%;
+  line-height: 1.2;
+  margin: 0;
+}
+
+/* Kanal Kullanıcı Listesi */
+.channel-user {
+  width: 100%;
+  display: flex;
+  flex-direction: row; /* Yan yana dizilim */
+  align-items: center; /* Dikeyde ortala */
+  gap: 0.5rem;
+  box-sizing: border-box;
+}
+.channel-user-left {
+  display: flex;
+  flex-direction: row; /* Yan yana dizilim */
+  align-items: center; /* Dikeyde ortala */
+  gap: 0.5rem;
+}
+
+/* Kanal Kullanıcı Avatarı */
+.channel-user-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 45%;
+  background-color: #666;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+/* Kanal Kullanıcı İsmi */
+.channel-user-name {
+  font-size: 0.9rem;
+  color: #fff;
+  white-space: nowrap;
+}
