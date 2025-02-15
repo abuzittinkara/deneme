@@ -1,0 +1,85 @@
+/* call.css */
+
+/* callScreen */
+#callScreen.screen-container {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: flex-start;
+  background: #2d2d2d;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Sol Panel */
+#leftPanels.left-panels {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 365px;
+  box-sizing: border-box;
+}
+.groups-rooms {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  flex: 1;
+  box-sizing: border-box;
+}
+.sidebar {
+  width: 65px;
+  background: #1e1e1e;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 0;
+  position: relative;
+  box-sizing: border-box;
+}
+.dm-toggle-btn {
+  margin-bottom: 1rem;
+}
+.group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.create-group-btn {
+  margin-top: 1rem;
+}
+.circle-btn {
+  background-color: #c61884;
+  color: #fff;
+  width: 48px;
+  height: 48px;
+  border-radius: 45%;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.circle-btn:hover {
+  background-color: #a3156f;
+}
+.grp-item {
+  width: 43px;
+  height: 43px;
+  background: #444;
+  color: #fff;
+  border-radius: 45%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.5s ease;
+  border: 2px solid transparent;
+}
+.grp-item:hover {
+  background: #666;
+}
+.grp-item.selected {
+  border: 2px solid #c61884;
+  border-radius: 15px;
+}
