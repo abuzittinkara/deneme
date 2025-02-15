@@ -120,11 +120,54 @@ const textChannelMessageInput = document.getElementById('textChannelMessageInput
 const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
 // ------------------------
+// Local Storage için yardımcı fonksiyonlar
+function saveUserLogin(username) {
+  localStorage.setItem("username", username);
+}
+
+function loadUserLogin() {
+  return localStorage.getItem("username");
+}
+
+function clearUserLogin() {
+  localStorage.removeItem("username");
+}
+
+function saveLastChannel(channelId) {
+  localStorage.setItem("lastChannel", channelId);
+}
+
+function loadLastChannel() {
+  return localStorage.getItem("lastChannel");
+}
+
+function clearLastChannel() {
+  localStorage.removeItem("lastChannel");
+}
+// ------------------------
 
 window.addEventListener('DOMContentLoaded', () => {
   socket = io("https://fisqos.com.tr", { transports: ['websocket'] });
+  
+  // Giriş yapmışsa localStorage'dan kullanıcı adını yükle
+  const savedUsername = loadUserLogin();
+  if (savedUsername) {
+    username = savedUsername;
+    loginScreen.style.display = 'none';
+    callScreen.style.display = 'flex';
+    document.getElementById('leftUserName').textContent = savedUsername;
+    socket.emit('set-username', savedUsername);
+  }
+  
+  // Son kullanılan kanal bilgisini de yükle (varsa)
+  const lastChannel = loadLastChannel();
+  if (lastChannel) {
+    window.currentTextChannel = lastChannel;
+    // Eğer otomatik olarak kanala katılmak isterseniz,
+    // grup seçimi tamamlandıktan sonra (selectedGroup belirlendiğinde) ilgili joinTextChannel isteğini gönderebilirsiniz.
+  }
+  
   console.log("Socket connected =>", socket.id);
-
   initSocketEvents();
   initUIEvents();
 
@@ -161,6 +204,8 @@ function initSocketEvents() {
       username = data.username;
       loginScreen.style.display = 'none';
       callScreen.style.display = 'flex';
+      // Giriş bilgilerini localStorage'a kaydet
+      saveUserLogin(username);
       socket.emit('set-username', username);
       document.getElementById('leftUserName').textContent = username;
       applyAudioStates();
@@ -254,6 +299,8 @@ function initSocketEvents() {
           textMessages.innerHTML = "";
           // Metin kanalı ID'sini global atayalım
           window.currentTextChannel = roomObj.id;
+          // Son kullanılan kanal bilgisini kaydet
+          saveLastChannel(roomObj.id);
           // Sunucuya "joinTextChannel" emit:
           socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: roomObj.id });
           return;
@@ -271,6 +318,8 @@ function initSocketEvents() {
         }
         currentGroup = selectedGroup;
         joinRoom(currentGroup, roomObj.id, roomObj.name);
+        // Son kullanılan kanal bilgisini kaydet
+        saveLastChannel(roomObj.id);
         roomItem.classList.add('connected');
       });
       roomListDiv.appendChild(roomItem);
