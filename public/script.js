@@ -282,6 +282,21 @@ function initSocketEvents() {
       const channelDiv = document.getElementById(`channel-users-${roomId}`);
       if (!channelDiv) return;
       channelDiv.innerHTML = '';
+
+      // Eklenen Kod Başlangıcı: Kanalda kullanıcı varsa "has-users" ekliyoruz
+      const channelItem = channelDiv.closest('.channel-item');
+      if (channelItem) {
+        const chHeader = channelItem.querySelector('.channel-header');
+        if (chHeader) {
+          if (cData.users && cData.users.length > 0) {
+            chHeader.classList.add('has-users');
+          } else {
+            chHeader.classList.remove('has-users');
+          }
+        }
+      }
+      // Eklenen Kod Sonu
+
       cData.users.forEach(u => {
         const userRow = document.createElement('div');
         userRow.classList.add('channel-user');

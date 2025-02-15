@@ -88,7 +88,12 @@
   gap: 0.6rem;
   width: 100%;
   line-height: 1.2;
-  margin: 0;
+  margin: 0; /* Varsayılan margin */
+}
+
+/* Eğer kanalda kullanıcı varsa => .has-users sınıfıyla margin-bottom ekle */
+.channel-header.has-users {
+  margin-bottom: 1rem;
 }
 
 /* Kanal Kullanıcı Listesi */
