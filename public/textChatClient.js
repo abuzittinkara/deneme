@@ -55,7 +55,7 @@
   
   // Event listener'ları kayıt altına alacak fonksiyon
   function registerTextChatEvents(socket, username) {
-    // Önce var olanları kaldır (çift kayıtları önlemek için)
+    // Çift kayıtları önlemek için var olanları kaldırıyoruz.
     socket.off('textHistory');
     socket.off('newTextMessage');
     
@@ -170,7 +170,7 @@
     });
   }
   
-  // initTextChatClient fonksiyonunu tanımlıyoruz.
+  // initTextChatClient fonksiyonu: Socket'e bağlandıktan sonra tüm eventleri ve mesaj gönderme kontrolünü kurar.
   function initTextChatClient(socket, username) {
     console.log("[initTextChatClient] Başlatılıyor. Kullanıcı:", username);
     
