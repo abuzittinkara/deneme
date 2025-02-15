@@ -53,31 +53,15 @@
     textMessages.appendChild(separator);
   }
   
-  // Text Chat Başlangıç
-  function initTextChatClient(socket, username) {
-    console.log("[initTextChatClient] Başlatıldı. Kullanıcı:", username);
+  // Bu fonksiyon, socket eventlerini (textHistory, newTextMessage) kayıt altına alır.
+  function registerTextChatEvents(socket, username) {
+    // Önce ilgili eventleri kaldırarak çift kayıtları engelleyelim.
+    socket.off('textHistory');
+    socket.off('newTextMessage');
     
-    // Text kanalının kapsayıcısını zorla görünür yapalım
-    const textChannelContainer = document.getElementById('textChannelContainer');
-    if (textChannelContainer) {
-      textChannelContainer.style.display = 'flex';
-      console.log("[initTextChatClient] textChannelContainer görünür yapıldı.");
-    } else {
-      console.error("[initTextChatClient] 'textChannelContainer' elementi bulunamadı.");
-    }
-    
-    // DOM referansları
-    const textMessages = document.getElementById('textMessages');
-    if (!textMessages) {
-      console.error("[initTextChatClient] 'textMessages' elementi bulunamadı.");
-      return;
-    }
-    const textChannelMessageInput = document.getElementById('textChannelMessageInput');
-    const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
-  
-    // Gelen mesaj geçmişi (textHistory)
     socket.on('textHistory', (messages) => {
       console.log("[textHistory] Event alındı. Gelen mesaj sayısı:", messages ? messages.length : 0);
+      const textMessages = document.getElementById('textMessages');
       if (!textMessages) {
         console.error("[textHistory] 'textMessages' elementi bulunamadı.");
         return;
@@ -89,7 +73,6 @@
       }
       for (let i = 0; i < messages.length; i++) {
         const msg = messages[i];
-        // Gün ayracı ekle
         if (i === 0 || isDifferentDay(messages[i - 1].timestamp, msg.timestamp)) {
           insertDateSeparator(msg.timestamp);
         }
@@ -151,11 +134,11 @@
       }
       textMessages.scrollTop = textMessages.scrollHeight;
     });
-  
-    // Gelen yeni mesajlar (newTextMessage)
+    
     socket.on('newTextMessage', (data) => {
       console.log("[newTextMessage] Event alındı. Gelen veri:", data);
       const { channelId, message: msg } = data;
+      const textMessages = document.getElementById('textMessages');
       if (!textMessages) return;
       let lastMsgDiv = textMessages.lastElementChild;
       while (lastMsgDiv && lastMsgDiv.classList.contains('date-separator')) {
@@ -225,28 +208,42 @@
       textMessages.appendChild(msgDiv);
       textMessages.scrollTop = textMessages.scrollHeight;
     });
+  }
   
-    // Mesaj gönderme fonksiyonu
+  // initTextChatClient fonksiyonunu socket ile başlatıyoruz.
+  function initTextChatClient(socket, username) {
+    console.log("[initTextChatClient] Başlatılıyor. Kullanıcı:", username);
+    
+    // textChannelContainer görünürlüğünü sağla
+    const textChannelContainer = document.getElementById('textChannelContainer');
+    if (textChannelContainer) {
+      textChannelContainer.style.display = 'flex';
+      console.log("[initTextChatClient] textChannelContainer display: flex olarak ayarlandı.");
+    } else {
+      console.error("[initTextChatClient] 'textChannelContainer' elementi bulunamadı.");
+    }
+    
+    // Eventleri yeniden kayıt altına alıyoruz.
+    registerTextChatEvents(socket, username);
+    
+    // Mesaj gönderme kontrolleri
+    const textChannelMessageInput = document.getElementById('textChannelMessageInput');
+    const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
+    
     function sendTextMessage() {
       const msg = textChannelMessageInput.value.trim();
       if (!msg) return;
       const roomId = window.currentTextChannel;
       const groupId = window.selectedGroup || null;
       console.log("[sendTextMessage] Gönderiliyor:", { groupId, roomId, message: msg, username });
-      // Kendi mesajımızı ekrana ekleyelim
       appendOwnMessage(msg);
-      // Sunucuya mesajı gönderiyoruz
-      socket.emit('textMessage', {
-        groupId,
-        roomId,
-        message: msg,
-        username
-      });
+      socket.emit('textMessage', { groupId, roomId, message: msg, username });
       textChannelMessageInput.value = '';
       sendTextMessageBtn.style.display = "none";
     }
-  
+    
     function appendOwnMessage(msg) {
+      const textMessages = document.getElementById('textMessages');
       if (!textMessages) return;
       let lastMsgDiv = textMessages.lastElementChild;
       while (lastMsgDiv && lastMsgDiv.classList.contains('date-separator')) {
@@ -294,7 +291,7 @@
       textMessages.appendChild(msgDiv);
       textMessages.scrollTop = textMessages.scrollHeight;
     }
-  
+    
     if (sendTextMessageBtn) {
       sendTextMessageBtn.addEventListener('click', sendTextMessage);
     }
@@ -313,6 +310,17 @@
         }
       });
     }
+  }
+  
+  // Socket yeniden bağlandığında initTextChatClient'i çağırıyoruz.
+  // Böylece eventler her reconnect'te yeniden kayıt olur.
+  if (window.socket) {
+    window.socket.on('connect', () => {
+      if (window.username) {
+        console.log("[socket connect] Yeniden bağlandı. Kullanıcı:", window.username);
+        initTextChatClient(window.socket, window.username);
+      }
+    });
   }
   
   window.initTextChatClient = initTextChatClient;
