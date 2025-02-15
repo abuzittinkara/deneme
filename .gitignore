@@ -79,6 +79,10 @@ web_modules/
 .env.production.local
 .env.local
 
+# Certificate files (added)
+origin_cert.pem
+origin_key.pem
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
