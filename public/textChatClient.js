@@ -53,9 +53,9 @@
     textMessages.appendChild(separator);
   }
   
-  // Bu fonksiyon, socket eventlerini (textHistory, newTextMessage) kayıt altına alır.
+  // Event listener'ları kayıt altına alacak fonksiyon
   function registerTextChatEvents(socket, username) {
-    // Önce ilgili eventleri kaldırarak çift kayıtları engelleyelim.
+    // Önce var olanları kaldır (çift kayıtları önlemek için)
     socket.off('textHistory');
     socket.off('newTextMessage');
     
@@ -97,37 +97,17 @@
         msgDiv.setAttribute('data-sender', sender);
         if (sender === username) {
           if (isFirst) {
-            msgDiv.innerHTML = `
-              <div class="message-content with-timestamp">
-                <span class="own-timestamp">${time}</span> ${msg.content}
-              </div>`;
+            msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
           } else {
-            msgDiv.innerHTML = `
-              <div class="message-content without-timestamp">
-                ${msg.content}
-                <span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span>
-              </div>`;
+            msgDiv.innerHTML = `<div class="message-content without-timestamp">${msg.content}<span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span></div>`;
           }
         } else {
           if (isFirst) {
-            const avatarHTML = `<div class="message-avatar profile-thumb">
-              ${sender.charAt(0).toUpperCase()}
-            </div>`;
-            msgDiv.innerHTML = `
-              ${avatarHTML}
-              <div class="message-content with-avatar">
-                <span class="sender-name">${sender}</span>
-                <span class="timestamp">${time}</span><br>
-                ${msg.content}
-              </div>`;
+            const avatarHTML = `<div class="message-avatar profile-thumb">${sender.charAt(0).toUpperCase()}</div>`;
+            msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${sender}</span><span class="timestamp">${time}</span><br>${msg.content}</div>`;
           } else {
             const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
-            msgDiv.innerHTML = `
-              ${avatarPlaceholder}
-              <div class="message-content without-avatar">
-                ${msg.content}
-                <span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span>
-              </div>`;
+            msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}<span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span></div>`;
           }
         }
         textMessages.appendChild(msgDiv);
@@ -172,37 +152,17 @@
       msgDiv.setAttribute('data-sender', sender);
       if (sender === username) {
         if (isFirst) {
-          msgDiv.innerHTML = `
-            <div class="message-content with-timestamp">
-              <span class="own-timestamp">${time}</span> ${msg.content}
-            </div>`;
+          msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
         } else {
-          msgDiv.innerHTML = `
-            <div class="message-content without-timestamp">
-              ${msg.content}
-              <span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span>
-            </div>`;
+          msgDiv.innerHTML = `<div class="message-content without-timestamp">${msg.content}<span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span></div>`;
         }
       } else {
         if (isFirst) {
-          const avatarHTML = `<div class="message-avatar profile-thumb">
-            ${sender.charAt(0).toUpperCase()}
-          </div>`;
-          msgDiv.innerHTML = `
-            ${avatarHTML}
-            <div class="message-content with-avatar">
-              <span class="sender-name">${sender}</span>
-              <span class="timestamp">${time}</span><br>
-              ${msg.content}
-            </div>`;
+          const avatarHTML = `<div class="message-avatar profile-thumb">${sender.charAt(0).toUpperCase()}</div>`;
+          msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${sender}</span><span class="timestamp">${time}</span><br>${msg.content}</div>`;
         } else {
           const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
-          msgDiv.innerHTML = `
-            ${avatarPlaceholder}
-            <div class="message-content without-avatar">
-              ${msg.content}
-              <span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span>
-            </div>`;
+          msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}<span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span></div>`;
         }
       }
       textMessages.appendChild(msgDiv);
@@ -210,11 +170,11 @@
     });
   }
   
-  // initTextChatClient fonksiyonunu socket ile başlatıyoruz.
+  // initTextChatClient fonksiyonunu tanımlıyoruz.
   function initTextChatClient(socket, username) {
     console.log("[initTextChatClient] Başlatılıyor. Kullanıcı:", username);
     
-    // textChannelContainer görünürlüğünü sağla
+    // textChannelContainer'nin görünürlüğünü sağla
     const textChannelContainer = document.getElementById('textChannelContainer');
     if (textChannelContainer) {
       textChannelContainer.style.display = 'flex';
@@ -223,7 +183,7 @@
       console.error("[initTextChatClient] 'textChannelContainer' elementi bulunamadı.");
     }
     
-    // Eventleri yeniden kayıt altına alıyoruz.
+    // Event listener'ları kayıt altına al
     registerTextChatEvents(socket, username);
     
     // Mesaj gönderme kontrolleri
@@ -277,16 +237,9 @@
       msgDiv.setAttribute('data-timestamp', now);
       msgDiv.setAttribute('data-sender', sender);
       if (isFirst) {
-        msgDiv.innerHTML = `
-          <div class="message-content with-timestamp">
-            <span class="own-timestamp">${time}</span> ${msg}
-          </div>`;
+        msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg}</div>`;
       } else {
-        msgDiv.innerHTML = `
-          <div class="message-content without-timestamp">
-            ${msg}
-            <span class="timestamp-hover">${timeOnly}</span>
-          </div>`;
+        msgDiv.innerHTML = `<div class="message-content without-timestamp">${msg}<span class="timestamp-hover">${timeOnly}</span></div>`;
       }
       textMessages.appendChild(msgDiv);
       textMessages.scrollTop = textMessages.scrollHeight;
@@ -313,7 +266,6 @@
   }
   
   // Socket yeniden bağlandığında initTextChatClient'i çağırıyoruz.
-  // Böylece eventler her reconnect'te yeniden kayıt olur.
   if (window.socket) {
     window.socket.on('connect', () => {
       if (window.username) {
