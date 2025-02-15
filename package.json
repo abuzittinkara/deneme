@@ -1,0 +1,28 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.1",
+    "mediasoup": "^3.15.2",
+    "mediasoup-client": "^3.8.1",
+    "mongodb": "^6.12.0",
+    "mongoose": "^8.9.2",
+    "socket.io": "^4.8.1",
+    "uuid": "^11.0.3",
+    "ws": "^8.18.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "webpack": "^5.97.1",
+    "webpack-cli": "^6.0.1"
+  }
+}
