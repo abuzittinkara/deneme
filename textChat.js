@@ -17,25 +17,25 @@ function initTextChatHandlers(io, socket) {
    */
   socket.on('joinTextChannel', async ({ groupId, roomId }) => {
     try {
-      console.log("joinTextChannel event received with groupId:", groupId, "roomId:", roomId);
+      console.log("[joinTextChannel] Gelen groupId:", groupId, "roomId:", roomId);
       
       // İlgili grup var mı kontrol edelim
       const groupDoc = await Group.findOne({ groupId });
       if (!groupDoc) {
-        console.error("joinTextChannel: Group not found for groupId:", groupId);
+        console.error("[joinTextChannel] Group not found for groupId:", groupId);
         socket.emit('textHistory', []);
         return;
       }
+      console.log("[joinTextChannel] Bulunan grup ObjectId:", groupDoc._id);
       
       // Kanalı, hem channelId hem de grup ilişkisini dikkate alarak sorguluyoruz.
       const channelDoc = await Channel.findOne({ channelId: roomId, group: groupDoc._id });
       if (!channelDoc) {
-        console.error("joinTextChannel: Channel not found for roomId:", roomId, "in group:", groupDoc._id);
+        console.error("[joinTextChannel] Channel not found for roomId:", roomId, "in group:", groupDoc._id);
         socket.emit('textHistory', []);
         return;
       }
-      
-      console.log("joinTextChannel: Found channel:", channelDoc);
+      console.log("[joinTextChannel] Kanal bulundu:", channelDoc);
       
       // Socket'i o kanala (room) dahil et
       socket.join(roomId);
@@ -46,13 +46,13 @@ function initTextChatHandlers(io, socket) {
         .populate('user')
         .lean();
       
-      console.log("joinTextChannel: Retrieved messages count:", messages.length);
+      console.log("[joinTextChannel] DB'den çekilen mesaj sayısı:", messages.length);
       
       // Sadece bu kanala yeni giren kullanıcıya eski mesajları gönder
       socket.emit('textHistory', messages);
       
     } catch (err) {
-      console.error("joinTextChannel error:", err);
+      console.error("[joinTextChannel] Hata:", err);
       socket.emit('textHistory', []);
     }
   });
@@ -65,14 +65,14 @@ function initTextChatHandlers(io, socket) {
       // O kanal gerçekten var mı?
       const channelDoc = await Channel.findOne({ channelId: roomId });
       if (!channelDoc) {
-        console.error("textMessage: Channel not found for roomId:", roomId);
+        console.error("[textMessage] Channel not found for roomId:", roomId);
         return;
       }
   
       // Mesajı atan kullanıcı var mı?
       const userDoc = await User.findOne({ username: username });
       if (!userDoc) {
-        console.error("textMessage: User not found for username:", username);
+        console.error("[textMessage] User not found for username:", username);
         return;
       }
   
@@ -85,7 +85,7 @@ function initTextChatHandlers(io, socket) {
       });
       await newMsg.save();
   
-      console.log("textMessage: New message saved for channel:", roomId);
+      console.log("[textMessage] Yeni mesaj kaydedildi. Kanal:", roomId);
   
       // Aynı kanaldaki diğer kullanıcılara mesajı gönder
       socket.broadcast.to(roomId).emit('newTextMessage', {
@@ -97,7 +97,7 @@ function initTextChatHandlers(io, socket) {
         }
       });
     } catch (err) {
-      console.error("textMessage error:", err);
+      console.error("[textMessage] Hata:", err);
     }
   });
 }
