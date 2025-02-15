@@ -10,9 +10,8 @@
   <!-- Material Icons Outlined -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined">
   
-  <!-- Ana stil dosyası (modüler hale getirilmiş) -->
-  <link rel="stylesheet" href="css/style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <!-- Giriş Ekranı -->
@@ -21,7 +20,7 @@
       <h1 class="app-title">Oturum Aç</h1>
       <!-- Giriş Hatası Mesajı -->
       <p id="loginErrorMessage" style="display:none; color:#f44; margin:0 0 0.6rem; font-size:0.9rem;">
-        Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin.
+        Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin
       </p>
       <input type="text" id="loginUsernameInput" placeholder="Kullanıcı Adı" class="input-text">
       <input type="password" id="loginPasswordInput" placeholder="Parola" class="input-text">
@@ -63,8 +62,7 @@
   </div>
 
   <!-- Görüşme Ekranı -->
-  <!-- Eski çalışan versiyonda callScreen görünürdü, bu yüzden display özelliği flex olarak ayarlandı. -->
-  <div id="callScreen" class="screen-container" style="display:flex;">
+  <div id="callScreen" class="screen-container" style="display:none;">
     <!-- Soldaki Paneller -->
     <div id="leftPanels" class="left-panels">
       <div id="groupsAndRooms" class="groups-rooms">
@@ -105,7 +103,7 @@
           </div>
           <span id="pingValue" style="font-size:0.85rem;">-- ms</span>
           <button id="leaveButton" class="leave-btn">
-            <span class="material-icons">phone_disabled</span>
+            <span class="material-icons">call_end</span>
           </button>
         </div>
       </div>
@@ -213,10 +211,9 @@
     </div>
   </div>
 
-  <!-- Önce Socket.IO, sonra Mediasoup Client, en son script.js ve textChatClient.js -->
+  <!-- Önce Socket.IO, sonra Mediasoup Client, en son script.js -->
   <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
   <script src="libs/mediasoup-client.min.js"></script>
   <script src="script.js"></script>
-  <script src="textChatClient.js"></script>
 </body>
 </html>

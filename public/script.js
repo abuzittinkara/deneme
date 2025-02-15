@@ -1,7 +1,6 @@
 /**************************************
  * script.js
  * TAMAMEN SFU MANTIĞINA GEÇİLMİŞ VERSİYON
- * (Yazılı sohbet kodları textChatClient.js'e taşındı)
  **************************************/
 let socket = null; 
 let device = null;   // mediasoup-client Device
@@ -27,9 +26,8 @@ let username = null;
 let currentGroup = null;
 let currentRoom = null;
 let selectedGroup = null;
-
-// Metin kanalı id'sini tutmak isterseniz (text chat) => global
-window.currentTextChannel = null;  // Örneğin
+// Metin kanalı için seçili kanal id'si
+let currentTextChannel = null;
 
 // Kullanıcının bağlı olduğu kanalın türü ("voice" veya "text")
 let currentRoomType = null;
@@ -46,12 +44,60 @@ let audioAnalyzers = {};
 
 let pingInterval = null;
 
-/* DOM element referansları */
-// ... (login/register UI, vb.)
+/* Zaman biçimlendirme fonksiyonu
+   Eğer mesaj bugüne aitse "Bugün HH:MM", düne aitse "Dün HH:MM",
+   aksi halde "DD.MM.YYYY HH:MM" formatında döner.
+*/
+function formatTimestamp(timestamp) {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+  
+  if (date >= today) {
+    return "Bugün " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } else if (date >= yesterday && date < today) {
+    return "Dün " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } else {
+    const day = ("0" + date.getDate()).slice(-2);
+    const month = ("0" + (date.getMonth() + 1)).slice(-2);
+    const year = date.getFullYear();
+    const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return `${day}.${month}.${year} ${timeStr}`;
+  }
+}
+
+/* Yalnızca saat bilgisini döndüren fonksiyon */
+function formatTimeOnly(timestamp) {
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+/* Uzun tarih biçimi (ör. "21 Ocak 2025") */
+function formatLongDate(timestamp) {
+  const date = new Date(timestamp);
+  const day = date.getDate();
+  const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+  const month = monthNames[date.getMonth()];
+  const year = date.getFullYear();
+  return `${day} ${month} ${year}`;
+}
+
+/* İki timestamp'in gün bazında farklı olup olmadığını kontrol eder */
+function isDifferentDay(ts1, ts2) {
+  const d1 = new Date(ts1);
+  const d2 = new Date(ts2);
+  return d1.getFullYear() !== d2.getFullYear() ||
+         d1.getMonth() !== d2.getMonth() ||
+         d1.getDate() !== d2.getDate();
+}
+
+/*
+  DOM element referansları
+*/
 const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
 const callScreen = document.getElementById('callScreen');
-// vs. (Aynı şekilde tutuyoruz, text chat spesifik kısımlar hariç.)
 
 // Login
 const loginUsernameInput = document.getElementById('loginUsernameInput');
@@ -112,69 +158,24 @@ const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
 const settingsButton = document.getElementById('settingsButton');
 
-// Metin Kanalı Elemanları (sadece DOM referansı durabilir, lojiği textChatClient.js'de)
+// Metin Kanalı Elemanları
 const textChannelContainer = document.getElementById('textChannelContainer');
 const textMessages = document.getElementById('textMessages');
 const textChatInputBar = document.getElementById('text-chat-input-bar');
 const textChannelMessageInput = document.getElementById('textChannelMessageInput');
 const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
-// ------------------------
-// Local Storage için yardımcı fonksiyonlar
-function saveUserLogin(username) {
-  localStorage.setItem("username", username);
-}
-
-function loadUserLogin() {
-  return localStorage.getItem("username");
-}
-
-function clearUserLogin() {
-  localStorage.removeItem("username");
-}
-
-function saveLastChannel(channelId) {
-  localStorage.setItem("lastChannel", channelId);
-}
-
-function loadLastChannel() {
-  return localStorage.getItem("lastChannel");
-}
-
-function clearLastChannel() {
-  localStorage.removeItem("lastChannel");
-}
-// ------------------------
-
+// Tüm DOMContentLoaded işlemlerini tek bir event listener içine alıyoruz.
 window.addEventListener('DOMContentLoaded', () => {
   socket = io("https://fisqos.com.tr", { transports: ['websocket'] });
-  
-  // Giriş yapmışsa localStorage'dan kullanıcı adını yükle
-  const savedUsername = loadUserLogin();
-  if (savedUsername) {
-    username = savedUsername;
-    loginScreen.style.display = 'none';
-    callScreen.style.display = 'flex';
-    document.getElementById('leftUserName').textContent = savedUsername;
-    socket.emit('set-username', savedUsername);
-  }
-  
-  // Son kullanılan kanal bilgisini de yükle (varsa)
-  const lastChannel = loadLastChannel();
-  if (lastChannel) {
-    window.currentTextChannel = lastChannel;
-    // Eğer otomatik olarak kanala katılmak isterseniz,
-    // grup seçimi tamamlandıktan sonra (selectedGroup belirlendiğinde) ilgili joinTextChannel isteğini gönderebilirsiniz.
-  }
-  
   console.log("Socket connected =>", socket.id);
   initSocketEvents();
   initUIEvents();
-
-  // TextMessages scroll event vs. (opsiyonel, text chat'e dair isterseniz koruyabilirsiniz)
+  
+  // #textMessages için scroll event listener
   const tm = document.getElementById('textMessages');
+  let removeScrollingTimeout;
   if (tm) {
-    let removeScrollingTimeout;
     tm.addEventListener('scroll', function() {
       const atBottom = tm.scrollTop + tm.clientHeight >= tm.scrollHeight - 5;
       if (!atBottom) {
@@ -192,6 +193,13 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+function insertDateSeparator(timestamp) {
+  const separator = document.createElement('div');
+  separator.className = 'date-separator';
+  separator.innerHTML = `<span class="separator-text">${formatLongDate(timestamp)}</span>`;
+  textMessages.appendChild(separator);
+}
+
 function initSocketEvents() {
   socket.on('connect', () => {
     console.log("Socket tekrar bağlandı =>", socket.id);
@@ -204,17 +212,9 @@ function initSocketEvents() {
       username = data.username;
       loginScreen.style.display = 'none';
       callScreen.style.display = 'flex';
-      // Giriş bilgilerini localStorage'a kaydet
-      saveUserLogin(username);
       socket.emit('set-username', username);
       document.getElementById('leftUserName').textContent = username;
       applyAudioStates();
-
-      // -- Burada textChatClient'i başlatıyoruz --
-      if (window.initTextChatClient) {
-        window.initTextChatClient(socket, username);
-      }
-      // ------------------------------------------
     } else {
       loginErrorMessage.textContent = "Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin";
       loginErrorMessage.style.display = 'block';
@@ -286,22 +286,16 @@ function initSocketEvents() {
       
       roomItem.addEventListener('click', () => {
         if (roomObj.type === 'text') {
-          console.log(`Text channel clicked => name: ${roomObj.name}, id: ${roomObj.id}`);
+          console.log(`Text channel clicked => ${roomObj.name}`);
           document.getElementById('selectedChannelTitle').textContent = roomObj.name;
           textChannelContainer.style.display = 'flex';
           document.getElementById('channelUsersContainer').style.display = 'none';
-    
-          // Voice kanaldan ayrılmadıysak, voice'a ait paneli gizleyelim:
           if (!(currentRoom && currentRoomType === 'voice')) {
             hideChannelStatusPanel();
             currentRoomType = "text";
           }
           textMessages.innerHTML = "";
-          // Metin kanalı ID'sini global atayalım
-          window.currentTextChannel = roomObj.id;
-          // Son kullanılan kanal bilgisini kaydet
-          saveLastChannel(roomObj.id);
-          // Sunucuya "joinTextChannel" emit:
+          currentTextChannel = roomObj.id;
           socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: roomObj.id });
           return;
         }
@@ -318,8 +312,6 @@ function initSocketEvents() {
         }
         currentGroup = selectedGroup;
         joinRoom(currentGroup, roomObj.id, roomObj.name);
-        // Son kullanılan kanal bilgisini kaydet
-        saveLastChannel(roomObj.id);
         roomItem.classList.add('connected');
       });
       roomListDiv.appendChild(roomItem);
@@ -331,21 +323,6 @@ function initSocketEvents() {
       const channelDiv = document.getElementById(`channel-users-${roomId}`);
       if (!channelDiv) return;
       channelDiv.innerHTML = '';
-
-      // Eklenen Kod Başlangıcı: Kanalda kullanıcı varsa "has-users" ekliyoruz
-      const channelItem = channelDiv.closest('.channel-item');
-      if (channelItem) {
-        const chHeader = channelItem.querySelector('.channel-header');
-        if (chHeader) {
-          if (cData.users && cData.users.length > 0) {
-            chHeader.classList.add('has-users');
-          } else {
-            chHeader.classList.remove('has-users');
-          }
-        }
-      }
-      // Eklenen Kod Sonu
-
       cData.users.forEach(u => {
         const userRow = document.createElement('div');
         userRow.classList.add('channel-user');
@@ -436,266 +413,125 @@ function initSocketEvents() {
     }
     consumeProducer(producerId);
   });
-}
-
-function initUIEvents() {
-  loginButton.addEventListener('click', attemptLogin);
-  loginUsernameInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') attemptLogin();
-  });
-  loginPasswordInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') attemptLogin();
-  });
-  registerButton.addEventListener('click', () => {
-    const userData = {
-      username: regUsernameInput.value.trim(),
-      name: regNameInput.value.trim(),
-      surname: regSurnameInput.value.trim(),
-      birthdate: regBirthdateInput.value.trim(),
-      email: regEmailInput.value.trim(),
-      phone: regPhoneInput.value.trim(),
-      password: regPasswordInput.value.trim(),
-      passwordConfirm: regPasswordConfirmInput.value.trim()
-    };
-    registerErrorMessage.style.display = 'none';
-    regUsernameInput.classList.remove('shake');
-    regPasswordInput.classList.remove('shake');
-    regPasswordConfirmInput.classList.remove('shake');
-    let isError = false;
-    if (!userData.username || !userData.name || !userData.surname ||
-        !userData.birthdate || !userData.email || !userData.phone ||
-        !userData.password || !userData.passwordConfirm) {
-      regUsernameInput.classList.add('shake');
-      regPasswordInput.classList.add('shake');
-      regPasswordConfirmInput.classList.add('shake');
-      registerErrorMessage.style.display = 'block';
-      registerErrorMessage.textContent = "Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin";
-      isError = true;
-    } else if (userData.username !== userData.username.toLowerCase()) {
-      regUsernameInput.classList.add('shake');
-      registerErrorMessage.style.display = 'block';
-      registerErrorMessage.textContent = "Kullanıcı adı sadece küçük harf olmalı!";
-      isError = true;
-    } else if (userData.password !== userData.passwordConfirm) {
-      regPasswordInput.classList.add('shake');
-      regPasswordConfirmInput.classList.add('shake');
-      registerErrorMessage.style.display = 'block';
-      registerErrorMessage.textContent = "Parolalar eşleşmiyor!";
-      isError = true;
-    }
-    if (!isError) {
-      socket.emit('register', userData);
-    }
-  });
-  backToLoginButton.addEventListener('click', () => {
-    registerScreen.style.display = 'none';
-    loginScreen.style.display = 'block';
-  });
-  showRegisterScreen.addEventListener('click', () => {
-    registerScreen.style.display = 'none';
-    loginScreen.style.display = 'block';
-  });
-  showLoginScreen.addEventListener('click', () => {
-    registerScreen.style.display = 'none';
-    loginScreen.style.display = 'block';
-  });
-  createGroupButton.addEventListener('click', () => {
-    document.getElementById('groupModal').style.display = 'flex';
-  });
-  document.getElementById('modalGroupCreateBtn').addEventListener('click', () => {
-    document.getElementById('groupModal').style.display = 'none';
-    document.getElementById('actualGroupCreateModal').style.display = 'flex';
-  });
-  document.getElementById('modalGroupJoinBtn').addEventListener('click', () => {
-    document.getElementById('groupModal').style.display = 'none';
-    document.getElementById('joinGroupModal').style.display = 'flex';
-  });
-  document.getElementById('actualGroupNameBtn').addEventListener('click', () => {
-    const grpName = document.getElementById('actualGroupName').value.trim();
-    if (!grpName) {
-      alert("Grup adı boş olamaz!");
-      return;
-    }
-    socket.emit('createGroup', grpName);
-    document.getElementById('actualGroupCreateModal').style.display = 'none';
-  });
-  document.getElementById('closeCreateGroupModal').addEventListener('click', () => {
-    document.getElementById('actualGroupCreateModal').style.display = 'none';
-  });
-  document.getElementById('joinGroupIdBtn').addEventListener('click', () => {
-    const grpIdVal = document.getElementById('joinGroupIdInput').value.trim();
-    if (!grpIdVal) {
-      alert("Grup ID boş olamaz!");
-      return;
-    }
-    socket.emit('joinGroupByID', grpIdVal);
-    document.getElementById('joinGroupModal').style.display = 'none';
-  });
-  document.getElementById('closeJoinGroupModal').addEventListener('click', () => {
-    document.getElementById('joinGroupModal').style.display = 'none';
-  });
-  document.getElementById('modalCreateRoomBtn').addEventListener('click', () => {
-    const rName = document.getElementById('modalRoomName').value.trim();
-    if (!rName) {
-      alert("Oda adı girin!");
-      return;
-    }
-    const channelType = document.querySelector('input[name="channelType"]:checked').value;
-    const grp = currentGroup || selectedGroup;
-    if (!grp) {
-      alert("Önce bir gruba katılın!");
-      return;
-    }
-    socket.emit('createRoom', { groupId: grp, roomName: rName, channelType: channelType });
-    document.getElementById('roomModal').style.display = 'none';
-  });
-  document.getElementById('modalCloseRoomBtn').addEventListener('click', () => {
-    document.getElementById('roomModal').style.display = 'none';
-  });
-  copyGroupIdBtn.addEventListener('click', () => {
-    groupDropdownMenu.style.display = 'none';
-    const grp = currentGroup || selectedGroup;
-    if (!grp) {
-      alert("Şu an bir grup seçili değil!");
-      return;
-    }
-    navigator.clipboard.writeText(grp)
-      .then(() => alert("Grup ID kopyalandı: " + grp))
-      .catch(err => {
-        console.error("Kopyalama hatası:", err);
-        alert("Kopyalama başarısız!");
-      });
-  });
-  renameGroupBtn.addEventListener('click', () => {
-    groupDropdownMenu.style.display = 'none';
-    const grp = currentGroup || selectedGroup;
-    if (!grp) {
-      alert("Şu an bir grup seçili değil!");
-      return;
-    }
-    const newName = prompt("Yeni grup ismini girin:");
-    if (!newName || !newName.trim()) {
-      alert("Grup ismi boş olamaz!");
-      return;
-    }
-    socket.emit('renameGroup', { groupId: grp, newName: newName.trim() });
-  });
-  createChannelBtn.addEventListener('click', () => {
-    groupDropdownMenu.style.display = 'none';
-    const grp = currentGroup || selectedGroup;
-    if (!grp) {
-      alert("Önce bir gruba katılın!");
-      return;
-    }
-    document.getElementById('roomModal').style.display = 'flex';
-    document.getElementById('modalRoomName').value = '';
-    document.getElementById('modalRoomName').focus();
-  });
-  deleteGroupBtn.addEventListener('click', () => {
-    groupDropdownMenu.style.display = 'none';
-    const grp = currentGroup || selectedGroup;
-    if (!grp) {
-      alert("Şu an bir grup seçili değil!");
-      return;
-    }
-    const confirmDel = confirm("Bu grubu silmek istediğinize emin misiniz?");
-    if (!confirmDel) return;
-    socket.emit('deleteGroup', grp);
-  });
-  groupDropdownIcon.addEventListener('click', () => {
-    if (groupDropdownMenu.style.display === 'none' || groupDropdownMenu.style.display === '') {
-      groupDropdownMenu.style.display = 'block';
-    } else {
-      groupDropdownMenu.style.display = 'none';
-    }
-  });
-  toggleDMButton.addEventListener('click', () => {
-    const dmPanel = document.getElementById('dmPanel');
-    if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
-      dmPanel.style.display = 'block';
-      isDMMode = true;
-    } else {
-      dmPanel.style.display = 'none';
-      isDMMode = false;
-    }
-  });
-  closeDMButton.addEventListener('click', () => {
-    document.getElementById('dmPanel').style.display = 'none';
-    isDMMode = false;
-  });
-  leaveButton.addEventListener('click', () => {
-    if (!currentRoom) return;
-    socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
-    leaveRoomInternal();
-    hideChannelStatusPanel();
-    currentRoom = null;
-    document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
-    const container = document.getElementById('channelUsersContainer');
-    if (container) {
-      container.innerHTML = '';
-      container.classList.remove('layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users');
-    }
-    textChannelContainer.style.display = 'none';
-    socket.emit('browseGroup', currentGroup);
-  });
-  micToggleButton.addEventListener('click', () => {
-    micEnabled = !micEnabled;
-    applyAudioStates();
-  });
-  deafenToggleButton.addEventListener('click', () => {
-    if (!selfDeafened) {
-      micWasEnabledBeforeDeaf = micEnabled;
-      selfDeafened = true;
-      micEnabled = false;
-    } else {
-      selfDeafened = false;
-      if (micWasEnabledBeforeDeaf) micEnabled = true;
-    }
-    applyAudioStates();
-  });
-  settingsButton.addEventListener('click', () => {
-    // ...
-  });
-}
-
-function attemptLogin() {
-  const usernameVal = loginUsernameInput.value.trim();
-  const passwordVal = loginPasswordInput.value.trim();
-  loginErrorMessage.style.display = 'none';
-  loginUsernameInput.classList.remove('shake');
-  loginPasswordInput.classList.remove('shake');
-  if (!usernameVal || !passwordVal) {
-    loginErrorMessage.textContent = "Lütfen gerekli alanları doldurunuz";
-    loginErrorMessage.style.display = 'block';
-    loginUsernameInput.classList.add('shake');
-    loginPasswordInput.classList.add('shake');
-    return;
-  }
-  socket.emit('login', { username: usernameVal, password: passwordVal });
-}
-
-async function requestMicrophoneAccess() {
-  try {
-    console.log("Mikrofon izni isteniyor...");
-    const constraints = {
-      audio: {
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: false
+  
+  // ========================
+  // METİN MESAJLARININ RENDER İŞLEMLERİ
+  // ========================
+  
+  // textHistory: Geçmiş mesajları render ederken, gün ayrımı için separator ekle
+  socket.on('textHistory', (messages) => {
+    textMessages.innerHTML = "";
+    for (let i = 0; i < messages.length; i++) {
+      const msg = messages[i];
+      if (i === 0 || isDifferentDay(messages[i - 1].timestamp, msg.timestamp)) {
+        insertDateSeparator(msg.timestamp);
       }
-    };
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-    console.log("Mikrofon erişimi verildi:", stream);
-    localStream = stream;
-    audioPermissionGranted = true;
-    applyAudioStates();
-    startVolumeAnalysis(localStream, socket.id);
-    remoteAudios.forEach(audioEl => {
-      audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
-    });
-  } catch(err) {
-    console.error("Mikrofon izni alınamadı:", err);
-  }
+      const time = formatTimestamp(msg.timestamp);
+      const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
+      const isFirst = (i === 0 || ((messages[i - 1].user && messages[i - 1].user.username) !== sender) || isDifferentDay(messages[i - 1].timestamp, msg.timestamp));
+      const isLast = (i === messages.length - 1 || ((messages[i + 1].user && messages[i + 1].user.username) !== sender));
+      
+      let className = 'text-message ';
+      className += (sender === username) ? 'sent-message ' : 'received-message ';
+      className += isFirst ? 'first-message ' : 'subsequent-message ';
+      if (isLast) { className += 'last-message'; }
+      
+      const msgDiv = document.createElement('div');
+      msgDiv.className = className;
+      
+      if (sender === username) {
+        if (isFirst) {
+          msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
+        } else {
+          msgDiv.innerHTML = `<div class="message-content without-timestamp">${msg.content}<span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span></div>`;
+        }
+      } else {
+        if (isFirst) {
+          const avatarHTML = `<div class="message-avatar profile-thumb">${sender.charAt(0).toUpperCase()}</div>`;
+          msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
+        } else {
+          const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
+          msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}<span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span></div>`;
+        }
+      }
+      msgDiv.setAttribute('data-timestamp', msg.timestamp);
+      msgDiv.setAttribute('data-sender', sender);
+      textMessages.appendChild(msgDiv);
+    }
+    textMessages.scrollTop = textMessages.scrollHeight;
+  });
+  
+  /**
+   * newTextMessage: Yeni mesaj geldiğinde gün farkını kontrol ederken,
+   * bazen son eleman bir .date-separator olabilir. Bu nedenle,
+   * "gerçekten son mesaj" elemanını bulup onun tarihini kontrol ediyoruz.
+   */
+  socket.on('newTextMessage', (data) => {
+    if (data.channelId === currentTextChannel) {
+      const msg = data.message;
+      const time = formatTimestamp(msg.timestamp);
+
+      // 1) Son gerçek mesaj (date-separator olmayan) elemanı bulalım:
+      let lastMsgDiv = textMessages.lastElementChild;
+      while (lastMsgDiv && lastMsgDiv.classList.contains('date-separator')) {
+        lastMsgDiv = lastMsgDiv.previousElementSibling;
+      }
+
+      // 2) Eğer hiç mesaj yoksa veya gün farkı varsa separator ekle
+      if (!lastMsgDiv) {
+        insertDateSeparator(msg.timestamp);
+      } else {
+        const lastMsgTime = lastMsgDiv.getAttribute('data-timestamp');
+        if (lastMsgTime && isDifferentDay(lastMsgTime, msg.timestamp)) {
+          insertDateSeparator(msg.timestamp);
+        }
+      }
+
+      // 3) Ardından normal "yeni mesaj" oluşturma
+      const isFirst = (
+        !lastMsgDiv ||
+        (lastMsgDiv.getAttribute('data-sender') !== msg.username) ||
+        (lastMsgDiv.getAttribute('data-timestamp') &&
+          isDifferentDay(lastMsgDiv.getAttribute('data-timestamp'), msg.timestamp))
+      );
+      if (lastMsgDiv && lastMsgDiv.getAttribute('data-sender') === msg.username) {
+        lastMsgDiv.classList.remove('last-message');
+      }
+      
+      let className = 'text-message ';
+      className += (msg.username === username) ? 'sent-message ' : 'received-message ';
+      className += isFirst ? 'first-message ' : 'subsequent-message ';
+      className += 'last-message';
+      
+      const msgDiv = document.createElement('div');
+      msgDiv.className = className;
+      
+      if (msg.username === username) {
+        if (isFirst) {
+          msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
+        } else {
+          msgDiv.innerHTML = `<div class="message-content without-timestamp">${msg.content}<span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span></div>`;
+        }
+      } else {
+        if (isFirst) {
+          const avatarHTML = `<div class="message-avatar profile-thumb">${msg.username.charAt(0).toUpperCase()}</div>`;
+          msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
+        } else {
+          const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
+          msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}<span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span></div>`;
+        }
+      }
+      
+      msgDiv.setAttribute('data-timestamp', msg.timestamp);
+      msgDiv.setAttribute('data-sender', msg.username);
+      textMessages.appendChild(msgDiv);
+      textMessages.scrollTop = textMessages.scrollHeight;
+    }
+  });
+  
+  // ========================
+  // METİN MESAJLARININ RENDER İŞLEMLERİ SONU
+  // ========================
 }
 
 function startSfuFlow() {
@@ -948,6 +784,312 @@ function joinRoom(groupId, roomId, roomName) {
   currentRoomType = "voice";
 }
 
+function attemptLogin() {
+  const usernameVal = loginUsernameInput.value.trim();
+  const passwordVal = loginPasswordInput.value.trim();
+  loginErrorMessage.style.display = 'none';
+  loginUsernameInput.classList.remove('shake');
+  loginPasswordInput.classList.remove('shake');
+  if (!usernameVal || !passwordVal) {
+    loginErrorMessage.textContent = "Lütfen gerekli alanları doldurunuz";
+    loginErrorMessage.style.display = 'block';
+    loginUsernameInput.classList.add('shake');
+    loginPasswordInput.classList.add('shake');
+    return;
+  }
+  socket.emit('login', { username: usernameVal, password: passwordVal });
+}
+
+async function requestMicrophoneAccess() {
+  try {
+    console.log("Mikrofon izni isteniyor...");
+    const constraints = {
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: false
+      }
+    };
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    console.log("Mikrofon erişimi verildi:", stream);
+    localStream = stream;
+    audioPermissionGranted = true;
+    applyAudioStates();
+    startVolumeAnalysis(localStream, socket.id);
+    remoteAudios.forEach(audioEl => {
+      audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
+    });
+  } catch(err) {
+    console.error("Mikrofon izni alınamadı:", err);
+  }
+}
+
+function initUIEvents() {
+  loginButton.addEventListener('click', attemptLogin);
+  loginUsernameInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') attemptLogin();
+  });
+  loginPasswordInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') attemptLogin();
+  });
+  registerButton.addEventListener('click', () => {
+    const userData = {
+      username: regUsernameInput.value.trim(),
+      name: regNameInput.value.trim(),
+      surname: regSurnameInput.value.trim(),
+      birthdate: regBirthdateInput.value.trim(),
+      email: regEmailInput.value.trim(),
+      phone: regPhoneInput.value.trim(),
+      password: regPasswordInput.value.trim(),
+      passwordConfirm: regPasswordConfirmInput.value.trim()
+    };
+    registerErrorMessage.style.display = 'none';
+    regUsernameInput.classList.remove('shake');
+    regPasswordInput.classList.remove('shake');
+    regPasswordConfirmInput.classList.remove('shake');
+    let isError = false;
+    if (!userData.username || !userData.name || !userData.surname ||
+        !userData.birthdate || !userData.email || !userData.phone ||
+        !userData.password || !userData.passwordConfirm) {
+      regUsernameInput.classList.add('shake');
+      regPasswordInput.classList.add('shake');
+      regPasswordConfirmInput.classList.add('shake');
+      registerErrorMessage.style.display = 'block';
+      registerErrorMessage.textContent = "Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin";
+      isError = true;
+    } else if (userData.username !== userData.username.toLowerCase()) {
+      regUsernameInput.classList.add('shake');
+      registerErrorMessage.style.display = 'block';
+      registerErrorMessage.textContent = "Kullanıcı adı sadece küçük harf olmalı!";
+      isError = true;
+    } else if (userData.password !== userData.passwordConfirm) {
+      regPasswordInput.classList.add('shake');
+      regPasswordConfirmInput.classList.add('shake');
+      registerErrorMessage.style.display = 'block';
+      registerErrorMessage.textContent = "Parolalar eşleşmiyor!";
+      isError = true;
+    }
+    if (!isError) {
+      socket.emit('register', userData);
+    }
+  });
+  backToLoginButton.addEventListener('click', () => {
+    registerScreen.style.display = 'none';
+    loginScreen.style.display = 'block';
+  });
+  showRegisterScreen.addEventListener('click', () => {
+    registerScreen.style.display = 'none';
+    loginScreen.style.display = 'block';
+  });
+  showLoginScreen.addEventListener('click', () => {
+    registerScreen.style.display = 'none';
+    loginScreen.style.display = 'block';
+  });
+  createGroupButton.addEventListener('click', () => {
+    document.getElementById('groupModal').style.display = 'flex';
+  });
+  document.getElementById('modalGroupCreateBtn').addEventListener('click', () => {
+    document.getElementById('groupModal').style.display = 'none';
+    document.getElementById('actualGroupCreateModal').style.display = 'flex';
+  });
+  document.getElementById('modalGroupJoinBtn').addEventListener('click', () => {
+    document.getElementById('groupModal').style.display = 'none';
+    document.getElementById('joinGroupModal').style.display = 'flex';
+  });
+  document.getElementById('actualGroupNameBtn').addEventListener('click', () => {
+    const grpName = document.getElementById('actualGroupName').value.trim();
+    if (!grpName) {
+      alert("Grup adı boş olamaz!");
+      return;
+    }
+    socket.emit('createGroup', grpName);
+    document.getElementById('actualGroupCreateModal').style.display = 'none';
+  });
+  document.getElementById('closeCreateGroupModal').addEventListener('click', () => {
+    document.getElementById('actualGroupCreateModal').style.display = 'none';
+  });
+  document.getElementById('joinGroupIdBtn').addEventListener('click', () => {
+    const grpIdVal = document.getElementById('joinGroupIdInput').value.trim();
+    if (!grpIdVal) {
+      alert("Grup ID boş olamaz!");
+      return;
+    }
+    socket.emit('joinGroupByID', grpIdVal);
+    document.getElementById('joinGroupModal').style.display = 'none';
+  });
+  document.getElementById('closeJoinGroupModal').addEventListener('click', () => {
+    document.getElementById('joinGroupModal').style.display = 'none';
+  });
+  document.getElementById('modalCreateRoomBtn').addEventListener('click', () => {
+    const rName = document.getElementById('modalRoomName').value.trim();
+    if (!rName) {
+      alert("Oda adı girin!");
+      return;
+    }
+    const channelType = document.querySelector('input[name="channelType"]:checked').value;
+    const grp = currentGroup || selectedGroup;
+    if (!grp) {
+      alert("Önce bir gruba katılın!");
+      return;
+    }
+    socket.emit('createRoom', { groupId: grp, roomName: rName, channelType: channelType });
+    document.getElementById('roomModal').style.display = 'none';
+  });
+  document.getElementById('modalCloseRoomBtn').addEventListener('click', () => {
+    document.getElementById('roomModal').style.display = 'none';
+  });
+  copyGroupIdBtn.addEventListener('click', () => {
+    groupDropdownMenu.style.display = 'none';
+    const grp = currentGroup || selectedGroup;
+    if (!grp) {
+      alert("Şu an bir grup seçili değil!");
+      return;
+    }
+    navigator.clipboard.writeText(grp)
+      .then(() => alert("Grup ID kopyalandı: " + grp))
+      .catch(err => {
+        console.error("Kopyalama hatası:", err);
+        alert("Kopyalama başarısız!");
+      });
+  });
+  renameGroupBtn.addEventListener('click', () => {
+    groupDropdownMenu.style.display = 'none';
+    const grp = currentGroup || selectedGroup;
+    if (!grp) {
+      alert("Şu an bir grup seçili değil!");
+      return;
+    }
+    const newName = prompt("Yeni grup ismini girin:");
+    if (!newName || !newName.trim()) {
+      alert("Grup ismi boş olamaz!");
+      return;
+    }
+    socket.emit('renameGroup', { groupId: grp, newName: newName.trim() });
+  });
+  createChannelBtn.addEventListener('click', () => {
+    groupDropdownMenu.style.display = 'none';
+    const grp = currentGroup || selectedGroup;
+    if (!grp) {
+      alert("Önce bir gruba katılın!");
+      return;
+    }
+    document.getElementById('roomModal').style.display = 'flex';
+    document.getElementById('modalRoomName').value = '';
+    document.getElementById('modalRoomName').focus();
+  });
+  deleteGroupBtn.addEventListener('click', () => {
+    groupDropdownMenu.style.display = 'none';
+    const grp = currentGroup || selectedGroup;
+    if (!grp) {
+      alert("Şu an bir grup seçili değil!");
+      return;
+    }
+    const confirmDel = confirm("Bu grubu silmek istediğinize emin misiniz?");
+    if (!confirmDel) return;
+    socket.emit('deleteGroup', grp);
+  });
+  groupDropdownIcon.addEventListener('click', () => {
+    if (groupDropdownMenu.style.display === 'none' || groupDropdownMenu.style.display === '') {
+      groupDropdownMenu.style.display = 'block';
+    } else {
+      groupDropdownMenu.style.display = 'none';
+    }
+  });
+  toggleDMButton.addEventListener('click', () => {
+    const dmPanel = document.getElementById('dmPanel');
+    if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
+      dmPanel.style.display = 'block';
+      isDMMode = true;
+    } else {
+      dmPanel.style.display = 'none';
+      isDMMode = false;
+    }
+  });
+  closeDMButton.addEventListener('click', () => {
+    document.getElementById('dmPanel').style.display = 'none';
+    isDMMode = false;
+  });
+  leaveButton.addEventListener('click', () => {
+    if (!currentRoom) return;
+    socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
+    leaveRoomInternal();
+    hideChannelStatusPanel();
+    currentRoom = null;
+    document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
+    const container = document.getElementById('channelUsersContainer');
+    if (container) {
+      container.innerHTML = '';
+      container.classList.remove('layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users');
+    }
+    textChannelContainer.style.display = 'none';
+    socket.emit('browseGroup', currentGroup);
+  });
+  micToggleButton.addEventListener('click', () => {
+    micEnabled = !micEnabled;
+    applyAudioStates();
+  });
+  deafenToggleButton.addEventListener('click', () => {
+    if (!selfDeafened) {
+      micWasEnabledBeforeDeaf = micEnabled;
+      selfDeafened = true;
+      micEnabled = false;
+    } else {
+      selfDeafened = false;
+      if (micWasEnabledBeforeDeaf) micEnabled = true;
+    }
+    applyAudioStates();
+  });
+  settingsButton.addEventListener('click', () => {
+    // ...
+  });
+  
+  // Mesaj gönderme işlemi için sendTextMessage fonksiyonu
+  function sendTextMessage() {
+    const msg = textChannelMessageInput.value.trim();
+    if (!msg) return;
+    const time = formatTimestamp(new Date());
+    const timeOnly = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    let lastMsgDiv = textMessages.lastElementChild;
+    let lastSender = lastMsgDiv ? lastMsgDiv.getAttribute('data-sender') : null;
+    const isFirst = (!lastMsgDiv || lastSender !== username || (lastMsgDiv.getAttribute('data-timestamp') && isDifferentDay(lastMsgDiv.getAttribute('data-timestamp'), new Date())));
+    if (lastMsgDiv && lastSender === username) {
+      lastMsgDiv.classList.remove('last-message');
+    }
+    const className = 'text-message sent-message ' + (isFirst ? 'first-message ' : 'subsequent-message ') + 'last-message';
+    const msgDiv = document.createElement('div');
+    msgDiv.className = className;
+    if (isFirst) {
+      msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg}</div>`;
+    } else {
+      msgDiv.innerHTML = `<div class="message-content without-timestamp">${msg}<span class="timestamp-hover">${timeOnly}</span></div>`;
+    }
+    msgDiv.setAttribute('data-timestamp', new Date());
+    msgDiv.setAttribute('data-sender', username);
+    textMessages.appendChild(msgDiv);
+    textMessages.scrollTop = textMessages.scrollHeight;
+    socket.emit('textMessage', { groupId: selectedGroup, roomId: currentTextChannel, message: msg, username: username });
+    textChannelMessageInput.value = '';
+    sendTextMessageBtn.style.display = "none";
+  }
+  
+  sendTextMessageBtn.addEventListener('click', sendTextMessage);
+  
+  textChannelMessageInput.addEventListener('input', () => {
+    if (textChannelMessageInput.value.trim() !== "") {
+      sendTextMessageBtn.style.display = "block";
+    } else {
+      sendTextMessageBtn.style.display = "none";
+    }
+  });
+  
+  textChannelMessageInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      sendTextMessage();
+    }
+  });
+}
+
 function applyAudioStates() {
   if (localProducer) {
     if (micEnabled && !selfDeafened) {
@@ -1141,3 +1283,150 @@ function updateCellBars(ping) {
   if (barsActive >= 3) cellBar3.classList.add('active');
   if (barsActive >= 4) cellBar4.classList.add('active');
 }
+
+/* Yeni: Mesajlar arasında gün farkı varsa tarih ayracı ekle */
+function insertSeparatorIfNeeded(prevTimestamp, currentTimestamp) {
+  if (!prevTimestamp || isDifferentDay(prevTimestamp, currentTimestamp)) {
+    insertDateSeparator(currentTimestamp);
+  }
+}
+
+/* Yeni: #textMessages alanında scroll yapıldığında "scrolling" sınıfını ekle */
+document.addEventListener('DOMContentLoaded', function() {
+  const tm = document.getElementById('textMessages');
+  let removeScrollingTimeout;
+  if (tm) {
+    tm.addEventListener('scroll', function() {
+      const atBottom = tm.scrollTop + tm.clientHeight >= tm.scrollHeight - 5;
+      if (!atBottom) {
+        clearTimeout(removeScrollingTimeout);
+        tm.classList.add('scrolling');
+      } else {
+        removeScrollingTimeout = setTimeout(() => {
+          const stillAtBottom = tm.scrollTop + tm.clientHeight >= tm.scrollHeight - 5;
+          if (stillAtBottom) {
+            tm.classList.remove('scrolling');
+          }
+        }, 1000);
+      }
+    });
+  }
+});
+  
+// ========================
+// METİN MESAJLARININ RENDER İŞLEMLERİ (textHistory & newTextMessage)
+// ========================
+
+socket.on('textHistory', (messages) => {
+  textMessages.innerHTML = "";
+  for (let i = 0; i < messages.length; i++) {
+    const msg = messages[i];
+    if (i === 0 || isDifferentDay(messages[i - 1].timestamp, msg.timestamp)) {
+      insertDateSeparator(msg.timestamp);
+    }
+    const time = formatTimestamp(msg.timestamp);
+    const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
+    const isFirst = (i === 0 || ((messages[i - 1].user && messages[i - 1].user.username) !== sender) || isDifferentDay(messages[i - 1].timestamp, msg.timestamp));
+    const isLast = (i === messages.length - 1 || ((messages[i + 1].user && messages[i + 1].user.username) !== sender));
+    
+    let className = 'text-message ';
+    className += (sender === username) ? 'sent-message ' : 'received-message ';
+    className += isFirst ? 'first-message ' : 'subsequent-message ';
+    if (isLast) { className += 'last-message'; }
+    
+    const msgDiv = document.createElement('div');
+    msgDiv.className = className;
+    
+    if (sender === username) {
+      if (isFirst) {
+        msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
+      } else {
+        msgDiv.innerHTML = `<div class="message-content without-timestamp">${msg.content}<span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span></div>`;
+      }
+    } else {
+      if (isFirst) {
+        const avatarHTML = `<div class="message-avatar profile-thumb">${sender.charAt(0).toUpperCase()}</div>`;
+        msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
+      } else {
+        const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
+        msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}<span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span></div>`;
+      }
+    }
+    msgDiv.setAttribute('data-timestamp', msg.timestamp);
+    msgDiv.setAttribute('data-sender', sender);
+    textMessages.appendChild(msgDiv);
+  }
+  textMessages.scrollTop = textMessages.scrollHeight;
+});
+  
+/**
+ * newTextMessage: Yeni mesaj geldiğinde gün farkını kontrol ederken,
+ * bazen son eleman bir .date-separator olabilir. Bu nedenle,
+ * "gerçekten son mesaj" elemanını bulup onun tarihini kontrol ediyoruz.
+ */
+socket.on('newTextMessage', (data) => {
+  if (data.channelId === currentTextChannel) {
+    const msg = data.message;
+    const time = formatTimestamp(msg.timestamp);
+
+    // 1) Son gerçek mesaj (date-separator olmayan) elemanı bulalım:
+    let lastMsgDiv = textMessages.lastElementChild;
+    while (lastMsgDiv && lastMsgDiv.classList.contains('date-separator')) {
+      lastMsgDiv = lastMsgDiv.previousElementSibling;
+    }
+
+    // 2) Eğer hiç mesaj yoksa veya gün farkı varsa separator ekle
+    if (!lastMsgDiv) {
+      insertDateSeparator(msg.timestamp);
+    } else {
+      const lastMsgTime = lastMsgDiv.getAttribute('data-timestamp');
+      if (lastMsgTime && isDifferentDay(lastMsgTime, msg.timestamp)) {
+        insertDateSeparator(msg.timestamp);
+      }
+    }
+
+    // 3) Ardından normal "yeni mesaj" oluşturma
+    const isFirst = (
+      !lastMsgDiv ||
+      (lastMsgDiv.getAttribute('data-sender') !== msg.username) ||
+      (lastMsgDiv.getAttribute('data-timestamp') &&
+        isDifferentDay(lastMsgDiv.getAttribute('data-timestamp'), msg.timestamp))
+    );
+    if (lastMsgDiv && lastMsgDiv.getAttribute('data-sender') === msg.username) {
+      lastMsgDiv.classList.remove('last-message');
+    }
+    
+    let className = 'text-message ';
+    className += (msg.username === username) ? 'sent-message ' : 'received-message ';
+    className += isFirst ? 'first-message ' : 'subsequent-message ';
+    className += 'last-message';
+    
+    const msgDiv = document.createElement('div');
+    msgDiv.className = className;
+    
+    if (msg.username === username) {
+      if (isFirst) {
+        msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
+      } else {
+        msgDiv.innerHTML = `<div class="message-content without-timestamp">${msg.content}<span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span></div>`;
+      }
+    } else {
+      if (isFirst) {
+        const avatarHTML = `<div class="message-avatar profile-thumb">${msg.username.charAt(0).toUpperCase()}</div>`;
+        msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
+      } else {
+        const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
+        msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}<span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span></div>`;
+      }
+    }
+    
+    msgDiv.setAttribute('data-timestamp', msg.timestamp);
+    msgDiv.setAttribute('data-sender', msg.username);
+    textMessages.appendChild(msgDiv);
+    textMessages.scrollTop = textMessages.scrollHeight;
+  }
+});
+  
+// ========================
+// METİN MESAJLARININ RENDER İŞLEMLERİ SONU
+// ========================

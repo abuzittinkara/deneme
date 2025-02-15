@@ -17,11 +17,8 @@ const { v4: uuidv4 } = require('uuid'); // UUID
 const User = require('./models/User');
 const Group = require('./models/Group');
 const Channel = require('./models/Channel');
-// const Message = require('./models/Message'); // <-- Artık textChat.js dosyasında kullanılıyor
+const Message = require('./models/Message'); // EK: Mesaj modeli
 const sfu = require('./sfu'); // Mediasoup SFU fonksiyonları
-
-// Yeni ek (textChat için):
-const { initTextChatHandlers } = require('./textChat');
 
 const app = express();
 
@@ -875,12 +872,48 @@ io.on('connection', (socket) => {
     }
   });
 
-  // ================================================================
-  // Burada YAZILI SOHBET EVENTLERİ YOK! Onları textChat.js dosyasına taşıdık.
-  // ================================================================
+  /* EK: Text kanalına katılma ve mesaj geçmişini yükleme */
+  socket.on('joinTextChannel', async ({ groupId, roomId }) => {
+    try {
+      const channelDoc = await Channel.findOne({ channelId: roomId });
+      if (!channelDoc) return;
+      socket.join(roomId);
+      const messages = await Message.find({ channel: channelDoc._id })
+                                    .sort({ timestamp: 1 })
+                                    .populate('user')
+                                    .lean();
+      socket.emit('textHistory', messages);
+    } catch (err) {
+      console.error("joinTextChannel error:", err);
+    }
+  });
 
-  // Yeni ek => text chat eventlerini aktif et
-  initTextChatHandlers(io, socket);
+  /* EK: Gelen text mesajlarını kaydetme ve yayma */
+  socket.on('textMessage', async ({ groupId, roomId, message, username }) => {
+    try {
+      const channelDoc = await Channel.findOne({ channelId: roomId });
+      if (!channelDoc) return;
+      const userDoc = await User.findOne({ username: username });
+      if (!userDoc) return;
+      const newMsg = new Message({
+        channel: channelDoc._id,
+        user: userDoc._id,
+        content: message,
+        timestamp: new Date()
+      });
+      await newMsg.save();
+      socket.broadcast.to(roomId).emit('newTextMessage', {
+        channelId: roomId,
+        message: {
+          content: newMsg.content,
+          username: username,
+          timestamp: newMsg.timestamp
+        }
+      });
+    } catch (err) {
+      console.error("textMessage error:", err);
+    }
+  });
 
   // Disconnect
   socket.on("disconnect", async () => {
