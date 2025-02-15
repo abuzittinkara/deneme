@@ -93,7 +93,7 @@
 
 /* Eğer kanalda kullanıcı varsa => .has-users sınıfıyla margin-bottom ekle */
 .channel-header.has-users {
-  margin-bottom: 1rem;
+  margin-bottom: 0.6rem;
 }
 
 /* Kanal Kullanıcı Listesi */
