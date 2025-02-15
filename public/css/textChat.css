@@ -1,0 +1,209 @@
+/* textChat.css */
+
+/* Text Kanalı: Mesaj geçmişi ve yazma barı kapsayıcı */
+#textChannelContainer {
+  position: absolute;
+  bottom: 0;
+  left: 10px;
+  right: 5px;
+  top: 60px;
+  background: #353535;
+  display: none;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* Mesaj geçmişi alanı */
+#textMessages {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  box-sizing: border-box;
+  scrollbar-gutter: stable;
+}
+
+/* Mesaj Stili */
+.text-message {
+  margin: 0;
+  padding: 0px 12px;
+  border-radius: 8px;
+  max-width: 70%;
+  word-wrap: break-word;
+  display: flex;
+  align-items: flex-start;
+  transition: background-color 0.2s ease, width 0.2s ease;
+  position: relative;
+}
+.text-message:hover {
+  background-color: #2d2d2d;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+  background-color: #2d2d2d;
+}
+
+/* Gönderilen mesajlar */
+.sent-message {
+  background-color: #353535;
+  align-self: flex-end;
+  text-align: right;
+  flex-direction: row-reverse;
+  margin-top: 5px;
+}
+
+/* Alınan mesajlar */
+.text-message.received-message {
+  align-self: flex-start;
+  text-align: left;
+  flex-direction: row;
+  margin-top: 12px;
+}
+.text-message.received-message + .text-message.received-message {
+  margin-top: 0;
+}
+
+/* Mesaj içerikleri */
+.message-content.with-avatar {
+  margin-top: 0;
+}
+.message-content.without-avatar {
+  margin-top: 0;
+}
+.message-content.without-timestamp,
+.message-content.without-avatar {
+  position: relative;
+}
+
+/* Mesaj Avatarı */
+.message-avatar {
+  width: 32px;
+  height: 0;
+  background-color: #353535;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+/* Mesaj aralıkları */
+.text-message.first-message {
+  margin-top: 10px;
+}
+.text-message.subsequent-message {
+  margin-top: 2px;
+}
+.text-message.last-message {
+  margin-bottom: 25px;
+}
+
+/* Tarih stilleri */
+.timestamp {
+  font-weight: 300;
+  font-size: 0.8em;
+  margin-left: 4px;
+  color: #5a5a5a;
+}
+.own-timestamp {
+  font-weight: 300;
+  font-size: 0.8em;
+  margin-right: 4px;
+  color: #5a5a5a;
+}
+.sender-name {
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+/* Timestamp hover */
+.timestamp-hover {
+  display: none !important;
+  position: absolute;
+  font-weight: 300;
+  font-size: 0.8em;
+  color: #aaa;
+}
+.text-message.received-message:not(.first-message):hover .timestamp-hover {
+  display: block !important;
+  left: -42px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.text-message.sent-message:not(.first-message):hover .timestamp-hover {
+  display: block !important;
+  right: -60px;
+  top: 50%;
+  transform: translateY(-50%);
+  left: auto;
+}
+
+/* Scrollbar (WebKit) */
+#textMessages::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
+  transition: width 0.3s;
+}
+#textMessages.scrolling::-webkit-scrollbar {
+  width: 4px;
+}
+#textMessages.scrolling::-webkit-scrollbar-track {
+  background: #353535;
+}
+#textMessages.scrolling::-webkit-scrollbar-thumb {
+  background-color: #353535;
+  border-radius: 2px;
+}
+
+/* Firefox Scrollbar */
+#textMessages {
+  scrollbar-width: none;
+}
+#textMessages.scrolling {
+  scrollbar-width: thin;
+  scrollbar-color: #666 #353535;
+}
+
+/* Yazma alanı */
+.text-chat-input-bar {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  padding: 0.5rem;
+  box-sizing: border-box;
+}
+.text-chat-input-bar .chat-input {
+  flex: 1;
+  padding-right: 40px;
+  background: #444;
+  border: 1px solid #666;
+  border-radius: 6px;
+  color: #fff;
+  padding: 0.5rem;
+}
+
+/* Gönder Butonu */
+#sendTextMessageBtn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: none;
+}
+#sendTextMessageBtn span.send-icon {
+  font-family: 'Material Icons Outlined';
+  font-size: 24px;
+  transition: color 0.3s ease, font-family 0.3s ease;
+  color: #aaa;
+}
+#sendTextMessageBtn:hover span.send-icon {
+  font-family: 'Material Icons';
+  color: #c61884;
+}

@@ -1,0 +1,94 @@
+/* userPanel.css */
+
+/* User Panel */
+.user-panel {
+  position: absolute;
+  left: 65px;
+  width: 300px;
+  background: #262626;
+  padding: 0.5rem;
+  box-sizing: border-box;
+  border-top: 1px solid #444;
+  bottom: 0;
+  z-index: 10;
+}
+.user-panel-content {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.user-profile-pic {
+  width: 40px;
+  height: 40px;
+  background: #666;
+  border-radius: 45%;
+}
+.left-username {
+  font-size: 0.9rem;
+  color: #aaa;
+}
+.user-panel-buttons {
+  display: flex;
+  gap: 0.8rem;
+  margin-left: auto;
+  align-items: center;
+  margin-right: 0.4rem;
+}
+.user-panel-btn {
+  background: none;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  width: 20px;
+  height: 20px;
+}
+.user-panel-btn:hover .material-icons {
+  color: #666 !important;
+}
+.user-panel-btn.btn-muted .material-icons {
+  color: #c61884 !important;
+}
+
+/* Settings Panel */
+.settings-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 300px;
+  height: 100%;
+  background: #222;
+  color: #fff;
+  display: none;
+  flex-direction: column;
+  padding: 1rem;
+  box-sizing: border-box;
+  z-index: 999;
+}
+.settings-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.settings-title {
+  font-size: 1.2rem;
+  margin: 0;
+}
+.settings-close-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.settings-close-btn:hover {
+  color: #c61884;
+}
+.settings-content {
+  margin-top: 2rem;
+  flex: 1;
+  overflow: auto;
+}
