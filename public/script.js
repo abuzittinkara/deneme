@@ -286,7 +286,6 @@ function initSocketEvents() {
       
       roomItem.addEventListener('click', () => {
         if (roomObj.type === 'text') {
-          // Güncellenmiş log: hem isim hem id görüntülensin
           console.log(`Text channel clicked => name: ${roomObj.name}, id: ${roomObj.id}`);
           document.getElementById('selectedChannelTitle').textContent = roomObj.name;
           textChannelContainer.style.display = 'flex';
