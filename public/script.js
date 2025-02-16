@@ -1,5 +1,5 @@
 /**************************************
- * public/script.js
+ * script.js
  * TAMAMEN SFU MANTIĞINA GEÇİLMİŞ VERSİYON
  **************************************/
 import * as TextChannel from './js/textChannel.js';
@@ -418,8 +418,7 @@ function initSocketEvents() {
     }
     consumeProducer(producerId);
   });
-  
-  // METİN MESAJLARININ RENDER İŞLEMLERİ artık TextChannel modülüne taşındı.
+  // METİN MESAJLARININ RENDER İŞLEMLERİ SONU
 }
 
 function startSfuFlow() {
@@ -1200,5 +1199,3 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
-  
-// METİN MESAJLARININ RENDER İŞLEMLERİ SONU
