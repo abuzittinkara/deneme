@@ -1,0 +1,9 @@
+/* Responsive */
+@media (max-width: 600px) {
+  .left-panels { width:65px; }
+  .rooms-panel { width:300px; }
+  .user-panel { width:300px; }
+  .channel-status-panel { width:300px; }
+  .app-title { font-size:1.2rem; }
+  .right-panel { width:200px; }
+}
