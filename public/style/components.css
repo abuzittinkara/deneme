@@ -27,6 +27,24 @@
   font-size: 0.9rem;
 }
 
+/* Yeni: Circle Butonlar (DM ve Grup Oluşturma) */
+.circle-btn {
+  background-color: #c61884;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.circle-btn:hover {
+  background-color: #a3156f;
+}
+
 /* Channel Item */
 .channel-item {
   width: 100%;
