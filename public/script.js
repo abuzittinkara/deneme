@@ -193,8 +193,8 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-
-  // Text channel olaylarını, modüler TextChannel modülünden başlatıyoruz.
+  
+  // Initialize text channel events. Not: textMessages elementinin dataset.channelId, aktif kanal id'sini barındıracak.
   TextChannel.initTextChannelEvents(socket, textMessages);
 });
 
@@ -215,6 +215,7 @@ function initSocketEvents() {
   socket.on('loginResult', (data) => {
     if (data.success) {
       username = data.username;
+      window.username = username;
       loginScreen.style.display = 'none';
       callScreen.style.display = 'flex';
       socket.emit('set-username', username);
@@ -301,6 +302,8 @@ function initSocketEvents() {
           }
           textMessages.innerHTML = "";
           currentTextChannel = roomObj.id;
+          // Set the active text channel id in the textMessages container's dataset
+          textMessages.dataset.channelId = roomObj.id;
           socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: roomObj.id });
           return;
         }
@@ -418,7 +421,8 @@ function initSocketEvents() {
     }
     consumeProducer(producerId);
   });
-  // METİN MESAJLARININ RENDER İŞLEMLERİ SONU
+  
+  // METİN MESAJLARININ RENDER İŞLEMLERİ artık TextChannel modülüne taşındı.
 }
 
 function startSfuFlow() {
@@ -1199,3 +1203,5 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+  
+// METİN MESAJLARININ RENDER İŞLEMLERİ SONU

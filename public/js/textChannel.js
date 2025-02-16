@@ -27,24 +27,10 @@ function formatTimestamp(timestamp) {
   }
 }
 
-function formatTimeOnly(timestamp) {
-  const date = new Date(timestamp);
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
-
-function formatLongDate(timestamp) {
-  const date = new Date(timestamp);
-  const day = date.getDate();
-  const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
-  const month = monthNames[date.getMonth()];
-  const year = date.getFullYear();
-  return `${day} ${month} ${year}`;
-}
-
 function insertDateSeparator(container, timestamp) {
   const separator = document.createElement('div');
   separator.className = 'date-separator';
-  separator.innerHTML = `<span class="separator-text">${formatLongDate(timestamp)}</span>`;
+  separator.innerHTML = `<span class="separator-text">${formatTimestamp(timestamp)}</span>`;
   container.appendChild(separator);
 }
 
@@ -58,17 +44,15 @@ function renderTextMessages(messages, container) {
     const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
     let className = 'text-message ';
     className += (sender === window.username) ? 'sent-message ' : 'received-message ';
-    className += (index === 0 || (messages[index - 1].user && messages[index - 1].user.username !== sender) || isDifferentDay(messages[index - 1].timestamp, msg.timestamp)) ? 'first-message ' : 'subsequent-message ';
-    className += 'last-message';
     const msgDiv = document.createElement('div');
     msgDiv.className = className;
+    msgDiv.setAttribute('data-timestamp', msg.timestamp);
+    msgDiv.setAttribute('data-sender', sender);
     if (sender === window.username) {
       msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
     } else {
       msgDiv.innerHTML = `<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
     }
-    msgDiv.setAttribute('data-timestamp', msg.timestamp);
-    msgDiv.setAttribute('data-sender', sender);
     container.appendChild(msgDiv);
   });
   container.scrollTop = container.scrollHeight;
@@ -78,58 +62,35 @@ function initTextChannelEvents(socket, container) {
   socket.on('textHistory', (messages) => {
     renderTextMessages(messages, container);
   });
-  
+
   socket.on('newTextMessage', (data) => {
-    if (data.channelId === window.currentTextChannel) {
+    // Aktif metin kanalını container.dataset.channelId ile kontrol ediyoruz.
+    if (data.channelId === container.dataset.channelId) {
       const msg = data.message;
-      const time = formatTimestamp(msg.timestamp);
       let lastMsgDiv = container.lastElementChild;
       while (lastMsgDiv && lastMsgDiv.classList.contains('date-separator')) {
         lastMsgDiv = lastMsgDiv.previousElementSibling;
       }
-      if (!lastMsgDiv) {
+      if (!lastMsgDiv || (lastMsgDiv && isDifferentDay(lastMsgDiv.getAttribute('data-timestamp'), msg.timestamp))) {
         insertDateSeparator(container, msg.timestamp);
-      } else {
-        const lastMsgTime = lastMsgDiv.getAttribute('data-timestamp');
-        if (lastMsgTime && isDifferentDay(lastMsgTime, msg.timestamp)) {
-          insertDateSeparator(container, msg.timestamp);
-        }
       }
-      const isFirst = (
-        !lastMsgDiv ||
-        (lastMsgDiv.getAttribute('data-sender') !== msg.username) ||
-        (lastMsgDiv.getAttribute('data-timestamp') && isDifferentDay(lastMsgDiv.getAttribute('data-timestamp'), msg.timestamp))
-      );
-      if (lastMsgDiv && lastMsgDiv.getAttribute('data-sender') === msg.username) {
-        lastMsgDiv.classList.remove('last-message');
-      }
+      const time = formatTimestamp(msg.timestamp);
+      const sender = msg.username || "Anon";
       let className = 'text-message ';
-      className += (msg.username === window.username) ? 'sent-message ' : 'received-message ';
-      className += isFirst ? 'first-message ' : 'subsequent-message ';
-      className += 'last-message';
+      className += (sender === window.username) ? 'sent-message ' : 'received-message ';
       const msgDiv = document.createElement('div');
       msgDiv.className = className;
-      if (msg.username === window.username) {
-        if (isFirst) {
-          msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
-        } else {
-          msgDiv.innerHTML = `<div class="message-content without-timestamp">${msg.content}<span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span></div>`;
-        }
-      } else {
-        if (isFirst) {
-          const avatarHTML = `<div class="message-avatar profile-thumb">${msg.username.charAt(0).toUpperCase()}</div>`;
-          msgDiv.innerHTML = `${avatarHTML}<div class="message-content with-avatar"><span class="sender-name">${msg.username}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
-        } else {
-          const avatarPlaceholder = `<div class="message-avatar placeholder"></div>`;
-          msgDiv.innerHTML = `${avatarPlaceholder}<div class="message-content without-avatar">${msg.content}<span class="timestamp-hover">${formatTimeOnly(msg.timestamp)}</span></div>`;
-        }
-      }
       msgDiv.setAttribute('data-timestamp', msg.timestamp);
-      msgDiv.setAttribute('data-sender', msg.username);
+      msgDiv.setAttribute('data-sender', sender);
+      if (sender === window.username) {
+        msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
+      } else {
+        msgDiv.innerHTML = `<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
+      }
       container.appendChild(msgDiv);
       container.scrollTop = container.scrollHeight;
     }
   });
 }
 
-export { initTextChannelEvents, renderTextMessages, formatTimestamp, formatTimeOnly, formatLongDate, isDifferentDay, insertDateSeparator };
+export { initTextChannelEvents, renderTextMessages, formatTimestamp, insertDateSeparator, isDifferentDay };
