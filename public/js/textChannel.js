@@ -42,14 +42,24 @@ function renderTextMessages(messages, container) {
     }
     const time = formatTimestamp(msg.timestamp);
     const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
-    // Tüm mesajlar için aynı (sola hizalı) sınıf kullanıyoruz:
-    let className = 'text-message left-message ';
+    // Tüm mesajlar için ortak "message-item" yapısını kullanıyoruz:
+    let msgHTML = `
+      <div class="message-item">
+        <div class="message-avatar">${sender.charAt(0).toUpperCase()}</div>
+        <div class="message-body">
+          <div class="message-header">
+            <span class="sender-name">${sender}</span>
+            <span class="timestamp">${time}</span>
+          </div>
+          <div class="message-content">${msg.content}</div>
+        </div>
+      </div>
+    `;
     const msgDiv = document.createElement('div');
-    msgDiv.className = className;
+    msgDiv.className = 'text-message left-message';
     msgDiv.setAttribute('data-timestamp', msg.timestamp);
     msgDiv.setAttribute('data-sender', sender);
-    // Her mesaj için ortak yapı kullanılıyor:
-    msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
+    msgDiv.innerHTML = msgHTML;
     container.appendChild(msgDiv);
   });
   container.scrollTop = container.scrollHeight;
@@ -72,13 +82,23 @@ function initTextChannelEvents(socket, container) {
       }
       const time = formatTimestamp(msg.timestamp);
       const sender = msg.username || "Anon";
-      // Her mesaj için aynı (sola hizalı) sınıf kullanıyoruz:
-      let className = 'text-message left-message ';
+      let msgHTML = `
+      <div class="message-item">
+        <div class="message-avatar">${sender.charAt(0).toUpperCase()}</div>
+        <div class="message-body">
+          <div class="message-header">
+            <span class="sender-name">${sender}</span>
+            <span class="timestamp">${time}</span>
+          </div>
+          <div class="message-content">${msg.content}</div>
+        </div>
+      </div>
+      `;
       const msgDiv = document.createElement('div');
-      msgDiv.className = className;
+      msgDiv.className = 'text-message left-message';
       msgDiv.setAttribute('data-timestamp', msg.timestamp);
       msgDiv.setAttribute('data-sender', sender);
-      msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
+      msgDiv.innerHTML = msgHTML;
       container.appendChild(msgDiv);
       container.scrollTop = container.scrollHeight;
     }

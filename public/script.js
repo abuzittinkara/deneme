@@ -939,13 +939,24 @@ function initUIEvents() {
     const msg = textChannelMessageInput.value.trim();
     if (!msg) return;
     const time = formatTimestamp(new Date());
-    // Tüm mesajlar için sol hizalı düzen kullanılacak:
-    const className = 'text-message left-message';
+    // Gönderilen mesajı render ederken avatar ve kullanıcı adı ekleyerek oluşturuyoruz.
+    const msgHTML = `
+      <div class="message-item">
+        <div class="message-avatar">${username.charAt(0).toUpperCase()}</div>
+        <div class="message-body">
+          <div class="message-header">
+            <span class="sender-name">${username}</span>
+            <span class="timestamp">${time}</span>
+          </div>
+          <div class="message-content">${msg}</div>
+        </div>
+      </div>
+    `;
     const msgDiv = document.createElement('div');
-    msgDiv.className = className;
-    msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg}</div>`;
+    msgDiv.className = 'text-message left-message';
     msgDiv.setAttribute('data-timestamp', new Date());
     msgDiv.setAttribute('data-sender', username);
+    msgDiv.innerHTML = msgHTML;
     textMessages.appendChild(msgDiv);
     textMessages.scrollTop = textMessages.scrollHeight;
     socket.emit('textMessage', { groupId: selectedGroup, roomId: currentTextChannel, message: msg, username: username });
