@@ -946,8 +946,7 @@ function initUIEvents() {
     if (lastMsgDiv && lastSender === username) {
       lastMsgDiv.classList.remove('last-message');
     }
-    // Tüm mesajlar sol tarafta listelenecek, bu nedenle "received-message" kullanılıyor.
-    const className = 'text-message received-message ' + (isFirst ? 'first-message ' : 'subsequent-message ') + 'last-message';
+    const className = 'text-message sent-message ' + (isFirst ? 'first-message ' : 'subsequent-message ') + 'last-message';
     const msgDiv = document.createElement('div');
     msgDiv.className = className;
     if (isFirst) {

@@ -42,12 +42,13 @@ function renderTextMessages(messages, container) {
     }
     const time = formatTimestamp(msg.timestamp);
     const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
-    // Artık tüm mesajlar sol tarafta listelenecek: "received-message"
-    let className = 'text-message received-message ';
+    // Tüm mesajlar için aynı (sola hizalı) sınıf kullanıyoruz:
+    let className = 'text-message left-message ';
     const msgDiv = document.createElement('div');
     msgDiv.className = className;
     msgDiv.setAttribute('data-timestamp', msg.timestamp);
     msgDiv.setAttribute('data-sender', sender);
+    // Her mesaj için ortak yapı kullanılıyor:
     msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
     container.appendChild(msgDiv);
   });
@@ -71,13 +72,13 @@ function initTextChannelEvents(socket, container) {
       }
       const time = formatTimestamp(msg.timestamp);
       const sender = msg.username || "Anon";
-      // Her mesaj için "received-message" sınıfı kullanılıyor.
-      let className = 'text-message received-message ';
+      // Her mesaj için aynı (sola hizalı) sınıf kullanıyoruz:
+      let className = 'text-message left-message ';
       const msgDiv = document.createElement('div');
       msgDiv.className = className;
       msgDiv.setAttribute('data-timestamp', msg.timestamp);
       msgDiv.setAttribute('data-sender', sender);
-      msgDiv.innerHTML = `<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
+      msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
       container.appendChild(msgDiv);
       container.scrollTop = container.scrollHeight;
     }
