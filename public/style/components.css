@@ -313,8 +313,8 @@
   gap: 0.4rem;
 }
 .message-avatar {
-  width: 24px;
-  height: 24px;
+  width: 40px;
+  height: 40px;
   background-color: #666;
   border-radius: 50%;
   color: #fff;
@@ -323,15 +323,11 @@
   justify-content: center;
   font-weight: bold;
 }
-
-/* Gönderen Adı */
 .sender-name {
   font-weight: bold;
   margin-right: 4px;
   color: #fff;
 }
-
-/* Zaman Bilgisi */
 .timestamp {
   font-weight: 300;
   font-size: 0.8em;
@@ -339,10 +335,11 @@
   margin-left: 4px;
 }
 
-/* Mesaj içeriği - Başlangıçta boşluk için sol margin eklendi */
+/* Mesaj içeriği: Avatar ve kullanıcı adının bulunduğu satırın sağından hizalanması için sol margin.
+   Hesaplama: Avatar genişliği (40px) + gap (yaklaşık 0.4rem, yaklaşık 6px) = yaklaşık 46px, yuvarlayarak 48px öneriliyor. */
 .message-content {
   margin-top: 4px;
-  margin-left: 30px;
+  margin-left: 48px;
 }
 
 /* Scrollbar - WebKit */
