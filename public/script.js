@@ -194,7 +194,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
   
-  // Initialize text channel events. Not: textMessages elementinin dataset.channelId, aktif kanal id'sini barındıracak.
+  // Initialize text channel events. textMessages elementinin dataset.channelId, aktif kanal id'sini barındıracak.
   TextChannel.initTextChannelEvents(socket, textMessages);
 });
 
@@ -939,21 +939,11 @@ function initUIEvents() {
     const msg = textChannelMessageInput.value.trim();
     if (!msg) return;
     const time = formatTimestamp(new Date());
-    const timeOnly = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    let lastMsgDiv = textMessages.lastElementChild;
-    let lastSender = lastMsgDiv ? lastMsgDiv.getAttribute('data-sender') : null;
-    const isFirst = (!lastMsgDiv || lastSender !== username || (lastMsgDiv.getAttribute('data-timestamp') && isDifferentDay(lastMsgDiv.getAttribute('data-timestamp'), new Date())));
-    if (lastMsgDiv && lastSender === username) {
-      lastMsgDiv.classList.remove('last-message');
-    }
-    const className = 'text-message sent-message ' + (isFirst ? 'first-message ' : 'subsequent-message ') + 'last-message';
+    // Tüm mesajlar için sol hizalı düzen kullanılacak:
+    const className = 'text-message left-message';
     const msgDiv = document.createElement('div');
     msgDiv.className = className;
-    if (isFirst) {
-      msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg}</div>`;
-    } else {
-      msgDiv.innerHTML = `<div class="message-content without-timestamp">${msg}<span class="timestamp-hover">${timeOnly}</span></div>`;
-    }
+    msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg}</div>`;
     msgDiv.setAttribute('data-timestamp', new Date());
     msgDiv.setAttribute('data-sender', username);
     textMessages.appendChild(msgDiv);
