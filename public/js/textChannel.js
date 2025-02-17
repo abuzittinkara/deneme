@@ -42,10 +42,12 @@ function renderTextMessages(messages, container) {
     }
     const time = formatTimestamp(msg.timestamp);
     const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
-    // Tüm mesajlar için ortak "message-item" yapısını kullanıyoruz:
+    // Oluşturulan HTML yapısında, avatar userPanel'deki gibi "profile-thumb" sınıfı ile sol tarafta yer alır.
     let msgHTML = `
       <div class="message-item">
-        <div class="message-avatar">${sender.charAt(0).toUpperCase()}</div>
+        <div class="message-avatar">
+          <div class="profile-thumb">${sender.charAt(0).toUpperCase()}</div>
+        </div>
         <div class="message-body">
           <div class="message-header">
             <span class="sender-name">${sender}</span>
@@ -83,16 +85,18 @@ function initTextChannelEvents(socket, container) {
       const time = formatTimestamp(msg.timestamp);
       const sender = msg.username || "Anon";
       let msgHTML = `
-      <div class="message-item">
-        <div class="message-avatar">${sender.charAt(0).toUpperCase()}</div>
-        <div class="message-body">
-          <div class="message-header">
-            <span class="sender-name">${sender}</span>
-            <span class="timestamp">${time}</span>
+        <div class="message-item">
+          <div class="message-avatar">
+            <div class="profile-thumb">${sender.charAt(0).toUpperCase()}</div>
           </div>
-          <div class="message-content">${msg.content}</div>
+          <div class="message-body">
+            <div class="message-header">
+              <span class="sender-name">${sender}</span>
+              <span class="timestamp">${time}</span>
+            </div>
+            <div class="message-content">${msg.content}</div>
+          </div>
         </div>
-      </div>
       `;
       const msgDiv = document.createElement('div');
       msgDiv.className = 'text-message left-message';
