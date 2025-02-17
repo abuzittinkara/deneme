@@ -1,6 +1,9 @@
 /**************************************
  * public/js/textChannel.js
+ * Metin (mesaj) kanallarıyla ilgili tüm fonksiyonlar burada toplanmıştır.
  **************************************/
+
+// İki timestamp'in gün bazında farklı olup olmadığını kontrol eder.
 function isDifferentDay(ts1, ts2) {
   const d1 = new Date(ts1);
   const d2 = new Date(ts2);
@@ -9,6 +12,7 @@ function isDifferentDay(ts1, ts2) {
          d1.getDate() !== d2.getDate();
 }
 
+// Belirtilen timestamp'i "Bugün HH:MM", "Dün HH:MM" veya "DD.MM.YYYY HH:MM" formatında döndürür.
 function formatTimestamp(timestamp) {
   const date = new Date(timestamp);
   const now = new Date();
@@ -27,6 +31,7 @@ function formatTimestamp(timestamp) {
   }
 }
 
+// Belirtilen container'a, verilen timestamp için tarih ayırıcı ekler.
 function insertDateSeparator(container, timestamp) {
   const separator = document.createElement('div');
   separator.className = 'date-separator';
@@ -34,6 +39,8 @@ function insertDateSeparator(container, timestamp) {
   container.appendChild(separator);
 }
 
+// Verilen mesaj listesini container içerisine render eder.
+// Her mesaj, avatar (gönderenin adının ilk harfi), kullanıcı adı, zaman bilgisi ve mesaj içeriğini içerir.
 function renderTextMessages(messages, container) {
   container.innerHTML = "";
   messages.forEach((msg, index) => {
@@ -43,8 +50,7 @@ function renderTextMessages(messages, container) {
     const time = formatTimestamp(msg.timestamp);
     const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
     const avatarLetter = sender.charAt(0).toUpperCase();
-
-    // Kullanıcı adı ve avatarı aynı satıra alıyoruz:
+    // Avatar ve kullanıcı adını aynı satırda gösteren yapı:
     let msgHTML = `
       <div class="message-item">
         <div class="message-header">
@@ -57,7 +63,6 @@ function renderTextMessages(messages, container) {
         <div class="message-content">${msg.content}</div>
       </div>
     `;
-
     const msgDiv = document.createElement('div');
     msgDiv.className = 'text-message left-message';
     msgDiv.setAttribute('data-timestamp', msg.timestamp);
@@ -68,6 +73,8 @@ function renderTextMessages(messages, container) {
   container.scrollTop = container.scrollHeight;
 }
 
+// Socket üzerinden gelen "textHistory" ve "newTextMessage" eventlerini işleyip,
+// ilgili container'a mesajları render eder.
 function initTextChannelEvents(socket, container) {
   socket.on('textHistory', (messages) => {
     renderTextMessages(messages, container);
@@ -86,7 +93,6 @@ function initTextChannelEvents(socket, container) {
       const time = formatTimestamp(msg.timestamp);
       const sender = msg.username || "Anon";
       const avatarLetter = sender.charAt(0).toUpperCase();
-
       let msgHTML = `
         <div class="message-item">
           <div class="message-header">
@@ -99,7 +105,6 @@ function initTextChannelEvents(socket, container) {
           <div class="message-content">${msg.content}</div>
         </div>
       `;
-
       const msgDiv = document.createElement('div');
       msgDiv.className = 'text-message left-message';
       msgDiv.setAttribute('data-timestamp', msg.timestamp);
@@ -111,4 +116,4 @@ function initTextChannelEvents(socket, container) {
   });
 }
 
-export { initTextChannelEvents, renderTextMessages, formatTimestamp, insertDateSeparator, isDifferentDay };
+export { isDifferentDay, formatTimestamp, insertDateSeparator, renderTextMessages, initTextChannelEvents };

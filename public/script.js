@@ -43,7 +43,8 @@ let audioAnalyzers = {};
 
 let pingInterval = null;
 
-/* --- Artık formatTimestamp, formatLongDate, isDifferentDay gibi fonksiyonlar TextChannel modülünden sağlanıyor --- */
+/* Formatlama fonksiyonları TextChannel modülünden sağlandığından, 
+   formatLongDate gibi fonksiyonları buraya yeniden yazmaya gerek yok. */
 
 const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
@@ -120,8 +121,8 @@ window.addEventListener('DOMContentLoaded', () => {
   console.log("Socket connected =>", socket.id);
   initSocketEvents();
   initUIEvents();
-
-  // #textMessages için scroll event listener
+  
+  // Scroll event listener
   const tm = textMessages;
   let removeScrollingTimeout;
   if (tm) {
@@ -140,18 +141,13 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-
-  // Metin kanalını başlat (aktif kanal id'si textMessages.dataset.channelId üzerinden yönetilecek)
+  
+  // Metin kanalına ait eventleri modül üzerinden başlatıyoruz.
   TextChannel.initTextChannelEvents(socket, textMessages);
 });
 
-function insertDateSeparator(timestamp) {
-  const separator = document.createElement('div');
-  separator.className = 'date-separator';
-  // formatLongDate fonksiyonunu TextChannel modülünden çağırıyoruz
-  separator.innerHTML = `<span class="separator-text">${TextChannel.formatLongDate(timestamp)}</span>`;
-  textMessages.appendChild(separator);
-}
+// insertDateSeparator fonksiyonu TextChannel modülündeki fonksiyonlar kullanılarak da yapılabilir.
+// Diğer socket eventleri, SFU, UI eventleri vb. de aynı şekilde korunuyor.
 
 function initSocketEvents() {
   socket.on('connect', () => {
@@ -250,7 +246,6 @@ function initSocketEvents() {
           }
           textMessages.innerHTML = "";
           currentTextChannel = roomObj.id;
-          // Set active text channel id in dataset
           textMessages.dataset.channelId = roomObj.id;
           socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: roomObj.id });
           return;
@@ -370,7 +365,7 @@ function initSocketEvents() {
     consumeProducer(producerId);
   });
   
-  // Metin mesajları render işlemleri TextChannel modülüne taşındı.
+  // Metin mesajlarının render işlemleri TextChannel modülüne taşındı.
 }
 
 function startSfuFlow() {
@@ -882,7 +877,7 @@ function initUIEvents() {
     // ...
   });
   
-  // Mesaj gönderme işlemi için sendTextMessage fonksiyonu
+  // Mesaj gönderme işlemi
   function sendTextMessage() {
     const msg = textChannelMessageInput.value.trim();
     if (!msg) return;
