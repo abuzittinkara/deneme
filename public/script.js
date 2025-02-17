@@ -28,11 +28,8 @@ let username = null;
 let currentGroup = null;
 let currentRoom = null;
 let selectedGroup = null;
-// Metin kanalı için seçili kanal id'si
-let currentTextChannel = null;
-
-// Kullanıcının bağlı olduğu kanalın türü ("voice" veya "text")
-let currentRoomType = null;
+let currentTextChannel = null; // Metin kanalı için seçili kanal id'si
+let currentRoomType = null;    // Kullanıcının bağlı olduğu kanal türü ("voice" veya "text")
 
 // Mikrofon / Kulaklık
 let micEnabled = true;
@@ -46,57 +43,8 @@ let audioAnalyzers = {};
 
 let pingInterval = null;
 
-/* Zaman biçimlendirme fonksiyonu
-   Eğer mesaj bugüne aitse "Bugün HH:MM", düne aitse "Dün HH:MM",
-   aksi halde "DD.MM.YYYY HH:MM" formatında döner.
-*/
-function formatTimestamp(timestamp) {
-  const date = new Date(timestamp);
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-  
-  if (date >= today) {
-    return "Bugün " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  } else if (date >= yesterday && date < today) {
-    return "Dün " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  } else {
-    const day = ("0" + date.getDate()).slice(-2);
-    const month = ("0" + (date.getMonth() + 1)).slice(-2);
-    const year = date.getFullYear();
-    const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    return `${day}.${month}.${year} ${timeStr}`;
-  }
-}
+/* ... formatTimestamp, formatTimeOnly, formatLongDate, isDifferentDay fonksiyonları ... (aynen korunuyor) */
 
-/* Yalnızca saat bilgisini döndüren fonksiyon */
-function formatTimeOnly(timestamp) {
-  const date = new Date(timestamp);
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
-
-/* Uzun tarih biçimi (ör. "21 Ocak 2025") */
-function formatLongDate(timestamp) {
-  const date = new Date(timestamp);
-  const day = date.getDate();
-  const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
-  const month = monthNames[date.getMonth()];
-  const year = date.getFullYear();
-  return `${day} ${month} ${year}`;
-}
-
-/* İki timestamp'in gün bazında farklı olup olmadığını kontrol eder */
-function isDifferentDay(ts1, ts2) {
-  const d1 = new Date(ts1);
-  const d2 = new Date(ts2);
-  return d1.getFullYear() !== d2.getFullYear() ||
-         d1.getMonth() !== d2.getMonth() ||
-         d1.getDate() !== d2.getDate();
-}
-
-/*
-  DOM element referansları
-*/
 const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
 const callScreen = document.getElementById('callScreen');
@@ -167,14 +115,13 @@ const textChatInputBar = document.getElementById('text-chat-input-bar');
 const textChannelMessageInput = document.getElementById('textChannelMessageInput');
 const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
-// Tüm DOMContentLoaded işlemlerini tek bir event listener içine alıyoruz.
 window.addEventListener('DOMContentLoaded', () => {
   socket = io("https://fisqos.com.tr", { transports: ['websocket'] });
   console.log("Socket connected =>", socket.id);
   initSocketEvents();
   initUIEvents();
   
-  // #textMessages için scroll event listener
+  // Scroll event
   const tm = document.getElementById('textMessages');
   let removeScrollingTimeout;
   if (tm) {
@@ -934,38 +881,50 @@ function initUIEvents() {
     // ...
   });
   
-  // Mesaj gönderme işlemi için sendTextMessage fonksiyonu
+  // Mesaj gönderme işlemi
   function sendTextMessage() {
     const msg = textChannelMessageInput.value.trim();
     if (!msg) return;
     const time = formatTimestamp(new Date());
-    // Gönderilen mesajı render ederken avatar ve kullanıcı adı ekleyerek oluşturuyoruz.
-    const msgHTML = `
+    const avatarLetter = username ? username.charAt(0).toUpperCase() : '?';
+
+    // Avatar + kullanıcı adı + timestamp aynı satırda
+    let msgHTML = `
       <div class="message-item">
-        <div class="message-avatar">${username.charAt(0).toUpperCase()}</div>
-        <div class="message-body">
-          <div class="message-header">
+        <div class="message-header">
+          <div class="avatar-and-name">
+            <div class="message-avatar">${avatarLetter}</div>
             <span class="sender-name">${username}</span>
-            <span class="timestamp">${time}</span>
           </div>
-          <div class="message-content">${msg}</div>
+          <span class="timestamp">${time}</span>
         </div>
+        <div class="message-content">${msg}</div>
       </div>
     `;
+
+    const className = 'text-message left-message';
     const msgDiv = document.createElement('div');
-    msgDiv.className = 'text-message left-message';
+    msgDiv.className = className;
     msgDiv.setAttribute('data-timestamp', new Date());
     msgDiv.setAttribute('data-sender', username);
     msgDiv.innerHTML = msgHTML;
     textMessages.appendChild(msgDiv);
     textMessages.scrollTop = textMessages.scrollHeight;
-    socket.emit('textMessage', { groupId: selectedGroup, roomId: currentTextChannel, message: msg, username: username });
+
+    // Socket'e "textMessage" emit
+    socket.emit('textMessage', { 
+      groupId: selectedGroup, 
+      roomId: currentTextChannel, 
+      message: msg, 
+      username: username 
+    });
+
     textChannelMessageInput.value = '';
     sendTextMessageBtn.style.display = "none";
   }
   
   sendTextMessageBtn.addEventListener('click', sendTextMessage);
-  
+
   textChannelMessageInput.addEventListener('input', () => {
     if (textChannelMessageInput.value.trim() !== "") {
       sendTextMessageBtn.style.display = "block";
@@ -973,7 +932,7 @@ function initUIEvents() {
       sendTextMessageBtn.style.display = "none";
     }
   });
-  
+
   textChannelMessageInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();

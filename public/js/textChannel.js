@@ -42,21 +42,22 @@ function renderTextMessages(messages, container) {
     }
     const time = formatTimestamp(msg.timestamp);
     const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
-    // Oluşturulan HTML yapısında, avatar userPanel'deki gibi "profile-thumb" sınıfı ile sol tarafta yer alır.
+    const avatarLetter = sender.charAt(0).toUpperCase();
+
+    // Kullanıcı adı ve avatarı aynı satıra alıyoruz:
     let msgHTML = `
       <div class="message-item">
-        <div class="message-avatar">
-          <div class="profile-thumb">${sender.charAt(0).toUpperCase()}</div>
-        </div>
-        <div class="message-body">
-          <div class="message-header">
+        <div class="message-header">
+          <div class="avatar-and-name">
+            <div class="message-avatar">${avatarLetter}</div>
             <span class="sender-name">${sender}</span>
-            <span class="timestamp">${time}</span>
           </div>
-          <div class="message-content">${msg.content}</div>
+          <span class="timestamp">${time}</span>
         </div>
+        <div class="message-content">${msg.content}</div>
       </div>
     `;
+
     const msgDiv = document.createElement('div');
     msgDiv.className = 'text-message left-message';
     msgDiv.setAttribute('data-timestamp', msg.timestamp);
@@ -84,20 +85,21 @@ function initTextChannelEvents(socket, container) {
       }
       const time = formatTimestamp(msg.timestamp);
       const sender = msg.username || "Anon";
+      const avatarLetter = sender.charAt(0).toUpperCase();
+
       let msgHTML = `
         <div class="message-item">
-          <div class="message-avatar">
-            <div class="profile-thumb">${sender.charAt(0).toUpperCase()}</div>
-          </div>
-          <div class="message-body">
-            <div class="message-header">
+          <div class="message-header">
+            <div class="avatar-and-name">
+              <div class="message-avatar">${avatarLetter}</div>
               <span class="sender-name">${sender}</span>
-              <span class="timestamp">${time}</span>
             </div>
-            <div class="message-content">${msg.content}</div>
+            <span class="timestamp">${time}</span>
           </div>
+          <div class="message-content">${msg.content}</div>
         </div>
       `;
+
       const msgDiv = document.createElement('div');
       msgDiv.className = 'text-message left-message';
       msgDiv.setAttribute('data-timestamp', msg.timestamp);

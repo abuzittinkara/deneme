@@ -27,7 +27,7 @@
   font-size: 0.9rem;
 }
 
-/* Yeni: Circle Butonlar (DM ve Grup Oluşturma) */
+/* Circle Butonlar (DM butonu ve Grup Oluşturma) */
 .circle-btn {
   background-color: #c61884;
   color: #fff;
@@ -112,7 +112,7 @@
 .channel-user-avatar {
   width: 24px;
   height: 24px;
-  border-radius: 45%;
+  border-radius: 50%;
   background-color: #666;
 }
 .channel-user-avatar.speaking {
@@ -169,7 +169,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  align-self: center;
   margin-right: 0.4rem;
 }
 .leave-btn:hover {
@@ -199,7 +198,7 @@
   width: 40px;
   height: 40px;
   background: #666;
-  border-radius: 45%;
+  border-radius: 50%;
 }
 .left-username {
   font-size: 0.9rem;
@@ -279,7 +278,7 @@
   max-width: 70%;
   word-wrap: break-word;
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
   transition: background-color 0.2s ease, width 0.2s ease;
   position: relative;
 }
@@ -288,94 +287,44 @@
   width: 100% !important;
   max-width: 100% !important;
   box-sizing: border-box;
-  background-color: #2d2d2d;
 }
 
-/* Gönderilen mesajlar için */
-.sent-message {
-  background-color: #353535;
-  align-self: flex-end;
-  text-align: right;
-  flex-direction: row-reverse;
-  margin-top: 5px;
+/* Mesaj öğesi yapısı */
+.message-item {
+  display: flex;
+  flex-direction: column;
 }
-
-/* Received mesajlar için */
-.text-message.received-message {
-  align-self: flex-start;
-  text-align: left;
-  flex-direction: row;
-  margin-top: 12px;
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
 }
-.text-message.received-message + .text-message.received-message {
-  margin-top: 0;
+.avatar-and-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
-
-/* Mesaj İçerikleri */
-.message-content.with-avatar {
-  margin-top: 0;
-}
-.message-content.without-avatar {
-  margin-top: 0;
-}
-.message-content.without-timestamp,
-.message-content.without-avatar {
-  position: relative;
-}
-
-/* Mesaj Avatarı */
 .message-avatar {
-  width: 32px;
-  height: 0px;
-  background-color: #353535;
-  color: #333;
+  width: 24px;
+  height: 24px;
+  background-color: #666;
+  border-radius: 50%;
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  margin-right: 8px;
 }
-
-/* Tarih/Saat */
-.timestamp {
-  font-weight: 300;
-  font-size: 0.8em;
-  margin-left: 4px;
-  color: #5a5a5a;
-}
-.own-timestamp {
-  font-weight: 300;
-  font-size: 0.8em;
-  margin-right: 4px;
-  color: #5a5a5a;
-}
-
-/* Gönderen Adı */
 .sender-name {
   font-weight: bold;
-  margin-right: 8px;
 }
-
-/* Timestamp Hover */
-.timestamp-hover {
-  display: none !important;
-  position: absolute;
-  font-weight: 300;
+.timestamp {
   font-size: 0.8em;
-  color: #aaa;
+  color: #5a5a5a;
 }
-.text-message.received-message:not(.first-message):hover .timestamp-hover {
-  display: block !important;
-  left: -42px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-.text-message.sent-message:not(.first-message):hover .timestamp-hover {
-  display: block !important;
-  right: -60px;
-  top: 50%;
-  transform: translateY(-50%);
-  left: auto;
+.message-content {
+  font-size: 1em;
 }
 
 /* Scrollbar - WebKit */
@@ -472,7 +421,7 @@
   width: 30px;
   height: 30px;
   background: #666;
-  border-radius: 45%;
+  border-radius: 50%;
 }
 .user-name {
   flex: 1;
@@ -630,7 +579,6 @@
 .message-avatar.placeholder {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
-
 .text-message:hover .message-avatar.placeholder {
   background-color: #2d2d2d;
 }
