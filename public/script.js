@@ -43,7 +43,7 @@ let audioAnalyzers = {};
 
 let pingInterval = null;
 
-/* ... formatTimestamp, formatTimeOnly, formatLongDate, isDifferentDay fonksiyonları ... (aynen korunuyor) */
+/* --- Artık formatTimestamp, formatLongDate, isDifferentDay gibi fonksiyonlar TextChannel modülünden sağlanıyor --- */
 
 const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
@@ -120,9 +120,9 @@ window.addEventListener('DOMContentLoaded', () => {
   console.log("Socket connected =>", socket.id);
   initSocketEvents();
   initUIEvents();
-  
-  // Scroll event
-  const tm = document.getElementById('textMessages');
+
+  // #textMessages için scroll event listener
+  const tm = textMessages;
   let removeScrollingTimeout;
   if (tm) {
     tm.addEventListener('scroll', function() {
@@ -140,15 +140,16 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-  
-  // Initialize text channel events. textMessages elementinin dataset.channelId, aktif kanal id'sini barındıracak.
+
+  // Metin kanalını başlat (aktif kanal id'si textMessages.dataset.channelId üzerinden yönetilecek)
   TextChannel.initTextChannelEvents(socket, textMessages);
 });
 
 function insertDateSeparator(timestamp) {
   const separator = document.createElement('div');
   separator.className = 'date-separator';
-  separator.innerHTML = `<span class="separator-text">${formatLongDate(timestamp)}</span>`;
+  // formatLongDate fonksiyonunu TextChannel modülünden çağırıyoruz
+  separator.innerHTML = `<span class="separator-text">${TextChannel.formatLongDate(timestamp)}</span>`;
   textMessages.appendChild(separator);
 }
 
@@ -249,7 +250,7 @@ function initSocketEvents() {
           }
           textMessages.innerHTML = "";
           currentTextChannel = roomObj.id;
-          // Set the active text channel id in the textMessages container's dataset
+          // Set active text channel id in dataset
           textMessages.dataset.channelId = roomObj.id;
           socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: roomObj.id });
           return;
@@ -369,7 +370,7 @@ function initSocketEvents() {
     consumeProducer(producerId);
   });
   
-  // METİN MESAJLARININ RENDER İŞLEMLERİ artık TextChannel modülüne taşındı.
+  // Metin mesajları render işlemleri TextChannel modülüne taşındı.
 }
 
 function startSfuFlow() {
@@ -881,14 +882,12 @@ function initUIEvents() {
     // ...
   });
   
-  // Mesaj gönderme işlemi
+  // Mesaj gönderme işlemi için sendTextMessage fonksiyonu
   function sendTextMessage() {
     const msg = textChannelMessageInput.value.trim();
     if (!msg) return;
-    const time = formatTimestamp(new Date());
+    const time = TextChannel.formatTimestamp(new Date());
     const avatarLetter = username ? username.charAt(0).toUpperCase() : '?';
-
-    // Avatar + kullanıcı adı + timestamp aynı satırda
     let msgHTML = `
       <div class="message-item">
         <div class="message-header">
@@ -901,7 +900,6 @@ function initUIEvents() {
         <div class="message-content">${msg}</div>
       </div>
     `;
-
     const className = 'text-message left-message';
     const msgDiv = document.createElement('div');
     msgDiv.className = className;
@@ -910,21 +908,18 @@ function initUIEvents() {
     msgDiv.innerHTML = msgHTML;
     textMessages.appendChild(msgDiv);
     textMessages.scrollTop = textMessages.scrollHeight;
-
-    // Socket'e "textMessage" emit
     socket.emit('textMessage', { 
       groupId: selectedGroup, 
       roomId: currentTextChannel, 
       message: msg, 
       username: username 
     });
-
     textChannelMessageInput.value = '';
     sendTextMessageBtn.style.display = "none";
   }
   
   sendTextMessageBtn.addEventListener('click', sendTextMessage);
-
+  
   textChannelMessageInput.addEventListener('input', () => {
     if (textChannelMessageInput.value.trim() !== "") {
       sendTextMessageBtn.style.display = "block";
@@ -932,13 +927,15 @@ function initUIEvents() {
       sendTextMessageBtn.style.display = "none";
     }
   });
-
+  
   textChannelMessageInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       sendTextMessage();
     }
   });
+  
+  // Diğer UI event handler'ları tam haliyle korunuyor.
 }
 
 function applyAudioStates() {
@@ -1137,7 +1134,7 @@ function updateCellBars(ping) {
 
 /* Yeni: Mesajlar arasında gün farkı varsa tarih ayracı ekle */
 function insertSeparatorIfNeeded(prevTimestamp, currentTimestamp) {
-  if (!prevTimestamp || isDifferentDay(prevTimestamp, currentTimestamp)) {
+  if (!prevTimestamp || TextChannel.isDifferentDay(prevTimestamp, currentTimestamp)) {
     insertDateSeparator(currentTimestamp);
   }
 }
