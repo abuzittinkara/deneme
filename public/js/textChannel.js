@@ -42,17 +42,13 @@ function renderTextMessages(messages, container) {
     }
     const time = formatTimestamp(msg.timestamp);
     const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
-    let className = 'text-message ';
-    className += (sender === window.username) ? 'sent-message ' : 'received-message ';
+    // Artık tüm mesajlar sol tarafta listelenecek: "received-message"
+    let className = 'text-message received-message ';
     const msgDiv = document.createElement('div');
     msgDiv.className = className;
     msgDiv.setAttribute('data-timestamp', msg.timestamp);
     msgDiv.setAttribute('data-sender', sender);
-    if (sender === window.username) {
-      msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
-    } else {
-      msgDiv.innerHTML = `<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
-    }
+    msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
     container.appendChild(msgDiv);
   });
   container.scrollTop = container.scrollHeight;
@@ -64,7 +60,6 @@ function initTextChannelEvents(socket, container) {
   });
 
   socket.on('newTextMessage', (data) => {
-    // Aktif metin kanalını container.dataset.channelId ile kontrol ediyoruz.
     if (data.channelId === container.dataset.channelId) {
       const msg = data.message;
       let lastMsgDiv = container.lastElementChild;
@@ -76,17 +71,13 @@ function initTextChannelEvents(socket, container) {
       }
       const time = formatTimestamp(msg.timestamp);
       const sender = msg.username || "Anon";
-      let className = 'text-message ';
-      className += (sender === window.username) ? 'sent-message ' : 'received-message ';
+      // Her mesaj için "received-message" sınıfı kullanılıyor.
+      let className = 'text-message received-message ';
       const msgDiv = document.createElement('div');
       msgDiv.className = className;
       msgDiv.setAttribute('data-timestamp', msg.timestamp);
       msgDiv.setAttribute('data-sender', sender);
-      if (sender === window.username) {
-        msgDiv.innerHTML = `<div class="message-content with-timestamp"><span class="own-timestamp">${time}</span> ${msg.content}</div>`;
-      } else {
-        msgDiv.innerHTML = `<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
-      }
+      msgDiv.innerHTML = `<div class="message-content with-avatar"><span class="sender-name">${sender}</span> <span class="timestamp">${time}</span><br>${msg.content}</div>`;
       container.appendChild(msgDiv);
       container.scrollTop = container.scrollHeight;
     }
