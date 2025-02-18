@@ -84,7 +84,6 @@ function renderTextMessages(messages, container) {
       msgHTML = renderContentOnly(msg);
     }
     const msgDiv = document.createElement('div');
-    // Sınıf eklemelerini CSS ile istediğiniz gibi stil verebilirsiniz.
     msgDiv.className = 'text-message left-message';
     msgDiv.setAttribute('data-timestamp', msg.timestamp);
     msgDiv.setAttribute('data-sender', sender);
@@ -95,20 +94,27 @@ function renderTextMessages(messages, container) {
 }
 
 // Yeni gelen mesajı, container'daki son mesajla karşılaştırarak render eder.
-// Gün farkı varsa, önce tarih ayıracı ekler.
+// Gün farkı kontrolü için; önce container'ın son (date-separator olmayan) mesajını alır,
+// sonra onun data-timestamp değerini Date objesine çevirerek yeni mesajın timestamp'iyle karşılaştırır.
+// Eğer container boşsa veya gün farklılığı varsa, tarih ayıracı eklenir.
 function appendNewMessage(msg, container) {
   const sender = msg.username || "Anon";
   const time = formatTimestamp(msg.timestamp);
   
-  // Önceki mesajı almak için container'ın son elemanını kontrol edelim.
+  // Container'daki son mesajı (date-separator olmayan) bulalım.
   let lastMsgElem = container.lastElementChild;
-  // Eğer son eleman tarih ayırıcı ise, onun öncesine geçelim.
   while (lastMsgElem && lastMsgElem.classList.contains('date-separator')) {
     lastMsgElem = lastMsgElem.previousElementSibling;
   }
-  // Eğer son mesaj mevcutsa ve gün farklılığı varsa tarih ayıracı ekle.
-  if (lastMsgElem && isDifferentDay(lastMsgElem.getAttribute('data-timestamp'), msg.timestamp)) {
+  // Eğer container boşsa veya son mesajın timestamp'i ile yeni mesajın timestamp'i farklı gün gösteriyorsa tarih ayıracı ekle.
+  if (!lastMsgElem) {
     insertDateSeparator(container, msg.timestamp);
+  } else {
+    const prevTimestampStr = lastMsgElem.getAttribute('data-timestamp');
+    // Açıkça Date objesine çevirerek karşılaştıralım:
+    if (isDifferentDay(new Date(prevTimestampStr), new Date(msg.timestamp))) {
+      insertDateSeparator(container, msg.timestamp);
+    }
   }
   
   let prevSender = "";
@@ -145,8 +151,13 @@ function initTextChannelEvents(socket, container) {
       while (lastChild && lastChild.classList.contains('date-separator')) {
         lastChild = lastChild.previousElementSibling;
       }
-      if (lastChild && isDifferentDay(lastChild.getAttribute('data-timestamp'), msg.timestamp)) {
+      if (!lastChild) {
         insertDateSeparator(container, msg.timestamp);
+      } else {
+        const prevTimestampStr = lastChild.getAttribute('data-timestamp');
+        if (isDifferentDay(new Date(prevTimestampStr), new Date(msg.timestamp))) {
+          insertDateSeparator(container, msg.timestamp);
+        }
       }
       appendNewMessage(msg, container);
     }
