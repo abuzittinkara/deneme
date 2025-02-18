@@ -146,8 +146,6 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function initSocketEvents() {
-  // Tüm socket event'leri (loginResult, registerResult, groupsList, roomsList, allChannelsData, joinRoomAck, roomUsers, groupRenamed, groupDeleted, newProducer) olduğu gibi korunuyor.
-  // (Kodun ilgili kısımları eksiksiz eklenecektir.)
   socket.on('connect', () => {
     console.log("Socket tekrar bağlandı =>", socket.id);
   });
@@ -885,15 +883,14 @@ function initUIEvents() {
     if (textMessages.lastElementChild && !textMessages.lastElementChild.classList.contains('date-separator')) {
       prevSender = textMessages.lastElementChild.getAttribute('data-sender');
     }
-    const avatarLetter = username ? username.charAt(0).toUpperCase() : '?';
     let msgHTML = "";
     if (!prevSender || prevSender !== username) {
-      // İlk mesaj, avatar ve kullanıcı adını göster
+      // İlk ardışık mesaj: avatar ve kullanıcı adı (güncellendi: avatar içinde kullanıcı adı olmayacak)
       msgHTML = `
         <div class="message-item">
           <div class="message-header">
             <div class="avatar-and-name">
-              <img class="message-avatar" src="/images/default-avatar.png" alt="${username}">
+              <img class="message-avatar" src="/images/default-avatar.png" alt="">
               <span class="sender-name">${username}</span>
             </div>
             <span class="timestamp">${time}</span>

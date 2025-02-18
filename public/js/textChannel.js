@@ -31,7 +31,7 @@ function formatTimestamp(timestamp) {
   }
 }
 
-// Tarih ayırıcısı ekler.
+// Belirtilen container'a, verilen timestamp için tarih ayırıcı ekler.
 function insertDateSeparator(container, timestamp) {
   const separator = document.createElement('div');
   separator.className = 'date-separator';
@@ -40,15 +40,13 @@ function insertDateSeparator(container, timestamp) {
 }
 
 // Mesajı, tam header (avatar + kullanıcı adı + zaman) şeklinde render eder.
+// Avatar kısmında alt metin boş bırakıldı; böylece ekstra kullanıcı adı görünmeyecek.
 function renderFullMessage(msg, sender, time) {
-  // Burada avatar olarak, UserPanel’deki gibi gerçek avatar resmi kullanılacak.
-  // Örneğin, eğer kullanıcı bilgisine avatar URL eklenecekse (örneğin msg.user.avatar) onu kullanabilirsiniz.
-  // Şimdilik varsayılan olarak "/images/default-avatar.png" kullanıyorum.
   return `
     <div class="message-item">
       <div class="message-header">
         <div class="avatar-and-name">
-          <img class="message-avatar" src="/images/default-avatar.png" alt="${sender}">
+          <img class="message-avatar" src="/images/default-avatar.png" alt="">
           <span class="sender-name">${sender}</span>
         </div>
         <span class="timestamp">${time}</span>
@@ -118,7 +116,8 @@ function appendNewMessage(msg, container) {
   container.scrollTop = container.scrollHeight;
 }
 
-// Socket üzerinden gelen "textHistory" ve "newTextMessage" eventlerini işleyip, ilgili container'a mesajları render eder.
+// Socket üzerinden gelen "textHistory" ve "newTextMessage" eventlerini işleyip,
+// ilgili container'a mesajları render eder.
 function initTextChannelEvents(socket, container) {
   socket.on('textHistory', (messages) => {
     renderTextMessages(messages, container);
@@ -127,18 +126,9 @@ function initTextChannelEvents(socket, container) {
   socket.on('newTextMessage', (data) => {
     if (data.channelId === container.dataset.channelId) {
       const msg = data.message;
-      // Eğer container boşsa veya son eleman bir tarih ayracıysa ekle
       let lastChild = container.lastElementChild;
       if (!lastChild || lastChild.classList.contains('date-separator')) {
         insertDateSeparator(container, msg.timestamp);
-      } else {
-        const prevSender = lastChild.getAttribute('data-sender');
-        // Eğer önceki mesajın göndericisi farklıysa, ek bir tarih ayracı gerekiyorsa da kontrol edebilirsiniz.
-        // Burada sadece gönderici kontrolü yapıyoruz.
-        if (prevSender !== (msg.username || "Anon")) {
-          // Yeni seriye geçişte tarih ayracı eklenebilir.
-          // İsteğe bağlı: insertDateSeparator(container, msg.timestamp);
-        }
       }
       appendNewMessage(msg, container);
     }
