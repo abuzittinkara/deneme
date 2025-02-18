@@ -31,7 +31,7 @@ function formatTimestamp(timestamp) {
   }
 }
 
-// Belirtilen container'a, verilen timestamp için tarih ayırıcı ekler.
+// Tarih ayırıcısı ekler.
 function insertDateSeparator(container, timestamp) {
   const separator = document.createElement('div');
   separator.className = 'date-separator';
@@ -39,30 +39,52 @@ function insertDateSeparator(container, timestamp) {
   container.appendChild(separator);
 }
 
+// Mesajı, tam header (avatar + kullanıcı adı + zaman) şeklinde render eder.
+function renderFullMessage(msg, sender, time) {
+  // Burada avatar olarak, UserPanel’deki gibi gerçek avatar resmi kullanılacak.
+  // Örneğin, eğer kullanıcı bilgisine avatar URL eklenecekse (örneğin msg.user.avatar) onu kullanabilirsiniz.
+  // Şimdilik varsayılan olarak "/images/default-avatar.png" kullanıyorum.
+  return `
+    <div class="message-item">
+      <div class="message-header">
+        <div class="avatar-and-name">
+          <img class="message-avatar" src="/images/default-avatar.png" alt="${sender}">
+          <span class="sender-name">${sender}</span>
+        </div>
+        <span class="timestamp">${time}</span>
+      </div>
+      <div class="message-content">${msg.content}</div>
+    </div>
+  `;
+}
+
+// Sadece mesaj içeriğini render eder (header yok).
+function renderContentOnly(msg) {
+  return `
+    <div class="message-item">
+      <div class="message-content" style="margin-left: 48px;">${msg.content}</div>
+    </div>
+  `;
+}
+
 // Verilen mesaj listesini container içerisine render eder.
-// Her mesaj, avatar (gönderenin adının ilk harfi), kullanıcı adı, zaman bilgisi ve mesaj içeriğini içerir.
 function renderTextMessages(messages, container) {
   container.innerHTML = "";
   messages.forEach((msg, index) => {
-    if (index === 0 || isDifferentDay(messages[index - 1].timestamp, msg.timestamp)) {
-      insertDateSeparator(container, msg.timestamp);
-    }
-    const time = formatTimestamp(msg.timestamp);
     const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
-    const avatarLetter = sender.charAt(0).toUpperCase();
-    // Avatar ve kullanıcı adını aynı satırda gösteren yapı:
-    let msgHTML = `
-      <div class="message-item">
-        <div class="message-header">
-          <div class="avatar-and-name">
-            <div class="message-avatar">${avatarLetter}</div>
-            <span class="sender-name">${sender}</span>
-          </div>
-          <span class="timestamp">${time}</span>
-        </div>
-        <div class="message-content">${msg.content}</div>
-      </div>
-    `;
+    const time = formatTimestamp(msg.timestamp);
+    let msgHTML = "";
+    // Eğer ilk mesaj, farklı gün veya farklı gönderici ise tam header render edilsin.
+    if (
+      index === 0 ||
+      isDifferentDay(messages[index - 1].timestamp, msg.timestamp) ||
+      ((messages[index - 1].user && messages[index - 1].user.username) !== sender)
+    ) {
+      msgHTML = renderFullMessage(msg, sender, time);
+    } else {
+      // Ardışık aynı göndericinin mesajı: yalnızca mesaj içeriği
+      msgHTML = renderContentOnly(msg);
+    }
     const msgDiv = document.createElement('div');
     msgDiv.className = 'text-message left-message';
     msgDiv.setAttribute('data-timestamp', msg.timestamp);
@@ -73,8 +95,30 @@ function renderTextMessages(messages, container) {
   container.scrollTop = container.scrollHeight;
 }
 
-// Socket üzerinden gelen "textHistory" ve "newTextMessage" eventlerini işleyip,
-// ilgili container'a mesajları render eder.
+// Gelen yeni mesajı, önceki mesajın göndericisiyle karşılaştırarak render eder.
+function appendNewMessage(msg, container) {
+  const sender = msg.username || "Anon";
+  const time = formatTimestamp(msg.timestamp);
+  let prevSender = "";
+  if (container.lastElementChild && !container.lastElementChild.classList.contains('date-separator')) {
+    prevSender = container.lastElementChild.getAttribute('data-sender');
+  }
+  let msgHTML = "";
+  if (!prevSender || prevSender !== sender) {
+    msgHTML = renderFullMessage(msg, sender, time);
+  } else {
+    msgHTML = renderContentOnly(msg);
+  }
+  const msgDiv = document.createElement('div');
+  msgDiv.className = 'text-message left-message';
+  msgDiv.setAttribute('data-timestamp', msg.timestamp);
+  msgDiv.setAttribute('data-sender', sender);
+  msgDiv.innerHTML = msgHTML;
+  container.appendChild(msgDiv);
+  container.scrollTop = container.scrollHeight;
+}
+
+// Socket üzerinden gelen "textHistory" ve "newTextMessage" eventlerini işleyip, ilgili container'a mesajları render eder.
 function initTextChannelEvents(socket, container) {
   socket.on('textHistory', (messages) => {
     renderTextMessages(messages, container);
@@ -83,37 +127,22 @@ function initTextChannelEvents(socket, container) {
   socket.on('newTextMessage', (data) => {
     if (data.channelId === container.dataset.channelId) {
       const msg = data.message;
-      let lastMsgDiv = container.lastElementChild;
-      while (lastMsgDiv && lastMsgDiv.classList.contains('date-separator')) {
-        lastMsgDiv = lastMsgDiv.previousElementSibling;
-      }
-      if (!lastMsgDiv || (lastMsgDiv && isDifferentDay(lastMsgDiv.getAttribute('data-timestamp'), msg.timestamp))) {
+      // Eğer container boşsa veya son eleman bir tarih ayracıysa ekle
+      let lastChild = container.lastElementChild;
+      if (!lastChild || lastChild.classList.contains('date-separator')) {
         insertDateSeparator(container, msg.timestamp);
+      } else {
+        const prevSender = lastChild.getAttribute('data-sender');
+        // Eğer önceki mesajın göndericisi farklıysa, ek bir tarih ayracı gerekiyorsa da kontrol edebilirsiniz.
+        // Burada sadece gönderici kontrolü yapıyoruz.
+        if (prevSender !== (msg.username || "Anon")) {
+          // Yeni seriye geçişte tarih ayracı eklenebilir.
+          // İsteğe bağlı: insertDateSeparator(container, msg.timestamp);
+        }
       }
-      const time = formatTimestamp(msg.timestamp);
-      const sender = msg.username || "Anon";
-      const avatarLetter = sender.charAt(0).toUpperCase();
-      let msgHTML = `
-        <div class="message-item">
-          <div class="message-header">
-            <div class="avatar-and-name">
-              <div class="message-avatar">${avatarLetter}</div>
-              <span class="sender-name">${sender}</span>
-            </div>
-            <span class="timestamp">${time}</span>
-          </div>
-          <div class="message-content">${msg.content}</div>
-        </div>
-      `;
-      const msgDiv = document.createElement('div');
-      msgDiv.className = 'text-message left-message';
-      msgDiv.setAttribute('data-timestamp', msg.timestamp);
-      msgDiv.setAttribute('data-sender', sender);
-      msgDiv.innerHTML = msgHTML;
-      container.appendChild(msgDiv);
-      container.scrollTop = container.scrollHeight;
+      appendNewMessage(msg, container);
     }
   });
 }
 
-export { isDifferentDay, formatTimestamp, insertDateSeparator, renderTextMessages, initTextChannelEvents };
+export { isDifferentDay, formatTimestamp, insertDateSeparator, renderTextMessages, initTextChannelEvents, appendNewMessage };

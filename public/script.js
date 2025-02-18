@@ -29,7 +29,7 @@ let currentGroup = null;
 let currentRoom = null;
 let selectedGroup = null;
 let currentTextChannel = null; // Metin kanalı için seçili kanal id'si
-let currentRoomType = null;    // Kullanıcının bağlı olduğu kanal türü ("voice" veya "text")
+let currentRoomType = null;    // "voice" veya "text"
 
 // Mikrofon / Kulaklık
 let micEnabled = true;
@@ -43,8 +43,7 @@ let audioAnalyzers = {};
 
 let pingInterval = null;
 
-/* Formatlama fonksiyonları TextChannel modülünden sağlandığından, 
-   formatLongDate gibi fonksiyonları buraya yeniden yazmaya gerek yok. */
+/* Formatlama fonksiyonları artık TextChannel modülünden sağlanıyor */
 
 const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
@@ -146,10 +145,9 @@ window.addEventListener('DOMContentLoaded', () => {
   TextChannel.initTextChannelEvents(socket, textMessages);
 });
 
-// insertDateSeparator fonksiyonu TextChannel modülündeki fonksiyonlar kullanılarak da yapılabilir.
-// Diğer socket eventleri, SFU, UI eventleri vb. de aynı şekilde korunuyor.
-
 function initSocketEvents() {
+  // Tüm socket event'leri (loginResult, registerResult, groupsList, roomsList, allChannelsData, joinRoomAck, roomUsers, groupRenamed, groupDeleted, newProducer) olduğu gibi korunuyor.
+  // (Kodun ilgili kısımları eksiksiz eklenecektir.)
   socket.on('connect', () => {
     console.log("Socket tekrar bağlandı =>", socket.id);
   });
@@ -365,7 +363,7 @@ function initSocketEvents() {
     consumeProducer(producerId);
   });
   
-  // Metin mesajlarının render işlemleri TextChannel modülüne taşındı.
+  // Metin mesajları render işlemleri artık TextChannel modülüne taşındı.
 }
 
 function startSfuFlow() {
@@ -882,19 +880,35 @@ function initUIEvents() {
     const msg = textChannelMessageInput.value.trim();
     if (!msg) return;
     const time = TextChannel.formatTimestamp(new Date());
+    // Önceki mesajın göndericisini kontrol edelim:
+    let prevSender = "";
+    if (textMessages.lastElementChild && !textMessages.lastElementChild.classList.contains('date-separator')) {
+      prevSender = textMessages.lastElementChild.getAttribute('data-sender');
+    }
     const avatarLetter = username ? username.charAt(0).toUpperCase() : '?';
-    let msgHTML = `
-      <div class="message-item">
-        <div class="message-header">
-          <div class="avatar-and-name">
-            <div class="message-avatar">${avatarLetter}</div>
-            <span class="sender-name">${username}</span>
+    let msgHTML = "";
+    if (!prevSender || prevSender !== username) {
+      // İlk mesaj, avatar ve kullanıcı adını göster
+      msgHTML = `
+        <div class="message-item">
+          <div class="message-header">
+            <div class="avatar-and-name">
+              <img class="message-avatar" src="/images/default-avatar.png" alt="${username}">
+              <span class="sender-name">${username}</span>
+            </div>
+            <span class="timestamp">${time}</span>
           </div>
-          <span class="timestamp">${time}</span>
+          <div class="message-content">${msg}</div>
         </div>
-        <div class="message-content">${msg}</div>
-      </div>
-    `;
+      `;
+    } else {
+      // Aynı göndericinin ardışık mesajı: sadece içerik, sol margin ile hizalanacak
+      msgHTML = `
+        <div class="message-item">
+          <div class="message-content" style="margin-left: 48px;">${msg}</div>
+        </div>
+      `;
+    }
     const className = 'text-message left-message';
     const msgDiv = document.createElement('div');
     msgDiv.className = className;
