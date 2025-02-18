@@ -121,7 +121,7 @@ window.addEventListener('DOMContentLoaded', () => {
   initSocketEvents();
   initUIEvents();
   
-  // #textMessages için scroll event listener
+  // textMessages için scroll event listener
   const tm = textMessages;
   let removeScrollingTimeout;
   if (tm) {
