@@ -121,7 +121,7 @@ window.addEventListener('DOMContentLoaded', () => {
   initSocketEvents();
   initUIEvents();
   
-  // Scroll event listener
+  // #textMessages için scroll event listener
   const tm = textMessages;
   let removeScrollingTimeout;
   if (tm) {
@@ -878,14 +878,29 @@ function initUIEvents() {
     const msg = textChannelMessageInput.value.trim();
     if (!msg) return;
     const time = TextChannel.formatTimestamp(new Date());
-    // Önceki mesajın göndericisini kontrol edelim:
-    let prevSender = "";
-    if (textMessages.lastElementChild && !textMessages.lastElementChild.classList.contains('date-separator')) {
-      prevSender = textMessages.lastElementChild.getAttribute('data-sender');
+    // Önceki mesajın göndericisini kontrol edelim (date-separator'ı atlayarak)
+    let lastMsgElem = textMessages.lastElementChild;
+    while (lastMsgElem && lastMsgElem.classList.contains('date-separator')) {
+      lastMsgElem = lastMsgElem.previousElementSibling;
     }
+    let msgClass = "";
+    if (!lastMsgElem || lastMsgElem.getAttribute('data-sender') !== username) {
+      // Yeni blok: sadece bir mesaj (tek mesaj)
+      msgClass = "only-message";
+    } else {
+      // Aynı göndericinin ardışık mesajı: güncelleme
+      if (lastMsgElem.classList.contains("only-message")) {
+        lastMsgElem.classList.remove("only-message");
+        lastMsgElem.classList.add("first-message");
+      } else if (lastMsgElem.classList.contains("last-message")) {
+        lastMsgElem.classList.remove("last-message");
+        lastMsgElem.classList.add("middle-message");
+      }
+      msgClass = "last-message";
+    }
+    
     let msgHTML = "";
-    if (!prevSender || prevSender !== username) {
-      // İlk ardışık mesaj: avatar ve kullanıcı adı (güncellendi: avatar içinde kullanıcı adı olmayacak)
+    if (msgClass === "only-message" || msgClass === "first-message" || msgClass === "last-message") {
       msgHTML = `
         <div class="message-item">
           <div class="message-header">
@@ -899,14 +914,13 @@ function initUIEvents() {
         </div>
       `;
     } else {
-      // Aynı göndericinin ardışık mesajı: sadece içerik, sol margin ile hizalanacak
       msgHTML = `
         <div class="message-item">
           <div class="message-content" style="margin-left: 48px;">${msg}</div>
         </div>
       `;
     }
-    const className = 'text-message left-message';
+    const className = `text-message left-message ${msgClass}`;
     const msgDiv = document.createElement('div');
     msgDiv.className = className;
     msgDiv.setAttribute('data-timestamp', new Date());
@@ -941,7 +955,7 @@ function initUIEvents() {
     }
   });
   
-  // Diğer UI event handler'ları tam haliyle korunuyor.
+  // Diğer UI event handler'ları korunuyor.
 }
 
 function applyAudioStates() {

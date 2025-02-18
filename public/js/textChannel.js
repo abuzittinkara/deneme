@@ -40,7 +40,7 @@ function insertDateSeparator(container, timestamp) {
 }
 
 // Mesajı, tam header (avatar + kullanıcı adı + zaman) şeklinde render eder.
-// Avatar kısmında alt metin boş bırakıldı; böylece ekstra kullanıcı adı görünmeyecek.
+// Avatar olarak, UserPanel’de kullanılan gerçek avatar (<img>) kullanılır.
 function renderFullMessage(msg, sender, time) {
   return `
     <div class="message-item">
@@ -56,7 +56,7 @@ function renderFullMessage(msg, sender, time) {
   `;
 }
 
-// Sadece mesaj içeriğini render eder (header yok).
+// Sadece mesaj içeriğini render eder (header olmadan).
 function renderContentOnly(msg) {
   return `
     <div class="message-item">
@@ -65,26 +65,37 @@ function renderContentOnly(msg) {
   `;
 }
 
+// Mesajın blok içindeki konumuna göre (ilk, orta, son, yalnız) sınıfı döndürür.
+function getMessagePositionClass(messages, index, sender) {
+  const prevSame = index > 0 && ((messages[index - 1].user && messages[index - 1].user.username) === sender);
+  const nextSame = index < messages.length - 1 && ((messages[index + 1].user && messages[index + 1].user.username) === sender);
+  if (!prevSame && !nextSame) {
+    return "only-message";
+  } else if (!prevSame && nextSame) {
+    return "first-message";
+  } else if (prevSame && nextSame) {
+    return "middle-message";
+  } else if (prevSame && !nextSame) {
+    return "last-message";
+  }
+  return "";
+}
+
 // Verilen mesaj listesini container içerisine render eder.
 function renderTextMessages(messages, container) {
   container.innerHTML = "";
   messages.forEach((msg, index) => {
     const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
     const time = formatTimestamp(msg.timestamp);
+    const posClass = getMessagePositionClass(messages, index, sender);
     let msgHTML = "";
-    // Eğer ilk mesaj, farklı gün veya farklı gönderici ise tam header render edilsin.
-    if (
-      index === 0 ||
-      isDifferentDay(messages[index - 1].timestamp, msg.timestamp) ||
-      ((messages[index - 1].user && messages[index - 1].user.username) !== sender)
-    ) {
+    if (posClass === "only-message" || posClass === "first-message" || posClass === "last-message") {
       msgHTML = renderFullMessage(msg, sender, time);
     } else {
-      // Ardışık aynı göndericinin mesajı: yalnızca mesaj içeriği
       msgHTML = renderContentOnly(msg);
     }
     const msgDiv = document.createElement('div');
-    msgDiv.className = 'text-message left-message';
+    msgDiv.className = `text-message left-message ${posClass}`;
     msgDiv.setAttribute('data-timestamp', msg.timestamp);
     msgDiv.setAttribute('data-sender', sender);
     msgDiv.innerHTML = msgHTML;
@@ -93,22 +104,41 @@ function renderTextMessages(messages, container) {
   container.scrollTop = container.scrollHeight;
 }
 
-// Gelen yeni mesajı, önceki mesajın göndericisiyle karşılaştırarak render eder.
+// Yeni gelen mesajı, container'daki son mesajla karşılaştırarak render eder.
+// (Burada, basitçe, önceki mesajın göndericisi ile kontrol yapıyoruz; 
+// tam yeniden sınıflandırma için container yeniden render edilebilir.)
 function appendNewMessage(msg, container) {
   const sender = msg.username || "Anon";
   const time = formatTimestamp(msg.timestamp);
+  let lastChild = container.lastElementChild;
   let prevSender = "";
-  if (container.lastElementChild && !container.lastElementChild.classList.contains('date-separator')) {
-    prevSender = container.lastElementChild.getAttribute('data-sender');
+  if (lastChild && !lastChild.classList.contains('date-separator')) {
+    prevSender = lastChild.getAttribute('data-sender');
+  }
+  let posClass = "";
+  if (!prevSender || prevSender !== sender) {
+    posClass = "only-message";
+  } else {
+    // Eğer önceki mesaj aynı göndericiden ise,
+    // mevcut son mesajı güncelle (eğer "only-message" ise "first-message", 
+    // eğer "last-message" ise "middle-message")
+    if (lastChild.classList.contains("only-message")) {
+      lastChild.classList.remove("only-message");
+      lastChild.classList.add("first-message");
+    } else if (lastChild.classList.contains("last-message")) {
+      lastChild.classList.remove("last-message");
+      lastChild.classList.add("middle-message");
+    }
+    posClass = "last-message";
   }
   let msgHTML = "";
-  if (!prevSender || prevSender !== sender) {
+  if (posClass === "only-message" || posClass === "first-message" || posClass === "last-message") {
     msgHTML = renderFullMessage(msg, sender, time);
   } else {
     msgHTML = renderContentOnly(msg);
   }
   const msgDiv = document.createElement('div');
-  msgDiv.className = 'text-message left-message';
+  msgDiv.className = `text-message left-message ${posClass}`;
   msgDiv.setAttribute('data-timestamp', msg.timestamp);
   msgDiv.setAttribute('data-sender', sender);
   msgDiv.innerHTML = msgHTML;
@@ -116,8 +146,6 @@ function appendNewMessage(msg, container) {
   container.scrollTop = container.scrollHeight;
 }
 
-// Socket üzerinden gelen "textHistory" ve "newTextMessage" eventlerini işleyip,
-// ilgili container'a mesajları render eder.
 function initTextChannelEvents(socket, container) {
   socket.on('textHistory', (messages) => {
     renderTextMessages(messages, container);
