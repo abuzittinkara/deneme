@@ -578,16 +578,19 @@
   align-items: center;
   margin: 10px 0;
 }
+
 .date-separator::before,
 .date-separator::after {
   content: "";
   flex: 1;
-  border-bottom: 1px solid #666;
+  border-bottom: 1px solid #fff;  /* Beyaz renk */
   margin: 0 10px;
 }
+
 .date-separator span {
   font-size: 0.8em;
-  color: #fff;
+  color: #fff;  /* Beyaz renk */
+  padding: 0 10px;
 }
 
 /* Hover effect for placeholder avatars in text messages */
