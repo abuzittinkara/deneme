@@ -586,7 +586,7 @@
 .date-separator::after {
   content: "";
   flex: 1;
-  border-bottom: 2px solid #aaa;  /* Çizgi rengi #aaa */
+  border-bottom: 1px solid #aaa;  /* Çizgi rengi #aaa */
   margin: 0 10px;
 }
 
@@ -595,7 +595,6 @@
   font-size: 0.8rem;  /* Font boyutu küçültüldü */
   color: #fff;  /* Metin rengi beyaz */
   padding: 0 10px;
-  background: rgba(0, 0, 0, 0.5); /* Yarı saydam siyah arka plan */
   border-radius: 4px;
 }
 
