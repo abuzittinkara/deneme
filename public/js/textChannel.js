@@ -51,7 +51,7 @@ function insertDateSeparator(container, timestamp) {
 }
 
 // Mesajı, tam header (avatar + kullanıcı adı + zaman) şeklinde render eder.
-// "msgClass" parametresi, inner .message-content elemanına eklenir.
+// Bu durumda header zaten gösterildiği için hover-time eklenmez.
 function renderFullMessage(msg, sender, time, msgClass) {
   return `
     <div class="message-item">
@@ -68,10 +68,11 @@ function renderFullMessage(msg, sender, time, msgClass) {
 }
 
 // Sadece mesaj içeriğini render eder (header olmadan).
-// "msgClass" parametresi, inner .message-content elemanına eklenir.
-function renderContentOnly(msg, msgClass) {
+// Bu durumda mesajın solunda hover ile gösterilecek saat bilgisi için .hover-time elementi eklenir.
+function renderContentOnly(msg, msgClass, time) {
   return `
-    <div class="message-item">
+    <div class="message-item" style="position: relative;">
+      <span class="hover-time">${time}</span>
       <div class="message-content ${msgClass}" style="margin-left: 48px;">${msg.content}</div>
     </div>
   `;
@@ -109,7 +110,7 @@ function renderTextMessages(messages, container) {
     if (isFirstInBlock) {
       msgHTML = renderFullMessage(msg, sender, time, msgClass);
     } else {
-      msgHTML = renderContentOnly(msg, msgClass);
+      msgHTML = renderContentOnly(msg, msgClass, time);
     }
     
     const msgDiv = document.createElement('div');
@@ -147,12 +148,13 @@ function appendNewMessage(msg, container) {
       msgClass = "only-message";
     } else {
       // Aynı blok içinde, önceki mesajın sınıfını güncelleyelim:
-      if (lastMsgElem.querySelector('.message-content').classList.contains("only-message")) {
-        lastMsgElem.querySelector('.message-content').classList.remove("only-message");
-        lastMsgElem.querySelector('.message-content').classList.add("first-message");
-      } else if (lastMsgElem.querySelector('.message-content').classList.contains("last-message")) {
-        lastMsgElem.querySelector('.message-content').classList.remove("last-message");
-        lastMsgElem.querySelector('.message-content').classList.add("middle-message");
+      const lastContent = lastMsgElem.querySelector('.message-content');
+      if (lastContent.classList.contains("only-message")) {
+        lastContent.classList.remove("only-message");
+        lastContent.classList.add("first-message");
+      } else if (lastContent.classList.contains("last-message")) {
+        lastContent.classList.remove("last-message");
+        lastContent.classList.add("middle-message");
       }
       msgClass = "last-message";
     }
@@ -162,7 +164,7 @@ function appendNewMessage(msg, container) {
   if (msgClass === "only-message" || msgClass === "first-message") {
     msgHTML = renderFullMessage(msg, sender, time, msgClass);
   } else {
-    msgHTML = renderContentOnly(msg, msgClass);
+    msgHTML = renderContentOnly(msg, msgClass, time);
   }
   
   const msgDiv = document.createElement('div');
