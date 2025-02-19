@@ -51,7 +51,8 @@ function insertDateSeparator(container, timestamp) {
 }
 
 // Mesajı, tam header (avatar + kullanıcı adı + zaman) şeklinde render eder.
-function renderFullMessage(msg, sender, time) {
+// "msgClass" parametresi, inner .message-content elemanına eklenir.
+function renderFullMessage(msg, sender, time, msgClass) {
   return `
     <div class="message-item">
       <div class="message-header">
@@ -61,22 +62,23 @@ function renderFullMessage(msg, sender, time) {
         </div>
         <span class="timestamp">${time}</span>
       </div>
-      <div class="message-content">${msg.content}</div>
+      <div class="message-content ${msgClass}">${msg.content}</div>
     </div>
   `;
 }
 
 // Sadece mesaj içeriğini render eder (header olmadan).
-function renderContentOnly(msg) {
+// "msgClass" parametresi, inner .message-content elemanına eklenir.
+function renderContentOnly(msg, msgClass) {
   return `
     <div class="message-item">
-      <div class="message-content" style="margin-left: 48px;">${msg.content}</div>
+      <div class="message-content ${msgClass}" style="margin-left: 48px;">${msg.content}</div>
     </div>
   `;
 }
 
 // Verilen mesaj listesini container içerisine render eder.
-// Mesajlar, ardışık aynı göndericiler için "only-message", "first-message", "middle-message" ve "last-message" sınıfları eklenerek ayrılır.
+// Mesajlar, ardışık aynı göndericiler için "only-message", "first-message", "middle-message" ve "last-message" sınıflarıyla ayrılır.
 function renderTextMessages(messages, container) {
   container.innerHTML = "";
   messages.forEach((msg, index) => {
@@ -84,12 +86,12 @@ function renderTextMessages(messages, container) {
     const time = formatTimestamp(msg.timestamp);
     let msgClass = "";
     
-    // Belirle: mesaj bloğunun ilk mi?
-    let isFirstInBlock = (index === 0) ||
+    // Blok başlangıcını belirle:
+    const isFirstInBlock = (index === 0) ||
       ((messages[index - 1].user && messages[index - 1].user.username) !== sender) ||
       isDifferentDay(messages[index - 1].timestamp, msg.timestamp);
-    // Belirle: mesaj bloğunun sonu mu?
-    let isLastInBlock = (index === messages.length - 1) ||
+    // Blok sonunu belirle:
+    const isLastInBlock = (index === messages.length - 1) ||
       ((messages[index + 1].user && messages[index + 1].user.username) !== sender) ||
       isDifferentDay(msg.timestamp, messages[index + 1].timestamp);
     
@@ -105,13 +107,13 @@ function renderTextMessages(messages, container) {
     
     let msgHTML = "";
     if (isFirstInBlock) {
-      msgHTML = renderFullMessage(msg, sender, time);
+      msgHTML = renderFullMessage(msg, sender, time, msgClass);
     } else {
-      msgHTML = renderContentOnly(msg);
+      msgHTML = renderContentOnly(msg, msgClass);
     }
     
     const msgDiv = document.createElement('div');
-    msgDiv.className = `text-message left-message ${msgClass}`;
+    msgDiv.className = 'text-message left-message';
     msgDiv.setAttribute('data-timestamp', new Date(msg.timestamp).toISOString());
     msgDiv.setAttribute('data-sender', sender);
     msgDiv.innerHTML = msgHTML;
@@ -121,7 +123,7 @@ function renderTextMessages(messages, container) {
 }
 
 // Yeni gelen mesajı, container'daki son mesajla karşılaştırarak render eder.
-// Ardışık mesajlar için, mevcut son mesajın sınıfı güncellenir ve yeni mesaj "last-message" olarak eklenir.
+// Mevcut son mesajın gönderici ve timestamp bilgisine göre, yeni mesajın hangi sınıfa ait olacağını belirler.
 function appendNewMessage(msg, container) {
   const sender = msg.username || "Anon";
   const time = formatTimestamp(msg.timestamp);
@@ -144,13 +146,13 @@ function appendNewMessage(msg, container) {
       }
       msgClass = "only-message";
     } else {
-      // Aynı blok, önceki mesajın sınıfını güncelleyelim:
-      if (lastMsgElem.classList.contains("only-message")) {
-        lastMsgElem.classList.remove("only-message");
-        lastMsgElem.classList.add("first-message");
-      } else if (lastMsgElem.classList.contains("last-message")) {
-        lastMsgElem.classList.remove("last-message");
-        lastMsgElem.classList.add("middle-message");
+      // Aynı blok içinde, önceki mesajın sınıfını güncelleyelim:
+      if (lastMsgElem.querySelector('.message-content').classList.contains("only-message")) {
+        lastMsgElem.querySelector('.message-content').classList.remove("only-message");
+        lastMsgElem.querySelector('.message-content').classList.add("first-message");
+      } else if (lastMsgElem.querySelector('.message-content').classList.contains("last-message")) {
+        lastMsgElem.querySelector('.message-content').classList.remove("last-message");
+        lastMsgElem.querySelector('.message-content').classList.add("middle-message");
       }
       msgClass = "last-message";
     }
@@ -158,13 +160,13 @@ function appendNewMessage(msg, container) {
   
   let msgHTML = "";
   if (msgClass === "only-message" || msgClass === "first-message") {
-    msgHTML = renderFullMessage(msg, sender, time);
+    msgHTML = renderFullMessage(msg, sender, time, msgClass);
   } else {
-    msgHTML = renderContentOnly(msg);
+    msgHTML = renderContentOnly(msg, msgClass);
   }
   
   const msgDiv = document.createElement('div');
-  msgDiv.className = `text-message left-message ${msgClass}`;
+  msgDiv.className = 'text-message left-message';
   msgDiv.setAttribute('data-timestamp', new Date(msg.timestamp).toISOString());
   msgDiv.setAttribute('data-sender', sender);
   msgDiv.innerHTML = msgHTML;
