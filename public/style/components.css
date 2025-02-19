@@ -605,3 +605,21 @@
 .text-message:hover .message-avatar.placeholder {
   background-color: #2d2d2d;
 }
+
+/* Yeni: Ardışık (header içermeyen) mesajlarda mouse üzerine gelindiğinde sol tarafta (48px boşluk) sadece saat bilgisinin görünmesi */
+.hover-time {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: none;
+  font-size: 0.8em;
+  color: #5a5a5a;
+  width: 48px;
+  text-align: right;
+  padding-right: 4px;
+}
+
+.text-message:hover .hover-time {
+  display: block;
+}

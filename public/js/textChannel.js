@@ -31,6 +31,12 @@ function formatTimestamp(timestamp) {
   }
 }
 
+// Sadece saat bilgisini (HH:MM) döndüren yardımcı fonksiyon.
+function formatTimeOnly(timestamp) {
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
 // Uzun tarih formatında (örneğin, "19 Ocak 2025") döndüren fonksiyon.
 function formatLongDate(timestamp) {
   const date = new Date(timestamp);
@@ -68,9 +74,12 @@ function renderFullMessage(msg, sender, time) {
 }
 
 // Sadece mesaj içeriğini render eder (header olmadan).
+// Ek olarak, mouse ilgili mesajın üzerine geldiğinde, mesajın saat bilgisini (sadece saat: HH:MM) sol tarafta gösterecek gizli bir alan eklenir.
 function renderContentOnly(msg) {
+  const timeOnly = formatTimeOnly(msg.timestamp);
   return `
-    <div class="message-item">
+    <div class="message-item" style="position: relative;">
+      <span class="hover-time">${timeOnly}</span>
       <div class="message-content" style="margin-left: 48px;">${msg.content}</div>
     </div>
   `;
@@ -92,7 +101,7 @@ function renderTextMessages(messages, container) {
     const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
     const time = formatTimestamp(msg.timestamp);
     let msgHTML = "";
-    // Gün farkı veya önceki mesajın göndericisi farklı ise tam header render edilsin.
+    // Eğer ilk mesaj, farklı gün veya farklı gönderici ise tam header render edilsin.
     if (
       index === 0 ||
       isDifferentDay(messages[index - 1].timestamp, msg.timestamp) ||
@@ -136,15 +145,13 @@ function appendNewMessage(msg, container) {
     }
   }
   
-  // Yeni eklenen tarih ayıracından sonra header olması için:
   let prevSender = "";
-  // Son elemanı tekrar kontrol edelim: eğer son eleman tarih ayıracı ise, o durumda header olmalı.
   if (container.lastElementChild && !container.lastElementChild.classList.contains('date-separator')) {
     prevSender = container.lastElementChild.getAttribute('data-sender');
   }
   let msgHTML = "";
   // Eğer gün değişmişse veya önceki mesajın göndericisi farklıysa full header render edilsin.
-  if (!prevSender || (lastMsgElem && isDifferentDay(new Date(lastMsgElem.getAttribute('data-timestamp')), new Date(msg.timestamp))) || prevSender !== sender) {
+  if (!prevSender || prevSender !== sender) {
     msgHTML = renderFullMessage(msg, sender, time);
   } else {
     msgHTML = renderContentOnly(msg);
@@ -186,4 +193,4 @@ function initTextChannelEvents(socket, container) {
   });
 }
 
-export { isDifferentDay, formatTimestamp, formatLongDate, insertDateSeparator, renderTextMessages, initTextChannelEvents, appendNewMessage };
+export { isDifferentDay, formatTimestamp, formatLongDate, formatTimeOnly, insertDateSeparator, renderTextMessages, initTextChannelEvents, appendNewMessage };
