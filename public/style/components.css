@@ -287,7 +287,7 @@
   align-self: flex-start;
   text-align: left;
   flex-direction: column;
-  margin-top: 12px;
+  margin-top: 0px;
 }
 .text-message:hover {
   background-color: #2d2d2d;
@@ -338,7 +338,7 @@
 /* Mesaj içeriği: Avatar ve kullanıcı adının bulunduğu satırın sağından hizalanması için sol margin.
    Hesaplama: Avatar genişliği (40px) + gap (yaklaşık 0.4rem, yaklaşık 6px) = yaklaşık 46px, yuvarlayarak 48px öneriliyor. */
 .message-content {
-  margin-top: 4px;
+  margin-top: 0px;
   margin-left: 48px;
 }
 
@@ -608,10 +608,11 @@
 }
 
 /* Yeni: Hover sırasında (header içermeyen) mesajlarda saat bilgisinin gösterilmesi */
-/* .hover-time elementini, mesajın solundaki boşlukta (48px alanın 20px sola kaymasıyla) konumlandırıyoruz */
+/* Mesaj içeriğinin margin-left'i sabit (48px) bırakılarak, hover-time elementi mesajın solundaki boşlukta, 
+   orijinal boşluk içerisine (yani mesajın gönderildiği saat görünümü) yerleşecek şekilde konumlandırılır. */
 .hover-time {
   position: absolute;
-  left: 28px; /* 48px - 20px = 28px */
+  left: -20px; /* Saat bilgisini 20px sola çek */
   top: 50%;
   transform: translateY(-50%);
   display: none;
@@ -621,9 +622,6 @@
   text-align: right;
   padding-right: 4px;
 }
-.text-message:hover .hover-time {
+  .text-message:hover .hover-time {
   display: block;
 }
-
-/* NOT: Daha önce, header içermeyen mesajlarda mesaj içeriğinin margin-left'ini 64px'e çıkartan kural kaldırılmıştır. 
-   Böylece mesaj içeriği sabit kalır ve hover-time elemanı 20px sola kayarak görünür. */
