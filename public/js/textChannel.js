@@ -12,6 +12,12 @@ function isDifferentDay(ts1, ts2) {
          d1.getDate() !== d2.getDate();
 }
 
+// Sadece saat bilgisini (HH:MM) döndüren yardımcı fonksiyon.
+function formatTime(timestamp) {
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
 // Belirtilen timestamp'i "Bugün HH:MM", "Dün HH:MM" veya "DD.MM.YYYY HH:MM" formatında döndürür.
 function formatTimestamp(timestamp) {
   const date = new Date(timestamp);
@@ -66,18 +72,19 @@ function renderFullMessage(msg, sender, time, msgClass) {
     </div>
   `;
 }
- 
+
 // Sadece mesaj içeriğini render eder (header olmadan).
 // Bu durumda mesajın solunda hover ile gösterilecek saat bilgisi için .hover-time elementi eklenir.
+// Hover kısmında yalnızca saat bilgisi (formatTime) gösterilir.
 function renderContentOnly(msg, msgClass, time) {
   return `
     <div class="message-item" style="position: relative;">
-      <span class="hover-time">${time}</span>
+      <span class="hover-time">${formatTime(msg.timestamp)}</span>
       <div class="message-content ${msgClass}" style="margin-left: 48px;">${msg.content}</div>
     </div>
   `;
 }
- 
+
 // Verilen mesaj listesini container içerisine render eder.
 // Mesajlar, ardışık aynı göndericiler için "only-message", "first-message", "middle-message" ve "last-message" sınıflarıyla ayrılır.
 // Ayrıca, her yeni gün başladığında tarih ayıracı (date separator) eklenir.
