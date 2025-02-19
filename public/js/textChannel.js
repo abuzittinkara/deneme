@@ -85,7 +85,8 @@ function renderTextMessages(messages, container) {
     }
     const msgDiv = document.createElement('div');
     msgDiv.className = 'text-message left-message';
-    msgDiv.setAttribute('data-timestamp', msg.timestamp);
+    // Timestamp değerini ISO formatında ekliyoruz.
+    msgDiv.setAttribute('data-timestamp', new Date(msg.timestamp).toISOString());
     msgDiv.setAttribute('data-sender', sender);
     msgDiv.innerHTML = msgHTML;
     container.appendChild(msgDiv);
@@ -95,7 +96,7 @@ function renderTextMessages(messages, container) {
 
 // Yeni gelen mesajı, container'daki son mesajla karşılaştırarak render eder.
 // Gün farkı kontrolü için; önce container'ın son (date-separator olmayan) mesajını alır,
-// sonra onun data-timestamp değerini Date objesine çevirerek yeni mesajın timestamp'iyle karşılaştırır.
+// sonra onun data-timestamp değerini ISO formatında Date objesine çevirerek yeni mesajın timestamp'iyle karşılaştırır.
 // Eğer container boşsa veya gün farklılığı varsa, tarih ayıracı eklenir.
 function appendNewMessage(msg, container) {
   const sender = msg.username || "Anon";
@@ -111,7 +112,6 @@ function appendNewMessage(msg, container) {
     insertDateSeparator(container, msg.timestamp);
   } else {
     const prevTimestampStr = lastMsgElem.getAttribute('data-timestamp');
-    // Açıkça Date objesine çevirerek karşılaştıralım:
     if (isDifferentDay(new Date(prevTimestampStr), new Date(msg.timestamp))) {
       insertDateSeparator(container, msg.timestamp);
     }
@@ -129,7 +129,7 @@ function appendNewMessage(msg, container) {
   }
   const msgDiv = document.createElement('div');
   msgDiv.className = 'text-message left-message';
-  msgDiv.setAttribute('data-timestamp', msg.timestamp);
+  msgDiv.setAttribute('data-timestamp', new Date(msg.timestamp).toISOString());
   msgDiv.setAttribute('data-sender', sender);
   msgDiv.innerHTML = msgHTML;
   container.appendChild(msgDiv);
