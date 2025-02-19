@@ -92,8 +92,12 @@ function renderTextMessages(messages, container) {
     const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
     const time = formatTimestamp(msg.timestamp);
     let msgHTML = "";
-    // Eğer ilk mesaj veya önceki mesajı gönderen farklı ise tam header render edilsin.
-    if (index === 0 || ((messages[index - 1].user && messages[index - 1].user.username) !== sender)) {
+    // Gün farkı veya önceki mesajın göndericisi farklı ise tam header render edilsin.
+    if (
+      index === 0 ||
+      isDifferentDay(messages[index - 1].timestamp, msg.timestamp) ||
+      ((messages[index - 1].user && messages[index - 1].user.username) !== sender)
+    ) {
       msgHTML = renderFullMessage(msg, sender, time);
     } else {
       msgHTML = renderContentOnly(msg);
@@ -132,12 +136,15 @@ function appendNewMessage(msg, container) {
     }
   }
   
+  // Yeni eklenen tarih ayıracından sonra header olması için:
   let prevSender = "";
+  // Son elemanı tekrar kontrol edelim: eğer son eleman tarih ayıracı ise, o durumda header olmalı.
   if (container.lastElementChild && !container.lastElementChild.classList.contains('date-separator')) {
     prevSender = container.lastElementChild.getAttribute('data-sender');
   }
   let msgHTML = "";
-  if (!prevSender || prevSender !== sender) {
+  // Eğer gün değişmişse veya önceki mesajın göndericisi farklıysa full header render edilsin.
+  if (!prevSender || (lastMsgElem && isDifferentDay(new Date(lastMsgElem.getAttribute('data-timestamp')), new Date(msg.timestamp))) || prevSender !== sender) {
     msgHTML = renderFullMessage(msg, sender, time);
   } else {
     msgHTML = renderContentOnly(msg);
@@ -162,7 +169,7 @@ function initTextChannelEvents(socket, container) {
     if (data.channelId === container.dataset.channelId) {
       const msg = data.message;
       let lastChild = container.lastElementChild;
-      // Eğer container boşsa veya son eleman tarih ayırıcı ise, tarih ayıracı ekle.
+      // Eğer container boşsa veya son eleman tarih ayıracı ise, tarih ayıracı ekle.
       while (lastChild && lastChild.classList.contains('date-separator')) {
         lastChild = lastChild.previousElementSibling;
       }
