@@ -577,7 +577,7 @@
   align-items: center;
   width: 100%;
   margin: 10px 0;
-  min-height: 24px; /* Minimum yükseklik eklendi */
+  min-height: 24px; /* Ayıracın en az yüksekliği */
   position: relative;
 }
 
@@ -585,7 +585,7 @@
 .date-separator::after {
   content: "";
   flex: 1;
-  border-bottom: 2px solid #fff;  /* Çizgi kalınlığı artırıldı */
+  border-bottom: 2px solid #fff;  /* 2px kalınlığında beyaz çizgi */
   margin: 0 10px;
 }
 
@@ -594,7 +594,7 @@
   font-size: 1rem;
   color: #fff;  /* Metin rengi beyaz */
   padding: 0 10px;
-  background: rgba(0, 0, 0, 0.5); /* Eğer isterseniz metin arkasına yarı saydam bir arka plan */
+  background: rgba(0, 0, 0, 0.5); /* Yarı saydam siyah arka plan */
   border-radius: 4px;
 }
 
