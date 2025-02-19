@@ -572,6 +572,7 @@
   height: auto;
 }
 
+/* Tarih Ayırıcı Stili */
 .date-separator {
   display: flex;
   align-items: center;
@@ -606,10 +607,11 @@
   background-color: #2d2d2d;
 }
 
-/* Yeni: Ardışık (header içermeyen) mesajlarda mouse üzerine gelindiğinde sol tarafta (48px boşluk) sadece saat bilgisinin görünmesi */
+/* Yeni: Hover sırasında (header içermeyen) mesajlarda saat bilgisinin gösterilmesi */
+/* .hover-time elementini, mesajın solundaki boşlukta (48px alanın 20px sola kaymasıyla) konumlandırıyoruz */
 .hover-time {
   position: absolute;
-  left: 0;
+  left: 28px; /* 48px - 20px = 28px */
   top: 50%;
   transform: translateY(-50%);
   display: none;
@@ -619,12 +621,9 @@
   text-align: right;
   padding-right: 4px;
 }
-
 .text-message:hover .hover-time {
   display: block;
 }
 
-/* Yeni: Header içermeyen (ardışık) mesajlarda mouse üzerine gelindiğinde mesaj içeriği ile saat bilgisi arasında boşluğu arttır (48px'den 64px'e çıkar) */
-.text-message:not(:has(.message-header)):hover .message-content {
-  margin-left: 64px !important;
-}
+/* NOT: Daha önce, header içermeyen mesajlarda mesaj içeriğinin margin-left'ini 64px'e çıkartan kural kaldırılmıştır. 
+   Böylece mesaj içeriği sabit kalır ve hover-time elemanı 20px sola kayarak görünür. */
