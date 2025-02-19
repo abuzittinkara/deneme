@@ -572,10 +572,10 @@
   height: auto;
 }
 
-/* Tarih Ayırıcı Stili */
 .date-separator {
   display: flex;
   align-items: center;
+  width: 100%;
   margin: 10px 0;
 }
 
@@ -583,14 +583,14 @@
 .date-separator::after {
   content: "";
   flex: 1;
-  border-bottom: 1px solid #fff;  /* Beyaz renk */
+  border-bottom: 2px solid #fff; /* 2px kalınlığında beyaz çizgi */
   margin: 0 10px;
 }
 
-.date-separator span {
-  font-size: 0.8em;
-  color: #fff;  /* Beyaz renk */
-  padding: 0 10px;
+.date-separator .separator-text {
+  white-space: nowrap;
+  font-size: 1rem;
+  color: #fff;
 }
 
 /* Hover effect for placeholder avatars in text messages */

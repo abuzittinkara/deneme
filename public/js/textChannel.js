@@ -31,11 +31,22 @@ function formatTimestamp(timestamp) {
   }
 }
 
+// Uzun tarih formatında (örneğin, "19 Ocak 2025") döndüren fonksiyon.
+function formatLongDate(timestamp) {
+  const date = new Date(timestamp);
+  const day = date.getDate();
+  const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+  const month = monthNames[date.getMonth()];
+  const year = date.getFullYear();
+  return `${day} ${month} ${year}`;
+}
+
 // Belirtilen container'a, verilen timestamp için tarih ayırıcı ekler.
+// Ayırıcı, tüm genişliği kaplayan yatay çizgi şeklinde olup ortasında uzun formatta tarih metni bulunur.
 function insertDateSeparator(container, timestamp) {
   const separator = document.createElement('div');
   separator.className = 'date-separator';
-  separator.innerHTML = `<span class="separator-text">${formatTimestamp(timestamp)}</span>`;
+  separator.innerHTML = `<span class="separator-text">${formatLongDate(timestamp)}</span>`;
   container.appendChild(separator);
 }
 
@@ -164,4 +175,4 @@ function initTextChannelEvents(socket, container) {
   });
 }
 
-export { isDifferentDay, formatTimestamp, insertDateSeparator, renderTextMessages, initTextChannelEvents, appendNewMessage };
+export { isDifferentDay, formatTimestamp, formatLongDate, insertDateSeparator, renderTextMessages, initTextChannelEvents, appendNewMessage };
