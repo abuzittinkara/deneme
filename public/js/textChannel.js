@@ -80,18 +80,22 @@ function renderContentOnly(msg) {
 function renderTextMessages(messages, container) {
   container.innerHTML = "";
   messages.forEach((msg, index) => {
+    // Eğer ilk mesajsa veya önceki mesaj ile gün farkı varsa tarih ayıracını ekle.
+    if (index === 0) {
+      insertDateSeparator(container, msg.timestamp);
+    } else {
+      const prevMsg = messages[index - 1];
+      if (isDifferentDay(prevMsg.timestamp, msg.timestamp)) {
+        insertDateSeparator(container, msg.timestamp);
+      }
+    }
     const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
     const time = formatTimestamp(msg.timestamp);
     let msgHTML = "";
-    // Eğer ilk mesaj, farklı gün veya farklı gönderici ise tam header render edilsin.
-    if (
-      index === 0 ||
-      isDifferentDay(messages[index - 1].timestamp, msg.timestamp) ||
-      ((messages[index - 1].user && messages[index - 1].user.username) !== sender)
-    ) {
+    // Eğer ilk mesaj veya önceki mesajı gönderen farklı ise tam header render edilsin.
+    if (index === 0 || ((messages[index - 1].user && messages[index - 1].user.username) !== sender)) {
       msgHTML = renderFullMessage(msg, sender, time);
     } else {
-      // Ardışık aynı göndericinin mesajı: yalnızca mesaj içeriği
       msgHTML = renderContentOnly(msg);
     }
     const msgDiv = document.createElement('div');
