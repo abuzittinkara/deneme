@@ -342,11 +342,6 @@
   margin-left: 48px;
 }
 
-/* Yeni: Hover durumunda, mesaj içeriği ile saat bilgisinin gösterileceği alan arasındaki boşluğu arttır (örneğin, 20px ekleyerek 68px yapalım) */
-.text-message:hover .message-content {
-  margin-left: 68px;
-}
-
 /* Scrollbar - WebKit */
 #textMessages::-webkit-scrollbar {
   width: 0px;
@@ -627,4 +622,9 @@
 
 .text-message:hover .hover-time {
   display: block;
+}
+
+/* Yeni: Header içermeyen (ardışık) mesajlarda mouse üzerine gelindiğinde mesaj içeriği ile saat bilgisi arasında boşluğu arttır (48px'den 64px'e çıkar) */
+.text-message:not(:has(.message-header)):hover .message-content {
+  margin-left: 64px !important;
 }
