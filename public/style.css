@@ -4,3 +4,35 @@
 @import url("style/components.css");
 @import url("style/modals.css");
 @import url("style/responsive.css");
+
+/* --- Yeni: Ardışık mesajlar için özel sınıf stilleri --- */
+
+/* Tek başına gönderilmiş mesaj (ne ilk ne de son değil) */
+.text-message.only-message {
+  border-radius: 8px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+/* Aynı kullanıcıya ait ardışık mesaj grubunun ilk mesajı */
+.text-message.first-message {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  margin-top: 12px;
+}
+
+/* Aynı kullanıcıya ait ardışık mesaj grubunun ortadaki mesajları */
+.text-message.middle-message {
+  border-radius: 0;
+}
+
+/* Aynı kullanıcıya ait ardışık mesaj grubunun son mesajı */
+.text-message.last-message {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  margin-bottom: 12px;
+}
