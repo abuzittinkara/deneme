@@ -287,14 +287,13 @@
   align-self: flex-start;
   text-align: left;
   flex-direction: column;
-  margin-top: 0px;
+  margin-top: 0px; /* Margin-top sıfırlandı */
 }
 .text-message:hover {
   background-color: #2d2d2d;
   width: 100% !important;
   max-width: 100% !important;
   box-sizing: border-box;
-  background-color: #2d2d2d;
 }
 
 /* Mesaj İç Yapısı */
@@ -309,18 +308,18 @@
 }
 .avatar-and-name {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start; /* Değiştirildi: center yerine flex-start */
   gap: 0.4rem;
 }
-/* Güncellenmiş: .message-avatar'ya display: block eklenerek inline gap giderildi */
 .message-avatar {
   width: 40px;
   height: 40px;
   background-color: #666;
   border-radius: 50%;
   color: #fff;
-  display: block;
-  /* Flex özellikleri kaldırıldı çünkü artık block */
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-weight: bold;
 }
 .sender-name {
@@ -333,6 +332,7 @@
   font-size: 0.8em;
   color: #5a5a5a;
   margin-left: 4px;
+  /* Hover'da sadece saat gösterecek şekilde düzenlenecek */
 }
 
 /* Mesaj içeriği: Avatar ve kullanıcı adının bulunduğu satırın sağından hizalanması için sol margin.
@@ -586,13 +586,13 @@
 .date-separator::after {
   content: "";
   flex: 1;
-  border-bottom: 2px solid #aaa;  /* 2px kalınlığında #aaa çizgi */
+  border-bottom: 2px solid #aaa;  /* Çizgi rengi #aaa */
   margin: 0 10px;
 }
 
 .date-separator .separator-text {
   white-space: nowrap;
-  font-size: 0.85rem;  /* Font boyutu biraz küçültüldü */
+  font-size: 0.85rem;  /* Font boyutu küçültüldü */
   color: #aaa;  /* Metin rengi #aaa */
   padding: 0 10px;
   background: rgba(0, 0, 0, 0.5); /* Yarı saydam siyah arka plan */
@@ -608,8 +608,7 @@
 }
 
 /* Yeni: Hover sırasında (header içermeyen) mesajlarda saat bilgisinin gösterilmesi */
-/* Mesaj içeriğinin margin-left'i sabit (48px) bırakılarak, hover-time elementi mesajın solundaki boşlukta, 
-   orijinal boşluk içerisine (yani mesajın gönderildiği saat görünümü) yerleşecek şekilde konumlandırılır. */
+/* Mesaj içeriğinin margin-left'i sabit (48px) bırakılarak, hover-time elementi mesajın solundaki boşlukta konumlandırılır. */
 .hover-time {
   position: absolute;
   left: -20px; /* Saat bilgisini 20px sola çek */
