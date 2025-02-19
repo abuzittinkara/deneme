@@ -311,10 +311,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  margin: 0;
-  line-height: 1;
-  vertical-align: middle;
 }
+/* Güncellenmiş: .message-avatar'ya display: block eklenerek inline gap giderildi */
 .message-avatar {
   width: 40px;
   height: 40px;
@@ -322,14 +320,12 @@
   border-radius: 50%;
   color: #fff;
   display: block;
-  vertical-align: middle;
-  margin: 0;
+  /* Flex özellikleri kaldırıldı çünkü artık block */
   font-weight: bold;
 }
 .sender-name {
   font-weight: bold;
-  margin: 0;
-  vertical-align: middle;
+  margin-right: 4px;
   color: #fff;
 }
 .timestamp {
@@ -585,6 +581,7 @@
   min-height: 24px; /* Ayıracın en az yüksekliği */
   position: relative;
 }
+
 .date-separator::before,
 .date-separator::after {
   content: "";
@@ -592,6 +589,7 @@
   border-bottom: 2px solid #aaa;  /* 2px kalınlığında #aaa çizgi */
   margin: 0 10px;
 }
+
 .date-separator .separator-text {
   white-space: nowrap;
   font-size: 0.85rem;  /* Font boyutu biraz küçültüldü */
@@ -610,7 +608,8 @@
 }
 
 /* Yeni: Hover sırasında (header içermeyen) mesajlarda saat bilgisinin gösterilmesi */
-/* Mesaj içeriğinin margin-left'i sabit (48px) bırakılarak, hover-time elementi mesajın solundaki boşlukta konumlandırılır. */
+/* Mesaj içeriğinin margin-left'i sabit (48px) bırakılarak, hover-time elementi mesajın solundaki boşlukta, 
+   orijinal boşluk içerisine (yani mesajın gönderildiği saat görünümü) yerleşecek şekilde konumlandırılır. */
 .hover-time {
   position: absolute;
   left: -20px; /* Saat bilgisini 20px sola çek */
