@@ -178,6 +178,28 @@
   color: #fff;
 }
 
+/* Yeni: Ekran Paylaşım Butonu */
+.screenshare-btn {
+  background: none;
+  border: 2px solid #4caf50;
+  color: #4caf50;
+  cursor: pointer;
+  width: 30px;
+  height: 25px;
+  padding: 0;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.4rem;
+  transition: background 0.3s ease;
+}
+
+.screenshare-btn:hover {
+  background: #4caf50;
+  color: #fff;
+}
+
 /* User Panel */
 .user-panel {
   position: absolute;
@@ -287,7 +309,7 @@
   align-self: flex-start;
   text-align: left;
   flex-direction: column;
-  margin-top: 0px; /* Margin-top sıfırlandı */
+  margin-top: 0px;
 }
 .text-message:hover {
   background-color: #2d2d2d;
@@ -308,7 +330,7 @@
 }
 .avatar-and-name {
   display: inline-flex;
-  align-items: flex-start; /* Değiştirildi: center yerine flex-start */
+  align-items: flex-start;
   gap: 0.4rem;
 }
 .message-avatar {
@@ -332,7 +354,6 @@
   font-size: 0.8em;
   color: #5a5a5a;
   margin-left: 4px;
-  /* Hover'da sadece saat gösterecek şekilde düzenlenecek */
 }
 
 /* Mesaj içeriği: Avatar ve kullanıcı adının bulunduğu satırın sağından hizalanması için sol margin.
@@ -486,7 +507,7 @@
   min-width: 130px;
   display: none;
   flex-direction: column;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 .context-menu-item {
   padding: 0.75rem 1rem;
@@ -578,7 +599,7 @@
   align-items: center;
   width: 100%;
   margin: 10px 0;
-  min-height: 24px; /* Ayıracın en az yüksekliği */
+  min-height: 24px;
   position: relative;
 }
 
@@ -586,16 +607,16 @@
 .date-separator::after {
   content: "";
   flex: 1;
-  border-bottom: 2px solid #aaa;  /* Çizgi rengi #aaa */
+  border-bottom: 2px solid #aaa;
   margin: 0 10px;
 }
 
 .date-separator .separator-text {
   white-space: nowrap;
-  font-size: 0.85rem;  /* Font boyutu küçültüldü */
-  color: #aaa;  /* Metin rengi #aaa */
+  font-size: 0.85rem;
+  color: #aaa;
   padding: 0 10px;
-  background: rgba(0, 0, 0, 0.5); /* Yarı saydam siyah arka plan */
+  background: rgba(0, 0, 0, 0.5);
   border-radius: 4px;
 }
 
@@ -608,10 +629,10 @@
 }
 
 /* Yeni: Hover sırasında (header içermeyen) mesajlarda saat bilgisinin gösterilmesi */
-/* Mesaj içeriğinin margin-left'i sabit (48px) bırakılarak, hover-time elementi mesajın solundaki boşlukta konumlandırılır. */
+/* Bu kısımda sadece saat bilgisi gösterilecek */
 .hover-time {
   position: absolute;
-  left: -20px; /* Saat bilgisini 20px sola çek */
+  left: -20px;
   top: 50%;
   transform: translateY(-50%);
   display: none;
