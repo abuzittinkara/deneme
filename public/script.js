@@ -144,7 +144,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
   
-  // Metin kanalına ait eventleri modül üzerinden başlatıyoruz.
+  // Metin kanalına ait eventleri TextChannel modülüne devrediyoruz.
   TextChannel.initTextChannelEvents(socket, textMessages);
 });
 
@@ -172,7 +172,7 @@ function initSocketEvents() {
     }
   });
   
-  // Kayıtlı grupların listesini dinleyen event handler
+  // Kayıtlı grupların listesini güncelleyen event
   socket.on('groupsList', (groupArray) => {
     groupListDiv.innerHTML = '';
     groupArray.forEach(groupObj => {
@@ -199,7 +199,7 @@ function initSocketEvents() {
     });
   });
   
-  // "roomsList" event handler: Sunucudan gelen kanal listesini güncelliyoruz.
+  // Kanal listesini güncelleyen event
   socket.on('roomsList', (roomsArray) => {
     roomListDiv.innerHTML = '';
     roomsArray.forEach(roomObj => {
@@ -243,7 +243,7 @@ function initSocketEvents() {
           socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: roomObj.id });
           return;
         }
-        // Voice channel için:
+        // Voice kanal için: önce mikrofon iznini kullanıcı tıklamasıyla talep ediyoruz.
         textChannelContainer.style.display = 'none';
         document.getElementById('channelUsersContainer').style.display = 'flex';
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
@@ -255,7 +255,12 @@ function initSocketEvents() {
           leaveRoomInternal();
         }
         currentGroup = selectedGroup;
-        joinRoom(currentGroup, roomObj.id, roomObj.name);
+        // Mikrofon izni kullanıcı etkileşimiyle alınsın:
+        requestMicrophoneAccess().then(() => {
+          joinRoom(currentGroup, roomObj.id, roomObj.name);
+        }).catch(err => {
+          console.error("Mikrofon izni alınamadı:", err);
+        });
         roomItem.classList.add('connected');
       });
       roomListDiv.appendChild(roomItem);
@@ -270,7 +275,8 @@ function initSocketEvents() {
     }
     consumeProducer(producerId);
   });
-  // Diğer socket eventleri...
+  
+  // Diğer socket eventleri (joinRoomAck, roomUsers, vb.) mevcut...
 }
 
 function startSfuFlow() {
@@ -278,7 +284,8 @@ function startSfuFlow() {
   if (!device) {
     device = new mediasoupClient.Device();
   }
-  if (!localStream || localStream.getAudioTracks()[0].readyState === 'ended') {
+  // Voice kanalı için mikrofon izni alındıysa transport akışı başlatılıyor.
+  if (!audioPermissionGranted || !localStream || localStream.getAudioTracks()[0].readyState === 'ended') {
     requestMicrophoneAccess().then(() => {
       createTransportFlow();
     });
@@ -560,6 +567,7 @@ async function requestMicrophoneAccess() {
     });
   } catch(err) {
     console.error("Mikrofon izni alınamadı:", err);
+    throw err;
   }
 }
 
@@ -782,62 +790,10 @@ function initUIEvents() {
     // ...
   });
   
-  // Mesaj gönderme işlemi
+  // Mesaj gönderme işlemi: Artık mesajı yerel olarak DOM’a eklemiyoruz, sunucu yanıtını bekliyoruz.
   function sendTextMessage() {
     const msg = textChannelMessageInput.value.trim();
     if (!msg) return;
-    const time = TextChannel.formatTimestamp(new Date());
-    // Önceki mesajın göndericisini kontrol edelim (date-separator'ı atlayarak)
-    let lastMsgElem = textMessages.lastElementChild;
-    while (lastMsgElem && lastMsgElem.classList.contains('date-separator')) {
-      lastMsgElem = lastMsgElem.previousElementSibling;
-    }
-    let msgClass = "";
-    if (!lastMsgElem || lastMsgElem.getAttribute('data-sender') !== username) {
-      // Farklı gönderici veya hiç mesaj yoksa: yeni blok, full header
-      msgClass = "only-message";
-    } else {
-      // Aynı gönderici ise:
-      if (lastMsgElem.classList.contains("only-message")) {
-        lastMsgElem.classList.remove("only-message");
-        lastMsgElem.classList.add("first-message");
-      } else if (lastMsgElem.classList.contains("last-message")) {
-        lastMsgElem.classList.remove("last-message");
-        lastMsgElem.classList.add("middle-message");
-      }
-      msgClass = "last-message";
-    }
-    
-    let msgHTML = "";
-    // Eğer bu mesaj bloğunun ilk mesajı ise header göster, aksi halde yalnızca mesaj içeriği.
-    if (msgClass === "only-message" || msgClass === "first-message") {
-      msgHTML = `
-        <div class="message-item">
-          <div class="message-header">
-            <div class="avatar-and-name">
-              <img class="message-avatar" src="/images/default-avatar.png" alt="">
-              <span class="sender-name">${username}</span>
-            </div>
-            <span class="timestamp">${time}</span>
-          </div>
-          <div class="message-content">${msg}</div>
-        </div>
-      `;
-    } else {
-      msgHTML = `
-        <div class="message-item">
-          <div class="message-content" style="margin-left: 48px;">${msg}</div>
-        </div>
-      `;
-    }
-    const className = `text-message left-message ${msgClass}`;
-    const msgDiv = document.createElement('div');
-    msgDiv.className = className;
-    msgDiv.setAttribute('data-timestamp', new Date().toISOString());
-    msgDiv.setAttribute('data-sender', username);
-    msgDiv.innerHTML = msgHTML;
-    textMessages.appendChild(msgDiv);
-    textMessages.scrollTop = textMessages.scrollHeight;
     socket.emit('textMessage', { 
       groupId: selectedGroup, 
       roomId: currentTextChannel, 
@@ -1115,5 +1071,4 @@ document.addEventListener('DOMContentLoaded', function() {
   
 // METİN MESAJLARININ RENDER İŞLEMLERİ SONU
 
-// (Burada module export yapmıyoruz çünkü script.js dosyası tarayıcı için doğrudan çalıştırılıyor.)
-
+// Not: script.js tarayıcıda doğrudan çalıştırıldığı için module export yapmıyoruz.
