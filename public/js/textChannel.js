@@ -42,6 +42,7 @@ function formatLongDate(timestamp) {
 }
 
 // Belirtilen container'a, verilen timestamp için tarih ayırıcı ekler.
+// Ayırıcı, tüm genişliği kaplayan yatay çizgi şeklinde olup ortasında uzun formatta tarih metni bulunur.
 function insertDateSeparator(container, timestamp) {
   const separator = document.createElement('div');
   separator.className = 'date-separator';
@@ -49,12 +50,11 @@ function insertDateSeparator(container, timestamp) {
   container.appendChild(separator);
 }
 
-/* 
-  renderFullMessage fonksiyonu:
-  - "message-header" adında flex container oluşturuyoruz.
-  - Sol tarafta "avatar-container" içinde avatar,
-  - Sağ tarafta "user-info" içinde kullanıcı adı ve zaman (timestamp) yan yana yer alıyor.
-  - Ardından mesaj içeriği (message-content) alt satırda gösteriliyor.
+/*
+  renderFullMessage:
+  - İlk mesaj (only-message veya first-message) için "message-header"ın içine avatar, kullanıcı adı, zaman
+    ve mesaj içeriği (message-content first-message) eklenir.
+  Böylece tüm bilgiler aynı konteynerde yer alır.
 */
 function renderFullMessage(msg, sender, time, msgClass) {
   return `
@@ -67,8 +67,10 @@ function renderFullMessage(msg, sender, time, msgClass) {
           <span class="sender-name">${sender}</span>
           <span class="timestamp">${time}</span>
         </div>
+        <div class="message-content ${msgClass}" style="margin-left: 12px;">
+          ${msg.content}
+        </div>
       </div>
-      <div class="message-content ${msgClass}">${msg.content}</div>
     </div>
   `;
 }
@@ -129,7 +131,7 @@ function renderTextMessages(messages, container) {
   container.scrollTop = container.scrollHeight;
 }
 
-// Yeni gelen mesajı container'a ekler.
+// Yeni gelen mesajı, container'daki son mesajla karşılaştırarak render eder.
 function appendNewMessage(msg, container) {
   const sender = msg.username || "Anon";
   const time = formatTimestamp(msg.timestamp);
