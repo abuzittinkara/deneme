@@ -172,7 +172,6 @@ function initSocketEvents() {
     }
   });
   
-  // Kayıtlı grupların listesini güncelleyen event
   socket.on('groupsList', (groupArray) => {
     groupListDiv.innerHTML = '';
     groupArray.forEach(groupObj => {
@@ -199,7 +198,6 @@ function initSocketEvents() {
     });
   });
   
-  // Kanal listesini güncelleyen event
   socket.on('roomsList', (roomsArray) => {
     roomListDiv.innerHTML = '';
     roomsArray.forEach(roomObj => {
@@ -243,7 +241,7 @@ function initSocketEvents() {
           socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: roomObj.id });
           return;
         }
-        // Voice kanal için: önce mikrofon iznini kullanıcı tıklamasıyla talep ediyoruz.
+        // Voice kanal için:
         textChannelContainer.style.display = 'none';
         document.getElementById('channelUsersContainer').style.display = 'flex';
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
@@ -255,8 +253,9 @@ function initSocketEvents() {
           leaveRoomInternal();
         }
         currentGroup = selectedGroup;
-        // Mikrofon izni kullanıcı etkileşimiyle alınsın:
+        // Mikrofon iznini kullanıcı etkileşimiyle alıyoruz ve ardından sesli kanala katılıyoruz.
         requestMicrophoneAccess().then(() => {
+          console.log("Mikrofon izni alındı, voice kanalına katılım isteği gönderiliyor.");
           joinRoom(currentGroup, roomObj.id, roomObj.name);
         }).catch(err => {
           console.error("Mikrofon izni alınamadı:", err);
@@ -267,16 +266,34 @@ function initSocketEvents() {
     });
   });
   
+  socket.on('joinRoomAck', ({ groupId, roomId }) => {
+    console.log("joinRoomAck received:", groupId, roomId);
+    currentGroup = groupId;
+    currentRoom = roomId;
+    currentRoomType = "voice";
+    if (!audioPermissionGranted || !localStream) {
+      requestMicrophoneAccess().then(() => {
+        console.log("Mikrofon alındı, SFU akışı başlatılıyor...");
+        startSfuFlow();
+      }).catch(err => {
+        console.error("SFU akışı için mikrofon izni alınamadı:", err);
+      });
+    } else {
+      console.log("SFU akışı başlatılıyor...");
+      startSfuFlow();
+    }
+  });
+  
   socket.on('newProducer', ({ producerId }) => {
     console.log("newProducer =>", producerId);
     if (!recvTransport) {
-      console.warn("recvTransport yok => sonra consume edebiliriz");
+      console.warn("recvTransport yok, consume işlemi daha sonra yapılacak.");
       return;
     }
     consumeProducer(producerId);
   });
   
-  // Diğer socket eventleri (joinRoomAck, roomUsers, vb.) mevcut...
+  // Diğer socket eventleri (roomUsers, groupRenamed, groupDeleted, vb.) burada yer alıyor...
 }
 
 function startSfuFlow() {
@@ -284,10 +301,11 @@ function startSfuFlow() {
   if (!device) {
     device = new mediasoupClient.Device();
   }
-  // Voice kanalı için mikrofon izni alındıysa transport akışı başlatılıyor.
-  if (!audioPermissionGranted || !localStream || localStream.getAudioTracks()[0].readyState === 'ended') {
+  if (!localStream || localStream.getAudioTracks()[0].readyState === 'ended') {
     requestMicrophoneAccess().then(() => {
       createTransportFlow();
+    }).catch(err => {
+      console.error("Mikrofon akışı alınamadı, SFU başlatılamıyor:", err);
     });
   } else {
     createTransportFlow();
@@ -303,9 +321,9 @@ async function createTransportFlow() {
   if (!deviceIsLoaded) {
     await device.load({ routerRtpCapabilities: transportParams.routerRtpCapabilities });
     deviceIsLoaded = true;
-    console.log("Device load bitti =>", device.rtpCapabilities);
+    console.log("Device yüklendi:", device.rtpCapabilities);
   } else {
-    console.log("Device zaten yüklü...");
+    console.log("Device zaten yüklü.");
   }
   sendTransport = device.createSendTransport(transportParams);
   sendTransport.on('connect', ({ dtlsParameters }, callback, errback) => {
@@ -348,17 +366,17 @@ async function createTransportFlow() {
       track: audioTrack,
       stopTracks: false
     });
-    console.log("Mikrofon produce edildi =>", localProducer.id);
+    console.log("Mikrofon producer oluşturuldu:", localProducer.id);
   } catch (err) {
     if (err.name === "InvalidStateError") {
-      console.error("Audio track ended error, tekrar mikrofon alınıyor...");
+      console.error("Audio track bitti, yeniden mikrofon izni isteniyor...");
       await requestMicrophoneAccess();
       audioTrack = localStream.getAudioTracks()[0];
       localProducer = await sendTransport.produce({
         track: audioTrack,
         stopTracks: false
       });
-      console.log("Mikrofon produce edildi (yeni track) =>", localProducer.id);
+      console.log("Yeni audio track ile producer oluşturuldu:", localProducer.id);
     } else {
       throw err;
     }
@@ -385,15 +403,15 @@ async function createTransportFlow() {
     });
   });
   const producers = await listProducers();
-  console.log("Mevcut producerlar =>", producers);
+  console.log("Mevcut producerlar:", producers);
   for (const prod of producers) {
     if (prod.peerId === socket.id) {
-      console.log("Kendi producer => tüketme yok:", prod.id);
+      console.log("Kendi producer, tüketme yapılmıyor:", prod.id);
       continue;
     }
     await consumeProducer(prod.id);
   }
-  console.log("startSfuFlow => tamamlandı.");
+  console.log("SFU akışı tamamlandı.");
 }
 
 function createTransport() {
@@ -420,7 +438,7 @@ function listProducers() {
 
 async function consumeProducer(producerId) {
   if (!recvTransport) {
-    console.warn("consumeProducer => recvTransport yok");
+    console.warn("consumeProducer: recvTransport yok");
     return;
   }
   const consumeParams = await new Promise((resolve) => {
@@ -437,7 +455,7 @@ async function consumeProducer(producerId) {
     console.error("consume error:", consumeParams.error);
     return;
   }
-  console.log("consumeProducer =>", consumeParams);
+  console.log("consumeProducer parametreleri:", consumeParams);
   const consumer = await recvTransport.consume({
     id: consumeParams.id,
     producerId: consumeParams.producerId,
@@ -454,7 +472,7 @@ async function consumeProducer(producerId) {
   remoteAudios.push(audioEl);
   audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
   startVolumeAnalysis(audioEl.srcObject, consumer.appData.peerId);
-  console.log("Yeni consumer =>", consumer.id, "=> gerçekte konuşan:", consumer.appData.peerId);
+  console.log("Yeni consumer oluşturuldu:", consumer.id, "-> konuşan:", consumer.appData.peerId);
 }
 
 function startVolumeAnalysis(stream, userId) {
@@ -520,10 +538,11 @@ function leaveRoomInternal() {
     a.srcObject = null;
   });
   remoteAudios = [];
-  console.log("leaveRoomInternal => SFU transportlar kapatıldı");
+  console.log("leaveRoomInternal: SFU transportlar kapatıldı");
 }
 
 function joinRoom(groupId, roomId, roomName) {
+  console.log(`joinRoom çağrıldı: group=${groupId}, room=${roomId}, name=${roomName}`);
   socket.emit('joinRoom', { groupId, roomId });
   document.getElementById('selectedChannelTitle').textContent = roomName;
   showChannelStatusPanel();
@@ -565,6 +584,7 @@ async function requestMicrophoneAccess() {
     remoteAudios.forEach(audioEl => {
       audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
     });
+    return stream;
   } catch(err) {
     console.error("Mikrofon izni alınamadı:", err);
     throw err;
@@ -790,7 +810,7 @@ function initUIEvents() {
     // ...
   });
   
-  // Mesaj gönderme işlemi: Artık mesajı yerel olarak DOM’a eklemiyoruz, sunucu yanıtını bekliyoruz.
+  // Mesaj gönderme işlemi: Voice kanallarında sesli iletişim için mesaj gönderimi yapılmaz.
   function sendTextMessage() {
     const msg = textChannelMessageInput.value.trim();
     if (!msg) return;
@@ -1071,4 +1091,4 @@ document.addEventListener('DOMContentLoaded', function() {
   
 // METİN MESAJLARININ RENDER İŞLEMLERİ SONU
 
-// Not: script.js tarayıcıda doğrudan çalıştırıldığı için module export yapmıyoruz.
+// Not: script.js tarayıcıda doğrudan çalıştırıldığı için module export yapılmıyor.
