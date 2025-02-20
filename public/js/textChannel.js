@@ -52,18 +52,18 @@ function insertDateSeparator(container, timestamp) {
 
 /*
   renderFullMessage:
-  - İlk mesaj (only-message veya first-message) için "message-header"ın içine avatar, kullanıcı adı, zaman
-    ve mesaj içeriği (message-content first-message) eklenir.
-  Böylece tüm bilgiler aynı konteynerde yer alır.
+  - İlk mesaj (only-message ya da first-message) için "message-header" bölümünde;
+    avatar, kullanıcı adı ve altında timestamp ile mesaj içeriği ("message-content first-message")
+    yer alır.
 */
 function renderFullMessage(msg, sender, time, msgClass) {
   return `
     <div class="message-item">
-      <div class="message-header" style="display: flex; align-items: center; gap: 8px;">
+      <div class="message-header" style="display: flex; align-items: flex-start; gap: 8px;">
         <div class="avatar-container">
           <img class="message-avatar" src="/images/default-avatar.png" alt="">
         </div>
-        <div class="user-info" style="display: flex; align-items: center; gap: 4px;">
+        <div class="user-info" style="display: flex; flex-direction: column;">
           <span class="sender-name">${sender}</span>
           <span class="timestamp">${time}</span>
         </div>
