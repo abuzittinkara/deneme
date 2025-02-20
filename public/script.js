@@ -155,7 +155,6 @@ function initSocketEvents() {
   socket.on('disconnect', () => {
     console.log("Socket disconnect");
   });
-  
   socket.on('loginResult', (data) => {
     if (data.success) {
       username = data.username;
@@ -172,8 +171,8 @@ function initSocketEvents() {
       loginPasswordInput.classList.add('shake');
     }
   });
-
-  // ←←← EK: Kayıtlı grupların listesini dinleyen event handler (groupsList)
+  
+  // EK: Kayıtlı grupların listesini dinleyen event handler
   socket.on('groupsList', (groupArray) => {
     groupListDiv.innerHTML = '';
     groupArray.forEach(groupObj => {
@@ -199,9 +198,70 @@ function initSocketEvents() {
       groupListDiv.appendChild(grpItem);
     });
   });
-  // →→→ EK sonu
-
-  // Diğer socket eventleri (roomsList, allChannelsData, newProducer, vb.) mevcut...
+  
+  // EK: "roomsList" event handler ekleniyor; sunucudan gelen oda/kanal listesini burada güncelliyoruz.
+  socket.on('roomsList', (roomsArray) => {
+    roomListDiv.innerHTML = '';
+    roomsArray.forEach(roomObj => {
+      const roomItem = document.createElement('div');
+      roomItem.className = 'channel-item';
+      const channelHeader = document.createElement('div');
+      channelHeader.className = 'channel-header';
+      let icon;
+      if (roomObj.type === 'voice') {
+        icon = document.createElement('span');
+        icon.classList.add('material-icons', 'channel-icon');
+        icon.textContent = 'volume_up';
+      } else {
+        icon = document.createElement('span');
+        icon.classList.add('material-icons', 'channel-icon');
+        icon.textContent = 'chat';
+      }
+      const textSpan = document.createElement('span');
+      textSpan.textContent = roomObj.name;
+      channelHeader.appendChild(icon);
+      channelHeader.appendChild(textSpan);
+      const channelUsers = document.createElement('div');
+      channelUsers.className = 'channel-users';
+      channelUsers.id = `channel-users-${roomObj.id}`;
+      roomItem.appendChild(channelHeader);
+      roomItem.appendChild(channelUsers);
+      
+      roomItem.addEventListener('click', () => {
+        if (roomObj.type === 'text') {
+          console.log(`Text channel clicked => ${roomObj.name}`);
+          document.getElementById('selectedChannelTitle').textContent = roomObj.name;
+          textChannelContainer.style.display = 'flex';
+          document.getElementById('channelUsersContainer').style.display = 'none';
+          if (!(currentRoom && currentRoomType === 'voice')) {
+            hideChannelStatusPanel();
+            currentRoomType = "text";
+          }
+          textMessages.innerHTML = "";
+          currentTextChannel = roomObj.id;
+          textMessages.dataset.channelId = roomObj.id;
+          socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: roomObj.id });
+          return;
+        }
+        // Voice channel için:
+        textChannelContainer.style.display = 'none';
+        document.getElementById('channelUsersContainer').style.display = 'flex';
+        document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
+        if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
+          roomItem.classList.add('connected');
+          return;
+        }
+        if (currentRoom && (currentRoom !== roomObj.id || currentGroup !== selectedGroup)) {
+          leaveRoomInternal();
+        }
+        currentGroup = selectedGroup;
+        joinRoom(currentGroup, roomObj.id, roomObj.name);
+        roomItem.classList.add('connected');
+      });
+      roomListDiv.appendChild(roomItem);
+    });
+  });
+  
   socket.on('newProducer', ({ producerId }) => {
     console.log("newProducer =>", producerId);
     if (!recvTransport) {
@@ -210,7 +270,7 @@ function initSocketEvents() {
     }
     consumeProducer(producerId);
   });
-  // Metin mesajları render işlemleri modül üzerinden hallediliyor
+  // Diğer socket eventleri (ör. allChannelsData, roomUsers, joinRoomAck, vb.) mevcut...
 }
 
 function startSfuFlow() {
@@ -1054,4 +1114,4 @@ document.addEventListener('DOMContentLoaded', function() {
   
 // METİN MESAJLARININ RENDER İŞLEMLERİ SONU
 
-// (Burada module export yapmıyoruz çünkü script.js tarayıcıda doğrudan çalışıyor.)
+// (Burada module export yapmıyoruz çünkü script.js dosyası tarayıcı için doğrudan çalıştırılıyor.)
