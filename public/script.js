@@ -873,65 +873,18 @@ function initUIEvents() {
     // ...
   });
   
-  // Mesaj gönderme işlemi
+  // Mesaj gönderme işlemi – Güncellenmiş versiyon:
   function sendTextMessage() {
-    const msg = textChannelMessageInput.value.trim();
-    if (!msg) return;
-    const time = TextChannel.formatTimestamp(new Date());
-    // Önceki mesajın göndericisini kontrol edelim (date-separator'ı atlayarak)
-    let lastMsgElem = textMessages.lastElementChild;
-    while (lastMsgElem && lastMsgElem.classList.contains('date-separator')) {
-      lastMsgElem = lastMsgElem.previousElementSibling;
-    }
-    let msgClass = "";
-    if (!lastMsgElem || lastMsgElem.getAttribute('data-sender') !== username) {
-      // Yeni blok: sadece bir mesaj (tek mesaj)
-      msgClass = "only-message";
-    } else {
-      // Aynı göndericinin ardışık mesajı: güncelleme
-      if (lastMsgElem.classList.contains("only-message")) {
-        lastMsgElem.classList.remove("only-message");
-        lastMsgElem.classList.add("first-message");
-      } else if (lastMsgElem.classList.contains("last-message")) {
-        lastMsgElem.classList.remove("last-message");
-        lastMsgElem.classList.add("middle-message");
-      }
-      msgClass = "last-message";
-    }
-    
-    let msgHTML = "";
-    if (msgClass === "only-message" || msgClass === "first-message" || msgClass === "last-message") {
-      msgHTML = `
-        <div class="message-item">
-          <div class="message-header">
-            <div class="avatar-and-name">
-              <img class="message-avatar" src="/images/default-avatar.png" alt="">
-              <span class="sender-name">${username}</span>
-            </div>
-            <span class="timestamp">${time}</span>
-          </div>
-          <div class="message-content">${msg}</div>
-        </div>
-      `;
-    } else {
-      msgHTML = `
-        <div class="message-item">
-          <div class="message-content" style="margin-left: 48px;">${msg}</div>
-        </div>
-      `;
-    }
-    const className = `text-message left-message ${msgClass}`;
-    const msgDiv = document.createElement('div');
-    msgDiv.className = className;
-    msgDiv.setAttribute('data-timestamp', new Date());
-    msgDiv.setAttribute('data-sender', username);
-    msgDiv.innerHTML = msgHTML;
-    textMessages.appendChild(msgDiv);
-    textMessages.scrollTop = textMessages.scrollHeight;
+    const msgContent = textChannelMessageInput.value.trim();
+    if (!msgContent) return;
+    const timestamp = new Date();
+    // Yeni mesajı TextChannel modülündeki appendNewMessage fonksiyonuyla render ediyoruz.
+    const msgObj = { content: msgContent, username: username, timestamp: timestamp };
+    TextChannel.appendNewMessage(msgObj, textMessages);
     socket.emit('textMessage', { 
       groupId: selectedGroup, 
       roomId: currentTextChannel, 
-      message: msg, 
+      message: msgObj, 
       username: username 
     });
     textChannelMessageInput.value = '';
