@@ -3,6 +3,9 @@
  * Metin (mesaj) kanallarıyla ilgili tüm fonksiyonlar burada toplanmıştır.
  **************************************/
 
+// Global olarak her kanal için son mesaj bilgisini saklayan obje
+let lastMessageInfo = {};
+
 // İki timestamp'in gün bazında farklı olup olmadığını kontrol eder.
 function isDifferentDay(ts1, ts2) {
   const d1 = new Date(ts1);
@@ -51,7 +54,8 @@ function insertDateSeparator(container, timestamp) {
 }
 
 // Mesajı, tam header (avatar, kullanıcı adı ve zaman) şeklinde render eder.
-// Değişiklik: Avatar ve kullanıcı adı artık ayrı kapsayıcılar içinde render ediliyor.
+// Bu fonksiyonda, avatar, kullanıcı adı ve zaman ayrı kapsayıcılarda olacak şekilde (örn. message-header içinde)
+// render ediliyor.
 function renderFullMessage(msg, sender, time, msgClass) {
   return `
     <div class="message-item">
@@ -84,6 +88,13 @@ function renderContentOnly(msg, msgClass, time) {
 // Mesajlar, ardışık aynı göndericiler için "only-message", "first-message", "middle-message" ve "last-message" sınıflarıyla ayrılır.
 function renderTextMessages(messages, container) {
   container.innerHTML = "";
+  // Kanal ID'sine göre, mesaj geçmişi yeniden renderlansa da global state sıfırlanmasın.
+  const channelId = container.dataset.channelId;
+  // Eğer o kanala ait global bilgi yoksa oluşturuyoruz, yoksa koruyoruz:
+  if (!lastMessageInfo[channelId]) {
+    lastMessageInfo[channelId] = null;
+  }
+  
   messages.forEach((msg, index) => {
     const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
     const time = formatTimestamp(msg.timestamp);
@@ -121,43 +132,45 @@ function renderTextMessages(messages, container) {
     msgDiv.setAttribute('data-sender', sender);
     msgDiv.innerHTML = msgHTML;
     container.appendChild(msgDiv);
+    
+    // Global last message bilgisini güncelle
+    lastMessageInfo[channelId] = { sender, timestamp: new Date(msg.timestamp) };
   });
   container.scrollTop = container.scrollHeight;
 }
 
-// Yeni gelen mesajı, container'daki son mesajla karşılaştırarak render eder.
+// Yeni gelen mesajı, global lastMessageInfo üzerinden (kanala ait) tespit ederek render eder.
 function appendNewMessage(msg, container) {
+  const channelId = container.dataset.channelId;
   const sender = msg.username || "Anon";
   const time = formatTimestamp(msg.timestamp);
   
-  let lastMsgElem = container.lastElementChild;
-  while (lastMsgElem && lastMsgElem.classList.contains('date-separator')) {
-    lastMsgElem = lastMsgElem.previousElementSibling;
-  }
-  
+  let lastInfo = lastMessageInfo[channelId];
   let msgClass = "";
-  if (!lastMsgElem) {
-    insertDateSeparator(container, msg.timestamp);
+  if (!lastInfo || lastInfo.sender !== sender || isDifferentDay(lastInfo.timestamp, msg.timestamp)) {
+    // Farklı gönderici ya da farklı gün: yeni blok
+    if (lastInfo && isDifferentDay(lastInfo.timestamp, msg.timestamp)) {
+      insertDateSeparator(container, msg.timestamp);
+    }
     msgClass = "only-message";
   } else {
-    const lastSender = lastMsgElem.getAttribute('data-sender');
-    const lastTimestamp = new Date(lastMsgElem.getAttribute('data-timestamp'));
-    if (lastSender !== sender || isDifferentDay(lastTimestamp, msg.timestamp)) {
-      if (isDifferentDay(lastTimestamp, msg.timestamp)) {
-         insertDateSeparator(container, msg.timestamp);
-      }
-      msgClass = "only-message";
-    } else {
-      // Aynı blok içinde, önceki mesajın sınıfını güncelleyelim:
+    msgClass = "last-message";
+    // Aynı blok içindeyse, DOM üzerinden son mesajı bulup sınıfını güncelleyelim:
+    let lastMsgElem = container.lastElementChild;
+    while (lastMsgElem && lastMsgElem.classList.contains('date-separator')) {
+      lastMsgElem = lastMsgElem.previousElementSibling;
+    }
+    if (lastMsgElem) {
       const lastContent = lastMsgElem.querySelector('.message-content');
-      if (lastContent.classList.contains("only-message")) {
-        lastContent.classList.remove("only-message");
-        lastContent.classList.add("first-message");
-      } else if (lastContent.classList.contains("last-message")) {
-        lastContent.classList.remove("last-message");
-        lastContent.classList.add("middle-message");
+      if (lastContent) {
+        if (lastContent.classList.contains("only-message")) {
+          lastContent.classList.remove("only-message");
+          lastContent.classList.add("first-message");
+        } else if (lastContent.classList.contains("last-message")) {
+          lastContent.classList.remove("last-message");
+          lastContent.classList.add("middle-message");
+        }
       }
-      msgClass = "last-message";
     }
   }
   
@@ -175,6 +188,9 @@ function appendNewMessage(msg, container) {
   msgDiv.innerHTML = msgHTML;
   container.appendChild(msgDiv);
   container.scrollTop = container.scrollHeight;
+  
+  // Global son mesaj bilgisini güncelle
+  lastMessageInfo[channelId] = { sender, timestamp: new Date(msg.timestamp) };
 }
 
 // Socket üzerinden gelen "textHistory" ve "newTextMessage" eventlerini işleyip,
@@ -187,6 +203,7 @@ function initTextChannelEvents(socket, container) {
   socket.on('newTextMessage', (data) => {
     if (data.channelId === container.dataset.channelId) {
       const msg = data.message;
+      // Mesajlar arasında tarih ayıracı kontrolü:
       let lastMsgElem = container.lastElementChild;
       while (lastMsgElem && lastMsgElem.classList.contains('date-separator')) {
         lastMsgElem = lastMsgElem.previousElementSibling;
