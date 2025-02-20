@@ -49,16 +49,21 @@ function insertDateSeparator(container, timestamp) {
   container.appendChild(separator);
 }
 
-// Mesajı, avatar, kullanıcı adı ve zaman bilgisini yan yana getirerek render eder.
-// Bu düzenleme sayesinde kullanıcı adı, avatarın hemen yanında görüntülenecektir.
+/* 
+  renderFullMessage fonksiyonu:
+  - "message-header" adında flex container oluşturuyoruz.
+  - Sol tarafta "avatar-container" içinde avatar,
+  - Sağ tarafta "user-info" içinde kullanıcı adı ve zaman (timestamp) yan yana yer alıyor.
+  - Ardından mesaj içeriği (message-content) alt satırda gösteriliyor.
+*/
 function renderFullMessage(msg, sender, time, msgClass) {
   return `
     <div class="message-item">
-      <div class="sender-header">
-        <div class="message-avatar-container">
+      <div class="message-header" style="display: flex; align-items: center; gap: 8px;">
+        <div class="avatar-container">
           <img class="message-avatar" src="/images/default-avatar.png" alt="">
         </div>
-        <div class="sender-details">
+        <div class="user-info" style="display: flex; align-items: center; gap: 4px;">
           <span class="sender-name">${sender}</span>
           <span class="timestamp">${time}</span>
         </div>
@@ -68,7 +73,7 @@ function renderFullMessage(msg, sender, time, msgClass) {
   `;
 }
 
-// Sadece mesaj içeriğini render eder (bilgi kısmı olmadan).
+// Sadece mesaj içeriğini render eder (header olmadan).
 // Hover durumunda mesajın solundaki boşlukta saat bilgisi gösterilir.
 function renderContentOnly(msg, msgClass, time) {
   return `
@@ -80,6 +85,7 @@ function renderContentOnly(msg, msgClass, time) {
 }
 
 // Verilen mesaj listesini container içerisine render eder.
+// Mesajlar, ardışık aynı göndericiler için "only-message", "first-message", "middle-message" ve "last-message" sınıflarıyla ayrılır.
 function renderTextMessages(messages, container) {
   container.innerHTML = "";
   messages.forEach((msg, index) => {
