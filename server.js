@@ -451,12 +451,12 @@ io.on('connection', (socket) => {
         socket.emit('errorMessage', "Böyle bir grup yok (DB).");
         return;
       }
-      // ObjectId'leri karşılaştırırken string'e çevirerek kontrol edelim.
-      if (!groupDoc.users.some(id => id.toString() === userDoc._id.toString())) {
+      // ObjectId'leri karşılaştırmak için toString() kullanıyoruz:
+      if (!groupDoc.users.some(u => u.toString() === userDoc._id.toString())) {
         groupDoc.users.push(userDoc._id);
         await groupDoc.save();
       }
-      if (!userDoc.groups.some(id => id.toString() === groupDoc._id.toString())) {
+      if (!userDoc.groups.some(g => g.toString() === groupDoc._id.toString())) {
         userDoc.groups.push(groupDoc._id);
         await userDoc.save();
       }
