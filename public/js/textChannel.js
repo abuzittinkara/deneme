@@ -42,7 +42,6 @@ function formatLongDate(timestamp) {
 }
 
 // Belirtilen container'a, verilen timestamp için tarih ayırıcı ekler.
-// Ayırıcı, tüm genişliği kaplayan yatay çizgi şeklinde olup ortasında uzun formatta tarih metni bulunur.
 function insertDateSeparator(container, timestamp) {
   const separator = document.createElement('div');
   separator.className = 'date-separator';
@@ -50,17 +49,19 @@ function insertDateSeparator(container, timestamp) {
   container.appendChild(separator);
 }
 
-// Mesajı, tam bilgi (avatar, kullanıcı adı ve zaman) şeklinde render eder.
-// Değişiklik: "message-header" kapsayıcısı kaldırıldı; avatar ve kullanıcı adı ayrı kapsayıcılarda yer alıyor.
+// Mesajı, avatar, kullanıcı adı ve zaman bilgisini yan yana getirerek render eder.
+// Bu düzenleme sayesinde kullanıcı adı, avatarın hemen yanında görüntülenecektir.
 function renderFullMessage(msg, sender, time, msgClass) {
   return `
     <div class="message-item">
-      <div class="message-avatar-container">
-        <img class="message-avatar" src="/images/default-avatar.png" alt="">
-      </div>
-      <div class="sender-info">
-        <span class="sender-name">${sender}</span>
-        <span class="timestamp">${time}</span>
+      <div class="sender-header">
+        <div class="message-avatar-container">
+          <img class="message-avatar" src="/images/default-avatar.png" alt="">
+        </div>
+        <div class="sender-details">
+          <span class="sender-name">${sender}</span>
+          <span class="timestamp">${time}</span>
+        </div>
       </div>
       <div class="message-content ${msgClass}">${msg.content}</div>
     </div>
@@ -68,7 +69,7 @@ function renderFullMessage(msg, sender, time, msgClass) {
 }
 
 // Sadece mesaj içeriğini render eder (bilgi kısmı olmadan).
-// Bu durumda mesajın solunda hover ile gösterilecek saat bilgisi için .hover-time elementi eklenir.
+// Hover durumunda mesajın solundaki boşlukta saat bilgisi gösterilir.
 function renderContentOnly(msg, msgClass, time) {
   return `
     <div class="message-item" style="position: relative;">
@@ -79,7 +80,6 @@ function renderContentOnly(msg, msgClass, time) {
 }
 
 // Verilen mesaj listesini container içerisine render eder.
-// Mesajlar, ardışık aynı göndericiler için "only-message", "first-message", "middle-message" ve "last-message" sınıflarıyla ayrılır.
 function renderTextMessages(messages, container) {
   container.innerHTML = "";
   messages.forEach((msg, index) => {
@@ -123,7 +123,7 @@ function renderTextMessages(messages, container) {
   container.scrollTop = container.scrollHeight;
 }
 
-// Yeni gelen mesajı, container'daki son mesajla karşılaştırarak render eder.
+// Yeni gelen mesajı container'a ekler.
 function appendNewMessage(msg, container) {
   const sender = msg.username || "Anon";
   const time = formatTimestamp(msg.timestamp);
@@ -146,7 +146,6 @@ function appendNewMessage(msg, container) {
       }
       msgClass = "only-message";
     } else {
-      // Aynı blok içinde, önceki mesajın sınıfını güncelleyelim:
       const lastContent = lastMsgElem.querySelector('.message-content');
       if (lastContent.classList.contains("only-message")) {
         lastContent.classList.remove("only-message");
