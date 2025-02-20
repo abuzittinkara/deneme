@@ -149,14 +149,13 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function initSocketEvents() {
-  // (Socket olayları: login, register, groupsList, roomsList, allChannelsData, roomUsers, joinRoomAck, newProducer, vb.
-  // Önceki kodlarınızın geri kalanı burada yer alıyor; bu kısımda ekran paylaşım ile ilgili değişiklik yok.)
   socket.on('connect', () => {
     console.log("Socket tekrar bağlandı =>", socket.id);
   });
   socket.on('disconnect', () => {
     console.log("Socket disconnect");
   });
+  
   socket.on('loginResult', (data) => {
     if (data.success) {
       username = data.username;
@@ -173,7 +172,36 @@ function initSocketEvents() {
       loginPasswordInput.classList.add('shake');
     }
   });
-  // ... (diğer socket eventleri aynı şekilde devam ediyor)
+
+  // ←←← EK: Kayıtlı grupların listesini dinleyen event handler (groupsList)
+  socket.on('groupsList', (groupArray) => {
+    groupListDiv.innerHTML = '';
+    groupArray.forEach(groupObj => {
+      const grpItem = document.createElement('div');
+      grpItem.className = 'grp-item';
+      grpItem.innerText = groupObj.name[0].toUpperCase();
+      grpItem.title = groupObj.name + " (" + groupObj.id + ")";
+      grpItem.addEventListener('click', () => {
+        document.querySelectorAll('.grp-item').forEach(el => el.classList.remove('selected'));
+        grpItem.classList.add('selected');
+        selectedGroup = groupObj.id;
+        currentGroup = null;
+        groupTitle.textContent = groupObj.name;
+        socket.emit('browseGroup', groupObj.id);
+        if (groupObj.owner === username) {
+          deleteGroupBtn.style.display = 'block';
+          renameGroupBtn.style.display = 'block';
+        } else {
+          deleteGroupBtn.style.display = 'none';
+          renameGroupBtn.style.display = 'none';
+        }
+      });
+      groupListDiv.appendChild(grpItem);
+    });
+  });
+  // →→→ EK sonu
+
+  // Diğer socket eventleri (roomsList, allChannelsData, newProducer, vb.) mevcut...
   socket.on('newProducer', ({ producerId }) => {
     console.log("newProducer =>", producerId);
     if (!recvTransport) {
@@ -1026,4 +1054,4 @@ document.addEventListener('DOMContentLoaded', function() {
   
 // METİN MESAJLARININ RENDER İŞLEMLERİ SONU
 
-// İhracat (module export) kısmı burada yer almayacak çünkü script.js dosyası tarayıcı için doğrudan çalıştırılıyor.
+// (Burada module export yapmıyoruz çünkü script.js tarayıcıda doğrudan çalışıyor.)
