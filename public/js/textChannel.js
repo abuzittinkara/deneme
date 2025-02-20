@@ -34,6 +34,12 @@ function formatTimestamp(timestamp) {
   }
 }
 
+// Yalnızca saat bilgisini döndüren yardımcı fonksiyon (hh:mm formatında)
+function formatTime(timestamp) {
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
 // Uzun tarih formatında (örneğin, "19 Ocak 2025") döndüren fonksiyon.
 function formatLongDate(timestamp) {
   const date = new Date(timestamp);
@@ -54,6 +60,7 @@ function insertDateSeparator(container, timestamp) {
 }
 
 // Mesajı, tam header (avatar, kullanıcı adı ve zaman) şeklinde render eder.
+// Bu fonksiyonda header, tam zaman bilgisini (formatTimestamp ile) gösteriyor.
 function renderFullMessage(msg, sender, time, msgClass) {
   return `
     <div class="message-item">
@@ -72,20 +79,24 @@ function renderFullMessage(msg, sender, time, msgClass) {
 }
 
 // Sadece mesaj içeriğini render eder (header olmadan).
-function renderContentOnly(msg, msgClass, time) {
+// Bu durumda mesajın solunda hover ile gösterilecek saat bilgisi için .hover-time elementi eklenir.
+// Güncelleme: hover-time kısmında yalnızca saat bilgisi gösterilsin.
+function renderContentOnly(msg, msgClass, timestamp) {
   return `
     <div class="message-item" style="position: relative;">
-      <span class="hover-time">${time}</span>
+      <span class="hover-time">${formatTime(timestamp)}</span>
       <div class="message-content ${msgClass}" style="margin-left: 48px;">${msg.content}</div>
     </div>
   `;
 }
 
 // Verilen mesaj listesini container içerisine render eder.
+// Mesajlar, ardışık aynı göndericiler için "only-message", "first-message", "middle-message" ve "last-message" sınıflarıyla ayrılır.
 function renderTextMessages(messages, container) {
   container.innerHTML = "";
+  // Kanal ID'sine göre, mesaj geçmişi yeniden renderlansa da global state sıfırlanmasın.
   const channelId = container.dataset.channelId;
-  // Global lastMessageInfo saklanıyorsa koru, yoksa oluştur.
+  // Eğer o kanala ait global bilgi yoksa oluşturuyoruz, yoksa koruyoruz:
   if (!lastMessageInfo[channelId]) {
     lastMessageInfo[channelId] = null;
   }
@@ -93,25 +104,16 @@ function renderTextMessages(messages, container) {
   messages.forEach((msg, index) => {
     const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
     const time = formatTimestamp(msg.timestamp);
-    
-    // Eğer önceki mesajla gün farkı varsa, mesajdan önce tarih ayırı ekle
-    if (index > 0) {
-      const prevMsg = messages[index - 1];
-      if (isDifferentDay(prevMsg.timestamp, msg.timestamp)) {
-        insertDateSeparator(container, msg.timestamp);
-      }
-    } else if (!lastMessageInfo[channelId] && messages.length > 0) {
-      // Eğer bu ilk render ve global bilgi yoksa, global bilgiyi ayarla
-      // (Bu durumda tarih ayırıcıyı eklemiyoruz çünkü veritabanından gelen ilk mesajın tarihini ayrı göstermek yeterli)
-    }
-    
     let msgClass = "";
+    
+    // Blok başlangıcını belirle:
     const isFirstInBlock = (index === 0) ||
       ((messages[index - 1].user && messages[index - 1].user.username) !== sender) ||
       isDifferentDay(messages[index - 1].timestamp, msg.timestamp);
+    // Blok sonunu belirle:
     const isLastInBlock = (index === messages.length - 1) ||
-      ((messages[index + 1] && messages[index + 1].user && messages[index + 1].user.username) !== sender) ||
-      (messages[index + 1] && isDifferentDay(msg.timestamp, messages[index + 1].timestamp));
+      ((messages[index + 1].user && messages[index + 1].user.username) !== sender) ||
+      isDifferentDay(msg.timestamp, messages[index + 1].timestamp);
     
     if (isFirstInBlock && isLastInBlock) {
       msgClass = "only-message";
@@ -127,7 +129,7 @@ function renderTextMessages(messages, container) {
     if (isFirstInBlock) {
       msgHTML = renderFullMessage(msg, sender, time, msgClass);
     } else {
-      msgHTML = renderContentOnly(msg, msgClass, time);
+      msgHTML = renderContentOnly(msg, msgClass, msg.timestamp);
     }
     
     const msgDiv = document.createElement('div');
@@ -137,27 +139,26 @@ function renderTextMessages(messages, container) {
     msgDiv.innerHTML = msgHTML;
     container.appendChild(msgDiv);
     
-    // Global son mesaj bilgisini güncelle
+    // Global last message bilgisini güncelle
     lastMessageInfo[channelId] = { sender, timestamp: new Date(msg.timestamp) };
   });
   container.scrollTop = container.scrollHeight;
 }
 
-// Yeni gelen mesajı, global lastMessageInfo üzerinden tespit ederek render eder.
+// Yeni gelen mesajı, global lastMessageInfo üzerinden (kanala ait) tespit ederek render eder.
 function appendNewMessage(msg, container) {
   const channelId = container.dataset.channelId;
   const sender = msg.username || "Anon";
-  const time = formatTimestamp(msg.timestamp);
+  // Farklı bir formatlama fonksiyonu kullanmayıp yalnızca hover için zaman bilgisini ayrı hesaplıyoruz.
+  const fullTime = formatTimestamp(msg.timestamp);
   
   let lastInfo = lastMessageInfo[channelId];
-  // Eğer gün farkı varsa, mesajdan önce tarih ayırı ekle ve resetle
-  if (lastInfo && isDifferentDay(lastInfo.timestamp, msg.timestamp)) {
-    insertDateSeparator(container, msg.timestamp);
-    lastInfo = null;
-  }
-  
   let msgClass = "";
-  if (!lastInfo || lastInfo.sender !== sender) {
+  if (!lastInfo || lastInfo.sender !== sender || isDifferentDay(lastInfo.timestamp, msg.timestamp)) {
+    // Farklı gönderici ya da farklı gün: yeni blok
+    if (lastInfo && isDifferentDay(lastInfo.timestamp, msg.timestamp)) {
+      insertDateSeparator(container, msg.timestamp);
+    }
     msgClass = "only-message";
   } else {
     msgClass = "last-message";
@@ -182,9 +183,9 @@ function appendNewMessage(msg, container) {
   
   let msgHTML = "";
   if (msgClass === "only-message" || msgClass === "first-message") {
-    msgHTML = renderFullMessage(msg, sender, time, msgClass);
+    msgHTML = renderFullMessage(msg, sender, fullTime, msgClass);
   } else {
-    msgHTML = renderContentOnly(msg, msgClass, time);
+    msgHTML = renderContentOnly(msg, msgClass, msg.timestamp);
   }
   
   const msgDiv = document.createElement('div');
@@ -199,6 +200,8 @@ function appendNewMessage(msg, container) {
   lastMessageInfo[channelId] = { sender, timestamp: new Date(msg.timestamp) };
 }
 
+// Socket üzerinden gelen "textHistory" ve "newTextMessage" eventlerini işleyip,
+// ilgili container'a mesajları render eder.
 function initTextChannelEvents(socket, container) {
   socket.on('textHistory', (messages) => {
     renderTextMessages(messages, container);
@@ -207,18 +210,18 @@ function initTextChannelEvents(socket, container) {
   socket.on('newTextMessage', (data) => {
     if (data.channelId === container.dataset.channelId) {
       const msg = data.message;
-      // Eğer container boşsa veya son mesajla gün farkı varsa tarih ayırı ekle
+      // Mesajlar arasında tarih ayıracı kontrolü:
       let lastMsgElem = container.lastElementChild;
       while (lastMsgElem && lastMsgElem.classList.contains('date-separator')) {
         lastMsgElem = lastMsgElem.previousElementSibling;
       }
-      if (lastMsgElem) {
+      if (!lastMsgElem) {
+        insertDateSeparator(container, msg.timestamp);
+      } else {
         const prevTimestampStr = lastMsgElem.getAttribute('data-timestamp');
         if (isDifferentDay(new Date(prevTimestampStr), new Date(msg.timestamp))) {
           insertDateSeparator(container, msg.timestamp);
         }
-      } else {
-        insertDateSeparator(container, msg.timestamp);
       }
       appendNewMessage(msg, container);
     }
