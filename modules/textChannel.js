@@ -38,14 +38,19 @@ module.exports = function registerTextChannelEvents(socket, { Channel, Message, 
         timestamp: new Date()
       });
       await newMsg.save();
-      socket.broadcast.to(roomId).emit('newTextMessage', {
+      
+      const messageData = {
         channelId: roomId,
         message: {
           content: newMsg.content,
           username: username,
           timestamp: newMsg.timestamp
         }
-      });
+      };
+
+      // Gönderici hariç tüm kullanıcılara ve aynı zamanda göndericiye de mesajı gönderiyoruz.
+      socket.broadcast.to(roomId).emit('newTextMessage', messageData);
+      socket.emit('newTextMessage', messageData);
     } catch (err) {
       console.error("textMessage error:", err);
     }
