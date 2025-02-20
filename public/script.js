@@ -870,21 +870,18 @@ function initUIEvents() {
     applyAudioStates();
   });
   settingsButton.addEventListener('click', () => {
-    // ...
+    // Ayarlar işlemleri...
   });
   
-  // Mesaj gönderme işlemi – Güncellenmiş versiyon:
+  // Mesaj gönderme işlemi
+  // Düzenleme: Mesajı DOM’a elle eklemiyoruz, sadece sunucuya gönderiyoruz.
   function sendTextMessage() {
-    const msgContent = textChannelMessageInput.value.trim();
-    if (!msgContent) return;
-    const timestamp = new Date();
-    // Yeni mesajı TextChannel modülündeki appendNewMessage fonksiyonuyla render ediyoruz.
-    const msgObj = { content: msgContent, username: username, timestamp: timestamp };
-    TextChannel.appendNewMessage(msgObj, textMessages);
+    const msg = textChannelMessageInput.value.trim();
+    if (!msg) return;
     socket.emit('textMessage', { 
       groupId: selectedGroup, 
       roomId: currentTextChannel, 
-      message: msgObj, 
+      message: msg, 
       username: username 
     });
     textChannelMessageInput.value = '';
@@ -1108,7 +1105,7 @@ function updateCellBars(ping) {
 /* Yeni: Mesajlar arasında gün farkı varsa tarih ayracı ekle */
 function insertSeparatorIfNeeded(prevTimestamp, currentTimestamp) {
   if (!prevTimestamp || TextChannel.isDifferentDay(prevTimestamp, currentTimestamp)) {
-    insertDateSeparator(currentTimestamp);
+    insertDateSeparator(textMessages, currentTimestamp);
   }
 }
 
