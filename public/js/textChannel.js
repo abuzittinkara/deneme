@@ -12,12 +12,6 @@ function isDifferentDay(ts1, ts2) {
          d1.getDate() !== d2.getDate();
 }
 
-// Sadece saat bilgisini (HH:MM) döndüren yardımcı fonksiyon.
-function formatTime(timestamp) {
-  const date = new Date(timestamp);
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
-
 // Belirtilen timestamp'i "Bugün HH:MM", "Dün HH:MM" veya "DD.MM.YYYY HH:MM" formatında döndürür.
 function formatTimestamp(timestamp) {
   const date = new Date(timestamp);
@@ -47,8 +41,8 @@ function formatLongDate(timestamp) {
   return `${day} ${month} ${year}`;
 }
 
-// Belirtilen container'a, verilen timestamp için tarih ayıracı ekler.
-// Ayıracı, tüm genişliği kaplayan yatay çizgi şeklinde olup ortasında uzun formatta tarih metni bulunur.
+// Belirtilen container'a, verilen timestamp için tarih ayırıcı ekler.
+// Ayırıcı, tüm genişliği kaplayan yatay çizgi şeklinde olup ortasında uzun formatta tarih metni bulunur.
 function insertDateSeparator(container, timestamp) {
   const separator = document.createElement('div');
   separator.className = 'date-separator';
@@ -56,16 +50,14 @@ function insertDateSeparator(container, timestamp) {
   container.appendChild(separator);
 }
 
-// Mesajı, tam header (avatar + kullanıcı adı + zaman) şeklinde render eder.
-// Bu durumda header gösterildiği için hover-time eklenmez.
+// Mesajı, tam header (avatar, kullanıcı adı ve zaman) şeklinde render eder.
+// Değişiklik: Avatar ve kullanıcı adı artık ayrı öğeler olarak render ediliyor.
 function renderFullMessage(msg, sender, time, msgClass) {
   return `
     <div class="message-item">
       <div class="message-header">
-        <div class="avatar-and-name">
-          <img class="message-avatar" src="/images/default-avatar.png" alt="">
-          <span class="sender-name">${sender}</span>
-        </div>
+        <img class="message-avatar" src="/images/default-avatar.png" alt="">
+        <span class="sender-name">${sender}</span>
         <span class="timestamp">${time}</span>
       </div>
       <div class="message-content ${msgClass}">${msg.content}</div>
@@ -74,12 +66,11 @@ function renderFullMessage(msg, sender, time, msgClass) {
 }
 
 // Sadece mesaj içeriğini render eder (header olmadan).
-// Bu durumda mesajın solunda hover ile gösterilecek saat bilgisi için .hover-time elementi eklenir.
-// Hover kısmında yalnızca saat bilgisi (formatTime) gösterilir.
+// Bu durumda hover ile gösterilecek saat bilgisi için .hover-time elementi eklenir.
 function renderContentOnly(msg, msgClass, time) {
   return `
     <div class="message-item" style="position: relative;">
-      <span class="hover-time">${formatTime(msg.timestamp)}</span>
+      <span class="hover-time">${time}</span>
       <div class="message-content ${msgClass}" style="margin-left: 48px;">${msg.content}</div>
     </div>
   `;
@@ -87,23 +78,18 @@ function renderContentOnly(msg, msgClass, time) {
 
 // Verilen mesaj listesini container içerisine render eder.
 // Mesajlar, ardışık aynı göndericiler için "only-message", "first-message", "middle-message" ve "last-message" sınıflarıyla ayrılır.
-// Ayrıca, her yeni gün başladığında tarih ayıracı (date separator) eklenir.
 function renderTextMessages(messages, container) {
   container.innerHTML = "";
-  let lastTimestamp = null;
   messages.forEach((msg, index) => {
     const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
     const time = formatTimestamp(msg.timestamp);
-    
-    // Eğer önceki mesajın tarihi yoksa ya da gün farklıysa tarih ayıracı ekle.
-    if (!lastTimestamp || isDifferentDay(lastTimestamp, msg.timestamp)) {
-      insertDateSeparator(container, msg.timestamp);
-    }
-    
     let msgClass = "";
+    
+    // Blok başlangıcını belirle:
     const isFirstInBlock = (index === 0) ||
       ((messages[index - 1].user && messages[index - 1].user.username) !== sender) ||
       isDifferentDay(messages[index - 1].timestamp, msg.timestamp);
+    // Blok sonunu belirle:
     const isLastInBlock = (index === messages.length - 1) ||
       ((messages[index + 1].user && messages[index + 1].user.username) !== sender) ||
       isDifferentDay(msg.timestamp, messages[index + 1].timestamp);
@@ -131,14 +117,11 @@ function renderTextMessages(messages, container) {
     msgDiv.setAttribute('data-sender', sender);
     msgDiv.innerHTML = msgHTML;
     container.appendChild(msgDiv);
-    
-    lastTimestamp = new Date(msg.timestamp);
   });
   container.scrollTop = container.scrollHeight;
 }
- 
+
 // Yeni gelen mesajı, container'daki son mesajla karşılaştırarak render eder.
-// Mevcut son mesajın gönderici ve timestamp bilgisine göre, yeni mesajın hangi sınıfa ait olacağını belirler.
 function appendNewMessage(msg, container) {
   const sender = msg.username || "Anon";
   const time = formatTimestamp(msg.timestamp);
@@ -161,6 +144,7 @@ function appendNewMessage(msg, container) {
       }
       msgClass = "only-message";
     } else {
+      // Aynı blok içinde, önceki mesajın sınıfını güncelleyelim:
       const lastContent = lastMsgElem.querySelector('.message-content');
       if (lastContent.classList.contains("only-message")) {
         lastContent.classList.remove("only-message");
@@ -188,14 +172,14 @@ function appendNewMessage(msg, container) {
   container.appendChild(msgDiv);
   container.scrollTop = container.scrollHeight;
 }
- 
+
 // Socket üzerinden gelen "textHistory" ve "newTextMessage" eventlerini işleyip,
 // ilgili container'a mesajları render eder.
 function initTextChannelEvents(socket, container) {
   socket.on('textHistory', (messages) => {
     renderTextMessages(messages, container);
   });
- 
+
   socket.on('newTextMessage', (data) => {
     if (data.channelId === container.dataset.channelId) {
       const msg = data.message;
@@ -215,5 +199,5 @@ function initTextChannelEvents(socket, container) {
     }
   });
 }
- 
+
 export { isDifferentDay, formatTimestamp, formatLongDate, insertDateSeparator, renderTextMessages, initTextChannelEvents, appendNewMessage };
