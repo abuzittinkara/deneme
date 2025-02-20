@@ -293,7 +293,32 @@ function initSocketEvents() {
     consumeProducer(producerId);
   });
   
-  // Diğer socket eventleri (roomUsers, groupRenamed, groupDeleted, vb.) burada yer alıyor...
+  // Yeni: allChannelsData event’i – Tüm kanallara ait kullanıcı bilgilerini günceller.
+  socket.on('allChannelsData', (channelsObj) => {
+    Object.keys(channelsObj).forEach(roomId => {
+      const cData = channelsObj[roomId];
+      const channelDiv = document.getElementById(`channel-users-${roomId}`);
+      if (!channelDiv) return;
+      channelDiv.innerHTML = '';
+      cData.users.forEach(u => {
+        const userRow = document.createElement('div');
+        userRow.classList.add('channel-user');
+        const leftDiv = document.createElement('div');
+        leftDiv.classList.add('channel-user-left');
+        const avatarDiv = document.createElement('div');
+        avatarDiv.classList.add('channel-user-avatar');
+        avatarDiv.id = `avatar-${u.id}`;
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = u.username || '(İsimsiz)';
+        leftDiv.appendChild(avatarDiv);
+        leftDiv.appendChild(nameSpan);
+        userRow.appendChild(leftDiv);
+        channelDiv.appendChild(userRow);
+      });
+    });
+  });
+  
+  // Diğer socket eventleri (örneğin, roomUsers, groupRenamed, groupDeleted) burada yer alıyor...
 }
 
 function startSfuFlow() {
