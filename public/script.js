@@ -172,7 +172,7 @@ function initSocketEvents() {
     }
   });
   
-  // EK: Kayıtlı grupların listesini dinleyen event handler
+  // Kayıtlı grupların listesini dinleyen event handler
   socket.on('groupsList', (groupArray) => {
     groupListDiv.innerHTML = '';
     groupArray.forEach(groupObj => {
@@ -199,7 +199,7 @@ function initSocketEvents() {
     });
   });
   
-  // EK: "roomsList" event handler ekleniyor; sunucudan gelen oda/kanal listesini burada güncelliyoruz.
+  // "roomsList" event handler: Sunucudan gelen kanal listesini güncelliyoruz.
   socket.on('roomsList', (roomsArray) => {
     roomListDiv.innerHTML = '';
     roomsArray.forEach(roomObj => {
@@ -270,7 +270,7 @@ function initSocketEvents() {
     }
     consumeProducer(producerId);
   });
-  // Diğer socket eventleri (ör. allChannelsData, roomUsers, joinRoomAck, vb.) mevcut...
+  // Diğer socket eventleri...
 }
 
 function startSfuFlow() {
@@ -794,10 +794,10 @@ function initUIEvents() {
     }
     let msgClass = "";
     if (!lastMsgElem || lastMsgElem.getAttribute('data-sender') !== username) {
-      // Yeni blok: sadece bir mesaj (tek mesaj)
+      // Farklı gönderici veya hiç mesaj yoksa: yeni blok, full header
       msgClass = "only-message";
     } else {
-      // Aynı göndericinin ardışık mesajı: güncelleme
+      // Aynı gönderici ise:
       if (lastMsgElem.classList.contains("only-message")) {
         lastMsgElem.classList.remove("only-message");
         lastMsgElem.classList.add("first-message");
@@ -809,7 +809,8 @@ function initUIEvents() {
     }
     
     let msgHTML = "";
-    if (msgClass === "only-message" || msgClass === "first-message" || msgClass === "last-message") {
+    // Eğer bu mesaj bloğunun ilk mesajı ise header göster, aksi halde yalnızca mesaj içeriği.
+    if (msgClass === "only-message" || msgClass === "first-message") {
       msgHTML = `
         <div class="message-item">
           <div class="message-header">
@@ -832,7 +833,7 @@ function initUIEvents() {
     const className = `text-message left-message ${msgClass}`;
     const msgDiv = document.createElement('div');
     msgDiv.className = className;
-    msgDiv.setAttribute('data-timestamp', new Date());
+    msgDiv.setAttribute('data-timestamp', new Date().toISOString());
     msgDiv.setAttribute('data-sender', username);
     msgDiv.innerHTML = msgHTML;
     textMessages.appendChild(msgDiv);
@@ -864,7 +865,7 @@ function initUIEvents() {
     }
   });
   
-  // Yeni: Ekran Paylaşım Butonunun Event Listener'ı
+  // Ekran Paylaşım Butonunun Event Listener'ı
   if(screenShareButton) {
     screenShareButton.addEventListener('click', async () => {
       if(window.screenShareProducer) {
@@ -1115,3 +1116,4 @@ document.addEventListener('DOMContentLoaded', function() {
 // METİN MESAJLARININ RENDER İŞLEMLERİ SONU
 
 // (Burada module export yapmıyoruz çünkü script.js dosyası tarayıcı için doğrudan çalıştırılıyor.)
+
