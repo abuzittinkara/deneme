@@ -50,26 +50,24 @@ function insertDateSeparator(container, timestamp) {
   container.appendChild(separator);
 }
 
-// Mesajı, tam header (avatar, kullanıcı adı ve zaman) şeklinde render eder.
-// Değişiklik: Avatar ve kullanıcı adı artık ayrı kapsayıcılar içinde render ediliyor.
+// Mesajı, tam bilgi (avatar, kullanıcı adı ve zaman) şeklinde render eder.
+// Değişiklik: "message-header" kapsayıcısı kaldırıldı; avatar ve kullanıcı adı ayrı kapsayıcılarda yer alıyor.
 function renderFullMessage(msg, sender, time, msgClass) {
   return `
     <div class="message-item">
-      <div class="message-header">
-        <div class="message-avatar-container">
-          <img class="message-avatar" src="/images/default-avatar.png" alt="">
-        </div>
-        <div class="sender-info">
-          <span class="sender-name">${sender}</span>
-          <span class="timestamp">${time}</span>
-        </div>
+      <div class="message-avatar-container">
+        <img class="message-avatar" src="/images/default-avatar.png" alt="">
+      </div>
+      <div class="sender-info">
+        <span class="sender-name">${sender}</span>
+        <span class="timestamp">${time}</span>
       </div>
       <div class="message-content ${msgClass}">${msg.content}</div>
     </div>
   `;
 }
 
-// Sadece mesaj içeriğini render eder (header olmadan).
+// Sadece mesaj içeriğini render eder (bilgi kısmı olmadan).
 // Bu durumda mesajın solunda hover ile gösterilecek saat bilgisi için .hover-time elementi eklenir.
 function renderContentOnly(msg, msgClass, time) {
   return `
