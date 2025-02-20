@@ -50,7 +50,7 @@ function formatLongDate(timestamp) {
   return `${day} ${month} ${year}`;
 }
 
-// Belirtilen container'a, verilen timestamp için tarih ayıracı ekler.
+// Belirtilen container'a, verilen timestamp için tarih ayırıcı ekler.
 // Ayırıcı, tüm genişliği kaplayan yatay çizgi şeklinde olup ortasında uzun formatta tarih metni bulunur.
 function insertDateSeparator(container, timestamp) {
   const separator = document.createElement('div');
@@ -108,9 +108,11 @@ function renderTextMessages(messages, container) {
     previousDate = msgDate;
 
     // Mesaj blok sınıflandırması:
+    // Eğer bu mesaj, önceki mesajla aynı göndericiden ve aynı günde ise ardışık; aksi halde yeni blok.
     if (index === 0 ||
         ((messages[index - 1].user && messages[index - 1].user.username) !== sender) ||
         isDifferentDay(messages[index - 1].timestamp, msg.timestamp)) {
+      // Eğer aynı zamanda tek mesaj ise:
       if (index === messages.length - 1 ||
          ((messages[index + 1].user && messages[index + 1].user.username) !== sender) ||
          isDifferentDay(msg.timestamp, messages[index + 1].timestamp)) {
@@ -126,6 +128,7 @@ function renderTextMessages(messages, container) {
       msgClass = "middle-message";
     }
     
+    // Eğer bu mesaj ilk mesaj ise header ile render et, değilse sadece içerik.
     let msgHTML = "";
     if (msgClass === "only-message" || msgClass === "first-message") {
       msgHTML = renderFullMessage(msg, sender, fullTime, msgClass);
@@ -140,7 +143,7 @@ function renderTextMessages(messages, container) {
     msgDiv.innerHTML = msgHTML;
     container.appendChild(msgDiv);
     
-    // Global lastMessageInfo güncellemesi
+    // Global lastMessageInfo güncellemesi (append işlemleri için)
     lastMessageInfo[container.dataset.channelId] = { sender, timestamp: new Date(msg.timestamp) };
   });
   container.scrollTop = container.scrollHeight;
@@ -151,6 +154,20 @@ function appendNewMessage(msg, container) {
   const channelId = container.dataset.channelId;
   const sender = msg.username || "Anon";
   const fullTime = formatTimestamp(msg.timestamp);
+  
+  // En son mesajı alalım (date-separator'ları atlayarak)
+  let lastMsgElem = container.lastElementChild;
+  while (lastMsgElem && lastMsgElem.classList.contains('date-separator')) {
+    lastMsgElem = lastMsgElem.previousElementSibling;
+  }
+  if (!lastMsgElem) {
+    insertDateSeparator(container, msg.timestamp);
+  } else {
+    const prevTimestampStr = lastMsgElem.getAttribute('data-timestamp');
+    if (isDifferentDay(new Date(prevTimestampStr), new Date(msg.timestamp))) {
+      insertDateSeparator(container, msg.timestamp);
+    }
+  }
   
   // Blok sınıflandırması (global lastMessageInfo üzerinden)
   let lastInfo = lastMessageInfo[channelId];
@@ -196,8 +213,6 @@ function appendNewMessage(msg, container) {
   lastMessageInfo[channelId] = { sender, timestamp: new Date(msg.timestamp) };
 }
 
-// Socket üzerinden gelen "textHistory" ve "newTextMessage" eventlerini işleyip,
-// ilgili container'a mesajları render eder.
 function initTextChannelEvents(socket, container) {
   socket.on('textHistory', (messages) => {
     renderTextMessages(messages, container);
@@ -206,7 +221,19 @@ function initTextChannelEvents(socket, container) {
   socket.on('newTextMessage', (data) => {
     if (data.channelId === container.dataset.channelId) {
       const msg = data.message;
-      // Sadece append işlemini çağırıyoruz, çünkü appendNewMessage() kendi içinde tarih ayıracı kontrolünü yapıyor.
+      // Tarih ayıracı kontrolü:
+      let lastMsgElem = container.lastElementChild;
+      while (lastMsgElem && lastMsgElem.classList.contains('date-separator')) {
+        lastMsgElem = lastMsgElem.previousElementSibling;
+      }
+      if (!lastMsgElem) {
+        insertDateSeparator(container, msg.timestamp);
+      } else {
+        const prevTimestampStr = lastMsgElem.getAttribute('data-timestamp');
+        if (isDifferentDay(new Date(prevTimestampStr), new Date(msg.timestamp))) {
+          insertDateSeparator(container, msg.timestamp);
+        }
+      }
       appendNewMessage(msg, container);
     }
   });
