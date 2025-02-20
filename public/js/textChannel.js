@@ -3,6 +3,10 @@
  * Metin (mesaj) kanallarıyla ilgili tüm fonksiyonlar burada toplanmıştır.
  **************************************/
 
+// Global değişkenler: Son blok bilgileri (resetlenmesi gerektiğinde sıfırlanacak)
+let lastMessageSender = null;
+let lastMessageTimestamp = null;
+
 // İki timestamp'in gün bazında farklı olup olmadığını kontrol eder.
 function isDifferentDay(ts1, ts2) {
   const d1 = new Date(ts1);
@@ -48,31 +52,32 @@ function insertDateSeparator(container, timestamp) {
   separator.className = 'date-separator';
   separator.innerHTML = `<span class="separator-text">${formatLongDate(timestamp)}</span>`;
   container.appendChild(separator);
+  // Yeni blok başlıyor; global blok bilgilerini sıfırla
+  lastMessageSender = null;
+  lastMessageTimestamp = null;
 }
 
-/*
-  renderFullMessage:
-  - İlk (veya tek) mesaj için header; 
-    sol tarafta avatar, hemen yanında kullanıcı adı ve hemen yanında gönderim zamanı (timestamp)
-    gösterilir. Ardından, header'ın altında mesaj içeriği ("message-content first-message") ayrı bir blok olarak sunulur.
-*/
+// Mesajı, tam header (avatar + kullanıcı adı + zaman) şeklinde render eder.
+// Bu header, ilk mesaj (veya yeni blok) için kullanılır.
 function renderFullMessage(msg, sender, time, msgClass) {
   return `
     <div class="message-item">
-      <div class="message-header" style="display: flex; align-items: center; gap: 8px;">
-        <img class="message-avatar" src="/images/default-avatar.png" alt="">
-        <span class="sender-name">${sender}</span>
-        <span class="timestamp">${time}</span>
+      <div class="message-header">
+        <div class="message-avatar-container">
+          <img class="message-avatar" src="/images/default-avatar.png" alt="">
+        </div>
+        <div class="message-info">
+          <div class="sender-name">${sender}</div>
+          <div class="timestamp">${time}</div>
+        </div>
       </div>
-      <div class="message-content ${msgClass}" style="margin-left: 48px;">
-        ${msg.content}
-      </div>
+      <div class="message-content ${msgClass}">${msg.content}</div>
     </div>
   `;
 }
 
 // Sadece mesaj içeriğini render eder (header olmadan).
-// Bu durumda mesajın solundaki hover durumunda saat bilgisi gösterilir.
+// Bu durumda, mesajın solunda hover ile gösterilecek saat bilgisi için .hover-time elementi eklenir.
 function renderContentOnly(msg, msgClass, time) {
   return `
     <div class="message-item" style="position: relative;">
@@ -83,35 +88,27 @@ function renderContentOnly(msg, msgClass, time) {
 }
 
 // Verilen mesaj listesini container içerisine render eder.
-// Mesajlar, ardışık aynı göndericiler için "only-message", "first-message", "middle-message" ve "last-message" sınıflarıyla ayrılır.
 function renderTextMessages(messages, container) {
   container.innerHTML = "";
+  // Yeni seans: global blok bilgilerini sıfırla
+  lastMessageSender = null;
+  lastMessageTimestamp = null;
+  
   messages.forEach((msg, index) => {
     const sender = (msg.user && msg.user.username) ? msg.user.username : "Anon";
     const time = formatTimestamp(msg.timestamp);
     let msgClass = "";
     
-    // Blok başlangıcını belirle:
-    const isFirstInBlock = (index === 0) ||
-      ((messages[index - 1].user && messages[index - 1].user.username) !== sender) ||
-      isDifferentDay(messages[index - 1].timestamp, msg.timestamp);
-    // Blok sonunu belirle:
-    const isLastInBlock = (index === messages.length - 1) ||
-      ((messages[index + 1].user && messages[index + 1].user.username) !== sender) ||
-      isDifferentDay(msg.timestamp, messages[index + 1].timestamp);
-    
-    if (isFirstInBlock && isLastInBlock) {
+    // Belirle: Eğer yeni blok (yani global değişken sıfırlıysa) veya önceki mesajdan farklı gönderici ya da gün farkı varsa
+    if (!lastMessageSender || lastMessageSender !== sender || !lastMessageTimestamp || isDifferentDay(lastMessageTimestamp, msg.timestamp)) {
       msgClass = "only-message";
-    } else if (isFirstInBlock) {
-      msgClass = "first-message";
-    } else if (isLastInBlock) {
-      msgClass = "last-message";
     } else {
-      msgClass = "middle-message";
+      // Aynı blok içindeyse
+      msgClass = "last-message";
     }
     
     let msgHTML = "";
-    if (isFirstInBlock) {
+    if (msgClass === "only-message") {
       msgHTML = renderFullMessage(msg, sender, time, msgClass);
     } else {
       msgHTML = renderContentOnly(msg, msgClass, time);
@@ -123,58 +120,75 @@ function renderTextMessages(messages, container) {
     msgDiv.setAttribute('data-sender', sender);
     msgDiv.innerHTML = msgHTML;
     container.appendChild(msgDiv);
+    
+    // Güncelle global blok bilgilerini
+    lastMessageSender = sender;
+    lastMessageTimestamp = new Date(msg.timestamp);
   });
   container.scrollTop = container.scrollHeight;
 }
 
-// Yeni gelen mesajı, container'daki son mesajla karşılaştırarak render eder.
+// Yeni gelen mesajı, container'daki son blok bilgilerine göre render eder.
+// Global değişkenlere göre yeni mesaj ardışık mı (aynı blok) yoksa yeni blok mu olduğunu belirler.
 function appendNewMessage(msg, container) {
   const sender = msg.username || "Anon";
   const time = formatTimestamp(msg.timestamp);
   
-  let lastMsgElem = container.lastElementChild;
-  while (lastMsgElem && lastMsgElem.classList.contains('date-separator')) {
-    lastMsgElem = lastMsgElem.previousElementSibling;
-  }
-  
-  let msgClass = "";
-  if (!lastMsgElem) {
+  // Eğer global blok bilgileri sıfırlıysa veya gün farkı varsa yeni blok başlat
+  if (!lastMessageSender || !lastMessageTimestamp || isDifferentDay(lastMessageTimestamp, msg.timestamp)) {
     insertDateSeparator(container, msg.timestamp);
-    msgClass = "only-message";
+    // Yeni blok: tam header (only-message)
+    const msgHTML = renderFullMessage(msg, sender, time, "only-message");
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'text-message left-message';
+    msgDiv.setAttribute('data-timestamp', new Date(msg.timestamp).toISOString());
+    msgDiv.setAttribute('data-sender', sender);
+    msgDiv.innerHTML = msgHTML;
+    container.appendChild(msgDiv);
+    lastMessageSender = sender;
+    lastMessageTimestamp = new Date(msg.timestamp);
+  } else if (lastMessageSender !== sender) {
+    // Farklı gönderici: yeni blok başlat
+    const msgHTML = renderFullMessage(msg, sender, time, "only-message");
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'text-message left-message';
+    msgDiv.setAttribute('data-timestamp', new Date(msg.timestamp).toISOString());
+    msgDiv.setAttribute('data-sender', sender);
+    msgDiv.innerHTML = msgHTML;
+    container.appendChild(msgDiv);
+    lastMessageSender = sender;
+    lastMessageTimestamp = new Date(msg.timestamp);
   } else {
-    const lastSender = lastMsgElem.getAttribute('data-sender');
-    const lastTimestamp = new Date(lastMsgElem.getAttribute('data-timestamp'));
-    if (lastSender !== sender || isDifferentDay(lastTimestamp, msg.timestamp)) {
-      if (isDifferentDay(lastTimestamp, msg.timestamp)) {
-         insertDateSeparator(container, msg.timestamp);
-      }
-      msgClass = "only-message";
-    } else {
+    // Aynı gönderici ve aynı gün: ardışık mesaj, önceki mesajın sınıfını güncelle
+    // (Varsayalım ki, container içinde global olarak en son eklenen mesaj ardışık blokun son mesajı olarak görünsün)
+    // Arayüzde, önceki mesajın header'ı kaldırılarak avatar/kullanıcı adı sadece ilk mesajda gösterilecek.
+    // Ancak hover-time sayesinde zaman bilgisi sunulacak.
+    // İlk olarak, container'ın en son mesajını bulalım.
+    let lastMsgElem = container.lastElementChild;
+    while (lastMsgElem && lastMsgElem.classList.contains('date-separator')) {
+      lastMsgElem = lastMsgElem.previousElementSibling;
+    }
+    if (lastMsgElem) {
       const lastContent = lastMsgElem.querySelector('.message-content');
-      if (lastContent.classList.contains("only-message")) {
+      if (lastContent && lastContent.classList.contains("only-message")) {
         lastContent.classList.remove("only-message");
         lastContent.classList.add("first-message");
-      } else if (lastContent.classList.contains("last-message")) {
+      } else if (lastContent && lastContent.classList.contains("last-message")) {
         lastContent.classList.remove("last-message");
         lastContent.classList.add("middle-message");
       }
-      msgClass = "last-message";
     }
+    // Yeni mesaj: ardışık mesaj (last-message)
+    const msgHTML = renderContentOnly(msg, "last-message", time);
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'text-message left-message';
+    msgDiv.setAttribute('data-timestamp', new Date(msg.timestamp).toISOString());
+    msgDiv.setAttribute('data-sender', sender);
+    msgDiv.innerHTML = msgHTML;
+    container.appendChild(msgDiv);
+    lastMessageSender = sender;
+    lastMessageTimestamp = new Date(msg.timestamp);
   }
-  
-  let msgHTML = "";
-  if (msgClass === "only-message" || msgClass === "first-message") {
-    msgHTML = renderFullMessage(msg, sender, time, msgClass);
-  } else {
-    msgHTML = renderContentOnly(msg, msgClass, time);
-  }
-  
-  const msgDiv = document.createElement('div');
-  msgDiv.className = 'text-message left-message';
-  msgDiv.setAttribute('data-timestamp', new Date(msg.timestamp).toISOString());
-  msgDiv.setAttribute('data-sender', sender);
-  msgDiv.innerHTML = msgHTML;
-  container.appendChild(msgDiv);
   container.scrollTop = container.scrollHeight;
 }
 
@@ -183,11 +197,15 @@ function appendNewMessage(msg, container) {
 function initTextChannelEvents(socket, container) {
   socket.on('textHistory', (messages) => {
     renderTextMessages(messages, container);
+    // Yeni seans başladığından global blok bilgilerini resetleyelim
+    lastMessageSender = null;
+    lastMessageTimestamp = null;
   });
 
   socket.on('newTextMessage', (data) => {
     if (data.channelId === container.dataset.channelId) {
       const msg = data.message;
+      // Eğer container'ın son mesajıyla (date-separator hariç) gün farkı varsa tarih ayıracı ekle.
       let lastMsgElem = container.lastElementChild;
       while (lastMsgElem && lastMsgElem.classList.contains('date-separator')) {
         lastMsgElem = lastMsgElem.previousElementSibling;
