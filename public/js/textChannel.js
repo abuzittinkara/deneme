@@ -52,31 +52,27 @@ function insertDateSeparator(container, timestamp) {
 
 /*
   renderFullMessage:
-  - İlk mesaj (only-message ya da first-message) için "message-header" bölümünde;
-    avatar, kullanıcı adı ve altında timestamp ile mesaj içeriği ("message-content first-message")
-    yer alır.
+  - İlk (veya tek) mesaj için header; 
+    sol tarafta avatar, hemen yanında kullanıcı adı ve hemen yanında gönderim zamanı (timestamp)
+    gösterilir. Ardından, header'ın altında mesaj içeriği ("message-content first-message") ayrı bir blok olarak sunulur.
 */
 function renderFullMessage(msg, sender, time, msgClass) {
   return `
     <div class="message-item">
-      <div class="message-header" style="display: flex; align-items: flex-start; gap: 8px;">
-        <div class="avatar-container">
-          <img class="message-avatar" src="/images/default-avatar.png" alt="">
-        </div>
-        <div class="user-info" style="display: flex; flex-direction: column;">
-          <span class="sender-name">${sender}</span>
-          <span class="timestamp">${time}</span>
-        </div>
-        <div class="message-content ${msgClass}" style="margin-left: 12px;">
-          ${msg.content}
-        </div>
+      <div class="message-header" style="display: flex; align-items: center; gap: 8px;">
+        <img class="message-avatar" src="/images/default-avatar.png" alt="">
+        <span class="sender-name">${sender}</span>
+        <span class="timestamp">${time}</span>
+      </div>
+      <div class="message-content ${msgClass}" style="margin-left: 48px;">
+        ${msg.content}
       </div>
     </div>
   `;
 }
 
 // Sadece mesaj içeriğini render eder (header olmadan).
-// Hover durumunda mesajın solundaki boşlukta saat bilgisi gösterilir.
+// Bu durumda mesajın solundaki hover durumunda saat bilgisi gösterilir.
 function renderContentOnly(msg, msgClass, time) {
   return `
     <div class="message-item" style="position: relative;">
