@@ -121,9 +121,9 @@ const textChatInputBar = document.getElementById('text-chat-input-bar');
 const textChannelMessageInput = document.getElementById('textChannelMessageInput');
 const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
-/* --- Yeni: clearScreenShareUI() fonksiyonu ---
-   Bu fonksiyon; ekran paylaşım video elementini, ekran paylaşım butonunun aktifliğini ve
-   varsa ekran paylaşım overlay (id="screenShareOverlay") elementini kaldırır. */
+/* --- clearScreenShareUI() fonksiyonu ---
+   Bu fonksiyon; ekran paylaşım video elementini, ekran paylaşım butonunun aktifliğini 
+   ve varsa overlay elementini (id="screenShareOverlay") DOM'dan kaldırır. */
 function clearScreenShareUI() {
   const channelContentArea = document.querySelector('.channel-content-area');
   if (screenShareVideo && channelContentArea.contains(screenShareVideo)) {
@@ -267,7 +267,6 @@ function initSocketEvents() {
     }
   });
   
-  // EK: groupUsers event’ini dinleyerek sağ paneldeki kullanıcı listesini güncelliyoruz.
   socket.on('groupUsers', (data) => {
     updateUserList(data);
   });
@@ -341,7 +340,6 @@ function initSocketEvents() {
           return;
         }
         // Voice kanal için:
-        // Önce aktif ekran paylaşım UI'sini temizle (kendi UI ve diğer izleyiciler için)
         clearScreenShareUI();
         document.getElementById('channelUsersContainer').style.display = 'flex';
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
@@ -392,7 +390,6 @@ function initSocketEvents() {
     consumeProducer(producerId);
   });
   
-  // Yayın sonlandırıldığında placeholder mesajını göster
   socket.on('screenShareEnded', ({ userId }) => {
     const channelContentArea = document.querySelector('.channel-content-area');
     if (screenShareVideo && channelContentArea.contains(screenShareVideo)) {
@@ -465,7 +462,17 @@ function initSocketEvents() {
     });
   });
   
-  // Diğer socket eventleri (roomUsers, groupRenamed, groupDeleted vs.)...
+  // Diğer socket eventleri...
+  
+  socket.on('audioStateChanged', ({ micEnabled, selfDeafened }) => {
+    if (!users[socket.id]) return;
+    users[socket.id].micEnabled = micEnabled;
+    users[socket.id].selfDeafened = selfDeafened;
+    const gId = users[socket.id].currentGroup;
+    if (gId) {
+      socket.emit('allChannelsData', getAllChannelsData(gId));
+    }
+  });
 }
 
 function startSfuFlow() {
@@ -1276,4 +1283,90 @@ document.addEventListener('DOMContentLoaded', function() {
   
 // METİN MESAJLARININ RENDER İŞLEMLERİ SONU
 
-// Not: script.js tarayıcıda doğrudan çalıştırıldığı için module export yapılmıyor.
+async function consumeProducer(producerId) {
+  if (!recvTransport) {
+    console.warn("consumeProducer: recvTransport yok");
+    return;
+  }
+  const consumeParams = await new Promise((resolve) => {
+    socket.emit('consume', {
+      groupId: currentGroup,
+      roomId: currentRoom,
+      transportId: recvTransport.id,
+      producerId
+    }, (res) => {
+      resolve(res);
+    });
+  });
+  if (consumeParams.error) {
+    console.error("consume error:", consumeParams.error);
+    return;
+  }
+  console.log("consumeProducer parametreleri:", consumeParams);
+  const consumer = await recvTransport.consume({
+    id: consumeParams.id,
+    producerId: consumeParams.producerId,
+    kind: consumeParams.kind,
+    rtpParameters: consumeParams.rtpParameters
+  });
+  consumer.appData = { peerId: consumeParams.producerPeerId };
+  consumers[consumer.id] = consumer;
+  if (consumer.kind === "audio") {
+    const { track } = consumer;
+    const audioEl = document.createElement('audio');
+    audioEl.srcObject = new MediaStream([track]);
+    audioEl.autoplay = true;
+    audioEl.dataset.peerId = consumer.appData.peerId;
+    remoteAudios.push(audioEl);
+    audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
+    startVolumeAnalysis(audioEl.srcObject, consumer.appData.peerId);
+    console.log("Yeni audio consumer oluşturuldu:", consumer.id, "-> konuşan:", consumer.appData.peerId);
+  } else if (consumer.kind === "video") {
+    console.log("Video consumer alındı, ekran paylaşım için tıklama ile consume edilecek. Producer:", consumeParams.producerId);
+  }
+}
+
+async function startVolumeAnalysis(stream, userId) {
+  if (!stream.getAudioTracks().length) {
+    console.warn("No audio tracks in MediaStream for user:", userId);
+    return;
+  }
+  stopVolumeAnalysis(userId);
+  const audioContext = new AudioContext();
+  const source = audioContext.createMediaStreamSource(stream);
+  const analyser = audioContext.createAnalyser();
+  analyser.fftSize = 512;
+  source.connect(analyser);
+  const dataArray = new Uint8Array(analyser.fftSize);
+  const interval = setInterval(() => {
+    analyser.getByteTimeDomainData(dataArray);
+    let sum = 0;
+    for (let i = 0; i < dataArray.length; i++) {
+      const val = (dataArray[i] - 128) / 128.0;
+      sum += Math.abs(val);
+    }
+    const average = sum / dataArray.length;
+    const avatarElem = document.getElementById(`avatar-${userId}`);
+    if (avatarElem) {
+      if (average > SPEAKING_THRESHOLD) {
+        avatarElem.classList.add('speaking');
+      } else {
+        avatarElem.classList.remove('speaking');
+      }
+    }
+  }, VOLUME_CHECK_INTERVAL);
+  audioAnalyzers[userId] = {
+    audioContext,
+    analyser,
+    dataArray,
+    interval
+  };
+}
+
+function stopVolumeAnalysis(userId) {
+  if (audioAnalyzers[userId]) {
+    clearInterval(audioAnalyzers[userId].interval);
+    audioAnalyzers[userId].audioContext.close().catch(() => {});
+    delete audioAnalyzers[userId];
+  }
+}
