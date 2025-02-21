@@ -9,28 +9,31 @@ export async function startScreenShare(sendTransport, socket) {
   try {
     // Kullanıcının ekranını paylaşmasını ister (video ve audio alınır)
     const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+    // Dönen stream'i global olarak saklıyoruz
+    window.screenShareStream = stream;
+
+    // Video track'ini al ve producer oluştur
     const videoTrack = stream.getVideoTracks()[0];
-    // Video producer'ı oluştur
     const videoProducer = await sendTransport.produce({ track: videoTrack, stopTracks: false });
-    // Global olarak ekran paylaşım video producer'ını saklıyoruz
     window.screenShareProducerVideo = videoProducer;
-    
-    // Eğer audio track mevcutsa, ayrı bir producer oluşturuyoruz
+
+    // Eğer varsa audio track için de producer oluştur
     let audioProducer = null;
     if (stream.getAudioTracks().length > 0) {
       const audioTrack = stream.getAudioTracks()[0];
       audioProducer = await sendTransport.produce({ track: audioTrack, stopTracks: false });
       window.screenShareProducerAudio = audioProducer;
     }
-    
-    // Ekran paylaşım durumu sunucuya bildiriliyor
+
+    // Ekran paylaşım durumunu bildir
     socket.emit('screenShareStatusChanged', { isScreenSharing: true });
-    // Ekran paylaşımının başladığını video producer ID'si ile sunucuya bildiriyoruz
     socket.emit('screenShareStarted', { producerId: videoProducer.id });
+
     // Eğer kullanıcı ekran paylaşımını durdurursa otomatik olarak stopScreenShare çağrılır
     videoTrack.onended = () => {
       stopScreenShare(socket);
     };
+
     return { videoProducer, audioProducer };
   } catch (error) {
     console.error("Screen sharing failed:", error);
@@ -39,6 +42,7 @@ export async function startScreenShare(sendTransport, socket) {
 }
 
 export async function stopScreenShare(socket) {
+  // Üreticileri kapat
   if (window.screenShareProducerVideo) {
     await window.screenShareProducerVideo.close();
     window.screenShareProducerVideo = null;
@@ -47,7 +51,12 @@ export async function stopScreenShare(socket) {
     await window.screenShareProducerAudio.close();
     window.screenShareProducerAudio = null;
   }
-  // Ekran paylaşım durumu kapandığını sunucuya bildiriyoruz
+  // Global stream varsa, tüm track'leri durdur ve stream'i temizle
+  if (window.screenShareStream) {
+    window.screenShareStream.getTracks().forEach(track => track.stop());
+    window.screenShareStream = null;
+  }
+  // Ekran paylaşım durumunun kapandığını bildir
   socket.emit('screenShareStatusChanged', { isScreenSharing: false });
   socket.emit('screenShareEnded');
 }
