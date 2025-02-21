@@ -48,7 +48,7 @@ mongoose.connect(uri)
   });
 
 // Bellek içi tablolar
-const users = {};   // socket.id -> { username, currentGroup, currentRoom, micEnabled, selfDeafened, isScreenSharing }
+const users = {};   // socket.id -> { username, currentGroup, currentRoom, micEnabled, selfDeafened, isScreenSharing, screenShareProducerId }
 const groups = {};  // groupId -> { owner, name, users:[], rooms:{} }
 const onlineUsernames = new Set();
 
@@ -114,7 +114,10 @@ function getAllChannelsData(groupId) {
         : false,
       isScreenSharing: (users[u.id] && users[u.id].isScreenSharing !== undefined)
         ? users[u.id].isScreenSharing
-        : false
+        : false,
+      screenShareProducerId: (users[u.id] && users[u.id].screenShareProducerId)
+        ? users[u.id].screenShareProducerId
+        : null
     }));
     channelsObj[roomId] = {
       name: rm.name,
@@ -249,46 +252,18 @@ function sendRoomsListToUser(socketId, groupId) {
   io.to(socketId).emit('roomsList', roomArray);
 }
 
-/* Tüm kullanıcıya => roomsList */
-function broadcastRoomsListToGroup(groupId) {
-  if (!groups[groupId]) return;
-  groups[groupId].users.forEach(u => {
-    sendRoomsListToUser(u.id, groupId);
-  });
-}
-
-/* Tek user'a => groupsList */
-async function sendGroupsListToUser(socketId) {
-  const userData = users[socketId];
-  if (!userData) return;
-  const userDoc = await User.findOne({ username: userData.username }).populate('groups');
-  if (!userDoc) return;
-  const userGroups = [];
-  for (const g of userDoc.groups) {
-    let ownerUsername = null;
-    const ownerUser = await User.findById(g.owner);
-    if (ownerUser) {
-      ownerUsername = ownerUser.username;
-    }
-    userGroups.push({
-      id: g.groupId,
-      name: g.name,
-      owner: ownerUsername
-    });
-  }
-  io.to(socketId).emit('groupsList', userGroups);
-}
-
+/* Socket Eventleri */
 io.on('connection', (socket) => {
   console.log('Kullanıcı bağlandı:', socket.id);
-  // users[socket.id] nesnesine isScreenSharing özelliği eklendi.
+  // users[socket.id] nesnesine isScreenSharing ve screenShareProducerId özellikleri eklendi.
   users[socket.id] = {
     username: null,
     currentGroup: null,
     currentRoom: null,
     micEnabled: true,
     selfDeafened: false,
-    isScreenSharing: false
+    isScreenSharing: false,
+    screenShareProducerId: null
   };
 
   // LOGIN
@@ -395,6 +370,17 @@ io.on('connection', (socket) => {
   socket.on('screenShareStatusChanged', ({ isScreenSharing }) => {
     if (users[socket.id]) {
       users[socket.id].isScreenSharing = isScreenSharing;
+      const gId = users[socket.id].currentGroup;
+      if (gId) {
+        broadcastAllChannelsData(gId);
+      }
+    }
+  });
+
+  // Yeni: Ekran paylaşımı başladığında producer ID'sini saklamak için event
+  socket.on('screenShareStarted', ({ producerId }) => {
+    if (users[socket.id]) {
+      users[socket.id].screenShareProducerId = producerId;
       const gId = users[socket.id].currentGroup;
       if (gId) {
         broadcastAllChannelsData(gId);

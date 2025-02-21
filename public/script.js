@@ -24,6 +24,9 @@ let consumers = {};  // consumerId -> consumer
 // Remote audio elementlerini saklayalım
 let remoteAudios = [];
 
+// Global ekran paylaşım video elementi
+let screenShareVideo = null;
+
 // Kimlik
 let username = null;
 let currentGroup = null;
@@ -147,6 +150,51 @@ window.addEventListener('DOMContentLoaded', () => {
   // Metin kanalına ait eventleri TextChannel modülüne devrediyoruz.
   TextChannel.initTextChannelEvents(socket, textMessages);
 });
+
+// Yeni: Ekran paylaşımını görüntülemek için fonksiyon
+async function showScreenShare(producerId) {
+  if (!recvTransport) {
+    console.warn("recvTransport yok");
+    return;
+  }
+  const channelContentArea = document.querySelector('.channel-content-area');
+  // Eğer zaten ekran paylaşım video varsa, kaldır (toggle)
+  if (screenShareVideo) {
+    channelContentArea.removeChild(screenShareVideo);
+    screenShareVideo = null;
+    return;
+  }
+  // Consume işlemi
+  const consumeParams = await new Promise((resolve) => {
+    socket.emit('consume', {
+      groupId: currentGroup,
+      roomId: currentRoom,
+      transportId: recvTransport.id,
+      producerId: producerId
+    }, (res) => {
+      resolve(res);
+    });
+  });
+  if (consumeParams.error) {
+    console.error("consume error:", consumeParams.error);
+    return;
+  }
+  const consumer = await recvTransport.consume({
+    id: consumeParams.id,
+    producerId: consumeParams.producerId,
+    kind: consumeParams.kind,
+    rtpParameters: consumeParams.rtpParameters
+  });
+  consumer.appData = { peerId: consumeParams.producerPeerId };
+  // Video element oluştur ve consumer'ın track'ini ata
+  const videoEl = document.createElement('video');
+  videoEl.autoplay = true;
+  videoEl.controls = true;
+  const stream = new MediaStream([consumer.track]);
+  videoEl.srcObject = stream;
+  channelContentArea.appendChild(videoEl);
+  screenShareVideo = videoEl;
+}
 
 function initSocketEvents() {
   socket.on('connect', () => {
@@ -343,6 +391,13 @@ function initSocketEvents() {
           const screenIndicator = document.createElement('span');
           screenIndicator.classList.add('screen-share-indicator');
           screenIndicator.textContent = 'YAYINDA';
+          // Eğer producer ID mevcutsa, tıklayınca ekran paylaşımını göster
+          if (u.screenShareProducerId) {
+            screenIndicator.style.cursor = 'pointer';
+            screenIndicator.addEventListener('click', () => {
+              showScreenShare(u.screenShareProducerId);
+            });
+          }
           rightDiv.appendChild(screenIndicator);
         }
         
