@@ -172,6 +172,11 @@ function initSocketEvents() {
     }
   });
   
+  // EK: groupUsers event’ini dinleyerek sağ paneldeki kullanıcı listesini güncelliyoruz.
+  socket.on('groupUsers', (data) => {
+    updateUserList(data);
+  });
+  
   socket.on('groupsList', (groupArray) => {
     groupListDiv.innerHTML = '';
     groupArray.forEach(groupObj => {
@@ -253,7 +258,6 @@ function initSocketEvents() {
           leaveRoomInternal();
         }
         currentGroup = selectedGroup;
-        // Mikrofon iznini kullanıcı etkileşimiyle alıyoruz ve ardından sesli kanala katılıyoruz.
         requestMicrophoneAccess().then(() => {
           console.log("Mikrofon izni alındı, voice kanalına katılım isteği gönderiliyor.");
           joinRoom(currentGroup, roomObj.id, roomObj.name);
@@ -293,7 +297,6 @@ function initSocketEvents() {
     consumeProducer(producerId);
   });
   
-  // Yeni: allChannelsData event’i – Tüm kanallara ait kullanıcı bilgilerini günceller.
   socket.on('allChannelsData', (channelsObj) => {
     Object.keys(channelsObj).forEach(roomId => {
       const cData = channelsObj[roomId];
@@ -318,7 +321,7 @@ function initSocketEvents() {
     });
   });
   
-  // Diğer socket eventleri (örneğin, roomUsers, groupRenamed, groupDeleted) burada yer alıyor...
+  // Diğer socket eventleri (roomUsers, groupRenamed, groupDeleted vs.)...
 }
 
 function startSfuFlow() {
