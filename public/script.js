@@ -121,7 +121,9 @@ const textChatInputBar = document.getElementById('text-chat-input-bar');
 const textChannelMessageInput = document.getElementById('textChannelMessageInput');
 const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
-// Yardımcı: Ekran paylaşım UI'sini temizler (video elementi, buton aktifliği)
+/* --- Yeni: clearScreenShareUI() fonksiyonu ---
+   Bu fonksiyon; ekran paylaşım video elementini, ekran paylaşım butonunun aktifliğini ve
+   varsa ekran paylaşım overlay (id="screenShareOverlay") elementini kaldırır. */
 function clearScreenShareUI() {
   const channelContentArea = document.querySelector('.channel-content-area');
   if (screenShareVideo && channelContentArea.contains(screenShareVideo)) {
@@ -130,6 +132,10 @@ function clearScreenShareUI() {
   }
   if (screenShareButton) {
     screenShareButton.classList.remove('active');
+  }
+  const overlay = document.getElementById('screenShareOverlay');
+  if (overlay && overlay.parentNode) {
+    overlay.parentNode.removeChild(overlay);
   }
 }
 
