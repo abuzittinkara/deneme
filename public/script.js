@@ -596,6 +596,8 @@ function listProducers() {
   });
 }
 
+// Güncellendi: Sadece audio consumer için ses elementleri oluşturuluyor.
+// Video consumer'lar ekran paylaşımının on-demand consume edilmesi için showScreenShare fonksiyonuyla işlenecek.
 async function consumeProducer(producerId) {
   if (!recvTransport) {
     console.warn("consumeProducer: recvTransport yok");
@@ -624,19 +626,22 @@ async function consumeProducer(producerId) {
   });
   consumer.appData = { peerId: consumeParams.producerPeerId };
   consumers[consumer.id] = consumer;
-  const { track } = consumer;
-  const audioEl = document.createElement('audio');
-  audioEl.srcObject = new MediaStream([track]);
-  audioEl.autoplay = true;
-  audioEl.dataset.peerId = consumer.appData.peerId;
-  remoteAudios.push(audioEl);
-  audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
-  startVolumeAnalysis(audioEl.srcObject, consumer.appData.peerId);
-  console.log("Yeni consumer oluşturuldu:", consumer.id, "-> konuşan:", consumer.appData.peerId);
+  if (consumer.kind === "audio") {
+    const { track } = consumer;
+    const audioEl = document.createElement('audio');
+    audioEl.srcObject = new MediaStream([track]);
+    audioEl.autoplay = true;
+    audioEl.dataset.peerId = consumer.appData.peerId;
+    remoteAudios.push(audioEl);
+    audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
+    startVolumeAnalysis(audioEl.srcObject, consumer.appData.peerId);
+    console.log("Yeni audio consumer oluşturuldu:", consumer.id, "-> konuşan:", consumer.appData.peerId);
+  } else if (consumer.kind === "video") {
+    console.log("Video consumer alındı, ekran paylaşım için tıklama ile consume edilecek. Producer:", consumeParams.producerId);
+  }
 }
 
-// Güncellendi: Eğer stream'de audio track yoksa volume analizi başlatılmayacak.
-function startVolumeAnalysis(stream, userId) {
+async function startVolumeAnalysis(stream, userId) {
   if (!stream.getAudioTracks().length) {
     console.warn("No audio tracks in MediaStream for user:", userId);
     return;
@@ -1009,7 +1014,7 @@ function initUIEvents() {
   // Ekran Paylaşım Butonunun Event Listener'ı
   if(screenShareButton) {
     screenShareButton.addEventListener('click', async () => {
-      if(window.screenShareProducer) {
+      if(window.screenShareProducerVideo) {
         // Ekran paylaşımı aktifse durdur
         await ScreenShare.stopScreenShare(socket);
         screenShareButton.classList.remove('active');
@@ -1258,3 +1263,46 @@ document.addEventListener('DOMContentLoaded', function() {
 // METİN MESAJLARININ RENDER İŞLEMLERİ SONU
 
 // Not: script.js tarayıcıda doğrudan çalıştırıldığı için module export yapılmıyor.
+
+async function consumeProducer(producerId) {
+  if (!recvTransport) {
+    console.warn("consumeProducer: recvTransport yok");
+    return;
+  }
+  const consumeParams = await new Promise((resolve) => {
+    socket.emit('consume', {
+      groupId: currentGroup,
+      roomId: currentRoom,
+      transportId: recvTransport.id,
+      producerId
+    }, (res) => {
+      resolve(res);
+    });
+  });
+  if (consumeParams.error) {
+    console.error("consume error:", consumeParams.error);
+    return;
+  }
+  console.log("consumeProducer parametreleri:", consumeParams);
+  const consumer = await recvTransport.consume({
+    id: consumeParams.id,
+    producerId: consumeParams.producerId,
+    kind: consumeParams.kind,
+    rtpParameters: consumeParams.rtpParameters
+  });
+  consumer.appData = { peerId: consumeParams.producerPeerId };
+  consumers[consumer.id] = consumer;
+  if (consumer.kind === "audio") {
+    const { track } = consumer;
+    const audioEl = document.createElement('audio');
+    audioEl.srcObject = new MediaStream([track]);
+    audioEl.autoplay = true;
+    audioEl.dataset.peerId = consumer.appData.peerId;
+    remoteAudios.push(audioEl);
+    audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
+    startVolumeAnalysis(audioEl.srcObject, consumer.appData.peerId);
+    console.log("Yeni audio consumer oluşturuldu:", consumer.id, "-> konuşan:", consumer.appData.peerId);
+  } else if (consumer.kind === "video") {
+    console.log("Video consumer alındı, ekran paylaşım için tıklama ile consume edilecek. Producer:", consumeParams.producerId);
+  }
+}
