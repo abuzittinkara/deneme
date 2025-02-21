@@ -307,6 +307,7 @@ function initSocketEvents() {
         const userRow = document.createElement('div');
         userRow.classList.add('channel-user');
         
+        // Sol kısım: Avatar ve kullanıcı adı
         const leftDiv = document.createElement('div');
         leftDiv.classList.add('channel-user-left');
         
@@ -320,28 +321,33 @@ function initSocketEvents() {
         leftDiv.appendChild(avatarDiv);
         leftDiv.appendChild(nameSpan);
         
+        // Sağ kısım: İkonlar (mikrofon, sağırlaştırma, ekran paylaşımı)
+        const rightDiv = document.createElement('div');
+        rightDiv.classList.add('channel-user-right');
+        
         if (u.micEnabled === false) {
           const micIcon = document.createElement('span');
           micIcon.classList.add('material-icons');
           micIcon.textContent = 'mic_off';
-          leftDiv.appendChild(micIcon);
+          rightDiv.appendChild(micIcon);
         }
         
         if (u.selfDeafened === true) {
           const deafIcon = document.createElement('span');
           deafIcon.classList.add('material-icons');
           deafIcon.textContent = 'headset_off';
-          leftDiv.appendChild(deafIcon);
+          rightDiv.appendChild(deafIcon);
         }
         
         if (u.isScreenSharing === true) {
           const screenIndicator = document.createElement('span');
           screenIndicator.classList.add('screen-share-indicator');
           screenIndicator.textContent = 'YAYINDA';
-          leftDiv.appendChild(screenIndicator);
+          rightDiv.appendChild(screenIndicator);
         }
         
         userRow.appendChild(leftDiv);
+        userRow.appendChild(rightDiv);
         channelDiv.appendChild(userRow);
       });
     });
