@@ -161,7 +161,7 @@ function broadcastAllRoomsUsers(groupId) {
 /* Bir kullanıcı tüm gruplardan-odalardan çıkarken SFU obje kapatma */
 function removeUserFromAllGroupsAndRooms(socket) {
   const socketId = socket.id;
-  const userData = users[socketId];
+  const userData = users[socket.id];
   if (!userData) return;
   Object.keys(groups).forEach(gId => {
     const grpObj = groups[gId];
@@ -208,6 +208,9 @@ function removeUserFromAllGroupsAndRooms(socket) {
   });
   users[socket.id].currentGroup = null;
   users[socket.id].currentRoom = null;
+  // Yeni: Kullanıcının ekran paylaşım durumunu resetliyoruz
+  users[socket.id].isScreenSharing = false;
+  users[socket.id].screenShareProducerId = null;
 }
 
 /* Grubun online/offline kullanıcıları */
@@ -363,7 +366,7 @@ io.on('connection', (socket) => {
       try {
         await sendGroupsListToUser(socket.id);
       } catch (err) {
-        console.error("sendGroupsListToUser hata:", err);
+        console.error("sendGroupsListToOneUser hata:", err);
       }
       try {
         const userDoc = await User.findOne({ username: trimmedName }).populate('groups');
@@ -624,6 +627,9 @@ io.on('connection', (socket) => {
     rmObj.users.push({ id: socket.id, username: userName });
     userData.currentGroup = groupId;
     userData.currentRoom = roomId;
+    // Kullanıcı farklı bir kanala geçtiğinde ekran paylaşım durumunu resetle
+    users[socket.id].isScreenSharing = false;
+    users[socket.id].screenShareProducerId = null;
     socket.join(groupId);
     socket.join(`${groupId}::${roomId}`);
     io.to(`${groupId}::${roomId}`).emit('roomUsers', rmObj.users);
