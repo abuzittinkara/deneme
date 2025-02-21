@@ -151,7 +151,7 @@ window.addEventListener('DOMContentLoaded', () => {
   TextChannel.initTextChannelEvents(socket, textMessages);
 });
 
-// Yeni: Ekran paylaşımını görüntülemek için fonksiyon
+// Güncellendi: Paylaşılan ekranın video elementinin .channel-content-area'ya sığması için stiller eklendi.
 async function showScreenShare(producerId) {
   if (!recvTransport) {
     console.warn("recvTransport yok");
@@ -187,17 +187,22 @@ async function showScreenShare(producerId) {
     rtpParameters: consumeParams.rtpParameters
   });
   consumer.appData = { peerId: consumeParams.producerPeerId };
-  // Video element oluştur ve consumer'ın track'ini ata
+  consumers[consumer.id] = consumer;
+  // Video element oluştur ve tüketilen track'i ata
   const videoEl = document.createElement('video');
   videoEl.autoplay = true;
   videoEl.controls = true;
+  // Yeni: Video elementinin .channel-content-area'ya sığması için stiller ekleniyor
+  videoEl.style.width = "100%";
+  videoEl.style.height = "100%";
+  videoEl.style.objectFit = "contain";
   const stream = new MediaStream([consumer.track]);
   videoEl.srcObject = stream;
   channelContentArea.appendChild(videoEl);
   screenShareVideo = videoEl;
 }
 
-// Yeni: Yayın sonlandırıldığında placeholder mesajı gösteren fonksiyon
+// Yeni: Yayın sonlandırıldığında placeholder mesajını gösteren fonksiyon
 function displayScreenShareEndedMessage() {
   const channelContentArea = document.querySelector('.channel-content-area');
   let messageEl = document.getElementById('screenShareEndedMessage');
@@ -375,7 +380,7 @@ function initSocketEvents() {
     consumeProducer(producerId);
   });
   
-  // Yeni: Yayın sonlandırıldığında placeholder mesajını gösteren event
+  // Yayın sonlandırıldığında placeholder mesajını göster
   socket.on('screenShareEnded', ({ userId }) => {
     const channelContentArea = document.querySelector('.channel-content-area');
     if (screenShareVideo) {
@@ -431,7 +436,6 @@ function initSocketEvents() {
           const screenIndicator = document.createElement('span');
           screenIndicator.classList.add('screen-share-indicator');
           screenIndicator.textContent = 'YAYINDA';
-          // Eğer producer ID mevcutsa, tıklayınca ekran paylaşımını göster
           if (u.screenShareProducerId) {
             screenIndicator.style.cursor = 'pointer';
             screenIndicator.addEventListener('click', () => {
