@@ -121,6 +121,18 @@ const textChatInputBar = document.getElementById('text-chat-input-bar');
 const textChannelMessageInput = document.getElementById('textChannelMessageInput');
 const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
+// Yardımcı: Ekran paylaşım UI'sini temizler (video elementi, buton aktifliği)
+function clearScreenShareUI() {
+  const channelContentArea = document.querySelector('.channel-content-area');
+  if (screenShareVideo && channelContentArea.contains(screenShareVideo)) {
+    channelContentArea.removeChild(screenShareVideo);
+    screenShareVideo = null;
+  }
+  if (screenShareButton) {
+    screenShareButton.classList.remove('active');
+  }
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   socket = io("https://fisqos.com.tr", { transports: ['websocket'] });
   console.log("Socket connected =>", socket.id);
@@ -158,13 +170,8 @@ async function showScreenShare(producerId) {
     return;
   }
   const channelContentArea = document.querySelector('.channel-content-area');
-  // Eğer daha önce ekran paylaşım videosu varsa, önce kaldır ve placeholder mesajı da kaldır
-  removeScreenShareEndedMessage();
-  if (screenShareVideo) {
-    channelContentArea.removeChild(screenShareVideo);
-    screenShareVideo = null;
-    return;
-  }
+  // Eski ekran paylaşım UI'sini temizle
+  clearScreenShareUI();
   // Consume işlemi
   const consumeParams = await new Promise((resolve) => {
     socket.emit('consume', {
@@ -192,7 +199,6 @@ async function showScreenShare(producerId) {
   const videoEl = document.createElement('video');
   videoEl.autoplay = true;
   videoEl.controls = true;
-  // Video elementinin .channel-content-area'ya sığması için stiller
   videoEl.style.width = "100%";
   videoEl.style.height = "100%";
   videoEl.style.objectFit = "contain";
@@ -271,7 +277,6 @@ function initSocketEvents() {
         document.querySelectorAll('.grp-item').forEach(el => el.classList.remove('selected'));
         grpItem.classList.add('selected');
         selectedGroup = groupObj.id;
-        currentGroup = null;
         groupTitle.textContent = groupObj.name;
         socket.emit('browseGroup', groupObj.id);
         if (groupObj.owner === username) {
@@ -330,7 +335,8 @@ function initSocketEvents() {
           return;
         }
         // Voice kanal için:
-        textChannelContainer.style.display = 'none';
+        // Önce aktif ekran paylaşım UI'sini temizle (kendi UI ve diğer izleyiciler için)
+        clearScreenShareUI();
         document.getElementById('channelUsersContainer').style.display = 'flex';
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
         if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
@@ -383,7 +389,7 @@ function initSocketEvents() {
   // Yayın sonlandırıldığında placeholder mesajını göster
   socket.on('screenShareEnded', ({ userId }) => {
     const channelContentArea = document.querySelector('.channel-content-area');
-    if (screenShareVideo) {
+    if (screenShareVideo && channelContentArea.contains(screenShareVideo)) {
       channelContentArea.removeChild(screenShareVideo);
       screenShareVideo = null;
     }
@@ -439,7 +445,7 @@ function initSocketEvents() {
           if (u.screenShareProducerId) {
             screenIndicator.style.cursor = 'pointer';
             screenIndicator.addEventListener('click', () => {
-              removeScreenShareEndedMessage();
+              clearScreenShareUI();
               showScreenShare(u.screenShareProducerId);
             });
           }
@@ -596,8 +602,6 @@ function listProducers() {
   });
 }
 
-// Güncellendi: Sadece audio consumer için ses elementleri oluşturuluyor.
-// Video consumer'lar ekran paylaşımının on-demand consume edilmesi için showScreenShare fonksiyonuyla işlenecek.
 async function consumeProducer(producerId) {
   if (!recvTransport) {
     console.warn("consumeProducer: recvTransport yok");
@@ -687,6 +691,7 @@ function stopVolumeAnalysis(userId) {
 }
 
 function leaveRoomInternal() {
+  clearScreenShareUI();
   if (localProducer) {
     localProducer.close();
     localProducer = null;
@@ -712,6 +717,8 @@ function leaveRoomInternal() {
 }
 
 function joinRoom(groupId, roomId, roomName) {
+  // Kanal değiştirme esnasında, aktif ekran paylaşım UI'sini temizle
+  clearScreenShareUI();
   console.log(`joinRoom çağrıldı: group=${groupId}, room=${roomId}, name=${roomName}`);
   socket.emit('joinRoom', { groupId, roomId });
   document.getElementById('selectedChannelTitle').textContent = roomName;
@@ -947,6 +954,7 @@ function initUIEvents() {
     isDMMode = false;
   });
   leaveButton.addEventListener('click', () => {
+    clearScreenShareUI();
     if (!currentRoom) return;
     socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
     leaveRoomInternal();
@@ -1024,7 +1032,7 @@ function initUIEvents() {
             alert("Ekran paylaşımı için transport henüz hazır değil.");
             return;
           }
-          removeScreenShareEndedMessage();
+          clearScreenShareUI();
           await ScreenShare.startScreenShare(sendTransport, socket);
           screenShareButton.classList.add('active');
         } catch(error) {
@@ -1263,4 +1271,3 @@ document.addEventListener('DOMContentLoaded', function() {
 // METİN MESAJLARININ RENDER İŞLEMLERİ SONU
 
 // Not: script.js tarayıcıda doğrudan çalıştırıldığı için module export yapılmıyor.
-
