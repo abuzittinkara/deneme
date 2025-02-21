@@ -109,6 +109,10 @@
   justify-content: flex-end;
   gap: 0.4rem;
 }
+/* İkonların rengi #c61884 olacak */
+.channel-user-right .material-icons {
+  color: #c61884;
+}
 .channel-user-buttons {
   display: none;
   gap: 8px;
