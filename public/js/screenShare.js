@@ -16,7 +16,7 @@ export async function startScreenShare(sendTransport, socket) {
     window.screenShareProducer = producer;
     // Ekran paylaşım durumu sunucuya bildiriliyor
     socket.emit('screenShareStatusChanged', { isScreenSharing: true });
-    // Ekran paylaşımının başlatıldığını producer ID'si ile sunucuya bildiriyoruz
+    // Ekran paylaşımının başladığını producer ID'si ile sunucuya bildiriyoruz
     socket.emit('screenShareStarted', { producerId: producer.id });
     // Eğer kullanıcı ekran paylaşımını durdurursa otomatik olarak stopScreenShare çağrılır
     track.onended = () => {
@@ -35,5 +35,6 @@ export async function stopScreenShare(socket) {
     window.screenShareProducer = null;
     // Ekran paylaşım durumu kapandığını sunucuya bildiriyoruz
     socket.emit('screenShareStatusChanged', { isScreenSharing: false });
+    socket.emit('screenShareEnded');
   }
 }

@@ -158,7 +158,8 @@ async function showScreenShare(producerId) {
     return;
   }
   const channelContentArea = document.querySelector('.channel-content-area');
-  // Eğer zaten ekran paylaşım video varsa, kaldır (toggle)
+  // Eğer daha önce ekran paylaşım videosu varsa, önce kaldır ve placeholder mesajı da kaldır
+  removeScreenShareEndedMessage();
   if (screenShareVideo) {
     channelContentArea.removeChild(screenShareVideo);
     screenShareVideo = null;
@@ -194,6 +195,35 @@ async function showScreenShare(producerId) {
   videoEl.srcObject = stream;
   channelContentArea.appendChild(videoEl);
   screenShareVideo = videoEl;
+}
+
+// Yeni: Yayın sonlandırıldığında placeholder mesajı gösteren fonksiyon
+function displayScreenShareEndedMessage() {
+  const channelContentArea = document.querySelector('.channel-content-area');
+  let messageEl = document.getElementById('screenShareEndedMessage');
+  if (!messageEl) {
+    messageEl = document.createElement('div');
+    messageEl.id = 'screenShareEndedMessage';
+    messageEl.textContent = 'Bu yayın sonlandırıldı';
+    messageEl.style.position = 'absolute';
+    messageEl.style.top = '50%';
+    messageEl.style.left = '50%';
+    messageEl.style.transform = 'translate(-50%, -50%)';
+    messageEl.style.color = '#fff';
+    messageEl.style.backgroundColor = 'rgba(0,0,0,0.7)';
+    messageEl.style.padding = '1rem';
+    messageEl.style.borderRadius = '8px';
+    messageEl.style.fontSize = '1.2rem';
+  }
+  channelContentArea.appendChild(messageEl);
+}
+
+// Yeni: Placeholder mesajı kaldıran fonksiyon
+function removeScreenShareEndedMessage() {
+  const messageEl = document.getElementById('screenShareEndedMessage');
+  if (messageEl && messageEl.parentNode) {
+    messageEl.parentNode.removeChild(messageEl);
+  }
 }
 
 function initSocketEvents() {
@@ -345,6 +375,16 @@ function initSocketEvents() {
     consumeProducer(producerId);
   });
   
+  // Yeni: Yayın sonlandırıldığında placeholder mesajını gösteren event
+  socket.on('screenShareEnded', ({ userId }) => {
+    const channelContentArea = document.querySelector('.channel-content-area');
+    if (screenShareVideo) {
+      channelContentArea.removeChild(screenShareVideo);
+      screenShareVideo = null;
+    }
+    displayScreenShareEndedMessage();
+  });
+  
   socket.on('allChannelsData', (channelsObj) => {
     Object.keys(channelsObj).forEach(roomId => {
       const cData = channelsObj[roomId];
@@ -395,6 +435,7 @@ function initSocketEvents() {
           if (u.screenShareProducerId) {
             screenIndicator.style.cursor = 'pointer';
             screenIndicator.addEventListener('click', () => {
+              removeScreenShareEndedMessage();
               showScreenShare(u.screenShareProducerId);
             });
           }
@@ -969,6 +1010,7 @@ function initUIEvents() {
             alert("Ekran paylaşımı için transport henüz hazır değil.");
             return;
           }
+          removeScreenShareEndedMessage();
           await ScreenShare.startScreenShare(sendTransport, socket);
           screenShareButton.classList.add('active');
         } catch(error) {

@@ -410,6 +410,11 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Yeni: Ekran paylaşımı sonlandığında yayımlayan socket'in bu event'i tetiklemesi
+  socket.on('screenShareEnded', () => {
+    socket.broadcast.emit('screenShareEnded', { userId: socket.id });
+  });
+
   // createGroup
   socket.on('createGroup', async (groupName) => {
     if (!groupName) return;
