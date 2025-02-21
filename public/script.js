@@ -192,7 +192,7 @@ async function showScreenShare(producerId) {
   const videoEl = document.createElement('video');
   videoEl.autoplay = true;
   videoEl.controls = true;
-  // Yeni: Video elementinin .channel-content-area'ya sığması için stiller ekleniyor
+  // Video elementinin .channel-content-area'ya sığması için stiller
   videoEl.style.width = "100%";
   videoEl.style.height = "100%";
   videoEl.style.objectFit = "contain";
@@ -635,7 +635,12 @@ async function consumeProducer(producerId) {
   console.log("Yeni consumer oluşturuldu:", consumer.id, "-> konuşan:", consumer.appData.peerId);
 }
 
+// Güncellendi: Eğer stream'de audio track yoksa volume analizi başlatılmayacak.
 function startVolumeAnalysis(stream, userId) {
+  if (!stream.getAudioTracks().length) {
+    console.warn("No audio tracks in MediaStream for user:", userId);
+    return;
+  }
   stopVolumeAnalysis(userId);
   const audioContext = new AudioContext();
   const source = audioContext.createMediaStreamSource(stream);
