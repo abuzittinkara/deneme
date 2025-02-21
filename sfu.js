@@ -60,14 +60,20 @@ function getNextWorker() {
  */
 async function createRouter(roomId) {
   const worker = getNextWorker();
+  // Video üretimini desteklemek için video codec ekleniyor.
   const mediaCodecs = [
     {
       kind: 'audio',
       mimeType: 'audio/opus',
       clockRate: 48000,
       channels: 2
+    },
+    {
+      kind: 'video',
+      mimeType: 'video/VP8',
+      clockRate: 90000,
+      parameters: {}
     }
-    // Video codec isterseniz buraya ekleyebilirsiniz
   ];
   const router = await worker.createRouter({ mediaCodecs });
   routers[roomId] = router;
