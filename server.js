@@ -208,7 +208,7 @@ function removeUserFromAllGroupsAndRooms(socket) {
   });
   users[socket.id].currentGroup = null;
   users[socket.id].currentRoom = null;
-  // Yeni: Kullanıcının ekran paylaşım durumunu resetliyoruz
+  // Kullanıcının ekran paylaşım durumunu resetliyoruz
   users[socket.id].isScreenSharing = false;
   users[socket.id].screenShareProducerId = null;
 }
@@ -600,14 +600,24 @@ io.on('connection', (socket) => {
     if (userData.currentGroup === groupId && userData.currentRoom === roomId) {
       return; 
     }
+    // Eğer kullanıcı aynı grupta farklı bir odadan geçiş yapıyorsa, o odadaki producer'ları kapatıp yayın durumunu resetleyelim.
     if (userData.currentGroup === groupId && userData.currentRoom && groups[groupId].rooms[userData.currentRoom]) {
-      groups[groupId].rooms[userData.currentRoom].users =
-        groups[groupId].rooms[userData.currentRoom].users.filter(u => u.id !== socket.id);
-      io.to(`${groupId}::${userData.currentRoom}`).emit(
-        'roomUsers',
-        groups[groupId].rooms[userData.currentRoom].users
-      );
+      const prevRoom = groups[groupId].rooms[userData.currentRoom];
+      prevRoom.users = prevRoom.users.filter(u => u.id !== socket.id);
+      io.to(`${groupId}::${userData.currentRoom}`).emit('roomUsers', prevRoom.users);
       socket.leave(`${groupId}::${userData.currentRoom}`);
+      if (prevRoom.producers) {
+        Object.keys(prevRoom.producers).forEach(pid => {
+          const producer = prevRoom.producers[pid];
+          if (producer && producer.appData && producer.appData.peerId === socket.id) {
+            sfu.closeProducer(producer);
+            delete prevRoom.producers[pid];
+          }
+        });
+      }
+      // Yayın durumunu resetle
+      userData.isScreenSharing = false;
+      userData.screenShareProducerId = null;
     } else {
       removeUserFromAllGroupsAndRooms(socket);
     }
@@ -627,7 +637,7 @@ io.on('connection', (socket) => {
     rmObj.users.push({ id: socket.id, username: userName });
     userData.currentGroup = groupId;
     userData.currentRoom = roomId;
-    // Kullanıcı farklı bir kanala geçtiğinde ekran paylaşım durumunu resetle
+    // Eğer kullanıcı farklı bir odaya geçiyorsa, yayın durumunu resetle (ek olarak)
     users[socket.id].isScreenSharing = false;
     users[socket.id].screenShareProducerId = null;
     socket.join(groupId);
