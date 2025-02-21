@@ -97,6 +97,28 @@ async function loadChannelsFromDB() {
   }
 }
 
+/* sendGroupsListToUser fonksiyonu: Kullanıcının üye olduğu grupları DB'den çekip socket'e gönderir */
+async function sendGroupsListToUser(socketId) {
+  const userData = users[socketId];
+  if (!userData) return;
+  const userDoc = await User.findOne({ username: userData.username }).populate('groups');
+  if (!userDoc) return;
+  const userGroups = [];
+  for (const g of userDoc.groups) {
+    let ownerUsername = null;
+    const ownerUser = await User.findById(g.owner);
+    if (ownerUser) {
+      ownerUsername = ownerUser.username;
+    }
+    userGroups.push({
+      id: g.groupId,
+      name: g.name,
+      owner: ownerUsername
+    });
+  }
+  io.to(socketId).emit('groupsList', userGroups);
+}
+
 /* Tüm oda + kullanıcı datası => UI'ya */
 function getAllChannelsData(groupId) {
   if (!groups[groupId]) return {};
