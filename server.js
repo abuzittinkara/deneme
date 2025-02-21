@@ -3,7 +3,6 @@
  * 
  * SFU için "joinRoom" içinde router yoksa oluşturma eklendi.
  **************************************/
-// .env'yi okuyabilmek için:
 require('dotenv').config();
 
 const http = require('http');
@@ -24,31 +23,21 @@ const sfu = require('./sfu'); // Mediasoup SFU fonksiyonları
 const registerTextChannelEvents = require('./modules/textChannel');
 
 const app = express();
-
-// Cloudflare Flexible SSL/TLS kullanıldığı için
-// sunucumuzun orijini HTTP üzerinden çalışıyor (HTTPS sertifika dosyalarına ihtiyaç yok)
 const server = http.createServer(app);
 
-// Socket.IO oluşturulurken wsEngine'i, ws paketinin Server constructor'ı olarak ayarlıyoruz.
 const io = socketIO(server, {
   wsEngine: WebSocket.Server
 });
 
-// .env içinde tanımlanmış MONGODB_URI varsa onu kullan, yoksa sabit URI'ya düş
 const uri = process.env.MONGODB_URI || "mongodb+srv://abuzorttin:HWZe7uK5yEAE@cluster0.vdrdy.mongodb.net/myappdb?retryWrites=true&w=majority";
 
-/**
- * MongoDB bağlanınca => SFU Worker’ları oluştur => Grup/Kanal verisi yükle
- */
 mongoose.connect(uri)
   .then(async () => {
     console.log("MongoDB bağlantısı başarılı!");
 
-    // Mediasoup Worker oluştur
     await sfu.createWorkers();
     console.log("Mediasoup Workers hazır!");
 
-    // Ardından grup/kanal
     await loadGroupsFromDB();
     await loadChannelsFromDB();
 
@@ -153,7 +142,6 @@ function removeUserFromAllGroupsAndRooms(socket) {
       Object.keys(grpObj.rooms).forEach(rId => {
         const rmObj = grpObj.rooms[rId];
         rmObj.users = rmObj.users.filter(u => u.id !== socketId);
-        // SFU => producer/consumer/transport kapat
         if (rmObj.producers) {
           Object.keys(rmObj.producers).forEach(pid => {
             const producer = rmObj.producers[pid];
@@ -451,7 +439,7 @@ io.on('connection', (socket) => {
         socket.emit('errorMessage', "Böyle bir grup yok (DB).");
         return;
       }
-      // ObjectId'leri karşılaştırmak için toString() kullanıyoruz:
+      // Burada ObjectId karşılaştırması için toString() kullanıyoruz.
       if (!groupDoc.users.some(u => u.toString() === userDoc._id.toString())) {
         groupDoc.users.push(userDoc._id);
         await groupDoc.save();
@@ -560,7 +548,6 @@ io.on('connection', (socket) => {
         };
       }
       console.log(`Yeni oda: group=${groupId}, room=${roomId}, name=${trimmed}, type=${channelType}`);
-      // Yeni oluşturulan oda listesini hem bu socket'e hem de tüm gruba gönderiyoruz
       sendRoomsListToUser(socket.id, groupId);
       broadcastRoomsListToGroup(groupId);
       broadcastAllChannelsData(groupId);
