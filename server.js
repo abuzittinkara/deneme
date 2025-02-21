@@ -163,6 +163,19 @@ function removeUserFromAllGroupsAndRooms(socket) {
   const socketId = socket.id;
   const userData = users[socket.id];
   if (!userData) return;
+  
+  // Eğer kullanıcı ekran paylaşım durumundaysa, bulunduğu tüm odalarda "screenShareEnded" event'ini gönderiyoruz.
+  if (userData.isScreenSharing) {
+    Object.keys(groups).forEach(gId => {
+      const grpObj = groups[gId];
+      grpObj.rooms && Object.keys(grpObj.rooms).forEach(rId => {
+        if (grpObj.rooms[rId].users.some(u => u.id === socketId)) {
+          io.to(`${gId}::${rId}`).emit('screenShareEnded', { userId: socketId });
+        }
+      });
+    });
+  }
+  
   Object.keys(groups).forEach(gId => {
     const grpObj = groups[gId];
     if (grpObj.users.some(u => u.id === socketId)) {
@@ -206,9 +219,9 @@ function removeUserFromAllGroupsAndRooms(socket) {
     });
     socket.leave(gId);
   });
+  // Yayınla ilgili bilgiler resetleniyor
   users[socket.id].currentGroup = null;
   users[socket.id].currentRoom = null;
-  // Kullanıcının ekran paylaşım durumunu resetliyoruz
   users[socket.id].isScreenSharing = false;
   users[socket.id].screenShareProducerId = null;
 }
@@ -615,9 +628,10 @@ io.on('connection', (socket) => {
           }
         });
       }
-      // Yayın durumunu resetle
+      // Yayın durumunu resetle ve eski odadaki tüm kullanıcılara "screenShareEnded" event'ini gönder
       userData.isScreenSharing = false;
       userData.screenShareProducerId = null;
+      io.to(`${groupId}::${userData.currentRoom}`).emit('screenShareEnded', { userId: socket.id });
     } else {
       removeUserFromAllGroupsAndRooms(socket);
     }
@@ -637,7 +651,7 @@ io.on('connection', (socket) => {
     rmObj.users.push({ id: socket.id, username: userName });
     userData.currentGroup = groupId;
     userData.currentRoom = roomId;
-    // Eğer kullanıcı farklı bir odaya geçiyorsa, yayın durumunu resetle (ek olarak)
+    // Eğer kullanıcı farklı bir odaya geçiyorsa, yayın durumunu resetle
     users[socket.id].isScreenSharing = false;
     users[socket.id].screenShareProducerId = null;
     socket.join(groupId);
