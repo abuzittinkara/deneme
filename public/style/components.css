@@ -645,3 +645,13 @@
 .text-message:hover .hover-time {
   display: block;
 }
+
+/* Yeni: Ekran Paylaşım Göstergesi */
+.screen-share-indicator {
+  background-color: red;
+  color: white;
+  padding: 2px 4px;
+  border-radius: 2px;
+  font-size: 10px;
+  margin-left: 4px;
+}

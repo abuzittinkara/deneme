@@ -48,7 +48,7 @@ mongoose.connect(uri)
   });
 
 // Bellek içi tablolar
-const users = {};   // socket.id -> { username, currentGroup, currentRoom, micEnabled, selfDeafened }
+const users = {};   // socket.id -> { username, currentGroup, currentRoom, micEnabled, selfDeafened, isScreenSharing }
 const groups = {};  // groupId -> { owner, name, users:[], rooms:{} }
 const onlineUsernames = new Set();
 
@@ -111,6 +111,9 @@ function getAllChannelsData(groupId) {
         : true,
       selfDeafened: (users[u.id] && users[u.id].selfDeafened !== undefined)
         ? users[u.id].selfDeafened 
+        : false,
+      isScreenSharing: (users[u.id] && users[u.id].isScreenSharing !== undefined)
+        ? users[u.id].isScreenSharing
         : false
     }));
     channelsObj[roomId] = {
@@ -278,12 +281,14 @@ async function sendGroupsListToUser(socketId) {
 
 io.on('connection', (socket) => {
   console.log('Kullanıcı bağlandı:', socket.id);
+  // users[socket.id] nesnesine isScreenSharing özelliği eklendi.
   users[socket.id] = {
     username: null,
     currentGroup: null,
     currentRoom: null,
     micEnabled: true,
-    selfDeafened: false
+    selfDeafened: false,
+    isScreenSharing: false
   };
 
   // LOGIN
@@ -383,6 +388,17 @@ io.on('connection', (socket) => {
     const gId = users[socket.id].currentGroup;
     if (gId) {
       broadcastAllChannelsData(gId);
+    }
+  });
+
+  // Yeni: Ekran paylaşım durumunu güncelleyen event
+  socket.on('screenShareStatusChanged', ({ isScreenSharing }) => {
+    if (users[socket.id]) {
+      users[socket.id].isScreenSharing = isScreenSharing;
+      const gId = users[socket.id].currentGroup;
+      if (gId) {
+        broadcastAllChannelsData(gId);
+      }
     }
   });
 

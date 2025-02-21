@@ -306,15 +306,41 @@ function initSocketEvents() {
       cData.users.forEach(u => {
         const userRow = document.createElement('div');
         userRow.classList.add('channel-user');
+        
         const leftDiv = document.createElement('div');
         leftDiv.classList.add('channel-user-left');
+        
         const avatarDiv = document.createElement('div');
         avatarDiv.classList.add('channel-user-avatar');
         avatarDiv.id = `avatar-${u.id}`;
+        
         const nameSpan = document.createElement('span');
         nameSpan.textContent = u.username || '(İsimsiz)';
+        
         leftDiv.appendChild(avatarDiv);
         leftDiv.appendChild(nameSpan);
+        
+        if (u.micEnabled === false) {
+          const micIcon = document.createElement('span');
+          micIcon.classList.add('material-icons');
+          micIcon.textContent = 'mic_off';
+          leftDiv.appendChild(micIcon);
+        }
+        
+        if (u.selfDeafened === true) {
+          const deafIcon = document.createElement('span');
+          deafIcon.classList.add('material-icons');
+          deafIcon.textContent = 'headset_off';
+          leftDiv.appendChild(deafIcon);
+        }
+        
+        if (u.isScreenSharing === true) {
+          const screenIndicator = document.createElement('span');
+          screenIndicator.classList.add('screen-share-indicator');
+          screenIndicator.textContent = 'YAYINDA';
+          leftDiv.appendChild(screenIndicator);
+        }
+        
         userRow.appendChild(leftDiv);
         channelDiv.appendChild(userRow);
       });
@@ -874,7 +900,7 @@ function initUIEvents() {
     screenShareButton.addEventListener('click', async () => {
       if(window.screenShareProducer) {
         // Ekran paylaşımı aktifse durdur
-        await ScreenShare.stopScreenShare();
+        await ScreenShare.stopScreenShare(socket);
         screenShareButton.classList.remove('active');
       } else {
         try {
@@ -882,7 +908,7 @@ function initUIEvents() {
             alert("Ekran paylaşımı için transport henüz hazır değil.");
             return;
           }
-          await ScreenShare.startScreenShare(sendTransport);
+          await ScreenShare.startScreenShare(sendTransport, socket);
           screenShareButton.classList.add('active');
         } catch(error) {
           console.error("Ekran paylaşımı başlatılırken hata:", error);
