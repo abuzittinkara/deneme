@@ -705,6 +705,11 @@ function stopVolumeAnalysis(userId) {
 
 function leaveRoomInternal() {
   clearScreenShareUI();
+  // Ekran paylaşımını durdur
+  if (window.screenShareProducerVideo || window.screenShareStream) {
+    ScreenShare.stopScreenShare(socket);
+    screenShareButton.classList.remove('active');
+  }
   if (localProducer) {
     localProducer.close();
     localProducer = null;
@@ -730,7 +735,12 @@ function leaveRoomInternal() {
 }
 
 function joinRoom(groupId, roomId, roomName) {
-  // Kanal değiştirme esnasında, aktif ekran paylaşım UI'sini temizle
+  // Mevcut ekran paylaşımını durdur
+  if (window.screenShareProducerVideo || window.screenShareStream) {
+    ScreenShare.stopScreenShare(socket);
+    screenShareButton.classList.remove('active');
+  }
+  // UI temizliği
   clearScreenShareUI();
   console.log(`joinRoom çağrıldı: group=${groupId}, room=${roomId}, name=${roomName}`);
   socket.emit('joinRoom', { groupId, roomId });
@@ -1280,5 +1290,3 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
-  
-// METİN MESAJLARININ RENDER İŞLEMLERİ SONU

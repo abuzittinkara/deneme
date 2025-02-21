@@ -290,6 +290,17 @@ function sendRoomsListToUser(socketId, groupId) {
   io.to(socketId).emit('roomsList', roomArray);
 }
 
+function broadcastRoomsListToGroup(groupId) {
+  if (!groups[groupId]) return;
+  const groupObj = groups[groupId];
+  const roomArray = Object.keys(groupObj.rooms).map(rId => ({
+    id: rId,
+    name: groupObj.rooms[rId].name,
+    type: groupObj.rooms[rId].type
+  }));
+  io.to(groupId).emit('roomsList', roomArray);
+}
+
 /* Socket Eventleri */
 io.on('connection', (socket) => {
   console.log('Kullanıcı bağlandı:', socket.id);
@@ -612,6 +623,12 @@ io.on('connection', (socket) => {
     }
     if (userData.currentGroup === groupId && userData.currentRoom === roomId) {
       return; 
+    }
+    // Önceki odada ekran paylaşımı varsa sonlandır
+    if (userData.isScreenSharing) {
+      socket.emit('screenShareEnded');
+      userData.isScreenSharing = false;
+      userData.screenShareProducerId = null;
     }
     // Eğer kullanıcı aynı grupta farklı bir odadan geçiş yapıyorsa, o odadaki producer'ları kapatıp yayın durumunu resetleyelim.
     if (userData.currentGroup === groupId && userData.currentRoom && groups[groupId].rooms[userData.currentRoom]) {

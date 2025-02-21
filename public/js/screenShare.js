@@ -51,12 +51,16 @@ export async function stopScreenShare(socket) {
     await window.screenShareProducerAudio.close();
     window.screenShareProducerAudio = null;
   }
-  // Global stream varsa, tüm track'leri durdur ve stream'i temizle
+  // Stream ve track’leri temizle
   if (window.screenShareStream) {
-    window.screenShareStream.getTracks().forEach(track => track.stop());
+    window.screenShareStream.getTracks().forEach(track => {
+      track.stop();
+      track.enabled = false; // Track’i devre dışı bırak
+    });
     window.screenShareStream = null;
   }
-  // Ekran paylaşım durumunun kapandığını bildir
+  // Sunucuya bildir
   socket.emit('screenShareStatusChanged', { isScreenSharing: false });
   socket.emit('screenShareEnded');
+  console.log("Ekran paylaşımı tamamen durduruldu.");
 }
