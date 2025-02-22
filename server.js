@@ -1,6 +1,6 @@
 /**************************************
  * server.js
- * 
+ *
  * SFU için "joinRoom" içinde router yoksa oluşturma eklendi.
  **************************************/
 require('dotenv').config();
@@ -61,7 +61,7 @@ async function loadGroupsFromDB() {
     allGroups.forEach(gDoc => {
       if (!groups[gDoc.groupId]) {
         groups[gDoc.groupId] = {
-          owner: null, 
+          owner: null,
           name: gDoc.name,
           users: [],
           rooms: {}
@@ -129,10 +129,10 @@ function getAllChannelsData(groupId) {
       id: u.id,
       username: u.username,
       micEnabled: (users[u.id] && users[u.id].micEnabled !== undefined)
-        ? users[u.id].micEnabled 
+        ? users[u.id].micEnabled
         : true,
       selfDeafened: (users[u.id] && users[u.id].selfDeafened !== undefined)
-        ? users[u.id].selfDeafened 
+        ? users[u.id].selfDeafened
         : false,
       isScreenSharing: (users[u.id] && users[u.id].isScreenSharing !== undefined)
         ? users[u.id].isScreenSharing
@@ -163,19 +163,12 @@ function removeUserFromAllGroupsAndRooms(socket) {
   const socketId = socket.id;
   const userData = users[socket.id];
   if (!userData) return;
-  
-  // Eğer kullanıcı ekran paylaşım durumundaysa, bulunduğu tüm odalarda "screenShareEnded" event'ini gönderiyoruz.
-  if (userData.isScreenSharing) {
-    Object.keys(groups).forEach(gId => {
-      const grpObj = groups[gId];
-      grpObj.rooms && Object.keys(grpObj.rooms).forEach(rId => {
-        if (grpObj.rooms[rId].users.some(u => u.id === socketId)) {
-          io.to(`${gId}::${rId}`).emit('screenShareEnded', { userId: socketId });
-        }
-      });
-    });
+
+  // Eğer kullanıcı ekran paylaşım durumundaysa, sadece bulunduğu odadaki kullanıcılara "screenShareEnded" event'ini gönderiyoruz.
+  if (userData.isScreenSharing && userData.currentGroup && userData.currentRoom) {
+    io.to(`${userData.currentGroup}::${userData.currentRoom}`).emit('screenShareEnded', { userId: socketId });
   }
-  
+
   Object.keys(groups).forEach(gId => {
     const grpObj = groups[gId];
     if (grpObj.users.some(u => u.id === socketId)) {
@@ -439,7 +432,10 @@ io.on('connection', (socket) => {
 
   // Yeni: Ekran paylaşımı sonlandığında yayımlayan socket'in bu event'i tetiklemesi
   socket.on('screenShareEnded', () => {
-    socket.broadcast.emit('screenShareEnded', { userId: socket.id });
+    const userData = users[socket.id];
+    if (userData && userData.currentGroup && userData.currentRoom) {
+      socket.to(`${userData.currentGroup}::${userData.currentRoom}`).emit('screenShareEnded', { userId: socket.id });
+    }
   });
 
   // createGroup
@@ -465,7 +461,7 @@ io.on('connection', (socket) => {
     userDoc.groups.push(newGroup._id);
     await userDoc.save();
     groups[groupId] = {
-      owner: userName, 
+      owner: userName,
       name: trimmed,
       users: [ { id: socket.id, username: userName } ],
       rooms: {}
@@ -622,7 +618,7 @@ io.on('connection', (socket) => {
       return;
     }
     if (userData.currentGroup === groupId && userData.currentRoom === roomId) {
-      return; 
+      return;
     }
     // Önceki odada ekran paylaşımı varsa sonlandır
     if (userData.isScreenSharing) {
@@ -833,7 +829,7 @@ io.on('connection', (socket) => {
   });
 
   // ==============================
-  // SFU (createWebRtcTransport, produce, consume...) 
+  // SFU (createWebRtcTransport, produce, consume...)
   // ==============================
   socket.on('createWebRtcTransport', async ({ groupId, roomId }, callback) => {
     try {
