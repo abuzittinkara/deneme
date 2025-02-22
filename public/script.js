@@ -97,7 +97,8 @@ let isDMMode = false;
 const userListDiv = document.getElementById('userList');
 
 // Kanal Durum Paneli
-const channelStatusPanel = document.getElementById('channel-status-panel');
+// DÜZELTİLDİ: HTML’de ID "channelStatusPanel" olduğundan ona göre alınıyor.
+const channelStatusPanel = document.getElementById('channelStatusPanel');
 const pingValueSpan = document.getElementById('pingValue');
 const cellBar1 = document.getElementById('cellBar1');
 const cellBar2 = document.getElementById('cellBar2');
@@ -994,7 +995,7 @@ function initUIEvents() {
     if (!currentRoom) return;
     socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
     leaveRoomInternal();
-    // DÜZENLEME: Kullanıcı kanaldan ayrıldığında kanal durum panelini kapatalım.
+    // Düzenleme: Kanaldan ayrılır çıkarken channel-status-panel tamamen kapatılsın.
     hideChannelStatusPanel();
     currentRoom = null;
     document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
@@ -1116,117 +1117,15 @@ function applyAudioStates() {
   socket.emit('audioStateChanged', { micEnabled, selfDeafened });
 }
 
-function updateUserList(data) {
-  userListDiv.innerHTML = '';
-  const onlineTitle = document.createElement('div');
-  onlineTitle.textContent = 'Çevrimiçi';
-  onlineTitle.style.fontWeight = 'normal';
-  onlineTitle.style.fontSize = '0.85rem';
-  userListDiv.appendChild(onlineTitle);
-  if (data.online && data.online.length > 0) {
-    data.online.forEach(u => {
-      userListDiv.appendChild(createUserItem(u.username, true));
-    });
-  } else {
-    const noneP = document.createElement('p');
-    noneP.textContent = '(Kimse yok)';
-    noneP.style.fontSize = '0.75rem';
-    userListDiv.appendChild(noneP);
-  }
-  const offlineTitle = document.createElement('div');
-  offlineTitle.textContent = 'Çevrimdışı';
-  offlineTitle.style.fontWeight = 'normal';
-  offlineTitle.style.fontSize = '0.85rem';
-  offlineTitle.style.marginTop = '1rem';
-  userListDiv.appendChild(offlineTitle);
-  if (data.offline && data.offline.length > 0) {
-    data.offline.forEach(u => {
-      userListDiv.appendChild(createUserItem(u.username, false));
-    });
-  } else {
-    const noneP2 = document.createElement('p');
-    noneP2.textContent = '(Kimse yok)';
-    noneP2.style.fontSize = '0.75rem';
-    userListDiv.appendChild(noneP2);
-  }
-}
-
-function createUserItem(username, isOnline) {
-  const userItem = document.createElement('div');
-  userItem.classList.add('user-item');
-  const profileThumb = document.createElement('div');
-  profileThumb.classList.add('profile-thumb');
-  profileThumb.style.backgroundColor = isOnline ? '#2dbf2d' : '#777';
-  const userNameSpan = document.createElement('span');
-  userNameSpan.classList.add('user-name');
-  userNameSpan.textContent = username;
-  const copyIdBtn = document.createElement('button');
-  copyIdBtn.classList.add('copy-id-btn');
-  copyIdBtn.textContent = "ID Kopyala";
-  copyIdBtn.dataset.userid = username;
-  copyIdBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(username)
-      .then(() => alert("Kullanıcı kopyalandı: " + username))
-      .catch(err => {
-        console.error("Kopyalama hatası:", err);
-        alert("Kopyalama başarısız!");
-      });
-  });
-  userItem.appendChild(profileThumb);
-  userItem.appendChild(userNameSpan);
-  userItem.appendChild(copyIdBtn);
-  return userItem;
-}
-
-function createWaveIcon() {
-  const icon = document.createElement('span');
-  icon.classList.add('material-icons');
-  icon.classList.add('channel-icon');
-  icon.textContent = 'volume_up';
-  return icon;
-}
-
-function renderUsersInMainContent(usersArray) {
-  const container = document.getElementById('channelUsersContainer');
-  if (!container) return;
-  container.innerHTML = '';
-  container.classList.remove('layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users');
-  if (usersArray.length === 1) {
-    container.classList.add('layout-1-user');
-  } else if (usersArray.length === 2) {
-    container.classList.add('layout-2-users');
-  } else if (usersArray.length === 3) {
-    container.classList.add('layout-3-users');
-  } else if (usersArray.length === 4) {
-    container.classList.add('layout-4-users');
-  } else {
-    container.classList.add('layout-n-users');
-  }
-  usersArray.forEach(u => {
-    const card = document.createElement('div');
-    card.classList.add('user-card');
-    const avatar = document.createElement('div');
-    avatar.classList.add('user-card-avatar');
-    avatar.id = `avatar-${u.id}`;
-    const label = document.createElement('div');
-    label.classList.add('user-label');
-    label.textContent = u.username || '(İsimsiz)';
-    card.appendChild(avatar);
-    card.appendChild(label);
-    container.appendChild(card);
-  });
+// Düzenleme: hideChannelStatusPanel fonksiyonu, kanala bağlı olmayan durumda paneli kesin kapatsın.
+function hideChannelStatusPanel() {
+  channelStatusPanel.style.display = 'none';
+  stopPingInterval();
 }
 
 function showChannelStatusPanel() {
   channelStatusPanel.style.display = 'block';
   startPingInterval();
-}
-
-// DÜZENLEME: hideChannelStatusPanel fonksiyonunu, kullanıcının kanala bağlı olmadığı durumlarda paneli kapatacak şekilde güncelledim.
-function hideChannelStatusPanel() {
-  channelStatusPanel.style.display = 'none';
-  stopPingInterval();
 }
 
 function startPingInterval() {
