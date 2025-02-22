@@ -99,8 +99,9 @@ const userListDiv = document.getElementById('userList');
 // Kanal Durum Paneli
 // HTML’de ID "channelStatusPanel" kullanıldığından onu alıyoruz.
 const channelStatusPanel = document.getElementById('channelStatusPanel');
-// Panel yüksekliği 65px olsun:
-channelStatusPanel.style.height = "65px";
+// Panel yüksekliği ilk başta 100px olarak ayarlandı.
+channelStatusPanel.style.height = "100px";
+channelStatusPanel.style.zIndex = "20";
 const pingValueSpan = document.getElementById('pingValue');
 const cellBar1 = document.getElementById('cellBar1');
 const cellBar2 = document.getElementById('cellBar2');
@@ -249,7 +250,7 @@ function removeScreenShareEndedMessage() {
 
 /* updateStatusPanel(ping):
    Ping değerine göre RSS feed ikonu ve "sese bağlanıldı" metninin rengini günceller.
-   Kanal/grup bilgisinin yazı rengi sabit #aaa.
+   Kanal/grup bilgisinin yazı rengi sabit #aaa olarak ayarlanır.
 */
 function updateStatusPanel(ping) {
   const rssIcon = document.getElementById('rssIcon');
@@ -1155,10 +1156,12 @@ function hideChannelStatusPanel() {
 /* showChannelStatusPanel():
    Kanal durum panelini gösterir.  
    Üst satırda sol tarafta "rss_feed" ikonu ve "sese bağlanıldı" metni, sağ tarafta kanaldan ayrılma butonu yer alır.  
-   Alt satırda, küçük fontla bağlı kanal/grup bilgisi ve onun altında yan yana üç buton (en solda "Ekran Paylaş", ortada "Buton 2", sağda "Buton 3") bulunur.
+   Alt satırda, küçük fontla bağlı kanal/grup bilgisinin altında yan yana üç buton (en solda "Ekran Paylaş", ortada "Buton 2", sağda "Buton 3") bulunur.
 */
 function showChannelStatusPanel() {
-  channelStatusPanel.style.height = "65px";
+  // Yüksekliği 100px olarak ayarlıyoruz ve z-index ile üstte görünmesini sağlıyoruz.
+  channelStatusPanel.style.height = "100px";
+  channelStatusPanel.style.zIndex = "20";
   channelStatusPanel.style.display = 'block';
   channelStatusPanel.innerHTML = `
     <div class="status-content" style="display: flex; flex-direction: column; height: 100%; justify-content: space-between; padding: 0 10px;">
