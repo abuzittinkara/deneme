@@ -122,7 +122,7 @@ const textChannelMessageInput = document.getElementById('textChannelMessageInput
 const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
 /* --- clearScreenShareUI() fonksiyonu ---
-   Bu fonksiyon; ekran paylaşım video elementini, ekran paylaşım butonunun aktifliğini
+   Bu fonksiyon; ekran paylaşım video elementini, ekran paylaşım butonunun aktifliğini 
    ve varsa overlay elementini (id="screenShareOverlay") DOM'dan kaldırır. */
 function clearScreenShareUI() {
   const channelContentArea = document.querySelector('.channel-content-area');
@@ -144,7 +144,7 @@ window.addEventListener('DOMContentLoaded', () => {
   console.log("Socket connected =>", socket.id);
   initSocketEvents();
   initUIEvents();
-
+  
   // textMessages için scroll event listener
   const tm = textMessages;
   let removeScrollingTimeout;
@@ -164,7 +164,7 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-
+  
   // Metin kanalına ait eventleri TextChannel modülüne devrediyoruz.
   TextChannel.initTextChannelEvents(socket, textMessages);
 });
@@ -267,10 +267,22 @@ function initSocketEvents() {
     }
   });
 
+  // EKLENDİ: registerResult event dinleyicisi
+  socket.on('registerResult', (data) => {
+    if (data.success) {
+      alert("Hesap başarıyla oluşturuldu");
+      registerScreen.style.display = 'none';
+      loginScreen.style.display = 'block';
+    } else {
+      registerErrorMessage.textContent = data.message || "Kayıt hatası";
+      registerErrorMessage.style.display = 'block';
+    }
+  });
+
   socket.on('groupUsers', (data) => {
     updateUserList(data);
   });
-
+  
   socket.on('groupsList', (groupArray) => {
     groupListDiv.innerHTML = '';
     groupArray.forEach(groupObj => {
@@ -295,7 +307,7 @@ function initSocketEvents() {
       groupListDiv.appendChild(grpItem);
     });
   });
-
+  
   socket.on('roomsList', (roomsArray) => {
     roomListDiv.innerHTML = '';
     roomsArray.forEach(roomObj => {
@@ -322,7 +334,7 @@ function initSocketEvents() {
       channelUsers.id = `channel-users-${roomObj.id}`;
       roomItem.appendChild(channelHeader);
       roomItem.appendChild(channelUsers);
-
+      
       roomItem.addEventListener('click', () => {
         if (roomObj.type === 'text') {
           console.log(`Text channel clicked => ${roomObj.name}`);
@@ -362,7 +374,7 @@ function initSocketEvents() {
       roomListDiv.appendChild(roomItem);
     });
   });
-
+  
   socket.on('joinRoomAck', ({ groupId, roomId }) => {
     console.log("joinRoomAck received:", groupId, roomId);
     currentGroup = groupId;
@@ -380,7 +392,7 @@ function initSocketEvents() {
       startSfuFlow();
     }
   });
-
+  
   socket.on('newProducer', ({ producerId }) => {
     console.log("newProducer =>", producerId);
     if (!recvTransport) {
@@ -389,7 +401,7 @@ function initSocketEvents() {
     }
     consumeProducer(producerId);
   });
-
+  
   socket.on('screenShareEnded', ({ userId }) => {
     const channelContentArea = document.querySelector('.channel-content-area');
     if (screenShareVideo && channelContentArea.contains(screenShareVideo)) {
@@ -398,7 +410,7 @@ function initSocketEvents() {
     }
     displayScreenShareEndedMessage();
   });
-
+  
   socket.on('allChannelsData', (channelsObj) => {
     Object.keys(channelsObj).forEach(roomId => {
       const cData = channelsObj[roomId];
@@ -408,39 +420,39 @@ function initSocketEvents() {
       cData.users.forEach(u => {
         const userRow = document.createElement('div');
         userRow.classList.add('channel-user');
-
+        
         // Sol kısım: Avatar ve kullanıcı adı
         const leftDiv = document.createElement('div');
         leftDiv.classList.add('channel-user-left');
-
+        
         const avatarDiv = document.createElement('div');
         avatarDiv.classList.add('channel-user-avatar');
         avatarDiv.id = `avatar-${u.id}`;
-
+        
         const nameSpan = document.createElement('span');
         nameSpan.textContent = u.username || '(İsimsiz)';
-
+        
         leftDiv.appendChild(avatarDiv);
         leftDiv.appendChild(nameSpan);
-
+        
         // Sağ kısım: İkonlar (mikrofon, sağırlaştırma, ekran paylaşımı)
         const rightDiv = document.createElement('div');
         rightDiv.classList.add('channel-user-right');
-
+        
         if (u.micEnabled === false) {
           const micIcon = document.createElement('span');
           micIcon.classList.add('material-icons');
           micIcon.textContent = 'mic_off';
           rightDiv.appendChild(micIcon);
         }
-
+        
         if (u.selfDeafened === true) {
           const deafIcon = document.createElement('span');
           deafIcon.classList.add('material-icons');
           deafIcon.textContent = 'headset_off';
           rightDiv.appendChild(deafIcon);
         }
-
+        
         if (u.isScreenSharing === true) {
           const screenIndicator = document.createElement('span');
           screenIndicator.classList.add('screen-share-indicator');
@@ -454,17 +466,16 @@ function initSocketEvents() {
           }
           rightDiv.appendChild(screenIndicator);
         }
-
+        
         userRow.appendChild(leftDiv);
         userRow.appendChild(rightDiv);
         channelDiv.appendChild(userRow);
       });
     });
   });
-
+  
   // Diğer socket eventleri...
-  // (Bazıları sunucu tarafında handle ediliyor; burada yok)
-
+  
   socket.on('audioStateChanged', ({ micEnabled, selfDeafened }) => {
     if (!users[socket.id]) return;
     users[socket.id].micEnabled = micEnabled;
@@ -846,8 +857,6 @@ function initUIEvents() {
     registerScreen.style.display = 'none';
     loginScreen.style.display = 'block';
   });
-
-  // DÜZELTİLMİŞ KISIM:
   showRegisterScreen.addEventListener('click', () => {
     loginScreen.style.display = 'none';
     registerScreen.style.display = 'block';
@@ -856,8 +865,6 @@ function initUIEvents() {
     registerScreen.style.display = 'none';
     loginScreen.style.display = 'block';
   });
-  // DÜZELTİLMİŞ KISIM BİTTİ.
-
   createGroupButton.addEventListener('click', () => {
     document.getElementById('groupModal').style.display = 'flex';
   });
@@ -1016,23 +1023,23 @@ function initUIEvents() {
   settingsButton.addEventListener('click', () => {
     // ...
   });
-
+  
   // Mesaj gönderme işlemi: Voice kanallarında sesli iletişim için mesaj gönderimi yapılmaz.
   function sendTextMessage() {
     const msg = textChannelMessageInput.value.trim();
     if (!msg) return;
-    socket.emit('textMessage', {
-      groupId: selectedGroup,
-      roomId: currentTextChannel,
-      message: msg,
-      username: username
+    socket.emit('textMessage', { 
+      groupId: selectedGroup, 
+      roomId: currentTextChannel, 
+      message: msg, 
+      username: username 
     });
     textChannelMessageInput.value = '';
     sendTextMessageBtn.style.display = "none";
   }
-
+  
   sendTextMessageBtn.addEventListener('click', sendTextMessage);
-
+  
   textChannelMessageInput.addEventListener('input', () => {
     if (textChannelMessageInput.value.trim() !== "") {
       sendTextMessageBtn.style.display = "block";
@@ -1040,14 +1047,14 @@ function initUIEvents() {
       sendTextMessageBtn.style.display = "none";
     }
   });
-
+  
   textChannelMessageInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       sendTextMessage();
     }
   });
-
+  
   // Ekran Paylaşım Butonunun Event Listener'ı
   if(screenShareButton) {
     screenShareButton.addEventListener('click', async () => {
