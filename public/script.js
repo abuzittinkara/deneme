@@ -97,7 +97,7 @@ let isDMMode = false;
 const userListDiv = document.getElementById('userList');
 
 // Kanal Durum Paneli
-const channelStatusPanel = document.getElementById('channelStatusPanel');
+const channelStatusPanel = document.getElementById('channel-status-panel');
 const pingValueSpan = document.getElementById('pingValue');
 const cellBar1 = document.getElementById('cellBar1');
 const cellBar2 = document.getElementById('cellBar2');
@@ -994,6 +994,7 @@ function initUIEvents() {
     if (!currentRoom) return;
     socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
     leaveRoomInternal();
+    // DÜZENLEME: Kullanıcı kanaldan ayrıldığında kanal durum panelini kapatalım.
     hideChannelStatusPanel();
     currentRoom = null;
     document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
@@ -1222,11 +1223,10 @@ function showChannelStatusPanel() {
   startPingInterval();
 }
 
+// DÜZENLEME: hideChannelStatusPanel fonksiyonunu, kullanıcının kanala bağlı olmadığı durumlarda paneli kapatacak şekilde güncelledim.
 function hideChannelStatusPanel() {
-  if (currentRoomType !== 'voice') {
-    channelStatusPanel.style.display = 'none';
-    startPingInterval();
-  }
+  channelStatusPanel.style.display = 'none';
+  stopPingInterval();
 }
 
 function startPingInterval() {
