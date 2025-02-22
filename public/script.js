@@ -97,9 +97,9 @@ let isDMMode = false;
 const userListDiv = document.getElementById('userList');
 
 // Kanal Durum Paneli
-// HTML’de ID "channelStatusPanel" kullanıldığından ona göre alınıyor.
+// HTML’de ID "channelStatusPanel" kullanıldığından onu alıyoruz.
 const channelStatusPanel = document.getElementById('channelStatusPanel');
-// Panel yüksekliği 65px olacak:
+// Panel yüksekliği 65px olsun:
 channelStatusPanel.style.height = "65px";
 const pingValueSpan = document.getElementById('pingValue');
 const cellBar1 = document.getElementById('cellBar1');
@@ -171,7 +171,7 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 /* showScreenShare(producerId):
-   Consume edilip ekran paylaşım video elementini sayfaya ekler.
+   Ekran paylaşım videosunu consume ederek sayfaya ekler.
 */
 async function showScreenShare(producerId) {
   if (!recvTransport) {
@@ -248,8 +248,8 @@ function removeScreenShareEndedMessage() {
 }
 
 /* updateStatusPanel(ping):
-   Ping değerine göre RSS feed ikonu ve durum metninin rengini günceller.
-   Panelin alt kısmında kanal ve grup bilgisini (sadece yazı rengi #aaa olacak) gösterir.
+   Ping değerine göre RSS feed ikonu ve "sese bağlanıldı" metninin rengini günceller.
+   Kanal/grup bilgisinin yazı rengi sabit #aaa.
 */
 function updateStatusPanel(ping) {
   const rssIcon = document.getElementById('rssIcon');
@@ -267,7 +267,6 @@ function updateStatusPanel(ping) {
     const channelName = document.getElementById('selectedChannelTitle')?.textContent || "";
     const groupName = groupTitle?.textContent || "";
     channelGroupInfo.textContent = channelName + " / " + groupName;
-    // Kanal ve grup yazısı sabit #aaa olacak:
     channelGroupInfo.style.color = "#aaa";
   }
 }
@@ -495,9 +494,8 @@ function initSocketEvents() {
   });
 }
 
-/* 
-  startSfuFlow():
-  SFU akışını başlatır.
+/* startSfuFlow():
+   SFU akışını başlatır.
 */
 function startSfuFlow() {
   console.log("startSfuFlow => group:", currentGroup, " room:", currentRoom);
@@ -516,9 +514,8 @@ function startSfuFlow() {
   }
 }
 
-/* 
-  createTransportFlow():
-  Send ve recv transportlarını oluşturur, produce ve consume işlemlerini ayarlar.
+/* createTransportFlow():
+   Send ve recv transportlarını oluşturur, produce ve consume işlemlerini ayarlar.
 */
 async function createTransportFlow() {
   const transportParams = await createTransport();
@@ -644,9 +641,8 @@ function listProducers() {
   });
 }
 
-/* 
-  consumeProducer(producerId):
-  Belirtilen producerId için consume işlemi yapar.
+/* consumeProducer(producerId):
+   Belirtilen producerId için consume işlemi yapar.
 */
 async function consumeProducer(producerId) {
   if (!recvTransport) {
@@ -691,9 +687,8 @@ async function consumeProducer(producerId) {
   }
 }
 
-/* 
-  startVolumeAnalysis(stream, userId):
-  Belirtilen stream için ses seviyesi analizini başlatır.
+/* startVolumeAnalysis(stream, userId):
+   Belirtilen stream için ses analizini başlatır.
 */
 async function startVolumeAnalysis(stream, userId) {
   if (!stream.getAudioTracks().length) {
@@ -732,9 +727,8 @@ async function startVolumeAnalysis(stream, userId) {
   };
 }
 
-/* 
-  stopVolumeAnalysis(userId):
-  Belirtilen kullanıcı için ses analizi durdurulur.
+/* stopVolumeAnalysis(userId):
+   Belirtilen kullanıcı için ses analizini durdurur.
 */
 function stopVolumeAnalysis(userId) {
   if (audioAnalyzers[userId]) {
@@ -744,9 +738,8 @@ function stopVolumeAnalysis(userId) {
   }
 }
 
-/* 
-  leaveRoomInternal():
-  SFU bağlantılarını kapatır ve kaynakları temizler.
+/* leaveRoomInternal():
+   SFU bağlantılarını kapatır, kaynakları temizler.
 */
 function leaveRoomInternal() {
   clearScreenShareUI();
@@ -778,9 +771,8 @@ function leaveRoomInternal() {
   console.log("leaveRoomInternal: SFU transportlar kapatıldı");
 }
 
-/* 
-  joinRoom(groupId, roomId, roomName):
-  Belirtilen odaya katılma isteği gönderir, kanal durum panelini gösterir.
+/* joinRoom(groupId, roomId, roomName):
+   Belirtilen odaya katılma isteği gönderir, kanal durum panelini gösterir.
 */
 function joinRoom(groupId, roomId, roomName) {
   clearScreenShareUI();
@@ -795,9 +787,8 @@ function joinRoom(groupId, roomId, roomName) {
   currentRoomType = "voice";
 }
 
-/* 
-  attemptLogin():
-  Giriş formunu kontrol edip sunucuya login isteği gönderir.
+/* attemptLogin():
+   Giriş formunu kontrol edip sunucuya login isteği gönderir.
 */
 function attemptLogin() {
   const usernameVal = loginUsernameInput.value.trim();
@@ -815,9 +806,8 @@ function attemptLogin() {
   socket.emit('login', { username: usernameVal, password: passwordVal });
 }
 
-/* 
-  requestMicrophoneAccess():
-  Mikrofon erişimi ister, stream'i kaydeder.
+/* requestMicrophoneAccess():
+   Mikrofon erişimi ister, stream'i kaydeder.
 */
 async function requestMicrophoneAccess() {
   try {
@@ -845,9 +835,8 @@ async function requestMicrophoneAccess() {
   }
 }
 
-/* 
-  initUIEvents():
-  UI (buton, input) event listener'larını ayarlar.
+/* initUIEvents():
+   UI olaylarını ayarlar.
 */
 function initUIEvents() {
   loginButton.addEventListener('click', attemptLogin);
@@ -1116,9 +1105,8 @@ function initUIEvents() {
   }
 }
 
-/* 
-  applyAudioStates():
-  Mikrofon ve kulaklık durumunu günceller.
+/* applyAudioStates():
+   Mikrofon ve kulaklık durumunu günceller.
 */
 function applyAudioStates() {
   if (localProducer) {
@@ -1156,40 +1144,64 @@ function applyAudioStates() {
   socket.emit('audioStateChanged', { micEnabled, selfDeafened });
 }
 
-/* 
-  hideChannelStatusPanel():
-  Kanal durum panelini kapatır.
+/* hideChannelStatusPanel():
+   Kanal durum panelini kapatır.
 */
 function hideChannelStatusPanel() {
   channelStatusPanel.style.display = 'none';
   stopPingInterval();
 }
 
-/* 
-  showChannelStatusPanel():
-  Kanal durum panelini gösterir. Panelin içeriğinde:
-    - Üst satır: Sol tarafta "rss_feed" ikonu ve yanında "sese bağlanıldı" metni (renk dinamik olarak güncellenecek)
-    - Alt satır: Küçük fontla "KanalAdı / GrupAdı" bilgisi (yazı rengi sabit #aaa)
+/* showChannelStatusPanel():
+   Kanal durum panelini gösterir.  
+   Üst satırda sol tarafta "rss_feed" ikonu ve "sese bağlanıldı" metni, sağ tarafta kanaldan ayrılma butonu yer alır.  
+   Alt satırda, küçük fontla bağlı kanal/grup bilgisi ve onun altında yan yana üç buton (en solda "Ekran Paylaş", ortada "Buton 2", sağda "Buton 3") bulunur.
 */
 function showChannelStatusPanel() {
   channelStatusPanel.style.height = "65px";
   channelStatusPanel.style.display = 'block';
   channelStatusPanel.innerHTML = `
-    <div class="status-content" style="display: flex; flex-direction: column; height: 100%; justify-content: center; padding: 0 10px;">
-      <div class="status-main" style="display: flex; align-items: center;">
-        <span class="material-icons" id="rssIcon" style="font-size: 32px; margin-right: 8px;">rss_feed</span>
-        <div id="statusMessage" style="font-size: 1.2em; font-weight: bold;">sese bağlanıldı</div>
+    <div class="status-content" style="display: flex; flex-direction: column; height: 100%; justify-content: space-between; padding: 0 10px;">
+      <div class="status-main" style="display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center;">
+          <span class="material-icons" id="rssIcon" style="font-size: 32px; margin-right: 8px;">rss_feed</span>
+          <div id="statusMessage" style="font-size: 1.2em; font-weight: bold;">sese bağlanıldı</div>
+        </div>
+        <button id="leaveChannelBtn" style="background: none; border: none; cursor: pointer;">
+          <span class="material-icons" style="font-size: 28px; color: #aaa;">call_end</span>
+        </button>
       </div>
-      <div id="channelGroupInfo" style="font-size: 0.8em; margin-top: 4px; color: #aaa;"> </div>
+      <div style="display: flex; flex-direction: column;">
+        <div id="channelGroupInfo" style="font-size: 0.8em; margin-bottom: 4px; color: #aaa;"> </div>
+        <div class="status-buttons" style="display: flex; justify-content: space-around;">
+          <button class="status-btn" id="screenShareStatusBtn" style="padding: 6px 12px; border: 1px solid #ccc; background-color: #444; color: #fff; border-radius: 4px;">Ekran Paylaş</button>
+          <button class="status-btn" style="padding: 6px 12px; border: 1px solid #ccc; background-color: #444; color: #fff; border-radius: 4px;">Buton 2</button>
+          <button class="status-btn" style="padding: 6px 12px; border: 1px solid #ccc; background-color: #444; color: #fff; border-radius: 4px;">Buton 3</button>
+        </div>
+      </div>
     </div>
   `;
+  document.getElementById('leaveChannelBtn').addEventListener('click', () => {
+    if (!currentRoom) return;
+    socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
+    leaveRoomInternal();
+    hideChannelStatusPanel();
+    currentRoom = null;
+    document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
+    const container = document.getElementById('channelUsersContainer');
+    if (container) {
+      container.innerHTML = '';
+      container.classList.remove('layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users');
+    }
+    textChannelContainer.style.display = 'none';
+    socket.emit('browseGroup', currentGroup);
+  });
   startPingInterval();
   updateStatusPanel(0);
 }
 
-/* 
-  startPingInterval():
-  Ping ölçümü yapar ve updateStatusPanel(ping) fonksiyonunu çağırır.
+/* startPingInterval():
+   Ping değerini ölçer ve updateStatusPanel(ping) ile günceller.
 */
 function startPingInterval() {
   if (pingInterval) clearInterval(pingInterval);
@@ -1207,9 +1219,8 @@ function startPingInterval() {
   }, 1000);
 }
 
-/* 
-  stopPingInterval():
-  Ping ölçümünü durdurur.
+/* stopPingInterval():
+   Ping ölçümünü durdurur.
 */
 function stopPingInterval() {
   if (pingInterval) {
@@ -1220,9 +1231,8 @@ function stopPingInterval() {
   updateCellBars(0);
 }
 
-/* 
-  updateCellBars(ping):
-  Ping değerine göre sinyal barlarını günceller.
+/* updateCellBars(ping):
+   Ping değerine göre sinyal barlarını günceller.
 */
 function updateCellBars(ping) {
   let barsActive = 0;
@@ -1244,9 +1254,8 @@ function updateCellBars(ping) {
   if (barsActive >= 4) cellBar4.classList.add('active');
 }
 
-/* 
-  insertSeparatorIfNeeded(prevTimestamp, currentTimestamp):
-  Mesajlar arasında tarih ayracı ekler.
+/* insertSeparatorIfNeeded(prevTimestamp, currentTimestamp):
+   Mesajlar arasında tarih ayracı ekler (text kanalı).
 */
 function insertSeparatorIfNeeded(prevTimestamp, currentTimestamp) {
   if (!prevTimestamp || TextChannel.isDifferentDay(prevTimestamp, currentTimestamp)) {
@@ -1254,9 +1263,8 @@ function insertSeparatorIfNeeded(prevTimestamp, currentTimestamp) {
   }
 }
 
-/* 
-  document.addEventListener('DOMContentLoaded', ...):
-  textMessages scroll takibi.
+/* document.addEventListener('DOMContentLoaded', ...):
+   textMessages scroll takibi.
 */
 document.addEventListener('DOMContentLoaded', function() {
   const tm = document.getElementById('textMessages');
@@ -1279,9 +1287,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-/* 
-  updateUserList(data):
-  groupUsers eventinde çağrılır, sağ panelde online/offline kullanıcı listesini günceller.
+/* updateUserList(data):
+   Sağ panelde online/offline kullanıcı listesini günceller.
 */
 function updateUserList(data) {
   userListDiv.innerHTML = '';
@@ -1318,9 +1325,8 @@ function updateUserList(data) {
   }
 }
 
-/* 
-  createUserItem(username, isOnline):
-  Sağ panelde gösterilecek kullanıcı kartını oluşturur.
+/* createUserItem(username, isOnline):
+   Sağ panelde gösterilecek kullanıcı kartını oluşturur.
 */
 function createUserItem(username, isOnline) {
   const userItem = document.createElement('div');
@@ -1350,9 +1356,8 @@ function createUserItem(username, isOnline) {
   return userItem;
 }
 
-/* 
-  getAllChannelsData(gId):
-  Server tarafından gönderildiği için burada boş döner.
+/* getAllChannelsData(gId):
+   Server tarafından gönderildiği için burada boş döner.
 */
 function getAllChannelsData(gId) {
   return {};
