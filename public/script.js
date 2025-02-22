@@ -97,9 +97,9 @@ let isDMMode = false;
 const userListDiv = document.getElementById('userList');
 
 // Kanal Durum Paneli
-// Not: HTML’de ID "channelStatusPanel" kullanılmalı.
+// HTML’de ID "channelStatusPanel" kullanıldığından ona göre alınıyor.
 const channelStatusPanel = document.getElementById('channelStatusPanel');
-// Panelin yüksekliği 65px olsun:
+// Panel yüksekliği 65px olacak:
 channelStatusPanel.style.height = "65px";
 const pingValueSpan = document.getElementById('pingValue');
 const cellBar1 = document.getElementById('cellBar1');
@@ -124,10 +124,8 @@ const textChatInputBar = document.getElementById('text-chat-input-bar');
 const textChannelMessageInput = document.getElementById('textChannelMessageInput');
 const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
-/* 
-  clearScreenShareUI():
-  Ekran paylaşım video elementini, ekran paylaşım butonunun durumunu 
-  ve varsa overlay'i DOM'dan kaldırır.
+/* clearScreenShareUI():
+   Ekran paylaşım video elementini, buton durumunu ve varsa overlay'i DOM'dan kaldırır.
 */
 function clearScreenShareUI() {
   const channelContentArea = document.querySelector('.channel-content-area');
@@ -150,7 +148,6 @@ window.addEventListener('DOMContentLoaded', () => {
   initSocketEvents();
   initUIEvents();
   
-  // textMessages scroll eventi
   const tm = textMessages;
   let removeScrollingTimeout;
   if (tm) {
@@ -173,9 +170,8 @@ window.addEventListener('DOMContentLoaded', () => {
   TextChannel.initTextChannelEvents(socket, textMessages);
 });
 
-/* 
-  showScreenShare(producerId):
-  Ekran paylaşım videosunu consume ederek sayfaya ekler.
+/* showScreenShare(producerId):
+   Consume edilip ekran paylaşım video elementini sayfaya ekler.
 */
 async function showScreenShare(producerId) {
   if (!recvTransport) {
@@ -218,9 +214,8 @@ async function showScreenShare(producerId) {
   screenShareVideo = videoEl;
 }
 
-/* 
-  displayScreenShareEndedMessage():
-  Ekran paylaşımı sonlandığında "Bu yayın sonlandırıldı" mesajını gösterir.
+/* displayScreenShareEndedMessage():
+   Ekran paylaşımı sonlandığında "Bu yayın sonlandırıldı" mesajını gösterir.
 */
 function displayScreenShareEndedMessage() {
   const channelContentArea = document.querySelector('.channel-content-area');
@@ -242,9 +237,8 @@ function displayScreenShareEndedMessage() {
   channelContentArea.appendChild(messageEl);
 }
 
-/* 
-  removeScreenShareEndedMessage():
-  "Bu yayın sonlandırıldı" mesajını kaldırır.
+/* removeScreenShareEndedMessage():
+   "Bu yayın sonlandırıldı" mesajını kaldırır.
 */
 function removeScreenShareEndedMessage() {
   const messageEl = document.getElementById('screenShareEndedMessage');
@@ -253,16 +247,15 @@ function removeScreenShareEndedMessage() {
   }
 }
 
-/* 
-  updateStatusPanel(ping):
-  Ping değerine göre RSS feed ikonunun ve durum metninin rengini günceller,
-  ayrıca panelin alt kısmına bağlı kanal ve grup bilgisini ekler.
+/* updateStatusPanel(ping):
+   Ping değerine göre RSS feed ikonu ve durum metninin rengini günceller.
+   Panelin alt kısmında kanal ve grup bilgisini (sadece yazı rengi #aaa olacak) gösterir.
 */
 function updateStatusPanel(ping) {
   const rssIcon = document.getElementById('rssIcon');
   const statusMessage = document.getElementById('statusMessage');
   const channelGroupInfo = document.getElementById('channelGroupInfo');
-  let color = "#2dbf2d"; // varsayılan yeşil
+  let color = "#2dbf2d"; // 0-60 ms: yeşil
   if (ping >= 80) {
     color = "#ff0000";
   } else if (ping >= 60) {
@@ -271,17 +264,16 @@ function updateStatusPanel(ping) {
   if (rssIcon) rssIcon.style.color = color;
   if (statusMessage) statusMessage.style.color = color;
   if (channelGroupInfo) {
-    // selectedChannelTitle ve groupTitle içeriğini kullanarak bilgi oluşturuyoruz.
     const channelName = document.getElementById('selectedChannelTitle')?.textContent || "";
     const groupName = groupTitle?.textContent || "";
     channelGroupInfo.textContent = channelName + " / " + groupName;
-    channelGroupInfo.style.color = color;
+    // Kanal ve grup yazısı sabit #aaa olacak:
+    channelGroupInfo.style.color = "#aaa";
   }
 }
 
-/* 
-  initSocketEvents():
-  Socket.IO olayları burada dinlenir.
+/* initSocketEvents():
+   Socket.IO olaylarını dinler.
 */
 function initSocketEvents() {
   socket.on('connect', () => {
@@ -385,7 +377,6 @@ function initSocketEvents() {
           socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: roomObj.id });
           return;
         }
-        // Voice kanal için:
         clearScreenShareUI();
         document.getElementById('channelUsersContainer').style.display = 'flex';
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
@@ -413,7 +404,6 @@ function initSocketEvents() {
     currentGroup = groupId;
     currentRoom = roomId;
     currentRoomType = "voice";
-    // Kanal durum panelini oluştur ve göster:
     showChannelStatusPanel();
     if (!audioPermissionGranted || !localStream) {
       requestMicrophoneAccess().then(() => {
@@ -528,7 +518,7 @@ function startSfuFlow() {
 
 /* 
   createTransportFlow():
-  Send ve recv transportları oluşturur, produce & consume ayarlarını yapar.
+  Send ve recv transportlarını oluşturur, produce ve consume işlemlerini ayarlar.
 */
 async function createTransportFlow() {
   const transportParams = await createTransport();
@@ -703,7 +693,7 @@ async function consumeProducer(producerId) {
 
 /* 
   startVolumeAnalysis(stream, userId):
-  Her bir stream için ses seviyesi ölçümü yapar.
+  Belirtilen stream için ses seviyesi analizini başlatır.
 */
 async function startVolumeAnalysis(stream, userId) {
   if (!stream.getAudioTracks().length) {
@@ -744,7 +734,7 @@ async function startVolumeAnalysis(stream, userId) {
 
 /* 
   stopVolumeAnalysis(userId):
-  Kullanıcıya ait ses analizini durdurur.
+  Belirtilen kullanıcı için ses analizi durdurulur.
 */
 function stopVolumeAnalysis(userId) {
   if (audioAnalyzers[userId]) {
@@ -756,7 +746,7 @@ function stopVolumeAnalysis(userId) {
 
 /* 
   leaveRoomInternal():
-  SFU bağlantılarını kapatır, ilgili kaynakları temizler.
+  SFU bağlantılarını kapatır ve kaynakları temizler.
 */
 function leaveRoomInternal() {
   clearScreenShareUI();
@@ -790,7 +780,7 @@ function leaveRoomInternal() {
 
 /* 
   joinRoom(groupId, roomId, roomName):
-  Odaya katılma isteği gönderir, kanal durum panelini gösterir.
+  Belirtilen odaya katılma isteği gönderir, kanal durum panelini gösterir.
 */
 function joinRoom(groupId, roomId, roomName) {
   clearScreenShareUI();
@@ -807,7 +797,7 @@ function joinRoom(groupId, roomId, roomName) {
 
 /* 
   attemptLogin():
-  Giriş formunu kontrol eder ve sunucuya login isteği gönderir.
+  Giriş formunu kontrol edip sunucuya login isteği gönderir.
 */
 function attemptLogin() {
   const usernameVal = loginUsernameInput.value.trim();
@@ -827,7 +817,7 @@ function attemptLogin() {
 
 /* 
   requestMicrophoneAccess():
-  Mikrofon erişimi ister ve stream'i kaydeder.
+  Mikrofon erişimi ister, stream'i kaydeder.
 */
 async function requestMicrophoneAccess() {
   try {
@@ -857,7 +847,7 @@ async function requestMicrophoneAccess() {
 
 /* 
   initUIEvents():
-  Tüm UI (buton, input) olaylarını ayarlar.
+  UI (buton, input) event listener'larını ayarlar.
 */
 function initUIEvents() {
   loginButton.addEventListener('click', attemptLogin);
@@ -1177,24 +1167,20 @@ function hideChannelStatusPanel() {
 
 /* 
   showChannelStatusPanel():
-  Kanal durum panelini gösterir. Panel içeriğini aşağıdaki şekilde oluşturuyor:
-    - Sol üstte RSS feed ikonu (material-icons "rss_feed")
-    - İkonun yanında "sese bağlanıldı" metni (renk dinamik olarak güncellenecek)
-    - Alt kısımda, küçük fontla "KanalAdı / GrupAdı" bilgisi
+  Kanal durum panelini gösterir. Panelin içeriğinde:
+    - Üst satır: Sol tarafta "rss_feed" ikonu ve yanında "sese bağlanıldı" metni (renk dinamik olarak güncellenecek)
+    - Alt satır: Küçük fontla "KanalAdı / GrupAdı" bilgisi (yazı rengi sabit #aaa)
 */
 function showChannelStatusPanel() {
-  // Panel yüksekliği ve temel stil ayarları
   channelStatusPanel.style.height = "65px";
   channelStatusPanel.style.display = 'block';
-  
-  // Panel içeriğini oluşturuyoruz
   channelStatusPanel.innerHTML = `
     <div class="status-content" style="display: flex; flex-direction: column; height: 100%; justify-content: center; padding: 0 10px;">
       <div class="status-main" style="display: flex; align-items: center;">
         <span class="material-icons" id="rssIcon" style="font-size: 32px; margin-right: 8px;">rss_feed</span>
         <div id="statusMessage" style="font-size: 1.2em; font-weight: bold;">sese bağlanıldı</div>
       </div>
-      <div id="channelGroupInfo" style="font-size: 0.8em; margin-top: 4px;"> </div>
+      <div id="channelGroupInfo" style="font-size: 0.8em; margin-top: 4px; color: #aaa;"> </div>
     </div>
   `;
   startPingInterval();
@@ -1203,7 +1189,7 @@ function showChannelStatusPanel() {
 
 /* 
   startPingInterval():
-  Ping değerini ölçer ve updateStatusPanel(ping) fonksiyonunu çağırarak durumu günceller.
+  Ping ölçümü yapar ve updateStatusPanel(ping) fonksiyonunu çağırır.
 */
 function startPingInterval() {
   if (pingInterval) clearInterval(pingInterval);
@@ -1260,7 +1246,7 @@ function updateCellBars(ping) {
 
 /* 
   insertSeparatorIfNeeded(prevTimestamp, currentTimestamp):
-  Mesajlar arasında tarih ayracı ekler (text kanalı).
+  Mesajlar arasında tarih ayracı ekler.
 */
 function insertSeparatorIfNeeded(prevTimestamp, currentTimestamp) {
   if (!prevTimestamp || TextChannel.isDifferentDay(prevTimestamp, currentTimestamp)) {
