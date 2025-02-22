@@ -99,7 +99,7 @@ const userListDiv = document.getElementById('userList');
 // Kanal Durum Paneli
 // HTML’de ID "channelStatusPanel" kullanıldığından onu alıyoruz.
 const channelStatusPanel = document.getElementById('channelStatusPanel');
-// Panel yüksekliği ilk başta 100px olarak ayarlandı.
+// Panel yüksekliği başlangıçta 100px olarak ayarlandı ve z-index ile üstte kalması sağlandı.
 channelStatusPanel.style.height = "100px";
 channelStatusPanel.style.zIndex = "20";
 const pingValueSpan = document.getElementById('pingValue');
@@ -110,7 +110,7 @@ const cellBar4 = document.getElementById('cellBar4');
 
 // Ayrıl Butonu
 const leaveButton = document.getElementById('leaveButton');
-// Yeni: Ekran Paylaşım Butonu
+// Yeni: Ekran Paylaşım Butonu (HTML’de yer alan ayrı element değil, dinamik olarak panel içinde oluşturulacak)
 const screenShareButton = document.getElementById('screenShareButton');
 
 // Mikrofon / Kulaklık butonları
@@ -126,7 +126,7 @@ const textChannelMessageInput = document.getElementById('textChannelMessageInput
 const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
 /* clearScreenShareUI():
-   Ekran paylaşım video elementini, buton durumunu ve varsa overlay'i DOM'dan kaldırır.
+   Ekran paylaşım video elementini, ekran paylaşım butonunun durumunu ve varsa overlay'i DOM'dan kaldırır.
 */
 function clearScreenShareUI() {
   const channelContentArea = document.querySelector('.channel-content-area');
@@ -1157,9 +1157,9 @@ function hideChannelStatusPanel() {
    Kanal durum panelini gösterir.  
    Üst satırda sol tarafta "rss_feed" ikonu ve "sese bağlanıldı" metni, sağ tarafta kanaldan ayrılma butonu yer alır.  
    Alt satırda, küçük fontla bağlı kanal/grup bilgisinin altında yan yana üç buton (en solda "Ekran Paylaş", ortada "Buton 2", sağda "Buton 3") bulunur.
+   "Ekran Paylaş" butonuna tıklanabilirlik eklemek için event listener tanımlandı.
 */
 function showChannelStatusPanel() {
-  // Yüksekliği 100px olarak ayarlıyoruz ve z-index ile üstte görünmesini sağlıyoruz.
   channelStatusPanel.style.height = "100px";
   channelStatusPanel.style.zIndex = "20";
   channelStatusPanel.style.display = 'block';
@@ -1184,6 +1184,26 @@ function showChannelStatusPanel() {
       </div>
     </div>
   `;
+  // Ekran paylaş butonuna tıklanabilirlik ekliyoruz:
+  document.getElementById('screenShareStatusBtn').addEventListener('click', async () => {
+    if(window.screenShareProducerVideo) {
+      await ScreenShare.stopScreenShare(socket);
+      document.getElementById('screenShareStatusBtn').classList.remove('active');
+    } else {
+      try {
+        if(!sendTransport) {
+          alert("Ekran paylaşımı için transport henüz hazır değil.");
+          return;
+        }
+        clearScreenShareUI();
+        await ScreenShare.startScreenShare(sendTransport, socket);
+        document.getElementById('screenShareStatusBtn').classList.add('active');
+      } catch(error) {
+        console.error("Ekran paylaşımı başlatılırken hata:", error);
+      }
+    }
+  });
+  // Kanaldan ayrıl butonunun işlevi zaten tanımlı
   document.getElementById('leaveChannelBtn').addEventListener('click', () => {
     if (!currentRoom) return;
     socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
