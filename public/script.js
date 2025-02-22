@@ -97,7 +97,7 @@ let isDMMode = false;
 const userListDiv = document.getElementById('userList');
 
 // Kanal Durum Paneli
-// DÜZELTİLDİ: HTML’de ID "channelStatusPanel" olduğundan ona göre alınıyor.
+// Burada ID kesinlikle "channelStatusPanel" ile eşleşmeli:
 const channelStatusPanel = document.getElementById('channelStatusPanel');
 const pingValueSpan = document.getElementById('pingValue');
 const cellBar1 = document.getElementById('cellBar1');
@@ -122,9 +122,10 @@ const textChatInputBar = document.getElementById('text-chat-input-bar');
 const textChannelMessageInput = document.getElementById('textChannelMessageInput');
 const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
-/* --- clearScreenShareUI() fonksiyonu ---
-   Bu fonksiyon; ekran paylaşım video elementini, ekran paylaşım butonunun aktifliğini 
-   ve varsa overlay elementini (id="screenShareOverlay") DOM'dan kaldırır. */
+/* 
+  clearScreenShareUI():
+  Ekran paylaşımı video elementini, buton durumunu ve varsa overlay'i DOM'dan kaldırır.
+*/
 function clearScreenShareUI() {
   const channelContentArea = document.querySelector('.channel-content-area');
   if (screenShareVideo && channelContentArea.contains(screenShareVideo)) {
@@ -145,8 +146,8 @@ window.addEventListener('DOMContentLoaded', () => {
   console.log("Socket connected =>", socket.id);
   initSocketEvents();
   initUIEvents();
-  
-  // textMessages için scroll event listener
+
+  // textMessages içinde scroll eventi
   const tm = textMessages;
   let removeScrollingTimeout;
   if (tm) {
@@ -165,21 +166,22 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-  
-  // Metin kanalına ait eventleri TextChannel modülüne devrediyoruz.
+
+  // Metin kanalı olaylarını TextChannel modülüne devrediyoruz
   TextChannel.initTextChannelEvents(socket, textMessages);
 });
 
-// Güncellendi: Paylaşılan ekranın video elementinin .channel-content-area'ya sığması için stiller eklendi.
+/* 
+  showScreenShare(producerId):
+  Ekran paylaşım videosunu consume ederek sayfaya ekler.
+*/
 async function showScreenShare(producerId) {
   if (!recvTransport) {
     console.warn("recvTransport yok");
     return;
   }
   const channelContentArea = document.querySelector('.channel-content-area');
-  // Eski ekran paylaşım UI'sini temizle
   clearScreenShareUI();
-  // Consume işlemi
   const consumeParams = await new Promise((resolve) => {
     socket.emit('consume', {
       groupId: currentGroup,
@@ -202,7 +204,6 @@ async function showScreenShare(producerId) {
   });
   consumer.appData = { peerId: consumeParams.producerPeerId };
   consumers[consumer.id] = consumer;
-  // Video element oluştur ve tüketilen track'i ata
   const videoEl = document.createElement('video');
   videoEl.autoplay = true;
   videoEl.controls = true;
@@ -215,7 +216,10 @@ async function showScreenShare(producerId) {
   screenShareVideo = videoEl;
 }
 
-// Yeni: Yayın sonlandırıldığında placeholder mesajını gösteren fonksiyon
+/* 
+  displayScreenShareEndedMessage():
+  Ekran paylaşımı bitince, sayfada "Bu yayın sonlandırıldı" mesajı gösterir.
+*/
 function displayScreenShareEndedMessage() {
   const channelContentArea = document.querySelector('.channel-content-area');
   let messageEl = document.getElementById('screenShareEndedMessage');
@@ -236,7 +240,10 @@ function displayScreenShareEndedMessage() {
   channelContentArea.appendChild(messageEl);
 }
 
-// Yeni: Placeholder mesajı kaldıran fonksiyon
+/* 
+  removeScreenShareEndedMessage():
+  "Bu yayın sonlandırıldı" mesajını DOM'dan kaldırır.
+*/
 function removeScreenShareEndedMessage() {
   const messageEl = document.getElementById('screenShareEndedMessage');
   if (messageEl && messageEl.parentNode) {
@@ -244,6 +251,10 @@ function removeScreenShareEndedMessage() {
   }
 }
 
+/* 
+  initSocketEvents():
+  Socket.IO ile gelen/verilen olaylar burada dinleniyor.
+*/
 function initSocketEvents() {
   socket.on('connect', () => {
     console.log("Socket tekrar bağlandı =>", socket.id);
@@ -251,6 +262,7 @@ function initSocketEvents() {
   socket.on('disconnect', () => {
     console.log("Socket disconnect");
   });
+
   socket.on('loginResult', (data) => {
     if (data.success) {
       username = data.username;
@@ -268,7 +280,7 @@ function initSocketEvents() {
     }
   });
 
-  // EKLENDİ: registerResult event dinleyicisi
+  // Kayıt sonucu
   socket.on('registerResult', (data) => {
     if (data.success) {
       alert("Hesap başarıyla oluşturuldu");
@@ -280,10 +292,11 @@ function initSocketEvents() {
     }
   });
 
+  // Burada => groupUsers eventinde updateUserList'e ihtiyaç var
   socket.on('groupUsers', (data) => {
     updateUserList(data);
   });
-  
+
   socket.on('groupsList', (groupArray) => {
     groupListDiv.innerHTML = '';
     groupArray.forEach(groupObj => {
@@ -297,6 +310,7 @@ function initSocketEvents() {
         selectedGroup = groupObj.id;
         groupTitle.textContent = groupObj.name;
         socket.emit('browseGroup', groupObj.id);
+
         if (groupObj.owner === username) {
           deleteGroupBtn.style.display = 'block';
           renameGroupBtn.style.display = 'block';
@@ -308,7 +322,7 @@ function initSocketEvents() {
       groupListDiv.appendChild(grpItem);
     });
   });
-  
+
   socket.on('roomsList', (roomsArray) => {
     roomListDiv.innerHTML = '';
     roomsArray.forEach(roomObj => {
@@ -316,6 +330,7 @@ function initSocketEvents() {
       roomItem.className = 'channel-item';
       const channelHeader = document.createElement('div');
       channelHeader.className = 'channel-header';
+
       let icon;
       if (roomObj.type === 'voice') {
         icon = document.createElement('span');
@@ -326,6 +341,7 @@ function initSocketEvents() {
         icon.classList.add('material-icons', 'channel-icon');
         icon.textContent = 'chat';
       }
+
       const textSpan = document.createElement('span');
       textSpan.textContent = roomObj.name;
       channelHeader.appendChild(icon);
@@ -333,9 +349,10 @@ function initSocketEvents() {
       const channelUsers = document.createElement('div');
       channelUsers.className = 'channel-users';
       channelUsers.id = `channel-users-${roomObj.id}`;
+
       roomItem.appendChild(channelHeader);
       roomItem.appendChild(channelUsers);
-      
+
       roomItem.addEventListener('click', () => {
         if (roomObj.type === 'text') {
           console.log(`Text channel clicked => ${roomObj.name}`);
@@ -352,7 +369,7 @@ function initSocketEvents() {
           socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: roomObj.id });
           return;
         }
-        // Voice kanal için:
+        // Voice kanal
         clearScreenShareUI();
         document.getElementById('channelUsersContainer').style.display = 'flex';
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
@@ -375,7 +392,7 @@ function initSocketEvents() {
       roomListDiv.appendChild(roomItem);
     });
   });
-  
+
   socket.on('joinRoomAck', ({ groupId, roomId }) => {
     console.log("joinRoomAck received:", groupId, roomId);
     currentGroup = groupId;
@@ -393,7 +410,7 @@ function initSocketEvents() {
       startSfuFlow();
     }
   });
-  
+
   socket.on('newProducer', ({ producerId }) => {
     console.log("newProducer =>", producerId);
     if (!recvTransport) {
@@ -402,7 +419,7 @@ function initSocketEvents() {
     }
     consumeProducer(producerId);
   });
-  
+
   socket.on('screenShareEnded', ({ userId }) => {
     const channelContentArea = document.querySelector('.channel-content-area');
     if (screenShareVideo && channelContentArea.contains(screenShareVideo)) {
@@ -411,7 +428,7 @@ function initSocketEvents() {
     }
     displayScreenShareEndedMessage();
   });
-  
+
   socket.on('allChannelsData', (channelsObj) => {
     Object.keys(channelsObj).forEach(roomId => {
       const cData = channelsObj[roomId];
@@ -422,10 +439,8 @@ function initSocketEvents() {
         const userRow = document.createElement('div');
         userRow.classList.add('channel-user');
         
-        // Sol kısım: Avatar ve kullanıcı adı
         const leftDiv = document.createElement('div');
         leftDiv.classList.add('channel-user-left');
-        
         const avatarDiv = document.createElement('div');
         avatarDiv.classList.add('channel-user-avatar');
         avatarDiv.id = `avatar-${u.id}`;
@@ -436,7 +451,6 @@ function initSocketEvents() {
         leftDiv.appendChild(avatarDiv);
         leftDiv.appendChild(nameSpan);
         
-        // Sağ kısım: İkonlar (mikrofon, sağırlaştırma, ekran paylaşımı)
         const rightDiv = document.createElement('div');
         rightDiv.classList.add('channel-user-right');
         
@@ -446,14 +460,12 @@ function initSocketEvents() {
           micIcon.textContent = 'mic_off';
           rightDiv.appendChild(micIcon);
         }
-        
         if (u.selfDeafened === true) {
           const deafIcon = document.createElement('span');
           deafIcon.classList.add('material-icons');
           deafIcon.textContent = 'headset_off';
           rightDiv.appendChild(deafIcon);
         }
-        
         if (u.isScreenSharing === true) {
           const screenIndicator = document.createElement('span');
           screenIndicator.classList.add('screen-share-indicator');
@@ -467,16 +479,13 @@ function initSocketEvents() {
           }
           rightDiv.appendChild(screenIndicator);
         }
-        
         userRow.appendChild(leftDiv);
         userRow.appendChild(rightDiv);
         channelDiv.appendChild(userRow);
       });
     });
   });
-  
-  // Diğer socket eventleri...
-  
+
   socket.on('audioStateChanged', ({ micEnabled, selfDeafened }) => {
     if (!users[socket.id]) return;
     users[socket.id].micEnabled = micEnabled;
@@ -488,6 +497,10 @@ function initSocketEvents() {
   });
 }
 
+/* 
+  startSfuFlow():
+  Odaya katılma onayı alındıktan sonra SFU akışını başlatır.
+*/
 function startSfuFlow() {
   console.log("startSfuFlow => group:", currentGroup, " room:", currentRoom);
   if (!device) {
@@ -505,6 +518,10 @@ function startSfuFlow() {
   }
 }
 
+/* 
+  createTransportFlow():
+  Send ve recv transport oluşturur, produce & consume işlemlerini ayarlar.
+*/
 async function createTransportFlow() {
   const transportParams = await createTransport();
   if (transportParams.error) {
@@ -629,6 +646,10 @@ function listProducers() {
   });
 }
 
+/* 
+  consumeProducer(producerId):
+  Belirtilen producerId için consume işlemi yapar.
+*/
 async function consumeProducer(producerId) {
   if (!recvTransport) {
     console.warn("consumeProducer: recvTransport yok");
@@ -672,6 +693,10 @@ async function consumeProducer(producerId) {
   }
 }
 
+/* 
+  startVolumeAnalysis(stream, userId):
+  Her bir stream için ses seviyesi ölçümü yapar.
+*/
 async function startVolumeAnalysis(stream, userId) {
   if (!stream.getAudioTracks().length) {
     console.warn("No audio tracks in MediaStream for user:", userId);
@@ -709,6 +734,10 @@ async function startVolumeAnalysis(stream, userId) {
   };
 }
 
+/* 
+  stopVolumeAnalysis(userId):
+  Kullanıcıya ait volume ölçümü durdurulur.
+*/
 function stopVolumeAnalysis(userId) {
   if (audioAnalyzers[userId]) {
     clearInterval(audioAnalyzers[userId].interval);
@@ -717,6 +746,10 @@ function stopVolumeAnalysis(userId) {
   }
 }
 
+/* 
+  leaveRoomInternal():
+  SFU transportlarını kapatır, localProducer vb. temizler.
+*/
 function leaveRoomInternal() {
   clearScreenShareUI();
   // Ekran paylaşımını durdur
@@ -748,14 +781,16 @@ function leaveRoomInternal() {
   console.log("leaveRoomInternal: SFU transportlar kapatıldı");
 }
 
+/* 
+  joinRoom(groupId, roomId, roomName):
+  Belirtilen odaya katılma isteği gönderir ve UI güncellenir.
+*/
 function joinRoom(groupId, roomId, roomName) {
-  // Mevcut ekran paylaşımını durdur
+  clearScreenShareUI();
   if (window.screenShareProducerVideo || window.screenShareStream) {
     ScreenShare.stopScreenShare(socket);
     screenShareButton.classList.remove('active');
   }
-  // UI temizliği
-  clearScreenShareUI();
   console.log(`joinRoom çağrıldı: group=${groupId}, room=${roomId}, name=${roomName}`);
   socket.emit('joinRoom', { groupId, roomId });
   document.getElementById('selectedChannelTitle').textContent = roomName;
@@ -763,6 +798,10 @@ function joinRoom(groupId, roomId, roomName) {
   currentRoomType = "voice";
 }
 
+/* 
+  attemptLogin():
+  Giriş formunu kontrol edip server'a "login" emit ediyoruz.
+*/
 function attemptLogin() {
   const usernameVal = loginUsernameInput.value.trim();
   const passwordVal = loginPasswordInput.value.trim();
@@ -779,6 +818,10 @@ function attemptLogin() {
   socket.emit('login', { username: usernameVal, password: passwordVal });
 }
 
+/* 
+  requestMicrophoneAccess():
+  Kullanıcıdan mikrofon izni ister, stream'i localStream'e kaydeder.
+*/
 async function requestMicrophoneAccess() {
   try {
     console.log("Mikrofon izni isteniyor...");
@@ -805,6 +848,10 @@ async function requestMicrophoneAccess() {
   }
 }
 
+/* 
+  initUIEvents():
+  Tüm buton ve input event listener'larını ayarlar.
+*/
 function initUIEvents() {
   loginButton.addEventListener('click', attemptLogin);
   loginUsernameInput.addEventListener('keydown', (e) => {
@@ -813,6 +860,7 @@ function initUIEvents() {
   loginPasswordInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') attemptLogin();
   });
+
   registerButton.addEventListener('click', () => {
     const userData = {
       username: regUsernameInput.value.trim(),
@@ -854,6 +902,7 @@ function initUIEvents() {
       socket.emit('register', userData);
     }
   });
+
   backToLoginButton.addEventListener('click', () => {
     registerScreen.style.display = 'none';
     loginScreen.style.display = 'block';
@@ -866,6 +915,7 @@ function initUIEvents() {
     registerScreen.style.display = 'none';
     loginScreen.style.display = 'block';
   });
+
   createGroupButton.addEventListener('click', () => {
     document.getElementById('groupModal').style.display = 'flex';
   });
@@ -877,6 +927,7 @@ function initUIEvents() {
     document.getElementById('groupModal').style.display = 'none';
     document.getElementById('joinGroupModal').style.display = 'flex';
   });
+
   document.getElementById('actualGroupNameBtn').addEventListener('click', () => {
     const grpName = document.getElementById('actualGroupName').value.trim();
     if (!grpName) {
@@ -889,6 +940,7 @@ function initUIEvents() {
   document.getElementById('closeCreateGroupModal').addEventListener('click', () => {
     document.getElementById('actualGroupCreateModal').style.display = 'none';
   });
+
   document.getElementById('joinGroupIdBtn').addEventListener('click', () => {
     const grpIdVal = document.getElementById('joinGroupIdInput').value.trim();
     if (!grpIdVal) {
@@ -901,6 +953,7 @@ function initUIEvents() {
   document.getElementById('closeJoinGroupModal').addEventListener('click', () => {
     document.getElementById('joinGroupModal').style.display = 'none';
   });
+
   document.getElementById('modalCreateRoomBtn').addEventListener('click', () => {
     const rName = document.getElementById('modalRoomName').value.trim();
     if (!rName) {
@@ -919,6 +972,7 @@ function initUIEvents() {
   document.getElementById('modalCloseRoomBtn').addEventListener('click', () => {
     document.getElementById('roomModal').style.display = 'none';
   });
+
   copyGroupIdBtn.addEventListener('click', () => {
     groupDropdownMenu.style.display = 'none';
     const grp = currentGroup || selectedGroup;
@@ -947,6 +1001,7 @@ function initUIEvents() {
     }
     socket.emit('renameGroup', { groupId: grp, newName: newName.trim() });
   });
+
   createChannelBtn.addEventListener('click', () => {
     groupDropdownMenu.style.display = 'none';
     const grp = currentGroup || selectedGroup;
@@ -969,6 +1024,7 @@ function initUIEvents() {
     if (!confirmDel) return;
     socket.emit('deleteGroup', grp);
   });
+
   groupDropdownIcon.addEventListener('click', () => {
     if (groupDropdownMenu.style.display === 'none' || groupDropdownMenu.style.display === '') {
       groupDropdownMenu.style.display = 'block';
@@ -976,6 +1032,7 @@ function initUIEvents() {
       groupDropdownMenu.style.display = 'none';
     }
   });
+
   toggleDMButton.addEventListener('click', () => {
     const dmPanel = document.getElementById('dmPanel');
     if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
@@ -990,12 +1047,12 @@ function initUIEvents() {
     document.getElementById('dmPanel').style.display = 'none';
     isDMMode = false;
   });
+
   leaveButton.addEventListener('click', () => {
     clearScreenShareUI();
     if (!currentRoom) return;
     socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
     leaveRoomInternal();
-    // Düzenleme: Kanaldan ayrılır çıkarken channel-status-panel tamamen kapatılsın.
     hideChannelStatusPanel();
     currentRoom = null;
     document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
@@ -1007,6 +1064,7 @@ function initUIEvents() {
     textChannelContainer.style.display = 'none';
     socket.emit('browseGroup', currentGroup);
   });
+
   micToggleButton.addEventListener('click', () => {
     micEnabled = !micEnabled;
     applyAudioStates();
@@ -1022,11 +1080,12 @@ function initUIEvents() {
     }
     applyAudioStates();
   });
+
   settingsButton.addEventListener('click', () => {
     // ...
   });
-  
-  // Mesaj gönderme işlemi: Voice kanallarında sesli iletişim için mesaj gönderimi yapılmaz.
+
+  // Mesaj gönderme (text kanalı)
   function sendTextMessage() {
     const msg = textChannelMessageInput.value.trim();
     if (!msg) return;
@@ -1039,9 +1098,7 @@ function initUIEvents() {
     textChannelMessageInput.value = '';
     sendTextMessageBtn.style.display = "none";
   }
-  
   sendTextMessageBtn.addEventListener('click', sendTextMessage);
-  
   textChannelMessageInput.addEventListener('input', () => {
     if (textChannelMessageInput.value.trim() !== "") {
       sendTextMessageBtn.style.display = "block";
@@ -1049,15 +1106,14 @@ function initUIEvents() {
       sendTextMessageBtn.style.display = "none";
     }
   });
-  
   textChannelMessageInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       sendTextMessage();
     }
   });
-  
-  // Ekran Paylaşım Butonunun Event Listener'ı
+
+  // Ekran Paylaşım Butonu
   if(screenShareButton) {
     screenShareButton.addEventListener('click', async () => {
       if(window.screenShareProducerVideo) {
@@ -1081,6 +1137,10 @@ function initUIEvents() {
   }
 }
 
+/* 
+  applyAudioStates():
+  Kullanıcının mikrofon ve deaf durumunu producer üzerinden günceller.
+*/
 function applyAudioStates() {
   if (localProducer) {
     if (micEnabled && !selfDeafened) {
@@ -1117,17 +1177,28 @@ function applyAudioStates() {
   socket.emit('audioStateChanged', { micEnabled, selfDeafened });
 }
 
-// Düzenleme: hideChannelStatusPanel fonksiyonu, kanala bağlı olmayan durumda paneli kesin kapatsın.
+/* 
+  hideChannelStatusPanel():
+  Kanaldan ayrılırken paneli kapatır ve pingInterval'i temizler.
+*/
 function hideChannelStatusPanel() {
   channelStatusPanel.style.display = 'none';
   stopPingInterval();
 }
 
+/* 
+  showChannelStatusPanel():
+  Kanala katılırken paneli gösterir ve pingInterval'i başlatır.
+*/
 function showChannelStatusPanel() {
   channelStatusPanel.style.display = 'block';
   startPingInterval();
 }
 
+/* 
+  startPingInterval():
+  Ping değerini ölçüp ekranda gösterir.
+*/
 function startPingInterval() {
   if (pingInterval) clearInterval(pingInterval);
   pingInterval = setInterval(() => {
@@ -1143,6 +1214,10 @@ function startPingInterval() {
   }, 1000);
 }
 
+/* 
+  stopPingInterval():
+  Ping ölçümünü durdurur.
+*/
 function stopPingInterval() {
   if (pingInterval) {
     clearInterval(pingInterval);
@@ -1152,6 +1227,10 @@ function stopPingInterval() {
   updateCellBars(0);
 }
 
+/* 
+  updateCellBars(ping):
+  Ping değerine göre sinyal barlarını günceller.
+*/
 function updateCellBars(ping) {
   let barsActive = 0;
   if (ping >= 1) {
@@ -1172,14 +1251,20 @@ function updateCellBars(ping) {
   if (barsActive >= 4) cellBar4.classList.add('active');
 }
 
-/* Yeni: Mesajlar arasında gün farkı varsa tarih ayracı ekle */
+/* 
+  insertSeparatorIfNeeded(prevTimestamp, currentTimestamp):
+  Farklı güne geçilmişse tarih ayıracı ekler (metin kanalı mesajları için).
+*/
 function insertSeparatorIfNeeded(prevTimestamp, currentTimestamp) {
   if (!prevTimestamp || TextChannel.isDifferentDay(prevTimestamp, currentTimestamp)) {
     insertDateSeparator(currentTimestamp);
   }
 }
 
-/* Yeni: #textMessages alanında scroll yapıldığında "scrolling" sınıfını ekle */
+/* 
+  document.addEventListener('DOMContentLoaded', ...):
+  textMessages scroll takibi (scrolling klası)
+*/
 document.addEventListener('DOMContentLoaded', function() {
   const tm = document.getElementById('textMessages');
   let removeScrollingTimeout;
@@ -1200,3 +1285,89 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+
+/* 
+  UPDATEUSERLIST FONKSİYONU:
+  groupUsers eventinde çağrılmak üzere buraya eklendi.
+  Online/Offline kullanıcılar "right-panel" tarafına basılır.
+*/
+function updateUserList(data) {
+  userListDiv.innerHTML = '';
+  const onlineTitle = document.createElement('div');
+  onlineTitle.textContent = 'Çevrimiçi';
+  onlineTitle.style.fontWeight = 'normal';
+  onlineTitle.style.fontSize = '0.85rem';
+  userListDiv.appendChild(onlineTitle);
+
+  if (data.online && data.online.length > 0) {
+    data.online.forEach(u => {
+      userListDiv.appendChild(createUserItem(u.username, true));
+    });
+  } else {
+    const noneP = document.createElement('p');
+    noneP.textContent = '(Kimse yok)';
+    noneP.style.fontSize = '0.75rem';
+    userListDiv.appendChild(noneP);
+  }
+  
+  const offlineTitle = document.createElement('div');
+  offlineTitle.textContent = 'Çevrimdışı';
+  offlineTitle.style.fontWeight = 'normal';
+  offlineTitle.style.fontSize = '0.85rem';
+  offlineTitle.style.marginTop = '1rem';
+  userListDiv.appendChild(offlineTitle);
+
+  if (data.offline && data.offline.length > 0) {
+    data.offline.forEach(u => {
+      userListDiv.appendChild(createUserItem(u.username, false));
+    });
+  } else {
+    const noneP2 = document.createElement('p');
+    noneP2.textContent = '(Kimse yok)';
+    noneP2.style.fontSize = '0.75rem';
+    userListDiv.appendChild(noneP2);
+  }
+}
+
+/* 
+  createUserItem(username, isOnline):
+  Sağ panelde gösterilecek "user-item" oluşturmaya yarar.
+*/
+function createUserItem(username, isOnline) {
+  const userItem = document.createElement('div');
+  userItem.classList.add('user-item');
+  const profileThumb = document.createElement('div');
+  profileThumb.classList.add('profile-thumb');
+  profileThumb.style.backgroundColor = isOnline ? '#2dbf2d' : '#777';
+  const userNameSpan = document.createElement('span');
+  userNameSpan.classList.add('user-name');
+  userNameSpan.textContent = username;
+  const copyIdBtn = document.createElement('button');
+  copyIdBtn.classList.add('copy-id-btn');
+  copyIdBtn.textContent = "ID Kopyala";
+  copyIdBtn.dataset.userid = username;
+  copyIdBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(username)
+      .then(() => alert("Kullanıcı kopyalandı: " + username))
+      .catch(err => {
+        console.error("Kopyalama hatası:", err);
+        alert("Kopyalama başarısız!");
+      });
+  });
+  userItem.appendChild(profileThumb);
+  userItem.appendChild(userNameSpan);
+  userItem.appendChild(copyIdBtn);
+  return userItem;
+}
+
+/*
+  getAllChannelsData(groupId):
+  Aslında sunucu tarafında "allChannelsData" emit'i tetikleniyor;
+  fakat audioStateChanged vb. durumlar için client'ta da benzer mantık varsa eklenebilir.
+  Şu an server tarafında halledildiği için dummy dönebilirsiniz veya burada tanımsızsa hatırlat.
+*/
+function getAllChannelsData(gId) {
+  // Aslında server tarafında gönderiliyor. Burada istenirse local tutabiliriz.
+  return {}; 
+}
