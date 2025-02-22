@@ -99,7 +99,7 @@ const userListDiv = document.getElementById('userList');
 // Kanal Durum Paneli
 // HTML’de ID "channelStatusPanel" kullanıldığından onu alıyoruz.
 const channelStatusPanel = document.getElementById('channelStatusPanel');
-// Panel yüksekliği başlangıçta 100px, z-index 20 olarak ayarlandı.
+// Panel yüksekliği başlangıçta 100px olarak ayarlandı ve z-index değeri 20 verildi.
 channelStatusPanel.style.height = "100px";
 channelStatusPanel.style.zIndex = "20";
 const pingValueSpan = document.getElementById('pingValue');
@@ -126,7 +126,7 @@ const textChannelMessageInput = document.getElementById('textChannelMessageInput
 const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
 /* clearScreenShareUI():
-   Ekran paylaşım video elementini, ekran paylaşım butonunun durumunu ve varsa overlay'i DOM'dan kaldırır.
+   Ekran paylaşım video elementini, buton durumunu ve varsa overlay'i DOM'dan kaldırır.
 */
 function clearScreenShareUI() {
   const channelContentArea = document.querySelector('.channel-content-area');
@@ -1156,10 +1156,10 @@ function hideChannelStatusPanel() {
 /* showChannelStatusPanel():
    Kanal durum panelini gösterir.  
    Üst satırda sol tarafta "rss_feed" ikonu ve "sese bağlanıldı" metni, sağ tarafta kanaldan ayrılma butonu yer alır.  
-   Alt satırda, küçük fontla bağlı kanal/grup bilgisinin altında, yan yana üç buton bulunur.
-   "Ekran Paylaş" butonu içeriği Material Icons'dan "cast" ikonu ile oluşturulmuştur.
-   Hover efektleri eklenmiş; fare buton üzerine geldiğinde border ve ikon rengi #c61884’ye dönüşür.
-   Ekran paylaşım başlarsa, ikon "cancel_presentation" olarak güncellenir.
+   Alt satırda, küçük fontla bağlı kanal/grup bilgisinin altında, yan yana üç buton (butonlar eşit genişlikte olacak şekilde) bulunur.
+   "Ekran Paylaş" butonunun içeriği Material Icons'dan "cast" ikonu ile oluşturulmuştur.  
+   Hover efektleri eklenmiş; fare buton üzerine geldiğinde border, metin ve ikon rengi #c61884’ye dönüşür.
+   Ekran paylaşım başlarsa, ikon "cancel_presentation" olarak güncellenir ve butonun arka plan rengi de #c61884 olur.
 */
 function showChannelStatusPanel() {
   channelStatusPanel.style.height = "100px";
@@ -1178,12 +1178,12 @@ function showChannelStatusPanel() {
       </div>
       <div style="display: flex; flex-direction: column;">
         <div id="channelGroupInfo" style="font-size: 0.8em; margin-bottom: 4px; color: #aaa;"> </div>
-        <div class="status-buttons" style="display: flex; justify-content: space-around;">
-          <button class="status-btn" id="screenShareStatusBtn" style="padding: 6px 12px; border: 1px solid #ccc; background-color: #444; color: #fff; border-radius: 4px;">
+        <div class="status-buttons" style="display: flex; gap: 10px;">
+          <button class="status-btn" id="screenShareStatusBtn" style="flex: 1; padding: 6px 12px; border: 1px solid #ccc; background-color: #444; color: #fff; border-radius: 4px;">
             <span class="material-icons" id="screenShareIcon">cast</span>
           </button>
-          <button class="status-btn" style="padding: 6px 12px; border: 1px solid #ccc; background-color: #444; color: #fff; border-radius: 4px;">Buton 2</button>
-          <button class="status-btn" style="padding: 6px 12px; border: 1px solid #ccc; background-color: #444; color: #fff; border-radius: 4px;">Buton 3</button>
+          <button class="status-btn" style="flex: 1; padding: 6px 12px; border: 1px solid #ccc; background-color: #444; color: #fff; border-radius: 4px;">Buton 2</button>
+          <button class="status-btn" style="flex: 1; padding: 6px 12px; border: 1px solid #ccc; background-color: #444; color: #fff; border-radius: 4px;">Buton 3</button>
         </div>
       </div>
     </div>
@@ -1202,6 +1202,7 @@ function showChannelStatusPanel() {
       screenShareBtn.style.color = "#fff";
       const icon = document.getElementById('screenShareIcon');
       if(icon) icon.style.color = "#fff";
+      screenShareBtn.style.backgroundColor = "#444";
     }
   });
   // Ekran paylaşım butonunun tıklanabilirliği:
@@ -1210,10 +1211,10 @@ function showChannelStatusPanel() {
     if(window.screenShareProducerVideo) {
       await ScreenShare.stopScreenShare(socket);
       screenShareBtn.classList.remove('active');
-      // Buton ikonunu tekrar "cast" yapıyoruz:
       if(icon) icon.textContent = "cast";
       screenShareBtn.style.borderColor = "#ccc";
       screenShareBtn.style.color = "#fff";
+      screenShareBtn.style.backgroundColor = "#444";
     } else {
       try {
         if(!sendTransport) {
@@ -1223,10 +1224,10 @@ function showChannelStatusPanel() {
         clearScreenShareUI();
         await ScreenShare.startScreenShare(sendTransport, socket);
         screenShareBtn.classList.add('active');
-        // Ekran paylaşım başladığında ikon "cancel_presentation" olsun:
         if(icon) icon.textContent = "cancel_presentation";
         screenShareBtn.style.borderColor = "#c61884";
         screenShareBtn.style.color = "#c61884";
+        screenShareBtn.style.backgroundColor = "#c61884";
       } catch(error) {
         console.error("Ekran paylaşımı başlatılırken hata:", error);
       }
