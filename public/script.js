@@ -4,6 +4,7 @@
  **************************************/
 import * as TextChannel from './js/textChannel.js';
 import * as ScreenShare from './js/screenShare.js';  // Yeni ekran paylaşım modülü
+import { initTypingIndicator } from './js/typingIndicator.js';
 
 let socket = null;
 let device = null;   // mediasoup-client Device
@@ -37,7 +38,6 @@ let currentRoomType = null;    // "voice" veya "text"
 
 // Yeni: Kullanıcının sesli kanala bağlandığı kanalın adını saklayacak değişken
 let activeVoiceChannelName = "";
-
 
 // Mikrofon / Kulaklık
 let micEnabled = true;
@@ -147,6 +147,8 @@ window.addEventListener('DOMContentLoaded', () => {
   console.log("Socket connected =>", socket.id);
   initSocketEvents();
   initUIEvents();
+  // Yeni: Typing indicator modülünü başlatıyoruz.
+  initTypingIndicator(socket);
   
   const tm = textMessages;
   let removeScrollingTimeout;
@@ -255,7 +257,7 @@ function updateStatusPanel(ping) {
   if (rssIcon) rssIcon.style.color = color;
   if (statusMessage) statusMessage.style.color = color;
   if (channelGroupInfo) {
-    // Kullanıcının bağlı olduğu sesli kanalın adı "activeVoiceChannelName" üzerinden gösterilecek.
+    // Sadece sesli kanala bağlı olduğumuz kanalın ismi gösterilecek.
     const channelName = activeVoiceChannelName || "";
     const groupName = groupTitle?.textContent || "";
     channelGroupInfo.textContent = channelName + " / " + groupName;
@@ -759,7 +761,7 @@ function joinRoom(groupId, roomId, roomName) {
   console.log(`joinRoom çağrıldı: group=${groupId}, room=${roomId}, name=${roomName}`);
   socket.emit('joinRoom', { groupId, roomId });
   document.getElementById('selectedChannelTitle').textContent = roomName;
-  // Yeni: Sesli kanala bağlandığında aktif kanal adını kaydet
+  // Sesli kanala bağlanırken aktif kanal adını kaydediyoruz
   activeVoiceChannelName = roomName;
   showChannelStatusPanel();
   currentRoomType = "voice";
@@ -1148,7 +1150,7 @@ function showChannelStatusPanel() {
       </div>
     </div>
   `;
-  // LeaveChannelBtn hover ekle: mouseover'da ikon rengi #c61884, mouseout'da #aaa olsun.
+  // LeaveChannelBtn hover ekle
   const leaveChannelBtn = document.getElementById('leaveChannelBtn');
   leaveChannelBtn.addEventListener('mouseenter', () => {
     const icon = leaveChannelBtn.querySelector('.material-icons');
