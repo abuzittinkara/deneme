@@ -173,6 +173,17 @@ window.addEventListener('DOMContentLoaded', () => {
   TextChannel.initTextChannelEvents(socket, textMessages);
 });
 
+/* Yeni fonksiyon: updateVoiceChannelUI */
+function updateVoiceChannelUI(roomName) {
+  document.getElementById('selectedChannelTitle').textContent = roomName;
+  const channelUsersContainer = document.getElementById('channelUsersContainer');
+  if (channelUsersContainer) {
+    channelUsersContainer.style.display = 'flex';
+  }
+  textChannelContainer.style.display = 'none';
+  showChannelStatusPanel();
+}
+
 /* showScreenShare */
 async function showScreenShare(producerId) {
   if (!recvTransport) {
@@ -368,13 +379,14 @@ function initSocketEvents() {
           socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: roomObj.id });
           return;
         }
+        // Voice channel case:
         clearScreenShareUI();
         document.getElementById('channelUsersContainer').style.display = 'flex';
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
-        // Eğer kullanıcı zaten bu sesli kanalda ise, joinRoom'a gerek yok; sadece UI'ı güncelle.
+        // Eğer kullanıcı zaten bağlı olduğu sesli kanalda ise; sadece arayüz güncellemesi yap.
         if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
           roomItem.classList.add('connected');
-          showChannelStatusPanel();
+          updateVoiceChannelUI(roomObj.name);
           return;
         }
         if (currentRoom && (currentRoom !== roomObj.id || currentGroup !== selectedGroup)) {
