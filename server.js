@@ -61,7 +61,7 @@ async function loadGroupsFromDB() {
     allGroups.forEach(gDoc => {
       if (!groups[gDoc.groupId]) {
         groups[gDoc.groupId] = {
-          owner: null,
+          owner: null, 
           name: gDoc.name,
           users: [],
           rooms: {}
@@ -129,10 +129,10 @@ function getAllChannelsData(groupId) {
       id: u.id,
       username: u.username,
       micEnabled: (users[u.id] && users[u.id].micEnabled !== undefined)
-        ? users[u.id].micEnabled
+        ? users[u.id].micEnabled 
         : true,
       selfDeafened: (users[u.id] && users[u.id].selfDeafened !== undefined)
-        ? users[u.id].selfDeafened
+        ? users[u.id].selfDeafened 
         : false,
       isScreenSharing: (users[u.id] && users[u.id].isScreenSharing !== undefined)
         ? users[u.id].isScreenSharing
@@ -163,12 +163,12 @@ function removeUserFromAllGroupsAndRooms(socket) {
   const socketId = socket.id;
   const userData = users[socket.id];
   if (!userData) return;
-
+  
   // Eğer kullanıcı ekran paylaşım durumundaysa, sadece bulunduğu odadaki kullanıcılara "screenShareEnded" event'ini gönderiyoruz.
   if (userData.isScreenSharing && userData.currentGroup && userData.currentRoom) {
     io.to(`${userData.currentGroup}::${userData.currentRoom}`).emit('screenShareEnded', { userId: socketId });
   }
-
+  
   Object.keys(groups).forEach(gId => {
     const grpObj = groups[gId];
     if (grpObj.users.some(u => u.id === socketId)) {
@@ -438,6 +438,15 @@ io.on('connection', (socket) => {
     }
   });
 
+  // EK: Typing indicator eventleri
+  socket.on('typing', (data) => {
+    // data: { username, channel }
+    socket.to(data.channel).emit('typing', data);
+  });
+  socket.on('stop typing', (data) => {
+    socket.to(data.channel).emit('stop typing', data);
+  });
+
   // createGroup
   socket.on('createGroup', async (groupName) => {
     if (!groupName) return;
@@ -461,7 +470,7 @@ io.on('connection', (socket) => {
     userDoc.groups.push(newGroup._id);
     await userDoc.save();
     groups[groupId] = {
-      owner: userName,
+      owner: userName, 
       name: trimmed,
       users: [ { id: socket.id, username: userName } ],
       rooms: {}
@@ -618,7 +627,7 @@ io.on('connection', (socket) => {
       return;
     }
     if (userData.currentGroup === groupId && userData.currentRoom === roomId) {
-      return;
+      return; 
     }
     // Önceki odada ekran paylaşımı varsa sonlandır
     if (userData.isScreenSharing) {
@@ -829,7 +838,7 @@ io.on('connection', (socket) => {
   });
 
   // ==============================
-  // SFU (createWebRtcTransport, produce, consume...)
+  // SFU (createWebRtcTransport, produce, consume...) 
   // ==============================
   socket.on('createWebRtcTransport', async ({ groupId, roomId }, callback) => {
     try {
