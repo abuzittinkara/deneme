@@ -371,10 +371,8 @@ function initSocketEvents() {
         clearScreenShareUI();
         document.getElementById('channelUsersContainer').style.display = 'flex';
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
-        // Eğer kullanıcı zaten bağlı olduğu sesli kanala tıklarsa, joinlemesine gerek kalmadan içerik güncellensin.
         if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
           roomItem.classList.add('connected');
-          socket.emit('updateVoiceChannelContent', { groupId: selectedGroup, roomId: roomObj.id });
           return;
         }
         if (currentRoom && (currentRoom !== roomObj.id || currentGroup !== selectedGroup)) {
