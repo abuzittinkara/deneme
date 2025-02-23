@@ -1,8 +1,8 @@
 /**************************************
  * typingIndicator.js
  * 
- * Bu modül, metin kanalı seçili iken kullanıcının .text-chat-input-bar 
- * alanında yazı yazdığını algılayıp, 
+ * Bu modül, metin kanalı seçili iken kullanıcının 
+ * metin giriş alanında (id="textChannelMessageInput") yazı yazdığını algılayıp, 
  * "X yazıyor..." (animasyonlu ellipsis: üç, iki, bir nokta döngüsü)
  * göstergesini ekrana getirmeyi sağlar.
  *
@@ -11,40 +11,37 @@
  *   olayı gönderilir ve aynı anda ekranda animasyonlu "X yazıyor..." göstergesi belirir.
  * - Kullanıcı yazmayı durdurduğunda veya mesajı gönderdiğinde "stop typing" olayı gönderilir,
  *   ve gösterge kaldırılır.
- * - Ayrıca, diğer kullanıcılardan gelen "typing" ve "stop typing" event’leri dinlenir;
- *   eğer aynı kanaldaysanız, diğer kullanıcıların yazıyor olduğunu da gösterir.
- * - Göstergenin konumu, .text-chat-input-bar öğesinin hemen üstünde olacak şekilde
- *   (ancak input barın pozisyonunu değiştirmeyecek şekilde) sabit tutulur.
+ * - Diğer kullanıcılardan gelen "typing" ve "stop typing" event’leri de dinlenir.
+ * - Göstergenin konumu, metin giriş alanının (inputField'ın) parent öğesinin içinde
+ *   absolute olarak yerleştirilir; böylece input alanının konumu sabit kalır.
  *
  * Kullanım:
  * import { initTypingIndicator } from './typingIndicator.js';
  * initTypingIndicator(socket);
  **************************************/
 export function initTypingIndicator(socket) {
-    // .text-chat-input-bar öğesini buluyoruz
-    const inputBar = document.querySelector('.text-chat-input-bar');
-    if (!inputBar) {
-      console.error("Text chat input bar bulunamadı!");
+    // Metin giriş alanını alıyoruz (input elementi)
+    const inputField = document.getElementById('textChannelMessageInput');
+    if (!inputField) {
+      console.error("Text chat input field (id='textChannelMessageInput') bulunamadı!");
       return;
     }
     
-    // Typing indicator için yeni bir element oluşturuyoruz (eğer daha önceden oluşturulmamışsa)
+    // Typing indicator için container: inputField'ın parent elementini kullanıyoruz
     let typingIndicator = document.getElementById('typingIndicator');
     if (!typingIndicator) {
       typingIndicator = document.createElement('div');
       typingIndicator.id = 'typingIndicator';
-      // Konumlandırmayı, inputBar'ın ebeveyninin (container'ın) içine absolute olarak ekleyelim.
-      // Bu sayede inputBar'ın konumunu etkilemeyecek.
+      // Konumlandırma: parent elementin position: relative olduğundan, inputField'ın üstünde yer alacak şekilde absolute konumlandırıyoruz
       typingIndicator.style.position = 'absolute';
-      // Örneğin, inputBar'ın üstünden 5px yukarıda
-      typingIndicator.style.bottom = (inputBar.offsetHeight + 5) + 'px';
+      // Örneğin, inputField'ın parent'ının alt kısmında, inputField'ın yüksekliği kadar yukarıda
+      typingIndicator.style.bottom = (inputField.parentElement.offsetHeight + 5) + 'px';
       typingIndicator.style.left = '10px';
       typingIndicator.style.fontSize = '0.9em';
       typingIndicator.style.color = '#aaa';
       // Başlangıçta görünmez olsun
       typingIndicator.style.visibility = 'hidden';
-      // InputBar'ın parent elementine ekleyelim (parent'in position: relative olması gerekir)
-      inputBar.parentElement.appendChild(typingIndicator);
+      inputField.parentElement.appendChild(typingIndicator);
     }
   
     let typingTimeout = null;
@@ -71,9 +68,9 @@ export function initTypingIndicator(socket) {
       typingIndicator.style.visibility = 'hidden';
     }
   
-    // Kullanıcının inputBar'da yazmaya başladığını tespit etmek için
-    inputBar.addEventListener('input', () => {
-      const inputText = inputBar.value.trim();
+    // Input alanında değişiklik olduğunda yazmaya başladığını algılar
+    inputField.addEventListener('input', () => {
+      const inputText = inputField.value.trim();
       if (inputText !== "") {
         // Yerel olarak "typing" olayını socket'e gönderiyoruz
         socket.emit('typing', { username: username, channel: getCurrentTextChannel() });
@@ -97,7 +94,7 @@ export function initTypingIndicator(socket) {
     // Diğer kullanıcılardan gelen typing eventlerini dinliyoruz
     socket.on('typing', (data) => {
       // data: { username: "X", channel: "kanalID" }
-      // Sadece aynı text kanalı içindeysek gösterelim ve kendi adımızı hariç tutalım
+      // Sadece aynı metin kanalındaysak ve kendi adımızı hariç tutuyorsak gösterelim
       if (data.channel === getCurrentTextChannel() && data.username !== username) {
         typingIndicator.style.visibility = 'visible';
         if (!ellipsisInterval) {
@@ -118,7 +115,7 @@ export function initTypingIndicator(socket) {
   
     // Geçerli metin kanalının ID'sini döndüren yardımcı fonksiyon
     function getCurrentTextChannel() {
-      // Bu değerin global bir değişkende tutulduğunu varsayıyoruz (örneğin, currentTextChannel)
+      // Bu değerin global değişken currentTextChannel üzerinden tutulduğunu varsayıyoruz
       return currentTextChannel || null;
     }
   }
