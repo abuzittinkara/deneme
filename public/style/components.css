@@ -408,6 +408,8 @@
   align-items: center;
   width: 100%;
   padding: 0.5rem;
+  /* Alt kısımda ekstra boşluk oluşturmak için padding-bottom ekleniyor */
+  padding-bottom: 30px;
   box-sizing: border-box;
 }
 .text-chat-input-bar .chat-input {
@@ -419,6 +421,8 @@
   border-radius: 6px;
   color: #fff;
   padding: 0.5rem;
+  /* İstenirse margin-bottom sıfırlanabilir */
+  margin-bottom: 0;
 }
 #sendTextMessageBtn {
   position: absolute;
