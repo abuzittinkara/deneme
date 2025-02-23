@@ -30,9 +30,9 @@ export function initTypingIndicator(socket, getCurrentTextChannel, getLocalUsern
       typingIndicator.id = 'typingIndicator';
       // Konumlandırma: inputField'ın parent öğesinin position: relative olduğunu varsayarak absolute konumlandırıyoruz.
       typingIndicator.style.position = 'absolute';
-      // Örneğin, inputField'ın parent'ının alt kısmında, inputField'ın yüksekliği kadar yukarıda (5px boşlukla)
-      typingIndicator.style.bottom = (inputField.parentElement.offsetHeight + 5) + 'px';
-      typingIndicator.style.left = '10px';
+      // inputField'ın hemen altında, 5px boşluk bırakacak şekilde konumlandırıyoruz.
+      typingIndicator.style.top = "calc(100% + 5px)";
+      typingIndicator.style.left = "10px";
       typingIndicator.style.fontSize = '0.9em';
       typingIndicator.style.color = '#aaa';
       // Başlangıçta görünmez olsun
@@ -102,5 +102,4 @@ export function initTypingIndicator(socket, getCurrentTextChannel, getLocalUsern
         stopEllipsisAnimation();
       }
     });
-  }
-  
+}
