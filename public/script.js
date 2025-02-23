@@ -371,8 +371,10 @@ function initSocketEvents() {
         clearScreenShareUI();
         document.getElementById('channelUsersContainer').style.display = 'flex';
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
+        // Eğer kullanıcı zaten bu sesli kanalda ise, joinRoom'a gerek yok; sadece UI'ı güncelle.
         if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
           roomItem.classList.add('connected');
+          showChannelStatusPanel();
           return;
         }
         if (currentRoom && (currentRoom !== roomObj.id || currentGroup !== selectedGroup)) {
