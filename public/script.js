@@ -38,6 +38,7 @@ let currentRoomType = null;    // "voice" veya "text"
 // Yeni: Kullanıcının sesli kanala bağlandığı kanalın adını saklayacak değişken
 let activeVoiceChannelName = "";
 
+
 // Mikrofon / Kulaklık
 let micEnabled = true;
 let selfDeafened = false;
@@ -49,10 +50,6 @@ const VOLUME_CHECK_INTERVAL = 100;
 let audioAnalyzers = {};
 
 let pingInterval = null;
-
-// Yeni: Typing indicator için global interval değişkenleri
-let typingIndicatorInterval = null;
-let remoteTypingInterval = null;
 
 /* Formatlama fonksiyonları artık TextChannel modülünden sağlanıyor */
 
@@ -129,73 +126,49 @@ const textChatInputBar = document.getElementById('text-chat-input-bar');
 const textChannelMessageInput = document.getElementById('textChannelMessageInput');
 const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
-/* Typing Indicator Fonksiyonları */
-function startTypingIndicator(user) {
-  let typingDiv = document.getElementById('typingIndicator');
-  if (!typingDiv) {
-    typingDiv = document.createElement('div');
-    typingDiv.id = 'typingIndicator';
-    typingDiv.style.position = 'absolute';
-    // .textChannelContainer içinde, text-chat-input-bar'ın hemen üzerinde (örneğin 60px yukarı)
-    typingDiv.style.bottom = '60px';
-    typingDiv.style.left = '10px';
-    typingDiv.style.fontSize = '0.9em';
-    typingDiv.style.color = '#aaa';
-    const container = document.getElementById('textChannelContainer');
-    if (container) container.appendChild(typingDiv);
+/* clearScreenShareUI */
+function clearScreenShareUI() {
+  const channelContentArea = document.querySelector('.channel-content-area');
+  if (screenShareVideo && channelContentArea.contains(screenShareVideo)) {
+    channelContentArea.removeChild(screenShareVideo);
+    screenShareVideo = null;
   }
-  let dotCount = 3;
-  typingDiv.textContent = user + " yazıyor" + ".".repeat(dotCount);
-  if (typingIndicatorInterval) clearInterval(typingIndicatorInterval);
-  typingIndicatorInterval = setInterval(() => {
-    dotCount = (dotCount === 1) ? 3 : dotCount - 1;
-    typingDiv.textContent = user + " yazıyor" + ".".repeat(dotCount);
-  }, 500);
-}
-
-function stopTypingIndicator() {
-  let typingDiv = document.getElementById('typingIndicator');
-  if (typingDiv) {
-    typingDiv.parentNode.removeChild(typingDiv);
+  if (screenShareButton) {
+    screenShareButton.classList.remove('active');
   }
-  if (typingIndicatorInterval) {
-    clearInterval(typingIndicatorInterval);
-    typingIndicatorInterval = null;
+  const overlay = document.getElementById('screenShareOverlay');
+  if (overlay && overlay.parentNode) {
+    overlay.parentNode.removeChild(overlay);
   }
 }
 
-function startRemoteTypingIndicator(user) {
-  let typingDiv = document.getElementById('remoteTypingIndicator');
-  if (!typingDiv) {
-    typingDiv = document.createElement('div');
-    typingDiv.id = 'remoteTypingIndicator';
-    typingDiv.style.position = 'absolute';
-    typingDiv.style.bottom = '60px';
-    typingDiv.style.left = '10px';
-    typingDiv.style.fontSize = '0.9em';
-    typingDiv.style.color = '#aaa';
-    const container = document.getElementById('textChannelContainer');
-    if (container) container.appendChild(typingDiv);
+window.addEventListener('DOMContentLoaded', () => {
+  socket = io("https://fisqos.com.tr", { transports: ['websocket'] });
+  console.log("Socket connected =>", socket.id);
+  initSocketEvents();
+  initUIEvents();
+  
+  const tm = textMessages;
+  let removeScrollingTimeout;
+  if (tm) {
+    tm.addEventListener('scroll', function() {
+      const atBottom = tm.scrollTop + tm.clientHeight >= tm.scrollHeight - 5;
+      if (!atBottom) {
+        clearTimeout(removeScrollingTimeout);
+        tm.classList.add('scrolling');
+      } else {
+        removeScrollingTimeout = setTimeout(() => {
+          const stillAtBottom = tm.scrollTop + tm.clientHeight >= tm.scrollHeight - 5;
+          if (stillAtBottom) {
+            tm.classList.remove('scrolling');
+          }
+        }, 1000);
+      }
+    });
   }
-  let dotCount = 3;
-  typingDiv.textContent = user + " yazıyor" + ".".repeat(dotCount);
-  if (remoteTypingInterval) clearInterval(remoteTypingInterval);
-  remoteTypingInterval = setInterval(() => {
-    dotCount = (dotCount === 1) ? 3 : dotCount - 1;
-    typingDiv.textContent = user + " yazıyor" + ".".repeat(dotCount);
-  }, 500);
-}
-
-function stopRemoteTypingIndicator() {
-  let typingDiv = document.getElementById('remoteTypingIndicator');
-  if (typingDiv) {
-    typingDiv.parentNode.removeChild(typingDiv);
-  }
-  if (remoteTypingInterval) {
-    clearInterval(remoteTypingInterval);
-    remoteTypingInterval = null;
-  }
-}
+  
+  TextChannel.initTextChannelEvents(socket, textMessages);
+});
 
 /* showScreenShare */
 async function showScreenShare(producerId) {
@@ -282,6 +255,7 @@ function updateStatusPanel(ping) {
   if (rssIcon) rssIcon.style.color = color;
   if (statusMessage) statusMessage.style.color = color;
   if (channelGroupInfo) {
+    // Kullanıcının bağlı olduğu sesli kanalın adı "activeVoiceChannelName" üzerinden gösterilecek.
     const channelName = activeVoiceChannelName || "";
     const groupName = groupTitle?.textContent || "";
     channelGroupInfo.textContent = channelName + " / " + groupName;
@@ -506,16 +480,6 @@ function initSocketEvents() {
     const gId = users[socket.id].currentGroup;
     if (gId) {
       socket.emit('allChannelsData', getAllChannelsData(gId));
-    }
-  });
-  // Typing indicator event: diğer kullanıcıların yazıyor durumunu dinle
-  socket.on('typing', (data) => {
-    if (data.channel === currentTextChannel && data.user !== username) {
-      if (data.typing) {
-        startRemoteTypingIndicator(data.user);
-      } else {
-        stopRemoteTypingIndicator();
-      }
     }
   });
 }
@@ -795,7 +759,7 @@ function joinRoom(groupId, roomId, roomName) {
   console.log(`joinRoom çağrıldı: group=${groupId}, room=${roomId}, name=${roomName}`);
   socket.emit('joinRoom', { groupId, roomId });
   document.getElementById('selectedChannelTitle').textContent = roomName;
-  // Sesli kanala bağlanıldığında aktif kanal adını kaydet
+  // Yeni: Sesli kanala bağlandığında aktif kanal adını kaydet
   activeVoiceChannelName = roomName;
   showChannelStatusPanel();
   currentRoomType = "voice";
@@ -1076,19 +1040,13 @@ function initUIEvents() {
     });
     textChannelMessageInput.value = '';
     sendTextMessageBtn.style.display = "none";
-    socket.emit('typing', { channel: currentTextChannel, user: username, typing: false });
-    stopTypingIndicator();
   }
   sendTextMessageBtn.addEventListener('click', sendTextMessage);
   textChannelMessageInput.addEventListener('input', () => {
     if (textChannelMessageInput.value.trim() !== "") {
       sendTextMessageBtn.style.display = "block";
-      socket.emit('typing', { channel: currentTextChannel, user: username, typing: true });
-      startTypingIndicator(username);
     } else {
       sendTextMessageBtn.style.display = "none";
-      socket.emit('typing', { channel: currentTextChannel, user: username, typing: false });
-      stopTypingIndicator();
     }
   });
   textChannelMessageInput.addEventListener('keydown', (e) => {
@@ -1190,7 +1148,7 @@ function showChannelStatusPanel() {
       </div>
     </div>
   `;
-  // leaveChannelBtn hover ekle
+  // LeaveChannelBtn hover ekle: mouseover'da ikon rengi #c61884, mouseout'da #aaa olsun.
   const leaveChannelBtn = document.getElementById('leaveChannelBtn');
   leaveChannelBtn.addEventListener('mouseenter', () => {
     const icon = leaveChannelBtn.querySelector('.material-icons');
