@@ -616,6 +616,7 @@
   margin: 10px 0;
   min-height: 24px;
   position: relative;
+  color: #5a5a5a;
 }
 
 .date-separator::before,
@@ -629,7 +630,7 @@
 .date-separator .separator-text {
   white-space: nowrap;
   font-size: 0.85rem;
-  color: #aaa;
+  color: #5a5a5a;
   padding: 0 10px;
   border-radius: 4px;
 }
