@@ -373,6 +373,8 @@ function initSocketEvents() {
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
         if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
           roomItem.classList.add('connected');
+          // Eğer sesli kanal zaten aktifse, ".channel-content-area" elementine odaklan (scrollIntoView)
+          document.querySelector('.channel-content-area').scrollIntoView({ behavior: "smooth" });
           return;
         }
         if (currentRoom && (currentRoom !== roomObj.id || currentGroup !== selectedGroup)) {
