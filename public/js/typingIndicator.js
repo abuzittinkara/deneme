@@ -3,13 +3,12 @@
  * 
  * Bu modül, metin kanalı seçili iken kullanıcının 
  * metin giriş alanında (id="textChannelMessageInput") yazı yazdığını algılayıp, 
- * "X yazıyor..." (animasyonlu ellipsis: üç, iki, bir nokta döngüsü)
- * göstergesini, yalnızca diğer kullanıcılara gösterecek şekilde çalışır.
+ * "X yazıyor..." göstergesini, yalnızca diğer kullanıcılara gösterecek şekilde çalışır.
  *
  * Yerel kullanıcı kendi yazarken ekranında typing göstergesi görünmez.
  * Socket üzerinden “typing” ve “stop typing” event’leri gönderilir; 
  * diğer istemciler (aynı text kanalda) bu event’leri aldığında ilgili kullanıcının adını kullanarak 
- * “X yazıyor…” animasyonunu gösterir.
+ * “X yazıyor...” mesajını gösterir.
  *
  * Kullanım:
  * import { initTypingIndicator } from './js/typingIndicator.js';
@@ -40,27 +39,20 @@ export function initTypingIndicator(socket, getCurrentTextChannel, getLocalUsern
     inputField.parentElement.appendChild(typingIndicator);
   }
 
-  let ellipsisInterval = null;
-  let currentEllipsisState = 3;
-  let typingInterval = null; // YENİ: Periyodik typing event için interval
+  let typingInterval = null; // Yerel kullanıcının typing event’ini periyodik göndermek için
 
-  // Diğer kullanıcılardan gelen event’lerde kullanılacak animasyon fonksiyonu
-  function startEllipsisAnimation(username) {
+  // Basit, sabit metin gösterecek fonksiyon (animasyon kaldırıldı)
+  function showStaticTyping(username) {
     typingIndicator.style.visibility = 'visible';
-    typingIndicator.textContent = username + " yazıyor" + ".".repeat(currentEllipsisState);
-    ellipsisInterval = setInterval(() => {
-      currentEllipsisState--;
-      if (currentEllipsisState < 1) {
-        currentEllipsisState = 3;
-      }
-      typingIndicator.textContent = username + " yazıyor" + ".".repeat(currentEllipsisState);
-    }, 500);
+    typingIndicator.textContent = username + " yazıyor...";
   }
 
-  function stopEllipsisAnimation() {
-    clearInterval(ellipsisInterval);
-    ellipsisInterval = null;
-    currentEllipsisState = 3;
+  function hideTyping() {
+    if (typingInterval) {
+      clearInterval(typingInterval);
+      typingInterval = null;
+    }
+    socket.emit('stop typing', { username: getLocalUsername(), channel: getCurrentTextChannel() });
     typingIndicator.style.visibility = 'hidden';
   }
 
@@ -68,30 +60,19 @@ export function initTypingIndicator(socket, getCurrentTextChannel, getLocalUsern
   inputField.addEventListener('input', () => {
     const inputText = inputField.value.trim();
     if (inputText !== "") {
-      // Kullanıcı input alanında metin varsa, 'typing' eventini gönder
       socket.emit('typing', { username: getLocalUsername(), channel: getCurrentTextChannel() });
-      // Eğer periyodik typing interval başlamamışsa, başlatıyoruz
+      // Eğer henüz periyodik typing interval başlamadıysa başlatıyoruz
       if (!typingInterval) {
         typingInterval = setInterval(() => {
-          // Her periyotta input alanını kontrol ediyoruz; boş değilse 'typing' eventini tekrar gönderiyoruz
           if (inputField.value.trim() !== "") {
             socket.emit('typing', { username: getLocalUsername(), channel: getCurrentTextChannel() });
           } else {
-            clearInterval(typingInterval);
-            typingInterval = null;
-            socket.emit('stop typing', { username: getLocalUsername(), channel: getCurrentTextChannel() });
-            stopEllipsisAnimation();
+            hideTyping();
           }
         }, 2000);
       }
     } else {
-      // Input alanı boşsa, 'stop typing' eventini gönder ve interval varsa temizle
-      if (typingInterval) {
-        clearInterval(typingInterval);
-        typingInterval = null;
-      }
-      socket.emit('stop typing', { username: getLocalUsername(), channel: getCurrentTextChannel() });
-      stopEllipsisAnimation();
+      hideTyping();
     }
   });
 
@@ -99,21 +80,14 @@ export function initTypingIndicator(socket, getCurrentTextChannel, getLocalUsern
   socket.on('typing', (data) => {
     // data: { username: "X", channel: "kanalID" }
     if (data.channel === getCurrentTextChannel() && data.username !== getLocalUsername()) {
-      // Başka bir kullanıcı yazıyor ise indicator'ı gösteriyoruz
-      typingIndicator.style.visibility = 'visible';
-      if (!ellipsisInterval) {
-        startEllipsisAnimation(data.username);
-      }
-      // Belirli bir süre sonra indicator otomatik olarak gizlenecek (3 saniye)
-      setTimeout(() => {
-        stopEllipsisAnimation();
-      }, 3000);
+      // Diğer kullanıcının typing event'ini aldığımızda sabit metni gösteriyoruz
+      showStaticTyping(data.username);
     }
   });
 
   socket.on('stop typing', (data) => {
     if (data.channel === getCurrentTextChannel() && data.username !== getLocalUsername()) {
-      stopEllipsisAnimation();
+      typingIndicator.style.visibility = 'hidden';
     }
   });
 }
