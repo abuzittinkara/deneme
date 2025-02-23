@@ -1141,7 +1141,17 @@ function showChannelStatusPanel() {
       </div>
     </div>
   `;
-  // Hover efektleri: yalnızca aktif değilse uygulanacak
+  // LeaveChannelBtn hover ekle: mouseover'da ikon rengi #c61884, mouseout'da #aaa olsun.
+  const leaveChannelBtn = document.getElementById('leaveChannelBtn');
+  leaveChannelBtn.addEventListener('mouseenter', () => {
+    const icon = leaveChannelBtn.querySelector('.material-icons');
+    if (icon) icon.style.color = "#c61884";
+  });
+  leaveChannelBtn.addEventListener('mouseleave', () => {
+    const icon = leaveChannelBtn.querySelector('.material-icons');
+    if (icon) icon.style.color = "#aaa";
+  });
+  // Hover efektleri: ekran paylaşım butonuna yalnızca aktif değilken uygulanıyor.
   const screenShareBtn = document.getElementById('screenShareStatusBtn');
   screenShareBtn.addEventListener('mouseenter', () => {
     if (!screenShareBtn.classList.contains('active')) {
@@ -1160,7 +1170,7 @@ function showChannelStatusPanel() {
       screenShareBtn.style.backgroundColor = "#444";
     }
   });
-  // Ekran paylaşım butonunun tıklanması:
+  // Ekran paylaşım butonunun tıklanabilirliği:
   screenShareBtn.addEventListener('click', async () => {
     const icon = document.getElementById('screenShareIcon');
     if(window.screenShareProducerVideo) {
@@ -1194,6 +1204,7 @@ function showChannelStatusPanel() {
       }
     }
   });
+  // LeaveChannelBtn tıklama işlemi:
   document.getElementById('leaveChannelBtn').addEventListener('click', () => {
     if (!currentRoom) return;
     socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
