@@ -2,6 +2,23 @@
  * script.js
  * TAMAMEN SFU MANTIĞINA GEÇİLMİŞ VERSİYON
  **************************************/
+
+/* clearScreenShareUI */
+function clearScreenShareUI() {
+  const channelContentArea = document.querySelector('.channel-content-area');
+  if (screenShareVideo && channelContentArea && channelContentArea.contains(screenShareVideo)) {
+    channelContentArea.removeChild(screenShareVideo);
+    screenShareVideo = null;
+  }
+  if (screenShareButton) {
+    screenShareButton.classList.remove('active');
+  }
+  const overlay = document.getElementById('screenShareOverlay');
+  if (overlay && overlay.parentNode) {
+    overlay.parentNode.removeChild(overlay);
+  }
+}
+
 import * as TextChannel from './js/textChannel.js';
 import * as ScreenShare from './js/screenShare.js';  // Yeni ekran paylaşım modülü
 import { initTypingIndicator } from './js/typingIndicator.js';
@@ -401,7 +418,7 @@ function initSocketEvents() {
   });
   socket.on('screenShareEnded', ({ userId }) => {
     const channelContentArea = document.querySelector('.channel-content-area');
-    if (screenShareVideo && channelContentArea.contains(screenShareVideo)) {
+    if (screenShareVideo && channelContentArea && channelContentArea.contains(screenShareVideo)) {
       channelContentArea.removeChild(screenShareVideo);
       screenShareVideo = null;
     }
