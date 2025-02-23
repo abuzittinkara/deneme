@@ -408,6 +408,8 @@
   align-items: center;
   width: 100%;
   padding: 0.5rem;
+  /* Alt kısımda ekstra boşluk oluşturmak için padding-bottom ekleniyor */
+  padding-bottom: 30px;
   box-sizing: border-box;
 }
 .text-chat-input-bar .chat-input {
@@ -419,6 +421,8 @@
   border-radius: 6px;
   color: #fff;
   padding: 0.5rem;
+  /* İstenirse margin-bottom sıfırlanabilir */
+  margin-bottom: 0;
 }
 #sendTextMessageBtn {
   position: absolute;
@@ -618,7 +622,7 @@
 .date-separator::after {
   content: "";
   flex: 1;
-  border-bottom: 2px solid #aaa;
+  border-bottom: 1px solid #aaa;
   margin: 0 10px;
 }
 
@@ -627,7 +631,6 @@
   font-size: 0.85rem;
   color: #aaa;
   padding: 0 10px;
-  background: rgba(0, 0, 0, 0.5);
   border-radius: 4px;
 }
 
@@ -659,7 +662,7 @@
 
 /* Yeni: Ekran Paylaşım Göstergesi */
 .screen-share-indicator {
-  background-color: red;
+  background-color: #c61884;
   color: white;
   padding: 2px 4px;
   border-radius: 2px;
