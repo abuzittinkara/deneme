@@ -149,7 +149,7 @@ window.addEventListener('DOMContentLoaded', () => {
   initSocketEvents();
   initUIEvents();
   // Typing indicator modülünü başlatıyoruz; getCurrentTextChannel fonksiyonu currentTextChannel değerini döndürüyor.
-  initTypingIndicator(socket, () => currentTextChannel, username);
+  initTypingIndicator(socket, () => currentTextChannel, () => username);
   
   const tm = textMessages;
   let removeScrollingTimeout;

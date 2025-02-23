@@ -4,22 +4,18 @@
  * Bu modül, metin kanalı seçili iken kullanıcının 
  * metin giriş alanında (id="textChannelMessageInput") yazı yazdığını algılayıp, 
  * "X yazıyor..." (animasyonlu ellipsis: üç, iki, bir nokta döngüsü)
- * göstergesini, yalnızca diğer kullanıcılar için ekrana getirmeyi sağlar.
+ * göstergesini, yalnızca diğer kullanıcılara gösterecek şekilde çalışır.
  *
- * Özellikler:
- * - Yerel kullanıcı (giriş yapmış kullanıcı) kendi yazarken, ekranında hiçbir typing
- *   göstergesi görünmez; socket üzerinden "typing" olayı gönderilir.
- * - Diğer kullanıcılardan gelen "typing" event’leri dinlenir; eğer aynı kanalda iseler,
- *   diğer kullanıcının adını kullanarak animasyonlu typing göstergesi (örneğin "X yazıyor...") 
- *   ekranda görünür.
- * - Kullanıcı yazmayı durdurduğunda veya mesaj gönderdiğinde "stop typing" olayı gönderilir
- *   ve gösterge kaldırılır.
+ * Yerel kullanıcı kendi yazarken ekranında typing göstergesi görünmez.
+ * Socket üzerinden “typing” ve “stop typing” event’leri gönderilir; 
+ * diğer istemciler (aynı text kanalda) bu event’leri aldığında ilgili kullanıcının adını kullanarak 
+ * “X yazıyor…” animasyonunu gösterir.
  *
  * Kullanım:
  * import { initTypingIndicator } from './js/typingIndicator.js';
- * initTypingIndicator(socket, () => currentTextChannel, username);
+ * initTypingIndicator(socket, () => currentTextChannel, () => username);
  **************************************/
-export function initTypingIndicator(socket, getCurrentTextChannel, localUsername) {
+export function initTypingIndicator(socket, getCurrentTextChannel, getLocalUsername) {
     // Metin giriş alanını alıyoruz (input elementi)
     const inputField = document.getElementById('textChannelMessageInput');
     if (!inputField) {
@@ -48,7 +44,7 @@ export function initTypingIndicator(socket, getCurrentTextChannel, localUsername
     let ellipsisInterval = null;
     let currentEllipsisState = 3;
   
-    // Yerel typing göstergesini başlatır (sadece diğer kullanıcılardan gelen eventlerde çalışır)
+    // Diğer kullanıcılardan gelen event’lerde kullanılacak animasyon fonksiyonu
     function startEllipsisAnimation(username) {
       typingIndicator.style.visibility = 'visible';
       typingIndicator.textContent = username + " yazıyor" + ".".repeat(currentEllipsisState);
@@ -69,22 +65,20 @@ export function initTypingIndicator(socket, getCurrentTextChannel, localUsername
     }
   
     // Yerel input alanındaki değişiklikleri dinliyoruz.
-    // Dikkat: Yerel kullanıcı kendi yazarken ekranında typing göstergesi göstermiyoruz.
+    // Yerel kullanıcının yazarken ekranında hiçbir typing göstergesi göstermiyoruz.
     inputField.addEventListener('input', () => {
       const inputText = inputField.value.trim();
       if (inputText !== "") {
-        socket.emit('typing', { username: localUsername, channel: getCurrentTextChannel() });
-        // Yerel kullanıcı kendi ekranında typing göstergesi görmek istemediğinden
-        // burada startEllipsisAnimation(localUsername) çağrılmıyor.
+        socket.emit('typing', { username: getLocalUsername(), channel: getCurrentTextChannel() });
         if (typingTimeout) {
           clearTimeout(typingTimeout);
         }
         typingTimeout = setTimeout(() => {
-          socket.emit('stop typing', { username: localUsername, channel: getCurrentTextChannel() });
+          socket.emit('stop typing', { username: getLocalUsername(), channel: getCurrentTextChannel() });
           stopEllipsisAnimation();
         }, 3000);
       } else {
-        socket.emit('stop typing', { username: localUsername, channel: getCurrentTextChannel() });
+        socket.emit('stop typing', { username: getLocalUsername(), channel: getCurrentTextChannel() });
         stopEllipsisAnimation();
       }
     });
@@ -92,8 +86,7 @@ export function initTypingIndicator(socket, getCurrentTextChannel, localUsername
     // Diğer kullanıcılardan gelen typing eventlerini dinliyoruz.
     socket.on('typing', (data) => {
       // data: { username: "X", channel: "kanalID" }
-      // Sadece aynı metin kanalındaysak ve gelen kullanıcı yerel kullanıcı değilse gösterelim.
-      if (data.channel === getCurrentTextChannel() && data.username !== localUsername) {
+      if (data.channel === getCurrentTextChannel() && data.username !== getLocalUsername()) {
         typingIndicator.style.visibility = 'visible';
         if (!ellipsisInterval) {
           startEllipsisAnimation(data.username);
@@ -105,7 +98,7 @@ export function initTypingIndicator(socket, getCurrentTextChannel, localUsername
     });
   
     socket.on('stop typing', (data) => {
-      if (data.channel === getCurrentTextChannel() && data.username !== localUsername) {
+      if (data.channel === getCurrentTextChannel() && data.username !== getLocalUsername()) {
         stopEllipsisAnimation();
       }
     });
