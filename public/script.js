@@ -35,6 +35,10 @@ let selectedGroup = null;
 let currentTextChannel = null; // Metin kanalı için seçili kanal id'si
 let currentRoomType = null;    // "voice" veya "text"
 
+// Yeni: Kullanıcının sesli kanala bağlandığı kanalın adını saklayacak değişken
+let activeVoiceChannelName = "";
+
+
 // Mikrofon / Kulaklık
 let micEnabled = true;
 let selfDeafened = false;
@@ -251,7 +255,8 @@ function updateStatusPanel(ping) {
   if (rssIcon) rssIcon.style.color = color;
   if (statusMessage) statusMessage.style.color = color;
   if (channelGroupInfo) {
-    const channelName = document.getElementById('selectedChannelTitle')?.textContent || "";
+    // Kullanıcının bağlı olduğu sesli kanalın adı "activeVoiceChannelName" üzerinden gösterilecek.
+    const channelName = activeVoiceChannelName || "";
     const groupName = groupTitle?.textContent || "";
     channelGroupInfo.textContent = channelName + " / " + groupName;
     channelGroupInfo.style.color = "#aaa";
@@ -754,6 +759,8 @@ function joinRoom(groupId, roomId, roomName) {
   console.log(`joinRoom çağrıldı: group=${groupId}, room=${roomId}, name=${roomName}`);
   socket.emit('joinRoom', { groupId, roomId });
   document.getElementById('selectedChannelTitle').textContent = roomName;
+  // Yeni: Sesli kanala bağlandığında aktif kanal adını kaydet
+  activeVoiceChannelName = roomName;
   showChannelStatusPanel();
   currentRoomType = "voice";
 }
@@ -1151,7 +1158,7 @@ function showChannelStatusPanel() {
     const icon = leaveChannelBtn.querySelector('.material-icons');
     if (icon) icon.style.color = "#aaa";
   });
-  // Hover efektleri: ekran paylaşım butonuna yalnızca aktif değilken uygulanıyor.
+  // Hover efektleri: ekran paylaşım butonuna yalnızca aktif değilse uygulanıyor.
   const screenShareBtn = document.getElementById('screenShareStatusBtn');
   screenShareBtn.addEventListener('mouseenter', () => {
     if (!screenShareBtn.classList.contains('active')) {
@@ -1170,7 +1177,7 @@ function showChannelStatusPanel() {
       screenShareBtn.style.backgroundColor = "#444";
     }
   });
-  // Ekran paylaşım butonunun tıklanabilirliği:
+  // Ekran paylaşım butonunun tıklanması:
   screenShareBtn.addEventListener('click', async () => {
     const icon = document.getElementById('screenShareIcon');
     if(window.screenShareProducerVideo) {
@@ -1204,7 +1211,6 @@ function showChannelStatusPanel() {
       }
     }
   });
-  // LeaveChannelBtn tıklama işlemi:
   document.getElementById('leaveChannelBtn').addEventListener('click', () => {
     if (!currentRoom) return;
     socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
