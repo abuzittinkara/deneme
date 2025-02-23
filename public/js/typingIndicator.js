@@ -40,9 +40,9 @@ export function initTypingIndicator(socket, getCurrentTextChannel, getLocalUsern
     inputField.parentElement.appendChild(typingIndicator);
   }
 
-  let typingTimeout = null;
   let ellipsisInterval = null;
   let currentEllipsisState = 3;
+  let typingInterval = null; // YENİ: Periyodik typing event için interval
 
   // Diğer kullanıcılardan gelen event’lerde kullanılacak animasyon fonksiyonu
   function startEllipsisAnimation(username) {
@@ -64,36 +64,34 @@ export function initTypingIndicator(socket, getCurrentTextChannel, getLocalUsern
     typingIndicator.style.visibility = 'hidden';
   }
 
-  // Yeni: Timeout callback fonksiyonu; input boşsa stop, doluysa tekrar kontrol et.
-  function scheduleStopTyping() {
-    typingTimeout = setTimeout(() => {
-      if (inputField.value.trim() === "") {
-        socket.emit('stop typing', { username: getLocalUsername(), channel: getCurrentTextChannel() });
-        stopEllipsisAnimation();
-        typingTimeout = null;
-      } else {
-        // Input hâlâ dolu, yeniden 3 saniyelik kontrol başlat.
-        scheduleStopTyping();
-      }
-    }, 3000);
-  }
-
   // Yerel input alanındaki değişiklikleri dinliyoruz.
   inputField.addEventListener('input', () => {
     const inputText = inputField.value.trim();
     if (inputText !== "") {
+      // Kullanıcı input alanında metin varsa, 'typing' eventini gönder
       socket.emit('typing', { username: getLocalUsername(), channel: getCurrentTextChannel() });
-      if (typingTimeout) {
-        clearTimeout(typingTimeout);
+      // Eğer periyodik typing interval başlamamışsa, başlatıyoruz
+      if (!typingInterval) {
+        typingInterval = setInterval(() => {
+          // Her periyotta input alanını kontrol ediyoruz; boş değilse 'typing' eventini tekrar gönderiyoruz
+          if (inputField.value.trim() !== "") {
+            socket.emit('typing', { username: getLocalUsername(), channel: getCurrentTextChannel() });
+          } else {
+            clearInterval(typingInterval);
+            typingInterval = null;
+            socket.emit('stop typing', { username: getLocalUsername(), channel: getCurrentTextChannel() });
+            stopEllipsisAnimation();
+          }
+        }, 2000);
       }
-      scheduleStopTyping();
     } else {
+      // Input alanı boşsa, 'stop typing' eventini gönder ve interval varsa temizle
+      if (typingInterval) {
+        clearInterval(typingInterval);
+        typingInterval = null;
+      }
       socket.emit('stop typing', { username: getLocalUsername(), channel: getCurrentTextChannel() });
       stopEllipsisAnimation();
-      if (typingTimeout) {
-        clearTimeout(typingTimeout);
-        typingTimeout = null;
-      }
     }
   });
 
@@ -101,11 +99,12 @@ export function initTypingIndicator(socket, getCurrentTextChannel, getLocalUsern
   socket.on('typing', (data) => {
     // data: { username: "X", channel: "kanalID" }
     if (data.channel === getCurrentTextChannel() && data.username !== getLocalUsername()) {
+      // Başka bir kullanıcı yazıyor ise indicator'ı gösteriyoruz
       typingIndicator.style.visibility = 'visible';
       if (!ellipsisInterval) {
         startEllipsisAnimation(data.username);
       }
-      // Diğer kullanıcıların gösterge için de 3 saniye sonra kapatma tetikleniyor
+      // Belirli bir süre sonra indicator otomatik olarak gizlenecek (3 saniye)
       setTimeout(() => {
         stopEllipsisAnimation();
       }, 3000);
