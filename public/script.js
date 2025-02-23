@@ -126,29 +126,13 @@ const textChatInputBar = document.getElementById('text-chat-input-bar');
 const textChannelMessageInput = document.getElementById('textChannelMessageInput');
 const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
-/* clearScreenShareUI */
-function clearScreenShareUI() {
-  const channelContentArea = document.querySelector('.channel-content-area');
-  if (screenShareVideo && channelContentArea.contains(screenShareVideo)) {
-    channelContentArea.removeChild(screenShareVideo);
-    screenShareVideo = null;
-  }
-  if (screenShareButton) {
-    screenShareButton.classList.remove('active');
-  }
-  const overlay = document.getElementById('screenShareOverlay');
-  if (overlay && overlay.parentNode) {
-    overlay.parentNode.removeChild(overlay);
-  }
-}
-
 window.addEventListener('DOMContentLoaded', () => {
   socket = io("https://fisqos.com.tr", { transports: ['websocket'] });
   console.log("Socket connected =>", socket.id);
   initSocketEvents();
   initUIEvents();
-  // Yeni: Typing indicator modülünü başlatıyoruz.
-  initTypingIndicator(socket);
+  // Typing indicator modülünü başlatıyoruz; getCurrentTextChannel fonksiyonu currentTextChannel değerini döndürüyor.
+  initTypingIndicator(socket, () => currentTextChannel, username);
   
   const tm = textMessages;
   let removeScrollingTimeout;
@@ -257,7 +241,6 @@ function updateStatusPanel(ping) {
   if (rssIcon) rssIcon.style.color = color;
   if (statusMessage) statusMessage.style.color = color;
   if (channelGroupInfo) {
-    // Sadece sesli kanala bağlı olduğumuz kanalın ismi gösterilecek.
     const channelName = activeVoiceChannelName || "";
     const groupName = groupTitle?.textContent || "";
     channelGroupInfo.textContent = channelName + " / " + groupName;
@@ -1150,7 +1133,7 @@ function showChannelStatusPanel() {
       </div>
     </div>
   `;
-  // LeaveChannelBtn hover ekle
+  // LeaveChannelBtn hover ekle: mouseover'da ikon rengi #c61884, mouseout'da #aaa olsun.
   const leaveChannelBtn = document.getElementById('leaveChannelBtn');
   leaveChannelBtn.addEventListener('mouseenter', () => {
     const icon = leaveChannelBtn.querySelector('.material-icons');
