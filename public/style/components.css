@@ -64,7 +64,6 @@
   background-color: #3d3d3d;
 }
 .channel-header {
-  /* Mevcut flex ayarlarını kaldırıyoruz, float yapısıyla kullanılacak */
   display: block; 
   overflow: auto; 
   gap: 0.6rem;
@@ -104,14 +103,12 @@
   align-items: center;
   gap: 0.5rem;
 }
-/* Yeni: Sağ tarafta ikonların yer alacağı alan */
 .channel-user-right {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 0.4rem;
 }
-/* İkonların rengi #c61884 olacak */
 .channel-user-right .material-icons {
   color: #c61884;
 }
@@ -305,59 +302,62 @@
   overflow: auto;
 }
 
-/* Mesaj Stili */
+/* Metin Kanalları (Mesajlar) */
 .text-message {
+  /* Avatar solda "üstte asılı" kalsın, metin de altına boşluk bırakmadan dolsun */
+  position: relative;
   margin: 0;
-  padding: 0px 12px;
+  padding: 0.75rem 0.75rem; /* Genel mesaj içi boşluk */
   border-radius: 8px;
   max-width: 70%;
   word-wrap: break-word;
-  display: flex;
-  flex-direction: column; /* Avatar solda float, text sağda */
-  align-items: flex-start;
+  display: block;
+  text-align: left;
   transition: background-color 0.2s ease, width 0.2s ease;
-  position: relative;
+  box-sizing: border-box;
+  background: transparent;
 }
 .text-message.left-message {
   align-self: flex-start;
-  text-align: left;
-  margin-top: 0px;
 }
 .text-message:hover {
   background-color: #2d2d2d;
   width: 100% !important;
   max-width: 100% !important;
+}
+
+/* Mesaj kapsayıcı */
+.message-item {
+  /* Avatar + text */
+  position: relative;     /* Avatarı absolute konumlandırmak için */
+  padding-left: 60px;     /* Avatar kadar soldan boşluk -> metin burada başlıyor */
+  display: block;
+  width: 100%;
   box-sizing: border-box;
 }
 
-/* Mesaj İç Yapısı */
-.message-item {
-  /* Mesajın tamamı (avatar + text) */
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
-}
-.message-header {
-  /* float yapısı ile avatar solda, sender-info sağda */
-  display: block;
-  overflow: auto;
-  gap: 0.6rem;
-  width: 100%;
-  line-height: 1.2;
-  margin: 0;
-}
-/* Avatar solda */
+/* Avatar solda, metni etkilemesin */
 .message-avatar-container {
-  float: left;
-  width: 40px; 
-  margin-right: 8px; 
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-/* Kullanıcı adı ve tarih, soldan 48px */
+
+/* Kullanıcı adı ve tarih */
 .sender-info {
-  margin-left: 48px;
   display: flex;
   align-items: center;
   gap: 0.4rem;
+  margin: 0;
+  line-height: 1.2;
 }
 .message-avatar {
   width: 40px;
@@ -365,14 +365,13 @@
   background-color: #666;
   border-radius: 50%;
   color: #fff;
+  font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
 }
 .sender-name {
   font-weight: bold;
-  margin-right: 4px;
   color: #fff;
 }
 .timestamp {
@@ -381,11 +380,12 @@
   color: #5a5a5a;
   margin-left: 4px;
 }
-/* Mesaj içeriği de kullanıcı adı ile aynı hizadan başlar */
+
+/* Mesaj içeriği */
 .message-content {
-  clear: both;         /* Avatar float'ını sıfırlar, alt satıra geçer */
-  margin-left: 48px;   /* sender-info ile aynı hizada */
-  margin-top: 4px;     /* biraz dikey boşluk */
+  margin-top: 4px;  /* Kullanıcı adından biraz aşağı */
+  margin-bottom: 0;
+  padding: 0;
 }
 
 /* Scrollbar - WebKit */
@@ -422,8 +422,7 @@
   align-items: center;
   width: 100%;
   padding: 0.5rem;
-  /* Alt kısımda ekstra boşluk oluşturmak için padding-bottom ekleniyor */
-  padding-bottom: 30px;
+  padding-bottom: 30px; /* Alt kısımda ekstra boşluk */
   box-sizing: border-box;
 }
 .text-chat-input-bar .chat-input {
@@ -439,7 +438,6 @@
   margin-bottom: 0;
 }
 
-/* Eski send icon stilleri kaldırıldı; yerine yeni yapı aşağıda eklendi: */
 .chat-input-wrapper {
   position: relative;
   display: block;
@@ -455,7 +453,7 @@
   transition: color 0.3s ease, font-family 0.3s ease;
   color: #aaa;
   cursor: pointer;
-  display: none;
+  display: none; /* input dolunca block yap */
 }
 .chat-input-wrapper .send-icon:hover {
   font-family: 'Material Icons';
@@ -663,7 +661,6 @@
 }
 
 /* Yeni: Hover sırasında (header içermeyen) mesajlarda saat bilgisinin gösterilmesi */
-/* Bu kısımda sadece saat bilgisi gösterilecek */
 .hover-time {
   position: absolute;
   left: -20px;
@@ -680,7 +677,7 @@
   display: block;
 }
 
-/* Yeni: Ekran Paylaşım Göstergesi */
+/* Ekran Paylaşım Göstergesi */
 .screen-share-indicator {
   background-color: #c61884;
   color: white;
