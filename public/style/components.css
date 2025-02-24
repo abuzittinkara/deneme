@@ -63,6 +63,7 @@
 .channel-item:hover {
   background-color: #3d3d3d;
 }
+/* Güncellenmiş channel-header */
 .channel-header {
   display: flex;
   align-items: center;
@@ -382,6 +383,10 @@
 .message-content {
   margin-top: 0px;
   margin-left: 48px;
+}
+/* İlk mesaj için içerik, sender-name ile aynı hizada (margin-left kaldırılarak) hizalanır. */
+.message-content.first-message {
+  margin-left: 0;
 }
 
 /* Scrollbar - WebKit */
