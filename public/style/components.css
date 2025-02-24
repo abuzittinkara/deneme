@@ -304,10 +304,9 @@
 
 /* Metin Kanalları (Mesajlar) */
 .text-message {
-  /* Avatar solda "üstte asılı" kalsın, metin de altına boşluk bırakmadan dolsun */
   position: relative;
   margin: 0;
-  padding: 0.75rem 0.75rem; /* Genel mesaj içi boşluk */
+  padding: 0.75rem 0.75rem;
   border-radius: 8px;
   max-width: 70%;
   word-wrap: break-word;
@@ -328,8 +327,7 @@
 
 /* Mesaj kapsayıcı */
 .message-item {
-  /* Avatar + text */
-  position: relative;     /* Avatarı absolute konumlandırmak için */
+  position: relative;     /* Avatar'ı absolute konumlandırmak için */
   padding-left: 60px;     /* Avatar kadar soldan boşluk -> metin burada başlıyor */
   display: block;
   width: 100%;
@@ -383,7 +381,7 @@
 
 /* Mesaj içeriği */
 .message-content {
-  margin-top: 4px;  /* Kullanıcı adından biraz aşağı */
+  margin-top: 4px;  
   margin-bottom: 0;
   padding: 0;
 }
@@ -422,7 +420,7 @@
   align-items: center;
   width: 100%;
   padding: 0.5rem;
-  padding-bottom: 30px; /* Alt kısımda ekstra boşluk */
+  padding-bottom: 30px; 
   box-sizing: border-box;
 }
 .text-chat-input-bar .chat-input {
@@ -453,7 +451,7 @@
   transition: color 0.3s ease, font-family 0.3s ease;
   color: #aaa;
   cursor: pointer;
-  display: none; /* input dolunca block yap */
+  display: none; 
 }
 .chat-input-wrapper .send-icon:hover {
   font-family: 'Material Icons';
@@ -685,4 +683,18 @@
   border-radius: 2px;
   font-size: 10px;
   margin-left: 4px;
+}
+
+/* Eklenen Sınıflar: first-message, only-message, middle-message, last-message */
+.message-content.first-message {
+  /* Özel stil ekleyebilirsiniz */
+}
+.message-content.only-message {
+  /* Özel stil ekleyebilirsiniz */
+}
+.message-content.middle-message {
+  /* Özel stil ekleyebilirsiniz */
+}
+.message-content.last-message {
+  /* Özel stil ekleyebilirsiniz */
 }
