@@ -424,23 +424,25 @@
   /* İstenirse margin-bottom sıfırlanabilir */
   margin-bottom: 0;
 }
-#sendTextMessageBtn {
+
+/* Eski send icon stilleri kaldırıldı; yerine yeni yapı aşağıda eklendi: */
+.chat-input-wrapper {
+  position: relative;
+  display: block;
+}
+.chat-input-wrapper .send-icon {
   position: absolute;
   right: 10px;
   top: 50%;
   transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  display: none;
-}
-#sendTextMessageBtn span.send-icon {
   font-family: 'Material Icons Outlined';
   font-size: 24px;
   transition: color 0.3s ease, font-family 0.3s ease;
   color: #aaa;
+  cursor: pointer;
+  display: none;
 }
-#sendTextMessageBtn:hover span.send-icon {
+.chat-input-wrapper .send-icon:hover {
   font-family: 'Material Icons';
   color: #c61884;
 }
@@ -623,7 +625,7 @@
 .date-separator::after {
   content: "";
   flex: 1;
-  border-bottom: 1px solid #aaa;
+  border-bottom: 1px solid #5a5a5a;
   margin: 0 10px;
 }
 
@@ -632,6 +634,7 @@
   font-size: 0.85rem;
   color: #5a5a5a;
   padding: 0 10px;
+  background: transparent;
   border-radius: 4px;
 }
 
