@@ -413,6 +413,7 @@
   box-sizing: border-box;
 }
 .text-chat-input-bar .chat-input {
+  width: 100%;
   flex: 1;
   box-sizing: border-box;
   padding-right: 40px;
