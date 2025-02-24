@@ -413,8 +413,8 @@
   box-sizing: border-box;
 }
 .text-chat-input-bar .chat-input {
-  width: 100%;
   flex: 1;
+  width: 100%;
   box-sizing: border-box;
   padding-right: 40px;
   background: #444;
@@ -422,7 +422,6 @@
   border-radius: 6px;
   color: #fff;
   padding: 0.5rem;
-  /* İstenirse margin-bottom sıfırlanabilir */
   margin-bottom: 0;
 }
 
