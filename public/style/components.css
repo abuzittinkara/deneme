@@ -63,10 +63,10 @@
 .channel-item:hover {
   background-color: #3d3d3d;
 }
-/* Güncellenmiş channel-header */
 .channel-header {
-  display: flex;
-  align-items: center;
+  /* Mevcut flex ayarlarını kaldırıyoruz, float yapısıyla kullanılacak */
+  display: block; 
+  overflow: auto; 
   gap: 0.6rem;
   width: 100%;
   line-height: 1.2;
@@ -207,7 +207,6 @@
   margin-right: 0.4rem;
   transition: background 0.3s ease;
 }
-
 .screenshare-btn:hover {
   background: #4caf50;
   color: #fff;
@@ -314,6 +313,7 @@
   max-width: 70%;
   word-wrap: break-word;
   display: flex;
+  flex-direction: column; /* Avatar solda float, text sağda */
   align-items: flex-start;
   transition: background-color 0.2s ease, width 0.2s ease;
   position: relative;
@@ -321,7 +321,6 @@
 .text-message.left-message {
   align-self: flex-start;
   text-align: left;
-  flex-direction: column;
   margin-top: 0px;
 }
 .text-message:hover {
@@ -333,26 +332,31 @@
 
 /* Mesaj İç Yapısı */
 .message-item {
-  display: flex;
-  flex-direction: column;
+  /* Mesajın tamamı (avatar + text) */
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
 }
-/* Düzenlenmiş mesaj başlığı */
 .message-header {
-  display: flex;
-  align-items: center;
+  /* float yapısı ile avatar solda, sender-info sağda */
+  display: block;
+  overflow: auto;
+  gap: 0.6rem;
+  width: 100%;
+  line-height: 1.2;
+  margin: 0;
 }
+/* Avatar solda */
 .message-avatar-container {
-  width: 48px;
-  flex-shrink: 0;
+  float: left;
+  width: 40px; 
+  margin-right: 8px; 
 }
+/* Kullanıcı adı ve tarih, soldan 48px */
 .sender-info {
+  margin-left: 48px;
   display: flex;
   align-items: center;
-  gap: 4px;
-}
-.avatar-and-name {
-  display: inline-flex;
-  align-items: flex-start;
   gap: 0.4rem;
 }
 .message-avatar {
@@ -377,16 +381,11 @@
   color: #5a5a5a;
   margin-left: 4px;
 }
-
-/* Mesaj içeriği: Avatar ve kullanıcı adının bulunduğu satırın sağından hizalanması için sol margin.
-   Hesaplama: Avatar genişliği (40px) + gap (yaklaşık 0.4rem, yaklaşık 6px) = yaklaşık 46px, yuvarlayarak 48px öneriliyor. */
+/* Mesaj içeriği de kullanıcı adı ile aynı hizadan başlar */
 .message-content {
-  margin-top: 0px;
-  margin-left: 48px;
-}
-/* İlk mesaj için içerik, sender-name ile aynı hizada (margin-left kaldırılarak) hizalanır. */
-.message-content.first-message {
-  margin-left: 0;
+  clear: both;         /* Avatar float'ını sıfırlar, alt satıra geçer */
+  margin-left: 48px;   /* sender-info ile aynı hizada */
+  margin-top: 4px;     /* biraz dikey boşluk */
 }
 
 /* Scrollbar - WebKit */
