@@ -66,6 +66,10 @@
 .channel-header {
   display: flex;
   align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  line-height: 1.2;
+  margin: 0;
 }
 .channel-icon {
   width: 18px;
