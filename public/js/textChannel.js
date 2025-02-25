@@ -51,7 +51,7 @@ function formatLongDate(timestamp) {
 }
 
 // Belirtilen container'a, verilen timestamp için tarih ayıracı ekler.
-// Ayırıcı, tüm genişliği kaplayan yatay çizgi şeklinde olup ortasında uzun formatta tarih metni bulunur.
+// Ayıracı, tüm genişliği kaplayan yatay çizgi şeklinde olup ortasında uzun formatta tarih metni bulunur.
 // DEĞİŞİKLİK: Oluşturulan separator öğesine data-timestamp özniteliği ekleniyor.
 function insertDateSeparator(container, timestamp) {
   const separator = document.createElement('div');
@@ -135,7 +135,8 @@ function renderTextMessages(messages, container) {
     }
     
     const msgDiv = document.createElement('div');
-    msgDiv.className = 'text-message left-message';
+    // Değişiklik: "left-message" yerine msgClass kullanılarak sınıf atanıyor.
+    msgDiv.className = `text-message ${msgClass}`;
     msgDiv.setAttribute('data-timestamp', new Date(msg.timestamp).toISOString());
     msgDiv.setAttribute('data-sender', sender);
     msgDiv.innerHTML = msgHTML;
@@ -207,7 +208,8 @@ function appendNewMessage(msg, container) {
   }
   
   const msgDiv = document.createElement('div');
-  msgDiv.className = 'text-message left-message';
+  // Değişiklik: "left-message" kaldırılarak msgClass kullanılıyor.
+  msgDiv.className = `text-message ${msgClass}`;
   msgDiv.setAttribute('data-timestamp', new Date(msg.timestamp).toISOString());
   msgDiv.setAttribute('data-sender', sender);
   msgDiv.innerHTML = msgHTML;
