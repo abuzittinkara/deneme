@@ -142,21 +142,22 @@ function renderTextMessages(messages, container) {
     container.appendChild(msgDiv);
     
     // Global lastMessageInfo güncellemesi (append işlemleri için)
-    // RenderTextMessages için, ardışık mesaj sayısını burada hesaplamak zor olduğu için mevcut yapı korunuyor.
     lastMessageInfo[container.dataset.channelId] = { sender, timestamp: new Date(msg.timestamp), count: 1 };
   });
   container.scrollTop = container.scrollHeight;
 }
 
 // --- AŞAĞI: DEĞİŞİKLİK YAPILMIŞ appendNewMessage FONKSİYONU ---
-// Yeni mesaj eklendiğinde, eğer aynı gün ve aynı gönderici ardışık mesaj serisindeyse,
-// önceki mesajın sınıfı güncellenecek: 2. mesajsa "first-message", 3 ve üzeriyse "middle-message" olacak.
+// Yeni gelen mesaj eklendiğinde, eğer aynı gün ve aynı gönderici ardışık mesaj serisindeyse,
+// önceki mesajın sınıfı güncellenecek: 
+// - Eğer serideki ilk mesaj ise "only-message" kalır, 
+// - İkinci mesaj eklendiğinde önceki mesaj "first-message", 
+// - Üçüncü ve sonrası eklendiğinde önceki mesaj "middle-message" olarak güncellenecek.
 function appendNewMessage(msg, container) {
   const channelId = container.dataset.channelId;
   const sender = msg.username || "Anon";
   const fullTime = formatTimestamp(msg.timestamp);
   
-  // Ardışık mesaj bilgilerini kontrol et ve güncelle:
   let lastInfo = lastMessageInfo[channelId];
   let consecutiveCount = 0;
   if (!lastInfo || lastInfo.sender !== sender || isDifferentDay(lastInfo.timestamp, msg.timestamp)) {
@@ -165,28 +166,21 @@ function appendNewMessage(msg, container) {
     consecutiveCount = lastInfo.count + 1;
   }
   
-  // Eğer ardışık mesaj sayısı 2 veya üzeriyse, container'ın son mesajını (date separator hariç) güncelleyelim:
   if (consecutiveCount === 2) {
-    // 2 mesaj varsa, önceki mesaj "only-message" iken artık "first-message" olmalı.
-    let lastMsgElem = container.lastElementChild;
-    while (lastMsgElem && lastMsgElem.classList.contains('date-separator')) {
-      lastMsgElem = lastMsgElem.previousElementSibling;
-    }
-    if (lastMsgElem) {
-      const lastContent = lastMsgElem.querySelector('.message-content');
+    let msgs = container.querySelectorAll('.text-message');
+    if (msgs.length > 0) {
+      let prevMsgElem = msgs[msgs.length - 1];
+      let lastContent = prevMsgElem.querySelector('.message-content');
       if (lastContent && lastContent.classList.contains("only-message")) {
         lastContent.classList.remove("only-message");
         lastContent.classList.add("first-message");
       }
     }
   } else if (consecutiveCount > 2) {
-    // Eğer 3 veya daha fazla ardışık mesaj varsa, önceki mesaj "last-message" veya "first-message" ise "middle-message" yapılmalı.
-    let lastMsgElem = container.lastElementChild;
-    while (lastMsgElem && lastMsgElem.classList.contains('date-separator')) {
-      lastMsgElem = lastMsgElem.previousElementSibling;
-    }
-    if (lastMsgElem) {
-      const lastContent = lastMsgElem.querySelector('.message-content');
+    let msgs = container.querySelectorAll('.text-message');
+    if (msgs.length > 0) {
+      let prevMsgElem = msgs[msgs.length - 1];
+      let lastContent = prevMsgElem.querySelector('.message-content');
       if (lastContent && (lastContent.classList.contains("last-message") || lastContent.classList.contains("first-message"))) {
         lastContent.classList.remove("last-message");
         lastContent.classList.remove("first-message");
@@ -195,8 +189,6 @@ function appendNewMessage(msg, container) {
     }
   }
   
-  // Yeni mesaj için sınıf belirleme:
-  // Eğer bu, serideki ilk mesaj ise "only-message", aksi halde "last-message" olarak ayarlanır.
   let newMsgClass = (consecutiveCount === 1) ? "only-message" : "last-message";
   
   let msgHTML = "";
@@ -214,7 +206,6 @@ function appendNewMessage(msg, container) {
   container.appendChild(msgDiv);
   container.scrollTop = container.scrollHeight;
   
-  // Son mesaj bilgilerini güncelle (ardışık mesaj sayısı da dahil)
   lastMessageInfo[channelId] = { sender, timestamp: new Date(msg.timestamp), count: consecutiveCount };
 }
 
@@ -227,7 +218,6 @@ function initTextChannelEvents(socket, container) {
   socket.on('newTextMessage', (data) => {
     if (data.channelId === container.dataset.channelId) {
       const msg = data.message;
-      // Tarih ayıracı kontrolü:
       let lastElement = container.lastElementChild;
       let lastTimestamp = null;
       if (lastElement && lastElement.classList.contains('date-separator')) {
