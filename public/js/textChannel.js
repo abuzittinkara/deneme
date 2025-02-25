@@ -86,7 +86,7 @@ function renderContentOnly(msg, msgClass, timestamp) {
   return `
     <div class="message-item" style="position: relative;">
       <span class="hover-time">${formatTime(timestamp)}</span>
-      <div class="message-content ${msgClass}" style="margin-left: 48px;">${msg.content}</div>
+      <div class="message-content ${msgClass}">${msg.content}</div>
     </div>
   `;
 }
