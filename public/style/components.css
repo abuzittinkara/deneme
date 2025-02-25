@@ -308,7 +308,7 @@
   margin: 0;
   padding: 0.75rem 0.75rem;
   border-radius: 8px;
-  max-width: 70%;
+  /* Eskiden max-width:70% idi; alt kısımda durum bazlı sınıflarda yeniden ayarlanacak */
   word-wrap: break-word;
   display: block;
   text-align: left;
@@ -332,6 +332,15 @@
   /* Tek mesaj (yalnızca bir mesaj varsa) için özel stil */
 }
 
+/* Yeni: Mesaj balonlarının, avatar için ayrılan soldaki 60px boşluk dışında kalan yatay alanı kaplaması */
+.text-message.first-message,
+.text-message.middle-message,
+.text-message.last-message,
+.text-message.only-message {
+  max-width: calc(100% - 60px);
+  width: 100%;
+}
+ 
 /* Mesaj kapsayıcı */
 .message-item {
   position: relative;     /* Avatar'ı absolute konumlandırmak için */
@@ -670,31 +679,4 @@
 }
 .text-message:hover .message-avatar.placeholder {
   background-color: #2d2d2d;
-}
-
-/* Yeni: Hover sırasında (header içermeyen) mesajlarda saat bilgisinin gösterilmesi */
-.hover-time {
-  position: absolute;
-  left: -20px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: none;
-  font-size: 0.8em;
-  color: #5a5a5a;
-  width: 48px;
-  text-align: right;
-  padding-right: 4px;
-}
-.text-message:hover .hover-time {
-  display: block;
-}
-
-/* Ekran Paylaşım Göstergesi */
-.screen-share-indicator {
-  background-color: #c61884;
-  color: white;
-  padding: 2px 4px;
-  border-radius: 2px;
-  font-size: 10px;
-  margin-left: 4px;
 }
