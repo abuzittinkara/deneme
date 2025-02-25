@@ -316,19 +316,12 @@
   box-sizing: border-box;
   background: transparent;
 }
-.text-message.left-message {
-  align-self: flex-start;
-}
-.text-message:hover {
-  background-color: #2d2d2d;
-  width: 100% !important;
-  max-width: 100% !important;
-}
+/* Artık .left-message yok; siz ardışık mesajlar için first-message / middle-message / last-message / only-message kullanabilirsiniz. */
 
 /* Mesaj kapsayıcı */
 .message-item {
-  position: relative;     /* Avatar'ı absolute konumlandırmak için */
-  padding-left: 60px;     /* Avatar kadar soldan boşluk -> metin burada başlıyor */
+  position: relative;     
+  padding-left: 60px;     
   display: block;
   width: 100%;
   box-sizing: border-box;
@@ -632,7 +625,6 @@
   position: relative;
   color: #5a5a5a;
 }
-
 .date-separator::before,
 .date-separator::after {
   content: "";
@@ -640,7 +632,6 @@
   border-bottom: 1px solid #5a5a5a;
   margin: 0 10px;
 }
-
 .date-separator .separator-text {
   white-space: nowrap;
   font-size: 0.85rem;
@@ -658,7 +649,7 @@
   background-color: #2d2d2d;
 }
 
-/* Yeni: Hover sırasında (header içermeyen) mesajlarda saat bilgisinin gösterilmesi */
+/* Hover sırasında (header içermeyen) mesajlarda saat bilgisinin gösterilmesi */
 .hover-time {
   position: absolute;
   left: -20px;
@@ -685,16 +676,16 @@
   margin-left: 4px;
 }
 
-/* Eklenen Sınıflar: first-message, only-message, middle-message, last-message */
-.message-content.first-message {
-  /* Özel stil ekleyebilirsiniz */
+/* Ardışık mesajlar için: first-message, middle-message, last-message, only-message */
+.text-message.first-message {
+  /* İlk mesaj (avatar + kullanıcı adı) */
 }
-.message-content.only-message {
-  /* Özel stil ekleyebilirsiniz */
+.text-message.middle-message {
+  /* Orta mesaj(lar) */
 }
-.message-content.middle-message {
-  /* Özel stil ekleyebilirsiniz */
+.text-message.last-message {
+  /* Son mesaj */
 }
-.message-content.last-message {
-  /* Özel stil ekleyebilirsiniz */
+.text-message.only-message {
+  /* Tek mesaj (blok) */
 }
