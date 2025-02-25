@@ -326,13 +326,17 @@
 /* Ardışık mesajlarda artık .left-message sınıfı kullanılmayacak.
    Bunun yerine aşağıdaki ayrı sınıfları kullanacaksınız: */
 .text-message.first-message {
-  /* İlk mesaj (avatar + kullanıcı adı) için özel stil */
+  padding-top: 10px;
+  padding-bottom: 0px;
 }
 .text-message.middle-message {
-  /* Orta mesaj (ardışık) için özel stil */
+  padding-top: 0px;
+  padding-bottom: 0px;
 }
 .text-message.last-message {
-  /* Son mesaj için özel stil */
+  padding-top: 0px;
+  padding-bottom: 0px;
+  margin-bottom: 20px;
 }
 .text-message.only-message {
   /* Tek mesaj (yalnızca bir mesaj varsa) için özel stil */
@@ -394,7 +398,7 @@
 
 /* Mesaj içeriği */
 .message-content {
-  margin-top: 4px;
+  margin-top: 0px;
   margin-bottom: 0;
   padding: 0;
 }
