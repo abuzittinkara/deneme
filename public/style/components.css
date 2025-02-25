@@ -64,8 +64,8 @@
   background-color: #3d3d3d;
 }
 .channel-header {
-  display: flex;
-  align-items: center;
+  display: block; 
+  overflow: auto; 
   gap: 0.6rem;
   width: 100%;
   line-height: 1.2;
@@ -88,6 +88,7 @@
   width: 100%;
   box-sizing: border-box;
 }
+
 /* Güncel: Kanal kullanıcı alanı */
 .channel-user {
   width: 100%;
@@ -102,14 +103,12 @@
   align-items: center;
   gap: 0.5rem;
 }
-/* Yeni: Sağ tarafta ikonların yer alacağı alan */
 .channel-user-right {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 0.4rem;
 }
-/* İkonların rengi #c61884 olacak */
 .channel-user-right .material-icons {
   color: #c61884;
 }
@@ -205,7 +204,6 @@
   margin-right: 0.4rem;
   transition: background 0.3s ease;
 }
-
 .screenshare-btn:hover {
   background: #4caf50;
   color: #fff;
@@ -304,45 +302,66 @@
   overflow: auto;
 }
 
-/* Mesaj Stili */
+/* Metin Kanalları (Mesajlar) */
 .text-message {
+  position: relative;
   margin: 0;
-  padding: 0px 12px;
+  padding: 0.75rem 0.75rem;
   border-radius: 8px;
   max-width: 70%;
   word-wrap: break-word;
-  display: flex;
-  align-items: flex-start;
-  transition: background-color 0.2s ease, width 0.2s ease;
-  position: relative;
-}
-.text-message.left-message {
-  align-self: flex-start;
+  display: block;
   text-align: left;
-  flex-direction: column;
-  margin-top: 0px;
+  transition: background-color 0.2s ease, width 0.2s ease;
+  box-sizing: border-box;
+  background: transparent;
 }
-.text-message:hover {
-  background-color: #2d2d2d;
-  width: 100% !important;
-  max-width: 100% !important;
+
+/* Burada .left-message yerine aşağıdaki ayrı sınıfları kullanacaksınız */
+.text-message.first-message {
+  /* İlk mesaj (avatar + kullanıcı adı) için özel stil - henüz boş bırakıldı */
+}
+.text-message.middle-message {
+  /* Orta mesaj (ardışık) için özel stil - henüz boş bırakıldı */
+}
+.text-message.last-message {
+  /* Son mesaj için özel stil - henüz boş bırakıldı */
+}
+.text-message.only-message {
+  /* Tek mesaj (yalnızca bir mesaj varsa) için özel stil - henüz boş bırakıldı */
+}
+
+/* Mesaj kapsayıcı */
+.message-item {
+  position: relative;     /* Avatar'ı absolute konumlandırmak için */
+  padding-left: 60px;     /* Avatar kadar soldan boşluk -> metin burada başlıyor */
+  display: block;
+  width: 100%;
   box-sizing: border-box;
 }
 
-/* Mesaj İç Yapısı */
-.message-item {
+/* Avatar solda, metni etkilemesin */
+.message-avatar-container {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #666;
   display: flex;
-  flex-direction: column;
-}
-.message-header {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: center;
 }
-.avatar-and-name {
-  display: inline-flex;
-  align-items: flex-start;
+
+/* Kullanıcı adı ve tarih */
+.sender-info {
+  display: flex;
+  align-items: center;
   gap: 0.4rem;
+  margin: 0;
+  line-height: 1.2;
 }
 .message-avatar {
   width: 40px;
@@ -350,14 +369,13 @@
   background-color: #666;
   border-radius: 50%;
   color: #fff;
+  font-weight: bold;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
 }
 .sender-name {
   font-weight: bold;
-  margin-right: 4px;
   color: #fff;
 }
 .timestamp {
@@ -367,11 +385,11 @@
   margin-left: 4px;
 }
 
-/* Mesaj içeriği: Avatar ve kullanıcı adının bulunduğu satırın sağından hizalanması için sol margin.
-   Hesaplama: Avatar genişliği (40px) + gap (yaklaşık 0.4rem, yaklaşık 6px) = yaklaşık 46px, yuvarlayarak 48px öneriliyor. */
+/* Mesaj içeriği */
 .message-content {
-  margin-top: 0px;
-  margin-left: 48px;
+  margin-top: 4px;
+  margin-bottom: 0;
+  padding: 0;
 }
 
 /* Scrollbar - WebKit */
@@ -408,12 +426,12 @@
   align-items: center;
   width: 100%;
   padding: 0.5rem;
-  /* Alt kısımda ekstra boşluk oluşturmak için padding-bottom ekleniyor */
   padding-bottom: 30px;
   box-sizing: border-box;
 }
 .text-chat-input-bar .chat-input {
   flex: 1;
+  width: 100%;
   box-sizing: border-box;
   padding-right: 40px;
   background: #444;
@@ -421,26 +439,27 @@
   border-radius: 6px;
   color: #fff;
   padding: 0.5rem;
-  /* İstenirse margin-bottom sıfırlanabilir */
   margin-bottom: 0;
 }
-#sendTextMessageBtn {
+
+.chat-input-wrapper {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+.chat-input-wrapper .send-icon {
   position: absolute;
   right: 10px;
   top: 50%;
   transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  display: none;
-}
-#sendTextMessageBtn span.send-icon {
   font-family: 'Material Icons Outlined';
   font-size: 24px;
   transition: color 0.3s ease, font-family 0.3s ease;
   color: #aaa;
+  cursor: pointer;
+  display: none;
 }
-#sendTextMessageBtn:hover span.send-icon {
+.chat-input-wrapper .send-icon:hover {
   font-family: 'Material Icons';
   color: #c61884;
 }
@@ -528,6 +547,7 @@
   padding: 0.75rem 1rem;
   cursor: pointer;
   font-size: 0.9rem;
+  color: #fff;
   border-bottom: 1px solid #444;
 }
 .context-menu-item:last-child {
@@ -623,7 +643,7 @@
 .date-separator::after {
   content: "";
   flex: 1;
-  border-bottom: 1px solid #aaa;
+  border-bottom: 1px solid #5a5a5a;
   margin: 0 10px;
 }
 
@@ -632,6 +652,7 @@
   font-size: 0.85rem;
   color: #5a5a5a;
   padding: 0 10px;
+  background: transparent;
   border-radius: 4px;
 }
 
@@ -644,7 +665,6 @@
 }
 
 /* Yeni: Hover sırasında (header içermeyen) mesajlarda saat bilgisinin gösterilmesi */
-/* Bu kısımda sadece saat bilgisi gösterilecek */
 .hover-time {
   position: absolute;
   left: -20px;
@@ -661,7 +681,7 @@
   display: block;
 }
 
-/* Yeni: Ekran Paylaşım Göstergesi */
+/* Ekran Paylaşım Göstergesi */
 .screen-share-indicator {
   background-color: #c61884;
   color: white;
@@ -669,4 +689,14 @@
   border-radius: 2px;
   font-size: 10px;
   margin-left: 4px;
+}
+
+/* Eklenen Sınıflar: first-message, middle-message, last-message, only-message */
+/* Bu sınıfların fare üzerine gelindiğinde hover efekti olsun */
+.text-message.first-message:hover,
+.text-message.middle-message:hover,
+.text-message.last-message:hover,
+.text-message.only-message:hover {
+  background-color: #2d2d2d;
+  cursor: pointer;
 }
