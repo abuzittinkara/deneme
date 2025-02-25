@@ -317,18 +317,19 @@
   background: transparent;
 }
 
-/* Burada .left-message yerine aşağıdaki ayrı sınıfları kullanacaksınız */
+/* Ardışık mesajlarda artık .left-message sınıfı kullanılmayacak.
+   Bunun yerine aşağıdaki ayrı sınıfları kullanacaksınız: */
 .text-message.first-message {
-  /* İlk mesaj (avatar + kullanıcı adı) için özel stil - henüz boş bırakıldı */
+  /* İlk mesaj (avatar + kullanıcı adı) için özel stil */
 }
 .text-message.middle-message {
-  /* Orta mesaj (ardışık) için özel stil - henüz boş bırakıldı */
+  /* Orta mesaj (ardışık) için özel stil */
 }
 .text-message.last-message {
-  /* Son mesaj için özel stil - henüz boş bırakıldı */
+  /* Son mesaj için özel stil */
 }
 .text-message.only-message {
-  /* Tek mesaj (yalnızca bir mesaj varsa) için özel stil - henüz boş bırakıldı */
+  /* Tek mesaj (yalnızca bir mesaj varsa) için özel stil */
 }
 
 /* Mesaj kapsayıcı */
@@ -390,6 +391,15 @@
   margin-top: 4px;
   margin-bottom: 0;
   padding: 0;
+}
+
+/* Hover Efekti: Ardışık mesaj sınıflarına fare üzerine gelindiğinde hover oluşsun */
+.text-message.first-message:hover,
+.text-message.middle-message:hover,
+.text-message.last-message:hover,
+.text-message.only-message:hover {
+  background-color: #2d2d2d;
+  cursor: pointer;
 }
 
 /* Scrollbar - WebKit */
@@ -638,7 +648,6 @@
   position: relative;
   color: #5a5a5a;
 }
-
 .date-separator::before,
 .date-separator::after {
   content: "";
@@ -646,7 +655,6 @@
   border-bottom: 1px solid #5a5a5a;
   margin: 0 10px;
 }
-
 .date-separator .separator-text {
   white-space: nowrap;
   font-size: 0.85rem;
@@ -689,14 +697,4 @@
   border-radius: 2px;
   font-size: 10px;
   margin-left: 4px;
-}
-
-/* Eklenen Sınıflar: first-message, middle-message, last-message, only-message */
-/* Bu sınıfların fare üzerine gelindiğinde hover efekti olsun */
-.text-message.first-message:hover,
-.text-message.middle-message:hover,
-.text-message.last-message:hover,
-.text-message.only-message:hover {
-  background-color: #2d2d2d;
-  cursor: pointer;
 }
