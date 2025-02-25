@@ -149,25 +149,24 @@ function renderTextMessages(messages, container) {
 
 // --- AŞAĞI: DEĞİŞİKLİK YAPILMIŞ appendNewMessage FONKSİYONU ---
 // Her yeni mesaj gönderildiğinde, eğer son gönderilen mesaj aynı gün ve aynı göndericiden ise,
-// o mesajın içeriği "middle-message" olarak güncellenecek ve yeni mesaj "last-message" olarak eklenecek.
+// o mesajın dış kapsayıcısı (.text-message) ve içeriği (.message-content) "middle-message" olarak güncellenecek,
+// ve yeni mesaj "last-message" olarak eklenecek.
 // Eğer ardışık mesaj yoksa yeni mesaj "only-message" olarak eklenir.
 function appendNewMessage(msg, container) {
   const sender = msg.username || "Anon";
   const fullTime = formatTimestamp(msg.timestamp);
-  let newMsgClass = "last-message"; // varsayılan: eğer ardışık mesaj varsa
+  let newMsgClass = "last-message"; // varsayılan
   
   // Son eklenen metin mesajı (date separator hariç) alınıyor.
   const messages = container.querySelectorAll('.text-message');
-  let lastMsgElem = null;
-  if (messages.length > 0) {
-    lastMsgElem = messages[messages.length - 1];
-  }
+  let lastMsgElem = messages.length > 0 ? messages[messages.length - 1] : null;
   
   if (lastMsgElem && lastMsgElem.getAttribute('data-sender') === sender) {
-    // Aynı gönderici ve aynı gün mü kontrol edelim:
     let lastTimestamp = new Date(lastMsgElem.getAttribute('data-timestamp'));
     if (!isDifferentDay(lastTimestamp, msg.timestamp)) {
-      // Önceki mesajın message-content'ini "middle-message" olarak güncelle
+      // Hem dış kapsayıcıyı hem de iç message-content öğesini "middle-message" olarak güncelle
+      lastMsgElem.classList.remove("only-message", "first-message", "middle-message", "last-message");
+      lastMsgElem.classList.add("middle-message");
       const lastContent = lastMsgElem.querySelector('.message-content');
       if (lastContent) {
         lastContent.classList.remove("only-message", "first-message", "middle-message", "last-message");
@@ -197,7 +196,7 @@ function appendNewMessage(msg, container) {
   container.appendChild(msgDiv);
   container.scrollTop = container.scrollHeight;
   
-  // Güncel bilgiyi sakla (kullanılsa da bu örnekte DOM üzerinden güncelleme yapıyoruz)
+  // Son mesaj bilgilerini güncelle (DOM üzerinden güncelleme yapılıyor)
   lastMessageInfo[container.dataset.channelId] = { sender, timestamp: new Date(msg.timestamp) };
 }
 
