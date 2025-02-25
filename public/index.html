@@ -142,7 +142,27 @@
           <div id="channelUsersContainer" class="channel-users-container" style="display: none;"></div>
           <!-- Text kanallar için: mesajların listeleneceği alan + mesaj yazma kutusu -->
           <div id="textChannelContainer" class="text-channel-container" style="display: none;">
-            <div id="textMessages" class="text-messages"></div>
+            <div id="textMessages" class="text-messages">
+              <!-- Örnek mesaj öğeleri (HTML üretiminiz dinamik olsa bile örnek olarak eklenmiştir) -->
+              <div class="text-message first-message" data-timestamp="2025-02-24T14:47:08.391Z" data-sender="abuzorttin">
+                <div class="message-item" style="position: relative;">
+                  <span class="hover-time">14:47</span>
+                  <div class="message-content first-message">Merhaba, bu ilk mesaj.</div>
+                </div>
+              </div>
+              <div class="text-message middle-message" data-timestamp="2025-02-24T14:47:12.000Z" data-sender="abuzorttin">
+                <div class="message-item" style="position: relative;">
+                  <span class="hover-time">14:47</span>
+                  <div class="message-content middle-message">Devam eden mesaj.</div>
+                </div>
+              </div>
+              <div class="text-message last-message" data-timestamp="2025-02-24T14:47:16.000Z" data-sender="abuzorttin">
+                <div class="message-item" style="position: relative;">
+                  <span class="hover-time">14:47</span>
+                  <div class="message-content last-message">Son mesaj.</div>
+                </div>
+              </div>
+            </div>
             <div id="textChatInputBar" class="text-chat-input-bar">
               <div class="chat-input-wrapper">
                 <input type="text" id="textChannelMessageInput" class="chat-input" placeholder="Bir mesaj yazın..." />
