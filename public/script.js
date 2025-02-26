@@ -409,16 +409,17 @@ function initSocketEvents() {
       groupListDiv.appendChild(grpItem);
     });
   });
-  // --- Yeni: groupDeleted eventini dinleyerek silinen grubu UI'dan kaldırıyoruz ---
-  socket.on('groupDeleted', (data) => {
-    const { groupId } = data;
-    const grpItem = document.querySelector(`.grp-item[data-group-id="${groupId}"]`);
-    if (grpItem) {
-      grpItem.remove();
+  // Yeni: Silinen kanal için channelDeleted event'ini dinleyip UI'dan ilgili kanal öğesini kaldırıyoruz.
+  socket.on('channelDeleted', (data) => {
+    const { channelId } = data;
+    const channelItem = document.querySelector(`.channel-item[data-channel-id="${channelId}"]`);
+    if (channelItem) {
+      channelItem.remove();
     }
-    if (selectedGroup === groupId) {
-      selectedGroup = null;
-      groupTitle.textContent = 'Seçili Grup';
+    if (currentTextChannel === channelId) {
+      currentTextChannel = null;
+      textChannelContainer.style.display = 'none';
+      document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
     }
   });
   socket.on('roomsList', (roomsArray) => {
