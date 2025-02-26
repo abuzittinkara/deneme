@@ -409,19 +409,23 @@ function initSocketEvents() {
       groupListDiv.appendChild(grpItem);
     });
   });
-  // Yeni: Silinen kanal için channelDeleted event'ini dinleyip UI'dan ilgili kanal öğesini kaldırıyoruz.
+  
+  // Channel silinince client tarafında UI'dan kaldırmak için
   socket.on('channelDeleted', (data) => {
-    const { channelId } = data;
-    const channelItem = document.querySelector(`.channel-item[data-channel-id="${channelId}"]`);
-    if (channelItem) {
-      channelItem.remove();
+    const channelId = data.channelId;
+    // Eğer oda listesinde (roomsList) varsa ilgili DOM öğesini kaldır.
+    const channelElement = document.querySelector(`[data-channel-id="${channelId}"]`);
+    if (channelElement) {
+      channelElement.remove();
     }
+    // Eğer silinen kanal şu an seçili metin kanalı ise, seçimi temizle.
     if (currentTextChannel === channelId) {
       currentTextChannel = null;
       textChannelContainer.style.display = 'none';
       document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
     }
   });
+
   socket.on('roomsList', (roomsArray) => {
     roomListDiv.innerHTML = '';
     roomsArray.forEach(roomObj => {
