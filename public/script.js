@@ -414,6 +414,8 @@ function initSocketEvents() {
     roomsArray.forEach(roomObj => {
       const roomItem = document.createElement('div');
       roomItem.className = 'channel-item';
+      // data-channel-id attribute ekleniyor
+      roomItem.dataset.channelId = roomObj.id;
       const channelHeader = document.createElement('div');
       channelHeader.className = 'channel-header';
       let icon;
@@ -584,6 +586,20 @@ function initSocketEvents() {
     if (selectedGroup === groupId) {
       selectedGroup = null;
       groupTitle.textContent = 'Seçili Grup';
+    }
+  });
+  // ==== YENİ: channelDeleted eventini dinle, kanallar listesinden kaldır ====
+  socket.on('channelDeleted', (data) => {
+    const { channelId } = data;
+    const channelItem = document.querySelector(`.channel-item[data-channel-id="${channelId}"]`);
+    if (channelItem) {
+      channelItem.remove();
+    }
+    // Eğer silinen kanal seçili ise, resetleyelim.
+    if (currentRoom === channelId || currentTextChannel === channelId) {
+      currentRoom = null;
+      currentTextChannel = null;
+      document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
     }
   });
 }
