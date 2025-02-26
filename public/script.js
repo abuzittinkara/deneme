@@ -318,6 +318,9 @@ function initSocketEvents() {
     groupArray.forEach(groupObj => {
       const grpItem = document.createElement('div');
       grpItem.className = 'grp-item';
+      // Gerekli: data-group-id attribute
+      grpItem.dataset.groupId = groupObj.id;
+
       grpItem.innerText = groupObj.name[0].toUpperCase();
       grpItem.title = groupObj.name + " (" + groupObj.id + ")";
       grpItem.addEventListener('click', () => {
@@ -496,6 +499,21 @@ function initSocketEvents() {
     const gId = users[socket.id].currentGroup;
     if (gId) {
       socket.emit('allChannelsData', getAllChannelsData(gId));
+    }
+  });
+
+  // ==== YENİ: groupDeleted eventini dinle, sol taraftaki listeden kaldır ====
+  socket.on('groupDeleted', (data) => {
+    const { groupId } = data;
+    // .grp-item[data-group-id="..."] seçelim
+    const grpItem = document.querySelector(`.grp-item[data-group-id="${groupId}"]`);
+    if (grpItem) {
+      grpItem.remove();
+    }
+    // Eğer şu an seçili olan grup silindiyse, resetleyelim
+    if (selectedGroup === groupId) {
+      selectedGroup = null;
+      groupTitle.textContent = 'Seçili Grup';
     }
   });
 }
@@ -880,8 +898,8 @@ function initUIEvents() {
     loginScreen.style.display = 'block';
   });
   showRegisterScreen.addEventListener('click', () => {
-    loginScreen.style.display = 'none';
-    registerScreen.style.display = 'block';
+    registerScreen.style.display = 'none';
+    loginScreen.style.display = 'block';
   });
   showLoginScreen.addEventListener('click', () => {
     registerScreen.style.display = 'none';
