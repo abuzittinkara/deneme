@@ -831,8 +831,6 @@ io.on('connection', (socket) => {
       broadcastAllRoomsUsers(gId);
       broadcastAllChannelsData(gId);
       console.log(`Kanal silindi => ${channelId}`);
-      // Yeni: Kanal silindiğinde, ilgili kanalı UI tarafında kaldırmak için event gönderiyoruz.
-      io.to(gId).emit('channelDeleted', { channelId });
     } catch (err) {
       console.error("deleteChannel hata:", err);
       socket.emit('errorMessage', "Kanal silinirken hata oluştu.");
