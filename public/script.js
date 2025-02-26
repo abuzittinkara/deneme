@@ -409,6 +409,18 @@ function initSocketEvents() {
       groupListDiv.appendChild(grpItem);
     });
   });
+  // --- Yeni: groupDeleted eventini dinleyerek silinen grubu UI'dan kaldırıyoruz ---
+  socket.on('groupDeleted', (data) => {
+    const { groupId } = data;
+    const grpItem = document.querySelector(`.grp-item[data-group-id="${groupId}"]`);
+    if (grpItem) {
+      grpItem.remove();
+    }
+    if (selectedGroup === groupId) {
+      selectedGroup = null;
+      groupTitle.textContent = 'Seçili Grup';
+    }
+  });
   socket.on('roomsList', (roomsArray) => {
     roomListDiv.innerHTML = '';
     roomsArray.forEach(roomObj => {
