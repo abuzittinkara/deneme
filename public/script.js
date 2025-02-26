@@ -414,6 +414,8 @@ function initSocketEvents() {
     roomsArray.forEach(roomObj => {
       const roomItem = document.createElement('div');
       roomItem.className = 'channel-item';
+      // data-channel-id attribute ekleniyor
+      roomItem.dataset.channelId = roomObj.id;
       const channelHeader = document.createElement('div');
       channelHeader.className = 'channel-header';
       let icon;
@@ -578,18 +580,6 @@ function initSocketEvents() {
     const gId = users[socket.id].currentGroup;
     if (gId) {
       socket.emit('allChannelsData', getAllChannelsData(gId));
-    }
-  });
-  // ==== YENİ: groupDeleted eventini dinle, sol taraftaki gruplardan kaldır ====
-  socket.on('groupDeleted', (data) => {
-    const { groupId } = data;
-    const grpItem = document.querySelector(`.grp-item[data-group-id="${groupId}"]`);
-    if (grpItem) {
-      grpItem.remove();
-    }
-    if (selectedGroup === groupId) {
-      selectedGroup = null;
-      groupTitle.textContent = 'Seçili Grup';
     }
   });
 }
