@@ -409,7 +409,7 @@ function initSocketEvents() {
       groupTitle.textContent = 'Seçili Grup';
     }
   });
-  /* Yeni: Kanal silindiğinde, ilgili kanalın DOM öğesini kaldıran event listener */
+  /* Yeni: Kanal silindiğinde otomatik UI güncellemesi */
   socket.on('channelDeleted', ({ channelId }) => {
     const channelElem = document.querySelector(`[data-channel-id="${channelId}"]`);
     if(channelElem) {
@@ -475,7 +475,6 @@ function initSocketEvents() {
         clearScreenShareUI();
         document.getElementById('channelUsersContainer').style.display = 'flex';
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
-        // Eğer kullanıcı zaten bağlı olduğu sesli kanalda ise; sadece arayüz güncellemesi yap.
         if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
           roomItem.classList.add('connected');
           updateVoiceChannelUI(roomObj.name);
@@ -867,7 +866,6 @@ function joinRoom(groupId, roomId, roomName) {
   console.log(`joinRoom çağrıldı: group=${groupId}, room=${roomId}, name=${roomName}`);
   socket.emit('joinRoom', { groupId, roomId });
   document.getElementById('selectedChannelTitle').textContent = roomName;
-  // Sesli kanala bağlanırken aktif kanal adını kaydediyoruz
   activeVoiceChannelName = roomName;
   showChannelStatusPanel();
   currentRoomType = "voice";
@@ -1256,7 +1254,6 @@ function showChannelStatusPanel() {
       </div>
     </div>
   `;
-  // LeaveChannelBtn hover ekle: mouseover'da ikon rengi #c61884, mouseout'da #aaa olsun.
   const leaveChannelBtn = document.getElementById('leaveChannelBtn');
   leaveChannelBtn.addEventListener('mouseenter', () => {
     const icon = leaveChannelBtn.querySelector('.material-icons');
@@ -1266,7 +1263,6 @@ function showChannelStatusPanel() {
     const icon = leaveChannelBtn.querySelector('.material-icons');
     if (icon) icon.style.color = "#aaa";
   });
-  // Hover efektleri: ekran paylaşım butonuna yalnızca aktif değilse uygulanıyor.
   const screenShareBtn = document.getElementById('screenShareStatusBtn');
   screenShareBtn.addEventListener('mouseenter', () => {
     if (!screenShareBtn.classList.contains('active')) {
@@ -1285,7 +1281,6 @@ function showChannelStatusPanel() {
       screenShareBtn.style.backgroundColor = "#444";
     }
   });
-  // Ekran paylaşım butonunun tıklanması:
   screenShareBtn.addEventListener('click', async () => {
     const icon = document.getElementById('screenShareIcon');
     if(window.screenShareProducerVideo) {
