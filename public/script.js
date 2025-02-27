@@ -409,11 +409,24 @@ function initSocketEvents() {
       groupTitle.textContent = 'Seçili Grup';
     }
   });
+  /* Yeni: Kanal silindiğinde, ilgili kanalın DOM öğesini kaldıran event listener */
+  socket.on('channelDeleted', ({ channelId }) => {
+    const channelElem = document.querySelector(`[data-channel-id="${channelId}"]`);
+    if(channelElem) {
+      channelElem.remove();
+    }
+    if(currentTextChannel === channelId || currentRoom === channelId) {
+      currentTextChannel = null;
+      currentRoom = null;
+      document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
+    }
+  });
   socket.on('roomsList', (roomsArray) => {
     roomListDiv.innerHTML = '';
     roomsArray.forEach(roomObj => {
       const roomItem = document.createElement('div');
       roomItem.className = 'channel-item';
+      roomItem.setAttribute('data-channel-id', roomObj.id);
       const channelHeader = document.createElement('div');
       channelHeader.className = 'channel-header';
       let icon;
