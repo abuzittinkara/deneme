@@ -409,25 +409,24 @@ function initSocketEvents() {
       groupTitle.textContent = 'Seçili Grup';
     }
   });
-
-  // **DEĞİŞİKLİK: channelDeleted event'i => groupId de alıyoruz.**
+  
+  // DEĞİŞİKLİK: channelDeleted event listener'ı
   socket.on('channelDeleted', ({ channelId, groupId }) => {
+    console.log('channelDeleted event received:', { channelId, groupId });
     const channelElem = document.querySelector(`[data-channel-id="${channelId}"]`);
     if (channelElem) {
       channelElem.remove();
     }
-    // Eğer silinen kanal şu anda aktifse => sıfırlıyoruz
     if (currentTextChannel === channelId || currentRoom === channelId) {
       currentTextChannel = null;
       currentRoom = null;
       document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
     }
-    // Eğer anlık olarak bu gruptaysak, kanalları tekrar çek
     if (currentGroup === groupId) {
       socket.emit('browseGroup', currentGroup);
     }
   });
-
+  
   socket.on('roomsList', (roomsArray) => {
     roomListDiv.innerHTML = '';
     roomsArray.forEach(roomObj => {
@@ -502,7 +501,6 @@ function initSocketEvents() {
       roomListDiv.appendChild(roomItem);
     });
   });
-
   socket.on('joinRoomAck', ({ groupId, roomId }) => {
     console.log("joinRoomAck received:", groupId, roomId);
     currentGroup = groupId;
