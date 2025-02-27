@@ -440,7 +440,6 @@ io.on('connection', (socket) => {
 
   // EK: Typing indicator eventleri
   socket.on('typing', (data) => {
-    // data: { username, channel }
     socket.to(data.channel).emit('typing', data);
   });
   socket.on('stop typing', (data) => {
@@ -827,11 +826,15 @@ io.on('connection', (socket) => {
       if (groups[gId] && groups[gId].rooms[channelId]) {
         delete groups[gId].rooms[channelId];
       }
+
+      // Kanal silindikten sonra roomsList ve allChannelsData güncelleniyor:
       broadcastRoomsListToGroup(gId);
       broadcastAllRoomsUsers(gId);
       broadcastAllChannelsData(gId);
-      // Silinen kanal bilgisini tüm gruptaki istemcilere gönderiyoruz.
-      io.to(gId).emit('channelDeleted', { channelId: channelId });
+
+      // **Değişiklik: Burada kanalın silindiğini, grup ID'siyle birlikte bildiriyoruz:**
+      io.to(gId).emit('channelDeleted', { channelId, groupId: gId });
+
       console.log(`Kanal silindi => ${channelId}`);
     } catch (err) {
       console.error("deleteChannel hata:", err);
