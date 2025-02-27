@@ -173,6 +173,65 @@ window.addEventListener('DOMContentLoaded', () => {
   TextChannel.initTextChannelEvents(socket, textMessages);
 });
 
+/* Yeni fonksiyon: Context Menu Gösterimi */
+function showChannelContextMenu(e, roomObj) {
+  // Var olan context menu varsa kaldır
+  const existingMenu = document.getElementById('channelContextMenu');
+  if(existingMenu) {
+    existingMenu.remove();
+  }
+  const menu = document.createElement('div');
+  menu.id = 'channelContextMenu';
+  menu.className = 'context-menu';
+  menu.style.position = 'absolute';
+  menu.style.top = e.pageY + 'px';
+  menu.style.left = e.pageX + 'px';
+  menu.style.display = 'flex';
+  menu.style.flexDirection = 'column';
+  // Menü öğeleri
+  const menuItems = [
+    {
+      text: 'Kanal Ayarları',
+      action: () => { alert('Kanal ayarları henüz uygulanmadı.'); }
+    },
+    {
+      text: 'Kanalın İsmini Değiştir',
+      action: () => {
+        const newName = prompt('Yeni kanal ismini girin:', roomObj.name);
+        if(newName && newName.trim() !== '') {
+          socket.emit('renameChannel', { channelId: roomObj.id, newName: newName.trim() });
+        }
+      }
+    },
+    {
+      text: 'Kanalı Sil',
+      action: () => {
+        if(confirm('Bu kanalı silmek istediğinize emin misiniz?')) {
+          socket.emit('deleteChannel', roomObj.id);
+        }
+      }
+    }
+  ];
+  menuItems.forEach(item => {
+    const menuItem = document.createElement('div');
+    menuItem.className = 'context-menu-item';
+    menuItem.textContent = item.text;
+    menuItem.addEventListener('click', () => {
+      item.action();
+      menu.remove();
+    });
+    menu.appendChild(menuItem);
+  });
+  document.body.appendChild(menu);
+  // Dışarı tıklanırsa menüyü kapat
+  document.addEventListener('click', function handler() {
+    if(document.getElementById('channelContextMenu')){
+      document.getElementById('channelContextMenu').remove();
+    }
+    document.removeEventListener('click', handler);
+  });
+}
+
 /* Yeni fonksiyon: updateVoiceChannelUI */
 function updateVoiceChannelUI(roomName) {
   document.getElementById('selectedChannelTitle').textContent = roomName;
@@ -376,6 +435,13 @@ function initSocketEvents() {
       channelUsers.id = `channel-users-${roomObj.id}`;
       roomItem.appendChild(channelHeader);
       roomItem.appendChild(channelUsers);
+      
+      // Sağ tıklama ile context menu açılması
+      roomItem.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        showChannelContextMenu(e, roomObj);
+      });
+      
       roomItem.addEventListener('click', () => {
         if (roomObj.type === 'text') {
           console.log(`Text channel clicked => ${roomObj.name}`);
