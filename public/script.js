@@ -412,13 +412,16 @@ function initSocketEvents() {
   /* Yeni: Kanal silindiğinde otomatik UI güncellemesi */
   socket.on('channelDeleted', ({ channelId }) => {
     const channelElem = document.querySelector(`[data-channel-id="${channelId}"]`);
-    if(channelElem) {
+    if (channelElem) {
       channelElem.remove();
     }
-    if(currentTextChannel === channelId || currentRoom === channelId) {
+    if (currentTextChannel === channelId || currentRoom === channelId) {
       currentTextChannel = null;
       currentRoom = null;
       document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
+    }
+    if (currentGroup) {
+      socket.emit('browseGroup', currentGroup);
     }
   });
   socket.on('roomsList', (roomsArray) => {
