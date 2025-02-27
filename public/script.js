@@ -422,8 +422,9 @@ function initSocketEvents() {
       currentRoom = null;
       document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
     }
-    if (currentGroup === groupId) {
-      socket.emit('browseGroup', currentGroup);
+    // Düzeltilmiş kontrol: Hem "join" edilmiş hem de "browse" edilen grup aynıysa listeyi güncelle
+    if (currentGroup === groupId || selectedGroup === groupId) {
+      socket.emit('browseGroup', groupId);
     }
   });
   
@@ -509,7 +510,7 @@ function initSocketEvents() {
     showChannelStatusPanel();
     if (!audioPermissionGranted || !localStream) {
       requestMicrophoneAccess().then(() => {
-        console.log("Mikrofon alındı, SFU akışı başlatılıyor...");
+        console.log("Mikrofon izni alındı, SFU akışı başlatılıyor...");
         startSfuFlow();
       }).catch(err => {
         console.error("SFU akışı için mikrofon izni alınamadı:", err);
