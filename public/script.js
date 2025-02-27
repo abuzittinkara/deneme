@@ -318,6 +318,7 @@ function initSocketEvents() {
     groupArray.forEach(groupObj => {
       const grpItem = document.createElement('div');
       grpItem.className = 'grp-item';
+      grpItem.setAttribute('data-group-id', groupObj.id);
       grpItem.innerText = groupObj.name[0].toUpperCase();
       grpItem.title = groupObj.name + " (" + groupObj.id + ")";
       grpItem.addEventListener('click', () => {
@@ -336,6 +337,18 @@ function initSocketEvents() {
       });
       groupListDiv.appendChild(grpItem);
     });
+  });
+  socket.on('groupDeleted', ({ groupId }) => {
+    const grpItems = groupListDiv.querySelectorAll('.grp-item');
+    grpItems.forEach(item => {
+      if (item.getAttribute('data-group-id') === groupId) {
+        item.remove();
+      }
+    });
+    if (selectedGroup === groupId) {
+      selectedGroup = null;
+      groupTitle.textContent = 'Seçili Grup';
+    }
   });
   socket.on('roomsList', (roomsArray) => {
     roomListDiv.innerHTML = '';
