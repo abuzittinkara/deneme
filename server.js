@@ -830,6 +830,8 @@ io.on('connection', (socket) => {
       broadcastRoomsListToGroup(gId);
       broadcastAllRoomsUsers(gId);
       broadcastAllChannelsData(gId);
+      // Ek: Silinen kanal bilgisini tüm gruba gönderiyoruz.
+      io.to(gId).emit('channelDeleted', { channelId: channelId });
       console.log(`Kanal silindi => ${channelId}`);
     } catch (err) {
       console.error("deleteChannel hata:", err);
