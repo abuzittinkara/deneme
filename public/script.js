@@ -410,7 +410,7 @@ function initSocketEvents() {
     }
   });
   
-  // DEĞİŞİKLİK: channelDeleted event listener'ı
+  // DÜZENLENDİ: channelDeleted event listener'ı
   socket.on('channelDeleted', ({ channelId, groupId }) => {
     console.log('channelDeleted event received:', { channelId, groupId });
     const channelElem = document.querySelector(`[data-channel-id="${channelId}"]`);
@@ -422,10 +422,8 @@ function initSocketEvents() {
       currentRoom = null;
       document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
     }
-    // Düzeltilmiş kontrol: Hem "join" edilmiş hem de "browse" edilen grup aynıysa listeyi güncelle
-    if (currentGroup === groupId || selectedGroup === groupId) {
-      socket.emit('browseGroup', groupId);
-    }
+    // Kanala ait gruba ait kanal listesi her koşulda zorla güncellensin:
+    socket.emit('browseGroup', groupId);
   });
   
   socket.on('roomsList', (roomsArray) => {
