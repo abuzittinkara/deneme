@@ -409,37 +409,11 @@ function initSocketEvents() {
       groupTitle.textContent = 'Seçili Grup';
     }
   });
-  
-// DÜZENLENDİ: channelDeleted event listener'ı güncellendi.
-socket.on('channelDeleted', ({ channelId, groupId }) => {
-  console.log('channelDeleted event received:', { channelId, groupId });
-
-  // Kanal listesindeki ilgili kanalı sil
-  const channelElem = document.querySelector(`[data-channel-id="${channelId}"]`);
-  if (channelElem) {
-    channelElem.remove();
-  }
-
-  // Kullanıcı şu anda silinen kanalı görüntülüyorsa ekranı sıfırla
-  if (currentTextChannel === channelId || currentRoom === channelId) {
-    currentTextChannel = null;
-    currentRoom = null;
-    document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
-    document.getElementById('channelUsersContainer').innerHTML = '';
-    textMessages.innerHTML = '';
-  }
-
-  // Kanalın silindiği grubun kanal listesini yeniden yükle
-  socket.emit('browseGroup', groupId);
-});
-
-  
   socket.on('roomsList', (roomsArray) => {
     roomListDiv.innerHTML = '';
     roomsArray.forEach(roomObj => {
       const roomItem = document.createElement('div');
       roomItem.className = 'channel-item';
-      roomItem.setAttribute('data-channel-id', roomObj.id);
       const channelHeader = document.createElement('div');
       channelHeader.className = 'channel-header';
       let icon;
@@ -488,6 +462,7 @@ socket.on('channelDeleted', ({ channelId, groupId }) => {
         clearScreenShareUI();
         document.getElementById('channelUsersContainer').style.display = 'flex';
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
+        // Eğer kullanıcı zaten bağlı olduğu sesli kanalda ise; sadece arayüz güncellemesi yap.
         if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
           roomItem.classList.add('connected');
           updateVoiceChannelUI(roomObj.name);
@@ -516,7 +491,7 @@ socket.on('channelDeleted', ({ channelId, groupId }) => {
     showChannelStatusPanel();
     if (!audioPermissionGranted || !localStream) {
       requestMicrophoneAccess().then(() => {
-        console.log("Mikrofon izni alındı, SFU akışı başlatılıyor...");
+        console.log("Mikrofon alındı, SFU akışı başlatılıyor...");
         startSfuFlow();
       }).catch(err => {
         console.error("SFU akışı için mikrofon izni alınamadı:", err);
@@ -879,6 +854,7 @@ function joinRoom(groupId, roomId, roomName) {
   console.log(`joinRoom çağrıldı: group=${groupId}, room=${roomId}, name=${roomName}`);
   socket.emit('joinRoom', { groupId, roomId });
   document.getElementById('selectedChannelTitle').textContent = roomName;
+  // Sesli kanala bağlanırken aktif kanal adını kaydediyoruz
   activeVoiceChannelName = roomName;
   showChannelStatusPanel();
   currentRoomType = "voice";
@@ -1267,6 +1243,7 @@ function showChannelStatusPanel() {
       </div>
     </div>
   `;
+  // LeaveChannelBtn hover ekle: mouseover'da ikon rengi #c61884, mouseout'da #aaa olsun.
   const leaveChannelBtn = document.getElementById('leaveChannelBtn');
   leaveChannelBtn.addEventListener('mouseenter', () => {
     const icon = leaveChannelBtn.querySelector('.material-icons');
@@ -1276,6 +1253,7 @@ function showChannelStatusPanel() {
     const icon = leaveChannelBtn.querySelector('.material-icons');
     if (icon) icon.style.color = "#aaa";
   });
+  // Hover efektleri: ekran paylaşım butonuna yalnızca aktif değilse uygulanıyor.
   const screenShareBtn = document.getElementById('screenShareStatusBtn');
   screenShareBtn.addEventListener('mouseenter', () => {
     if (!screenShareBtn.classList.contains('active')) {
@@ -1294,6 +1272,7 @@ function showChannelStatusPanel() {
       screenShareBtn.style.backgroundColor = "#444";
     }
   });
+  // Ekran paylaşım butonunun tıklanması:
   screenShareBtn.addEventListener('click', async () => {
     const icon = document.getElementById('screenShareIcon');
     if(window.screenShareProducerVideo) {
