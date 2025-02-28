@@ -57,11 +57,12 @@ app.use(express.static("public"));
 /* 1) DB'den Grupları belleğe yükleme */
 async function loadGroupsFromDB() {
   try {
-    const allGroups = await Group.find({});
+    // Değişiklik burada: owner alanını da populate ettik ve groups objesinde "owner" olarak username'i sakladık.
+    const allGroups = await Group.find({}).populate('owner');
     allGroups.forEach(gDoc => {
       if (!groups[gDoc.groupId]) {
         groups[gDoc.groupId] = {
-          owner: null, 
+          owner: gDoc.owner ? gDoc.owner.username : null,
           name: gDoc.name,
           users: [],
           rooms: {}
