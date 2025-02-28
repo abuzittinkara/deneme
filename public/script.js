@@ -144,40 +144,11 @@ const textChannelMessageInput = document.getElementById('textChannelMessageInput
 const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
 window.addEventListener('DOMContentLoaded', () => {
-  // Socket.IO bağlantısı
   socket = io("https://fisqos.com.tr", { transports: ['websocket'] });
   console.log("Socket connected =>", socket.id);
-
-  // ===============================
-  // KULLANICININ İSTEDİĞİ YENİ SNIPPET (KANAL SİLİNDİĞİNDE UI GÜNCELLEME)
-  // ===============================
-  socket.on('channelDeleted', ({ channelId }) => {
-    // Kanal listesindeki ilgili kanal elementini bul
-    const deletedChannelElement = document.getElementById(`channel-${channelId}`);
-
-    // Eğer kanal elementi varsa, DOM'dan kaldır
-    if (deletedChannelElement) {
-      deletedChannelElement.remove();
-    }
-
-    // Eğer silinen kanal o anda açıksa, UI üzerinde gerekli temizlikleri yap
-    if (currentRoom === channelId) {
-      currentRoom = null;
-      document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
-      document.getElementById('channelUsersContainer').innerHTML = '';
-
-      if (textChannelContainer) {
-        textChannelContainer.style.display = 'none';
-      }
-      hideChannelStatusPanel();
-    }
-  });
-  // ===============================
-
   initSocketEvents();
   initUIEvents();
-  
-  // Typing indicator başlat
+  // Typing indicator modülünü başlatıyoruz; getCurrentTextChannel fonksiyonu currentTextChannel değerini döndürüyor.
   initTypingIndicator(socket, () => currentTextChannel, () => username);
   
   const tm = textMessages;
@@ -198,12 +169,173 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-
+  
   TextChannel.initTextChannelEvents(socket, textMessages);
 });
 
-/* initSocketEvents fonksiyonu: "channelDeleted" event'i artık YENİ snippet ile yönetiliyor,
-   bu yüzden eski channelDeleted dinleyicisi kaldırıldı. */
+/* Yeni fonksiyon: Context Menu Gösterimi */
+function showChannelContextMenu(e, roomObj) {
+  // Var olan context menu varsa kaldır
+  const existingMenu = document.getElementById('channelContextMenu');
+  if(existingMenu) {
+    existingMenu.remove();
+  }
+  const menu = document.createElement('div');
+  menu.id = 'channelContextMenu';
+  menu.className = 'context-menu';
+  menu.style.position = 'absolute';
+  menu.style.top = e.pageY + 'px';
+  menu.style.left = e.pageX + 'px';
+  menu.style.display = 'flex';
+  menu.style.flexDirection = 'column';
+  // Menü öğeleri
+  const menuItems = [
+    {
+      text: 'Kanal Ayarları',
+      action: () => { alert('Kanal ayarları henüz uygulanmadı.'); }
+    },
+    {
+      text: 'Kanalın İsmini Değiştir',
+      action: () => {
+        const newName = prompt('Yeni kanal ismini girin:', roomObj.name);
+        if(newName && newName.trim() !== '') {
+          socket.emit('renameChannel', { channelId: roomObj.id, newName: newName.trim() });
+        }
+      }
+    },
+    {
+      text: 'Kanalı Sil',
+      action: () => {
+        if(confirm('Bu kanalı silmek istediğinize emin misiniz?')) {
+          socket.emit('deleteChannel', roomObj.id);
+        }
+      }
+    }
+  ];
+  menuItems.forEach(item => {
+    const menuItem = document.createElement('div');
+    menuItem.className = 'context-menu-item';
+    menuItem.textContent = item.text;
+    menuItem.addEventListener('click', () => {
+      item.action();
+      menu.remove();
+    });
+    menu.appendChild(menuItem);
+  });
+  document.body.appendChild(menu);
+  // Dışarı tıklanırsa menüyü kapat
+  document.addEventListener('click', function handler() {
+    if(document.getElementById('channelContextMenu')){
+      document.getElementById('channelContextMenu').remove();
+    }
+    document.removeEventListener('click', handler);
+  });
+}
+
+/* Yeni fonksiyon: updateVoiceChannelUI */
+function updateVoiceChannelUI(roomName) {
+  document.getElementById('selectedChannelTitle').textContent = roomName;
+  const channelUsersContainer = document.getElementById('channelUsersContainer');
+  if (channelUsersContainer) {
+    channelUsersContainer.style.display = 'flex';
+  }
+  textChannelContainer.style.display = 'none';
+  showChannelStatusPanel();
+}
+
+/* showScreenShare */
+async function showScreenShare(producerId) {
+  if (!recvTransport) {
+    console.warn("recvTransport yok");
+    return;
+  }
+  const channelContentArea = document.querySelector('.channel-content-area');
+  clearScreenShareUI();
+  const consumeParams = await new Promise((resolve) => {
+    socket.emit('consume', {
+      groupId: currentGroup,
+      roomId: currentRoom,
+      transportId: recvTransport.id,
+      producerId: producerId
+    }, (res) => {
+      resolve(res);
+    });
+  });
+  if (consumeParams.error) {
+    console.error("consume error:", consumeParams.error);
+    return;
+  }
+  const consumer = await recvTransport.consume({
+    id: consumeParams.id,
+    producerId: consumeParams.producerId,
+    kind: consumeParams.kind,
+    rtpParameters: consumeParams.rtpParameters
+  });
+  consumer.appData = { peerId: consumeParams.producerPeerId };
+  consumers[consumer.id] = consumer;
+  const videoEl = document.createElement('video');
+  videoEl.autoplay = true;
+  videoEl.controls = true;
+  videoEl.style.width = "100%";
+  videoEl.style.height = "100%";
+  videoEl.style.objectFit = "contain";
+  const stream = new MediaStream([consumer.track]);
+  videoEl.srcObject = stream;
+  channelContentArea.appendChild(videoEl);
+  screenShareVideo = videoEl;
+}
+
+/* displayScreenShareEndedMessage */
+function displayScreenShareEndedMessage() {
+  const channelContentArea = document.querySelector('.channel-content-area');
+  let messageEl = document.getElementById('screenShareEndedMessage');
+  if (!messageEl) {
+    messageEl = document.createElement('div');
+    messageEl.id = 'screenShareEndedMessage';
+    messageEl.textContent = 'Bu yayın sonlandırıldı';
+    messageEl.style.position = 'absolute';
+    messageEl.style.top = '50%';
+    messageEl.style.left = '50%';
+    messageEl.style.transform = 'translate(-50%, -50%)';
+    messageEl.style.color = '#fff';
+    messageEl.style.backgroundColor = 'rgba(0,0,0,0.7)';
+    messageEl.style.padding = '1rem';
+    messageEl.style.borderRadius = '8px';
+    messageEl.style.fontSize = '1.2rem';
+  }
+  channelContentArea.appendChild(messageEl);
+}
+
+/* removeScreenShareEndedMessage */
+function removeScreenShareEndedMessage() {
+  const messageEl = document.getElementById('screenShareEndedMessage');
+  if (messageEl && messageEl.parentNode) {
+    messageEl.parentNode.removeChild(messageEl);
+  }
+}
+
+/* updateStatusPanel */
+function updateStatusPanel(ping) {
+  const rssIcon = document.getElementById('rssIcon');
+  const statusMessage = document.getElementById('statusMessage');
+  const channelGroupInfo = document.getElementById('channelGroupInfo');
+  let color = "#2dbf2d"; // 0-60 ms: yeşil
+  if (ping >= 80) {
+    color = "#ff0000";
+  } else if (ping >= 60) {
+    color = "#ffcc00";
+  }
+  if (rssIcon) rssIcon.style.color = color;
+  if (statusMessage) statusMessage.style.color = color;
+  if (channelGroupInfo) {
+    const channelName = activeVoiceChannelName || "";
+    const groupName = groupTitle?.textContent || "";
+    channelGroupInfo.textContent = channelName + " / " + groupName;
+    channelGroupInfo.style.color = "#aaa";
+  }
+}
+
+/* initSocketEvents */
 function initSocketEvents() {
   socket.on('connect', () => {
     console.log("Socket tekrar bağlandı =>", socket.id);
@@ -211,8 +343,6 @@ function initSocketEvents() {
   socket.on('disconnect', () => {
     console.log("Socket disconnect");
   });
-
-  // Diğer eventler (loginResult, registerResult vb.)
   socket.on('loginResult', (data) => {
     if (data.success) {
       username = data.username;
@@ -229,7 +359,6 @@ function initSocketEvents() {
       loginPasswordInput.classList.add('shake');
     }
   });
-
   socket.on('registerResult', (data) => {
     if (data.success) {
       alert("Hesap başarıyla oluşturuldu");
@@ -240,11 +369,9 @@ function initSocketEvents() {
       registerErrorMessage.style.display = 'block';
     }
   });
-
   socket.on('groupUsers', (data) => {
     updateUserList(data);
   });
-
   socket.on('groupsList', (groupArray) => {
     groupListDiv.innerHTML = '';
     groupArray.forEach(groupObj => {
@@ -270,7 +397,6 @@ function initSocketEvents() {
       groupListDiv.appendChild(grpItem);
     });
   });
-
   socket.on('groupDeleted', ({ groupId }) => {
     const grpItems = groupListDiv.querySelectorAll('.grp-item');
     grpItems.forEach(item => {
@@ -283,18 +409,37 @@ function initSocketEvents() {
       groupTitle.textContent = 'Seçili Grup';
     }
   });
+  
+// DÜZENLENDİ: channelDeleted event listener'ı güncellendi.
+socket.on('channelDeleted', ({ channelId, groupId }) => {
+  console.log('channelDeleted event received:', { channelId, groupId });
 
-  // "roomsList" vb. diğer eventler
+  // Kanal listesindeki ilgili kanalı sil
+  const channelElem = document.querySelector(`[data-channel-id="${channelId}"]`);
+  if (channelElem) {
+    channelElem.remove();
+  }
+
+  // Kullanıcı şu anda silinen kanalı görüntülüyorsa ekranı sıfırla
+  if (currentTextChannel === channelId || currentRoom === channelId) {
+    currentTextChannel = null;
+    currentRoom = null;
+    document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
+    document.getElementById('channelUsersContainer').innerHTML = '';
+    textMessages.innerHTML = '';
+  }
+
+  // Kanalın silindiği grubun kanal listesini yeniden yükle
+  socket.emit('browseGroup', groupId);
+});
+
+  
   socket.on('roomsList', (roomsArray) => {
     roomListDiv.innerHTML = '';
     roomsArray.forEach(roomObj => {
-      // Not: channel item'a "id" ekleyelim ki snippet'ta "channel-xxxx" ile bulabilelim
       const roomItem = document.createElement('div');
       roomItem.className = 'channel-item';
-      // Burada snippet'a uyumlu id
-      roomItem.id = `channel-${roomObj.id}`;
       roomItem.setAttribute('data-channel-id', roomObj.id);
-
       const channelHeader = document.createElement('div');
       channelHeader.className = 'channel-header';
       let icon;
@@ -311,20 +456,18 @@ function initSocketEvents() {
       textSpan.textContent = roomObj.name;
       channelHeader.appendChild(icon);
       channelHeader.appendChild(textSpan);
-
       const channelUsers = document.createElement('div');
       channelUsers.className = 'channel-users';
       channelUsers.id = `channel-users-${roomObj.id}`;
       roomItem.appendChild(channelHeader);
       roomItem.appendChild(channelUsers);
-
-      // Sağ tıklama ile context menu
+      
+      // Sağ tıklama ile context menu açılması
       roomItem.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         showChannelContextMenu(e, roomObj);
       });
-
-      // Kanalı tıkla
+      
       roomItem.addEventListener('click', () => {
         if (roomObj.type === 'text') {
           console.log(`Text channel clicked => ${roomObj.name}`);
@@ -341,7 +484,7 @@ function initSocketEvents() {
           socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: roomObj.id });
           return;
         }
-        // Voice channel
+        // Voice channel case:
         clearScreenShareUI();
         document.getElementById('channelUsersContainer').style.display = 'flex';
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
@@ -365,7 +508,6 @@ function initSocketEvents() {
       roomListDiv.appendChild(roomItem);
     });
   });
-
   socket.on('joinRoomAck', ({ groupId, roomId }) => {
     console.log("joinRoomAck received:", groupId, roomId);
     currentGroup = groupId;
@@ -384,7 +526,6 @@ function initSocketEvents() {
       startSfuFlow();
     }
   });
-
   socket.on('newProducer', ({ producerId }) => {
     console.log("newProducer =>", producerId);
     if (!recvTransport) {
@@ -393,7 +534,6 @@ function initSocketEvents() {
     }
     consumeProducer(producerId);
   });
-
   socket.on('screenShareEnded', ({ userId }) => {
     const channelContentArea = document.querySelector('.channel-content-area');
     if (screenShareVideo && channelContentArea && channelContentArea.contains(screenShareVideo)) {
@@ -402,7 +542,6 @@ function initSocketEvents() {
     }
     displayScreenShareEndedMessage();
   });
-
   socket.on('allChannelsData', (channelsObj) => {
     Object.keys(channelsObj).forEach(roomId => {
       const cData = channelsObj[roomId];
@@ -454,7 +593,6 @@ function initSocketEvents() {
       });
     });
   });
-
   socket.on('audioStateChanged', ({ micEnabled, selfDeafened }) => {
     if (!users[socket.id]) return;
     users[socket.id].micEnabled = micEnabled;
@@ -466,143 +604,7 @@ function initSocketEvents() {
   });
 }
 
-/* showChannelContextMenu, updateVoiceChannelUI, showScreenShare,
-   displayScreenShareEndedMessage, removeScreenShareEndedMessage, etc. */
-
-/* ... (bu fonksiyonlar aynen korunuyor, değişiklik yok) ... */
-function showChannelContextMenu(e, roomObj) {
-  const existingMenu = document.getElementById('channelContextMenu');
-  if(existingMenu) {
-    existingMenu.remove();
-  }
-  const menu = document.createElement('div');
-  menu.id = 'channelContextMenu';
-  menu.className = 'context-menu';
-  menu.style.position = 'absolute';
-  menu.style.top = e.pageY + 'px';
-  menu.style.left = e.pageX + 'px';
-  menu.style.display = 'flex';
-  menu.style.flexDirection = 'column';
-
-  const menuItems = [
-    {
-      text: 'Kanal Ayarları',
-      action: () => { alert('Kanal ayarları henüz uygulanmadı.'); }
-    },
-    {
-      text: 'Kanalın İsmini Değiştir',
-      action: () => {
-        const newName = prompt('Yeni kanal ismini girin:', roomObj.name);
-        if(newName && newName.trim() !== '') {
-          socket.emit('renameChannel', { channelId: roomObj.id, newName: newName.trim() });
-        }
-      }
-    },
-    {
-      text: 'Kanalı Sil',
-      action: () => {
-        if(confirm('Bu kanalı silmek istediğinize emin misiniz?')) {
-          socket.emit('deleteChannel', roomObj.id);
-        }
-      }
-    }
-  ];
-  menuItems.forEach(item => {
-    const menuItem = document.createElement('div');
-    menuItem.className = 'context-menu-item';
-    menuItem.textContent = item.text;
-    menuItem.addEventListener('click', () => {
-      item.action();
-      menu.remove();
-    });
-    menu.appendChild(menuItem);
-  });
-  document.body.appendChild(menu);
-  document.addEventListener('click', function handler() {
-    const contextEl = document.getElementById('channelContextMenu');
-    if(contextEl) {
-      contextEl.remove();
-    }
-    document.removeEventListener('click', handler);
-  });
-}
-
-function updateVoiceChannelUI(roomName) {
-  document.getElementById('selectedChannelTitle').textContent = roomName;
-  const channelUsersContainer = document.getElementById('channelUsersContainer');
-  if (channelUsersContainer) {
-    channelUsersContainer.style.display = 'flex';
-  }
-  textChannelContainer.style.display = 'none';
-  showChannelStatusPanel();
-}
-
-function showScreenShare(producerId) {
-  if (!recvTransport) {
-    console.warn("recvTransport yok");
-    return;
-  }
-  const channelContentArea = document.querySelector('.channel-content-area');
-  clearScreenShareUI();
-  socket.emit('consume', {
-    groupId: currentGroup,
-    roomId: currentRoom,
-    transportId: recvTransport.id,
-    producerId: producerId
-  }, async (res) => {
-    if (res.error) {
-      console.error("consume error:", res.error);
-      return;
-    }
-    const consumer = await recvTransport.consume({
-      id: res.id,
-      producerId: res.producerId,
-      kind: res.kind,
-      rtpParameters: res.rtpParameters
-    });
-    consumer.appData = { peerId: res.producerPeerId };
-    consumers[consumer.id] = consumer;
-    const videoEl = document.createElement('video');
-    videoEl.autoplay = true;
-    videoEl.controls = true;
-    videoEl.style.width = "100%";
-    videoEl.style.height = "100%";
-    videoEl.style.objectFit = "contain";
-    const stream = new MediaStream([consumer.track]);
-    videoEl.srcObject = stream;
-    channelContentArea.appendChild(videoEl);
-    screenShareVideo = videoEl;
-  });
-}
-
-function displayScreenShareEndedMessage() {
-  const channelContentArea = document.querySelector('.channel-content-area');
-  let messageEl = document.getElementById('screenShareEndedMessage');
-  if (!messageEl) {
-    messageEl = document.createElement('div');
-    messageEl.id = 'screenShareEndedMessage';
-    messageEl.textContent = 'Bu yayın sonlandırıldı';
-    messageEl.style.position = 'absolute';
-    messageEl.style.top = '50%';
-    messageEl.style.left = '50%';
-    messageEl.style.transform = 'translate(-50%, -50%)';
-    messageEl.style.color = '#fff';
-    messageEl.style.backgroundColor = 'rgba(0,0,0,0.7)';
-    messageEl.style.padding = '1rem';
-    messageEl.style.borderRadius = '8px';
-    messageEl.style.fontSize = '1.2rem';
-  }
-  channelContentArea.appendChild(messageEl);
-}
-
-function removeScreenShareEndedMessage() {
-  const messageEl = document.getElementById('screenShareEndedMessage');
-  if (messageEl && messageEl.parentNode) {
-    messageEl.parentNode.removeChild(messageEl);
-  }
-}
-
-/* SFU akışını başlatma vb. */
+/* startSfuFlow */
 function startSfuFlow() {
   console.log("startSfuFlow => group:", currentGroup, " room:", currentRoom);
   if (!device) {
@@ -620,6 +622,7 @@ function startSfuFlow() {
   }
 }
 
+/* createTransportFlow */
 async function createTransportFlow() {
   const transportParams = await createTransport();
   if (transportParams.error) {
@@ -665,7 +668,6 @@ async function createTransportFlow() {
       }
     });
   });
-
   if (!localStream) {
     await requestMicrophoneAccess();
   }
@@ -745,6 +747,7 @@ function listProducers() {
   });
 }
 
+/* consumeProducer */
 async function consumeProducer(producerId) {
   if (!recvTransport) {
     console.warn("consumeProducer: recvTransport yok");
@@ -788,7 +791,7 @@ async function consumeProducer(producerId) {
   }
 }
 
-/* Volume Analysis */
+/* startVolumeAnalysis */
 async function startVolumeAnalysis(stream, userId) {
   if (!stream.getAudioTracks().length) {
     console.warn("No audio tracks in MediaStream for user:", userId);
@@ -826,6 +829,7 @@ async function startVolumeAnalysis(stream, userId) {
   };
 }
 
+/* stopVolumeAnalysis */
 function stopVolumeAnalysis(userId) {
   if (audioAnalyzers[userId]) {
     clearInterval(audioAnalyzers[userId].interval);
@@ -834,6 +838,7 @@ function stopVolumeAnalysis(userId) {
   }
 }
 
+/* leaveRoomInternal */
 function leaveRoomInternal() {
   clearScreenShareUI();
   if (window.screenShareProducerVideo || window.screenShareStream) {
@@ -864,6 +869,7 @@ function leaveRoomInternal() {
   console.log("leaveRoomInternal: SFU transportlar kapatıldı");
 }
 
+/* joinRoom */
 function joinRoom(groupId, roomId, roomName) {
   clearScreenShareUI();
   if (window.screenShareProducerVideo || window.screenShareStream) {
@@ -895,6 +901,7 @@ function attemptLogin() {
   socket.emit('login', { username: usernameVal, password: passwordVal });
 }
 
+/* requestMicrophoneAccess */
 async function requestMicrophoneAccess() {
   try {
     console.log("Mikrofon izni isteniyor...");
@@ -921,6 +928,7 @@ async function requestMicrophoneAccess() {
   }
 }
 
+/* initUIEvents */
 function initUIEvents() {
   loginButton.addEventListener('click', attemptLogin);
   loginUsernameInput.addEventListener('keydown', (e) => {
@@ -944,7 +952,6 @@ function initUIEvents() {
     regUsernameInput.classList.remove('shake');
     regPasswordInput.classList.remove('shake');
     regPasswordConfirmInput.classList.remove('shake');
-
     let isError = false;
     if (!userData.username || !userData.name || !userData.surname ||
         !userData.birthdate || !userData.email || !userData.phone ||
@@ -976,14 +983,13 @@ function initUIEvents() {
     loginScreen.style.display = 'block';
   });
   showRegisterScreen.addEventListener('click', () => {
-    registerScreen.style.display = 'none';
-    loginScreen.style.display = 'block';
+    loginScreen.style.display = 'none';
+    registerScreen.style.display = 'block';
   });
   showLoginScreen.addEventListener('click', () => {
     registerScreen.style.display = 'none';
     loginScreen.style.display = 'block';
   });
-
   createGroupButton.addEventListener('click', () => {
     document.getElementById('groupModal').style.display = 'flex';
   });
@@ -1019,7 +1025,6 @@ function initUIEvents() {
   document.getElementById('closeJoinGroupModal').addEventListener('click', () => {
     document.getElementById('joinGroupModal').style.display = 'none';
   });
-
   document.getElementById('modalCreateRoomBtn').addEventListener('click', () => {
     const rName = document.getElementById('modalRoomName').value.trim();
     if (!rName) {
@@ -1038,7 +1043,6 @@ function initUIEvents() {
   document.getElementById('modalCloseRoomBtn').addEventListener('click', () => {
     document.getElementById('roomModal').style.display = 'none';
   });
-  
   copyGroupIdBtn.addEventListener('click', () => {
     groupDropdownMenu.style.display = 'none';
     const grp = currentGroup || selectedGroup;
@@ -1089,7 +1093,6 @@ function initUIEvents() {
     if (!confirmDel) return;
     socket.emit('deleteGroup', grp);
   });
-  
   groupDropdownIcon.addEventListener('click', () => {
     if (groupDropdownMenu.style.display === 'none' || groupDropdownMenu.style.display === '') {
       groupDropdownMenu.style.display = 'block';
@@ -1097,7 +1100,6 @@ function initUIEvents() {
       groupDropdownMenu.style.display = 'none';
     }
   });
-  
   toggleDMButton.addEventListener('click', () => {
     const dmPanel = document.getElementById('dmPanel');
     if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
@@ -1108,12 +1110,10 @@ function initUIEvents() {
       isDMMode = false;
     }
   });
-  
   closeDMButton.addEventListener('click', () => {
     document.getElementById('dmPanel').style.display = 'none';
     isDMMode = false;
   });
-  
   leaveButton.addEventListener('click', () => {
     clearScreenShareUI();
     if (!currentRoom) return;
@@ -1130,7 +1130,6 @@ function initUIEvents() {
     textChannelContainer.style.display = 'none';
     socket.emit('browseGroup', currentGroup);
   });
-  
   micToggleButton.addEventListener('click', () => {
     micEnabled = !micEnabled;
     applyAudioStates();
@@ -1149,7 +1148,6 @@ function initUIEvents() {
   settingsButton.addEventListener('click', () => {
     // ...
   });
-  
   function sendTextMessage() {
     const msg = textChannelMessageInput.value.trim();
     if (!msg) return;
@@ -1163,7 +1161,6 @@ function initUIEvents() {
     sendTextMessageBtn.style.display = "none";
   }
   sendTextMessageBtn.addEventListener('click', sendTextMessage);
-  
   textChannelMessageInput.addEventListener('input', () => {
     if (textChannelMessageInput.value.trim() !== "") {
       sendTextMessageBtn.style.display = "block";
@@ -1171,14 +1168,12 @@ function initUIEvents() {
       sendTextMessageBtn.style.display = "none";
     }
   });
-  
   textChannelMessageInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       sendTextMessage();
     }
   });
-  
   if(screenShareButton) {
     screenShareButton.addEventListener('click', async () => {
       if(window.screenShareProducerVideo) {
@@ -1201,6 +1196,7 @@ function initUIEvents() {
   }
 }
 
+/* applyAudioStates */
 function applyAudioStates() {
   if (localProducer) {
     if (micEnabled && !selfDeafened) {
@@ -1237,11 +1233,13 @@ function applyAudioStates() {
   socket.emit('audioStateChanged', { micEnabled, selfDeafened });
 }
 
+/* hideChannelStatusPanel */
 function hideChannelStatusPanel() {
   channelStatusPanel.style.display = 'none';
   stopPingInterval();
 }
 
+/* showChannelStatusPanel */
 function showChannelStatusPanel() {
   channelStatusPanel.style.height = "100px";
   channelStatusPanel.style.zIndex = "20";
@@ -1348,6 +1346,7 @@ function showChannelStatusPanel() {
   updateStatusPanel(0);
 }
 
+/* startPingInterval */
 function startPingInterval() {
   if (pingInterval) clearInterval(pingInterval);
   pingInterval = setInterval(() => {
@@ -1364,6 +1363,7 @@ function startPingInterval() {
   }, 1000);
 }
 
+/* stopPingInterval */
 function stopPingInterval() {
   if (pingInterval) {
     clearInterval(pingInterval);
@@ -1373,6 +1373,7 @@ function stopPingInterval() {
   updateCellBars(0);
 }
 
+/* updateCellBars */
 function updateCellBars(ping) {
   let barsActive = 0;
   if (ping >= 1) {
@@ -1393,7 +1394,36 @@ function updateCellBars(ping) {
   if (barsActive >= 4) cellBar4.classList.add('active');
 }
 
-/* updateUserList, createUserItem, getAllChannelsData (değişiklik yok) */
+/* insertSeparatorIfNeeded */
+function insertSeparatorIfNeeded(prevTimestamp, currentTimestamp) {
+  if (!prevTimestamp || TextChannel.isDifferentDay(prevTimestamp, currentTimestamp)) {
+    insertDateSeparator(currentTimestamp);
+  }
+}
+
+/* document.addEventListener('DOMContentLoaded', ...) */
+document.addEventListener('DOMContentLoaded', function() {
+  const tm = document.getElementById('textMessages');
+  let removeScrollingTimeout;
+  if (tm) {
+    tm.addEventListener('scroll', function() {
+      const atBottom = tm.scrollTop + tm.clientHeight >= tm.scrollHeight - 5;
+      if (!atBottom) {
+        clearTimeout(removeScrollingTimeout);
+        tm.classList.add('scrolling');
+      } else {
+        removeScrollingTimeout = setTimeout(() => {
+          const stillAtBottom = tm.scrollTop + tm.clientHeight >= tm.scrollHeight - 5;
+          if (stillAtBottom) {
+            tm.classList.remove('scrolling');
+          }
+        }, 1000);
+      }
+    });
+  }
+});
+
+/* updateUserList */
 function updateUserList(data) {
   userListDiv.innerHTML = '';
   const onlineTitle = document.createElement('div');
@@ -1411,7 +1441,6 @@ function updateUserList(data) {
     noneP.style.fontSize = '0.75rem';
     userListDiv.appendChild(noneP);
   }
-  
   const offlineTitle = document.createElement('div');
   offlineTitle.textContent = 'Çevrimdışı';
   offlineTitle.style.fontWeight = 'normal';
@@ -1430,6 +1459,7 @@ function updateUserList(data) {
   }
 }
 
+/* createUserItem */
 function createUserItem(username, isOnline) {
   const userItem = document.createElement('div');
   userItem.classList.add('user-item');
@@ -1458,6 +1488,7 @@ function createUserItem(username, isOnline) {
   return userItem;
 }
 
+/* getAllChannelsData */
 function getAllChannelsData(gId) {
   return {};
 }
