@@ -544,6 +544,7 @@ io.on('connection', (socket) => {
 
   socket.on('browseGroup', async (groupId) => {
     if (!groups[groupId]) return;
+    socket.join(groupId);  // EK: Tarayıcıdaki kullanıcının ilgili grup oda üyesi olmasını sağlıyoruz.
     sendRoomsListToUser(socket.id, groupId);
     sendAllChannelsDataToOneUser(socket.id, groupId);
     await sendGroupUsersToOneUser(socket.id, groupId);
