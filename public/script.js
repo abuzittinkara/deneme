@@ -1047,20 +1047,11 @@ function initUIEvents() {
     }
     socket.emit('renameGroup', { groupId: grp, newName: newName.trim() });
   });
-  createChannelBtn.addEventListener('click', () => {
-    groupDropdownMenu.style.display = 'none';
-    const grp = currentGroup || selectedGroup;
-    if (!grp) {
-      alert("Önce bir gruba katılın!");
-      return;
-    }
-    document.getElementById('roomModal').style.display = 'flex';
-    document.getElementById('modalRoomName').value = '';
-    document.getElementById('modalRoomName').focus();
-  });
+  // Değişiklik: deleteGroupBtn event handler'ında kullanılacak grup ID'sini seçerken,
+  // selectedGroup (UI'den seçilen) değeri currentGroup'dan önce tercih edilecek.
   deleteGroupBtn.addEventListener('click', () => {
     groupDropdownMenu.style.display = 'none';
-    const grp = currentGroup || selectedGroup;
+    const grp = selectedGroup || currentGroup;
     if (!grp) {
       alert("Şu an bir grup seçili değil!");
       return;
