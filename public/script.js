@@ -1008,7 +1008,8 @@ function initUIEvents() {
       return;
     }
     const channelType = document.querySelector('input[name="channelType"]:checked').value;
-    const grp = currentGroup || selectedGroup;
+    // DEĞİŞİKLİK: Kanal oluşturma için grup seçimini belirlerken UI’den seçilen grup (selectedGroup) öncelikli olsun.
+    const grp = selectedGroup || currentGroup;
     if (!grp) {
       alert("Önce bir gruba katılın!");
       return;
