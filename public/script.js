@@ -1008,7 +1008,7 @@ function initUIEvents() {
       return;
     }
     const channelType = document.querySelector('input[name="channelType"]:checked').value;
-    const grp = currentGroup || selectedGroup;
+    const grp = selectedGroup || currentGroup;
     if (!grp) {
       alert("Önce bir gruba katılın!");
       return;
@@ -1047,11 +1047,9 @@ function initUIEvents() {
     }
     socket.emit('renameGroup', { groupId: grp, newName: newName.trim() });
   });
-  // Değişiklik: deleteGroupBtn event handler'ında kullanılacak grup ID'sini seçerken,
-  // selectedGroup (UI'den seçilen) değeri currentGroup'dan önce tercih edilecek.
   deleteGroupBtn.addEventListener('click', () => {
     groupDropdownMenu.style.display = 'none';
-    const grp = selectedGroup || currentGroup;
+    const grp = currentGroup || selectedGroup;
     if (!grp) {
       alert("Şu an bir grup seçili değil!");
       return;
