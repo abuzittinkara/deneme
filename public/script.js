@@ -977,30 +977,13 @@ function initUIEvents() {
     document.getElementById('groupModal').style.display = 'none';
     document.getElementById('joinGroupModal').style.display = 'flex';
   });
-  document.getElementById('actualGroupNameBtn').addEventListener('click', () => {
-    const grpName = document.getElementById('actualGroupName').value.trim();
-    if (!grpName) {
-      alert("Grup adı boş olamaz!");
-      return;
-    }
-    socket.emit('createGroup', grpName);
-    document.getElementById('actualGroupCreateModal').style.display = 'none';
+  // *********************** DEĞİŞİKLİK BURADA ****************************
+  document.getElementById('createChannelBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('groupModal').style.display = 'none';
+    document.getElementById('roomModal').style.display = 'flex';
   });
-  document.getElementById('closeCreateGroupModal').addEventListener('click', () => {
-    document.getElementById('actualGroupCreateModal').style.display = 'none';
-  });
-  document.getElementById('joinGroupIdBtn').addEventListener('click', () => {
-    const grpIdVal = document.getElementById('joinGroupIdInput').value.trim();
-    if (!grpIdVal) {
-      alert("Grup ID boş olamaz!");
-      return;
-    }
-    socket.emit('joinGroupByID', grpIdVal);
-    document.getElementById('joinGroupModal').style.display = 'none';
-  });
-  document.getElementById('closeJoinGroupModal').addEventListener('click', () => {
-    document.getElementById('joinGroupModal').style.display = 'none';
-  });
+  // ********************************************************************
   document.getElementById('modalCreateRoomBtn').addEventListener('click', () => {
     const rName = document.getElementById('modalRoomName').value.trim();
     if (!rName) {
