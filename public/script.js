@@ -1008,7 +1008,7 @@ function initUIEvents() {
       return;
     }
     const channelType = document.querySelector('input[name="channelType"]:checked').value;
-    const grp = selectedGroup || currentGroup;
+    const grp = currentGroup || selectedGroup;
     if (!grp) {
       alert("Önce bir gruba katılın!");
       return;
@@ -1049,7 +1049,7 @@ function initUIEvents() {
   });
   deleteGroupBtn.addEventListener('click', () => {
     groupDropdownMenu.style.display = 'none';
-    const grp = currentGroup || selectedGroup;
+    const grp = selectedGroup || currentGroup;
     if (!grp) {
       alert("Şu an bir grup seçili değil!");
       return;
