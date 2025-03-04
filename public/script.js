@@ -111,7 +111,7 @@ const deleteGroupBtn = document.getElementById('deleteGroupBtn');
 
 // DM panel ve gruplar/odalar alanı
 const toggleDMButton = document.getElementById('toggleDMButton');
-const groupsAndRooms = document.getElementById('groupsAndRooms'); // Gruplar ve odaların bulunduğu alan
+const groupsAndRooms = document.getElementById('groupsAndRooms'); // Grupların ve odaların bulunduğu alan
 const closeDMButton = document.getElementById('closeDMButton');
 let isDMMode = false;
 
@@ -1054,7 +1054,7 @@ function initUIEvents() {
   });
   deleteGroupBtn.addEventListener('click', () => {
     groupDropdownMenu.style.display = 'none';
-    const grp = selectedGroup || currentGroup;
+    const grp = currentGroup || selectedGroup;
     if (!grp) {
       alert("Şu an bir grup seçili değil!");
       return;
@@ -1070,24 +1070,25 @@ function initUIEvents() {
       groupDropdownMenu.style.display = 'none';
     }
   });
-  // DM Panel toggle: DM butonuna tıklandığında DM paneli açılacak, ancak gruplar/odalar paneli değişmeyecek.
+  // DM Panel toggle: DM butonuna tıklandığında DM paneli, kanallar panelinin yerine geçsin.
   toggleDMButton.addEventListener('click', () => {
     const dmPanel = document.getElementById('dmPanel');
+    const groupsAndRooms = document.getElementById('groupsAndRooms');
     if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
       dmPanel.style.display = 'block';
-      dmPanel.style.position = 'absolute';
-      dmPanel.style.top = '0';
-      dmPanel.style.left = '365px'; // Gruplar panelinin hemen sağı; leftPanels genişliği 365px olarak varsayılmıştır.
-      dmPanel.style.width = '300px'; // DM paneli 300px genişliğinde.
-      dmPanel.style.height = '100%';
+      groupsAndRooms.style.display = 'none';
       isDMMode = true;
     } else {
       dmPanel.style.display = 'none';
+      groupsAndRooms.style.display = 'flex';
       isDMMode = false;
     }
   });
   closeDMButton.addEventListener('click', () => {
-    document.getElementById('dmPanel').style.display = 'none';
+    const dmPanel = document.getElementById('dmPanel');
+    const groupsAndRooms = document.getElementById('groupsAndRooms');
+    dmPanel.style.display = 'none';
+    groupsAndRooms.style.display = 'flex';
     isDMMode = false;
   });
   leaveButton.addEventListener('click', () => {
