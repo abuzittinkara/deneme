@@ -109,9 +109,9 @@ const renameGroupBtn = document.getElementById('renameGroupBtn');
 const createChannelBtn = document.getElementById('createChannelBtn');
 const deleteGroupBtn = document.getElementById('deleteGroupBtn');
 
-// DM panel ve gruplar paneli (groupsAndRooms)
+// DM panel ve gruplar/odalar alanı
 const toggleDMButton = document.getElementById('toggleDMButton');
-const groupsAndRooms = document.getElementById('groupsAndRooms'); // Eklenen: gruplar ve odaların bulunduğu alan
+const groupsAndRooms = document.getElementById('groupsAndRooms'); // Gruplar ve odaların bulunduğu alan
 const closeDMButton = document.getElementById('closeDMButton');
 let isDMMode = false;
 
@@ -1070,23 +1070,24 @@ function initUIEvents() {
       groupDropdownMenu.style.display = 'none';
     }
   });
-  // DM Panel toggle: DM butonuna tıklandığında DM paneli gösterilsin, gruplar/odalar paneli gizlensin.
+  // DM Panel toggle: DM butonuna tıklandığında DM paneli açılacak, ancak gruplar/odalar paneli değişmeyecek.
   toggleDMButton.addEventListener('click', () => {
     const dmPanel = document.getElementById('dmPanel');
-    // groupsAndRooms alanı DM paneli dışındaki sol taraftaki grup ve oda listesini içerir.
     if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
       dmPanel.style.display = 'block';
-      groupsAndRooms.style.display = 'none';
+      dmPanel.style.position = 'absolute';
+      dmPanel.style.top = '0';
+      dmPanel.style.left = '365px'; // Gruplar panelinin hemen sağı; leftPanels genişliği 365px olarak varsayılmıştır.
+      dmPanel.style.width = '300px'; // DM paneli 300px genişliğinde.
+      dmPanel.style.height = '100%';
       isDMMode = true;
     } else {
       dmPanel.style.display = 'none';
-      groupsAndRooms.style.display = 'flex';
       isDMMode = false;
     }
   });
   closeDMButton.addEventListener('click', () => {
     document.getElementById('dmPanel').style.display = 'none';
-    groupsAndRooms.style.display = 'flex';
     isDMMode = false;
   });
   leaveButton.addEventListener('click', () => {
