@@ -990,6 +990,10 @@ function initUIEvents() {
   document.getElementById('closeJoinGroupModal').addEventListener('click', () => {
     document.getElementById('joinGroupModal').style.display = 'none';
   });
+  // EK: Yeni Grup Kur modali için "Kapat" butonu event listener'ı ekleniyor.
+  document.getElementById('closeCreateGroupModal').addEventListener('click', () => {
+    document.getElementById('actualGroupCreateModal').style.display = 'none';
+  });
   document.getElementById('createChannelBtn').addEventListener('click', (e) => {
     e.stopPropagation();
     document.getElementById('groupModal').style.display = 'none';
