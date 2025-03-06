@@ -68,7 +68,8 @@ let audioAnalyzers = {};
 
 let pingInterval = null;
 
-/* Formatlama fonksiyonları artık TextChannel modülünden sağlanıyor */
+// Yeni: Orijinal channel-content-area içeriğini saklamak için değişken
+let originalChannelContentHTML = "";
 
 const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
@@ -137,13 +138,18 @@ const deafenToggleButton = document.getElementById('deafenToggleButton');
 const settingsButton = document.getElementById('settingsButton');
 
 // Metin Kanalı Elemanları
-const textChannelContainer = document.getElementById('textChannelContainer');
-const textMessages = document.getElementById('textMessages');
+// (Bu öğeler, başlangıçta index.html’de mevcut; DM modunda içerik değiştirildiğinde orijinali kaybolmasın diye orijinal HTML’yi saklıyoruz)
+let textChannelContainer = document.getElementById('textChannelContainer');
+let textMessages = document.getElementById('textMessages');
 const textChatInputBar = document.getElementById('text-chat-input-bar');
 const textChannelMessageInput = document.getElementById('textChannelMessageInput');
 const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
 window.addEventListener('DOMContentLoaded', () => {
+  // Orijinal channel-content-area içeriğini saklayalım.
+  const channelContentArea = document.querySelector('.channel-content-area');
+  originalChannelContentHTML = channelContentArea.innerHTML;
+  
   // Başlangıçta toggleDMButton içindeki ikon "forum" olarak ayarlansın.
   toggleDMButton.querySelector('.material-icons').textContent = 'forum';
   
@@ -154,7 +160,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // Typing indicator modülünü başlatıyoruz; getCurrentTextChannel fonksiyonu currentTextChannel değerini döndürüyor.
   initTypingIndicator(socket, () => currentTextChannel, () => username);
   
-  const tm = textMessages;
+  const tm = document.getElementById('textMessages');
   let removeScrollingTimeout;
   if (tm) {
     tm.addEventListener('scroll', function() {
@@ -455,9 +461,11 @@ function initSocketEvents() {
             hideChannelStatusPanel();
             currentRoomType = "text";
           }
-          textMessages.innerHTML = "";
+          // Yeniden textMessages öğesini alıyoruz çünkü DM modundan sonra orijinal içerik yeniden yüklendiğinde yeni öğe oluşmuştur.
+          textMessages = document.getElementById('textMessages');
+          if(textMessages) textMessages.innerHTML = "";
           currentTextChannel = roomObj.id;
-          textMessages.dataset.channelId = roomObj.id;
+          if(textMessages) textMessages.dataset.channelId = roomObj.id;
           socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: roomObj.id });
           return;
         }
@@ -1078,7 +1086,7 @@ function initUIEvents() {
   // - Gruplar panelindeki seçili (selected) sınıfı kaldırılacak.
   // - "roomPanel" (kanallar paneli) ve ".right-panel" gizlenecek.
   // - Ortadaki "selected-channel-title" başlığı "Arkadaşlar" olacak.
-  // - "channel-content-area" içine arkadaş arama kutucuğu eklenecek.
+  // - "channel-content-area" içine arkadaş arama kutucuğu eklenip, orijinal içerik saklanacak.
   toggleDMButton.addEventListener('click', () => {
     const dmPanel = document.getElementById('dmPanel');
     const roomPanel = document.getElementById('roomPanel');
@@ -1086,6 +1094,7 @@ function initUIEvents() {
     const selectedChannelTitle = document.getElementById('selectedChannelTitle');
     const channelContentArea = document.querySelector('.channel-content-area');
     if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
+      // DM moduna geçerken, orijinal içerik zaten saklı.
       dmPanel.style.display = 'block';
       roomPanel.style.display = 'none';
       rightPanel.style.display = 'none';
@@ -1115,9 +1124,12 @@ function initUIEvents() {
       if(selectedChannelTitle) {
          selectedChannelTitle.textContent = "Kanal Seçilmedi";
       }
-      // channel-content-area içeriğini temizleyelim (veya önceki içeriğe geri dönecek şekilde ayarlayabilirsiniz)
+      // channel-content-area içeriğini orijinal içerikle geri yükleyelim
       if(channelContentArea) {
-         channelContentArea.innerHTML = "";
+         channelContentArea.innerHTML = originalChannelContentHTML;
+         // Yeniden text channel öğelerini (textChannelContainer, textMessages vb.) seçelim
+         textChannelContainer = document.getElementById('textChannelContainer');
+         textMessages = document.getElementById('textMessages');
       }
     }
   });
