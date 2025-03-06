@@ -112,7 +112,6 @@ const deleteGroupBtn = document.getElementById('deleteGroupBtn');
 // DM panel ve odalar alanı (kanallar paneli)
 const toggleDMButton = document.getElementById('toggleDMButton');
 const roomPanel = document.getElementById('roomPanel');
-const closeDMButton = document.getElementById('closeDMButton');
 let isDMMode = false;
 
 // Sağ panel (userList)
@@ -145,8 +144,8 @@ const textChannelMessageInput = document.getElementById('textChannelMessageInput
 const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
 window.addEventListener('DOMContentLoaded', () => {
-  // İlk başta DM paneli kapalıyken closeDMButton'ı gizleyelim.
-  closeDMButton.style.display = 'none';
+  // Başlangıçta toggleDMButton içindeki ikon "forum" olarak ayarlansın.
+  toggleDMButton.querySelector('.material-icons').textContent = 'forum';
   
   socket = io("https://fisqos.com.tr", { transports: ['websocket'] });
   console.log("Socket connected =>", socket.id);
@@ -1074,27 +1073,23 @@ function initUIEvents() {
     }
   });
   // DM Panel toggle:
-  // DM paneli kapalıyken sol üstte toggleDMButton (dm-toggle-btn) görünsün.
-  // DM paneli açıldığında toggleDMButton gizlensin ve onun yerine closeDMButton sol üstte görünsün.
+  // DM paneli kapalıyken toggleDMButton (dm-toggle-btn) içinde "forum" ikonu gösteriliyor.
+  // DM paneli açıldığında aynı butonun ikonu "group" olarak değişecek.
   toggleDMButton.addEventListener('click', () => {
     const dmPanel = document.getElementById('dmPanel');
     if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
       dmPanel.style.display = 'block';
       roomPanel.style.display = 'none';
       isDMMode = true;
-      // DM paneli açıkken toggleDMButton gizlenip closeDMButton gösterilsin.
-      toggleDMButton.style.display = 'none';
-      closeDMButton.style.display = 'block';
+      // DM paneli açıldığında, toggleDMButton içindeki ikon "group" olsun.
+      toggleDMButton.querySelector('.material-icons').textContent = 'group';
+    } else {
+      dmPanel.style.display = 'none';
+      roomPanel.style.display = 'flex';
+      isDMMode = false;
+      // DM paneli kapatıldığında, toggleDMButton içindeki ikon "forum" olsun.
+      toggleDMButton.querySelector('.material-icons').textContent = 'forum';
     }
-  });
-  closeDMButton.addEventListener('click', () => {
-    const dmPanel = document.getElementById('dmPanel');
-    dmPanel.style.display = 'none';
-    roomPanel.style.display = 'flex';
-    isDMMode = false;
-    // DM paneli kapatıldığında, closeDMButton gizlenip toggleDMButton tekrar gösterilsin.
-    closeDMButton.style.display = 'none';
-    toggleDMButton.style.display = 'block';
   });
   leaveButton.addEventListener('click', () => {
     clearScreenShareUI();
