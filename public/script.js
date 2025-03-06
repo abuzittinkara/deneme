@@ -111,7 +111,6 @@ const deleteGroupBtn = document.getElementById('deleteGroupBtn');
 
 // DM panel ve odalar alanı (kanallar paneli)
 const toggleDMButton = document.getElementById('toggleDMButton');
-// Note: Artık gruplar/odalar bölümü içerisindeki "roomPanel" kısmını hedef alacağız.
 const roomPanel = document.getElementById('roomPanel');
 const closeDMButton = document.getElementById('closeDMButton');
 let isDMMode = false;
@@ -146,6 +145,9 @@ const textChannelMessageInput = document.getElementById('textChannelMessageInput
 const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
 window.addEventListener('DOMContentLoaded', () => {
+  // İlk başta DM paneli kapalıyken closeDMButton'ı gizleyelim.
+  closeDMButton.style.display = 'none';
+  
   socket = io("https://fisqos.com.tr", { transports: ['websocket'] });
   console.log("Socket connected =>", socket.id);
   initSocketEvents();
@@ -1071,17 +1073,18 @@ function initUIEvents() {
       groupDropdownMenu.style.display = 'none';
     }
   });
-  // DM Panel toggle: DM butonuna tıklandığında DM paneli, odalar paneli (roomPanel) yerine gelsin.
+  // DM Panel toggle:
+  // DM paneli kapalıyken sol üstte toggleDMButton (dm-toggle-btn) görünsün.
+  // DM paneli açıldığında toggleDMButton gizlensin ve onun yerine closeDMButton sol üstte görünsün.
   toggleDMButton.addEventListener('click', () => {
     const dmPanel = document.getElementById('dmPanel');
     if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
       dmPanel.style.display = 'block';
       roomPanel.style.display = 'none';
       isDMMode = true;
-    } else {
-      dmPanel.style.display = 'none';
-      roomPanel.style.display = 'flex';
-      isDMMode = false;
+      // DM paneli açıkken toggleDMButton gizlenip closeDMButton gösterilsin.
+      toggleDMButton.style.display = 'none';
+      closeDMButton.style.display = 'block';
     }
   });
   closeDMButton.addEventListener('click', () => {
@@ -1089,6 +1092,9 @@ function initUIEvents() {
     dmPanel.style.display = 'none';
     roomPanel.style.display = 'flex';
     isDMMode = false;
+    // DM paneli kapatıldığında, closeDMButton gizlenip toggleDMButton tekrar gösterilsin.
+    closeDMButton.style.display = 'none';
+    toggleDMButton.style.display = 'block';
   });
   leaveButton.addEventListener('click', () => {
     clearScreenShareUI();
