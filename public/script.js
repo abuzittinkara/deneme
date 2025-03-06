@@ -143,6 +143,10 @@ const textChatInputBar = document.getElementById('text-chat-input-bar');
 const textChannelMessageInput = document.getElementById('textChannelMessageInput');
 const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
+// Ek: Seçili başlık ve ana içerik alanı
+const selectedChannelTitle = document.getElementById('selectedChannelTitle');
+const channelContentArea = document.getElementById('channelContentArea');
+
 window.addEventListener('DOMContentLoaded', () => {
   // Başlangıçta toggleDMButton içindeki ikon "forum" olarak ayarlansın.
   toggleDMButton.querySelector('.material-icons').textContent = 'forum';
@@ -237,7 +241,7 @@ function showChannelContextMenu(e, roomObj) {
 
 /* Yeni fonksiyon: updateVoiceChannelUI */
 function updateVoiceChannelUI(roomName) {
-  document.getElementById('selectedChannelTitle').textContent = roomName;
+  selectedChannelTitle.textContent = roomName;
   const channelUsersContainer = document.getElementById('channelUsersContainer');
   if (channelUsersContainer) {
     channelUsersContainer.style.display = 'flex';
@@ -306,7 +310,8 @@ function displayScreenShareEndedMessage() {
     messageEl.style.borderRadius = '8px';
     messageEl.style.fontSize = '1.2rem';
   }
-  channelContentArea.appendChild(messageEl);
+  const channelContentAreaElem = document.querySelector('.channel-content-area');
+  channelContentAreaElem.appendChild(messageEl);
 }
 
 /* removeScreenShareEndedMessage */
@@ -448,7 +453,7 @@ function initSocketEvents() {
       roomItem.addEventListener('click', () => {
         if (roomObj.type === 'text') {
           console.log(`Text channel clicked => ${roomObj.name}`);
-          document.getElementById('selectedChannelTitle').textContent = roomObj.name;
+          selectedChannelTitle.textContent = roomObj.name;
           textChannelContainer.style.display = 'flex';
           document.getElementById('channelUsersContainer').style.display = 'none';
           if (!(currentRoom && currentRoomType === 'voice')) {
@@ -856,7 +861,7 @@ function joinRoom(groupId, roomId, roomName) {
   }
   console.log(`joinRoom çağrıldı: group=${groupId}, room=${roomId}, name=${roomName}`);
   socket.emit('joinRoom', { groupId, roomId });
-  document.getElementById('selectedChannelTitle').textContent = roomName;
+  selectedChannelTitle.textContent = roomName;
   // Sesli kanala bağlanırken aktif kanal adını kaydediyoruz
   activeVoiceChannelName = roomName;
   showChannelStatusPanel();
@@ -1072,23 +1077,29 @@ function initUIEvents() {
       groupDropdownMenu.style.display = 'none';
     }
   });
-  // DM Panel toggle:
-  // DM paneli kapalıyken toggleDMButton (dm-toggle-btn) içinde "forum" ikonu gösteriliyor.
-  // DM paneli açıldığında aynı butonun ikonu "group" olarak değişecek.
+  // DM Panel toggle: DM paneli kapalıyken toggleDMButton (dm-toggle-btn) içindeki ikon "forum" olacak;
+  // DM paneli açıldığında toggleDMButton içindeki ikon "group" olacak ve ayrıca selectedChannelTitle "Arkadaşlar" olarak
+  // ayarlanıp channelContentArea, kullanıcı arama inputu ile doldurulacak.
   toggleDMButton.addEventListener('click', () => {
     const dmPanel = document.getElementById('dmPanel');
     if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
+      // DM paneli açılıyor:
       dmPanel.style.display = 'block';
       roomPanel.style.display = 'none';
       isDMMode = true;
-      // DM paneli açıldığında, toggleDMButton içindeki ikon "group" olsun.
       toggleDMButton.querySelector('.material-icons').textContent = 'group';
+      selectedChannelTitle.textContent = 'Arkadaşlar';
+      channelContentArea.innerHTML = `<div style="padding: 1rem;">
+        <input type="text" id="friendSearchInput" placeholder="Kullanıcı ara..." style="width: 100%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
+      </div>`;
     } else {
+      // DM paneli kapatılıyor:
       dmPanel.style.display = 'none';
       roomPanel.style.display = 'flex';
       isDMMode = false;
-      // DM paneli kapatıldığında, toggleDMButton içindeki ikon "forum" olsun.
       toggleDMButton.querySelector('.material-icons').textContent = 'forum';
+      selectedChannelTitle.textContent = 'Kanal Seçilmedi';
+      channelContentArea.innerHTML = '';
     }
   });
   leaveButton.addEventListener('click', () => {
@@ -1098,7 +1109,7 @@ function initUIEvents() {
     leaveRoomInternal();
     hideChannelStatusPanel();
     currentRoom = null;
-    document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
+    selectedChannelTitle.textContent = 'Kanal Seçilmedi';
     const container = document.getElementById('channelUsersContainer');
     if (container) {
       container.innerHTML = '';
@@ -1313,7 +1324,7 @@ function showChannelStatusPanel() {
     leaveRoomInternal();
     hideChannelStatusPanel();
     currentRoom = null;
-    document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
+    selectedChannelTitle.textContent = 'Kanal Seçilmedi';
     const container = document.getElementById('channelUsersContainer');
     if (container) {
       container.innerHTML = '';
