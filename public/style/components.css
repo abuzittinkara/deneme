@@ -547,6 +547,10 @@
   height: 100%;
   z-index: 5;
 }
+.dm-close-btn {
+  /* DM paneli açıkken sol üstte, dm-toggle-btn ile aynı konumda yer alması için mutlak pozisyonlama kaldırıldı */
+  display: inline-flex;
+}
 
 /* Context Menu */
 .context-menu {
