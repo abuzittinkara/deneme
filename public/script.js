@@ -109,9 +109,10 @@ const renameGroupBtn = document.getElementById('renameGroupBtn');
 const createChannelBtn = document.getElementById('createChannelBtn');
 const deleteGroupBtn = document.getElementById('deleteGroupBtn');
 
-// DM panel ve gruplar/odalar alanı
+// DM panel ve odalar alanı (kanallar paneli)
 const toggleDMButton = document.getElementById('toggleDMButton');
-const groupsAndRooms = document.getElementById('groupsAndRooms'); // Grupların/odaların bulunduğu alan
+// Note: Artık gruplar/odalar bölümü içerisindeki "roomPanel" kısmını hedef alacağız.
+const roomPanel = document.getElementById('roomPanel');
 const closeDMButton = document.getElementById('closeDMButton');
 let isDMMode = false;
 
@@ -1070,25 +1071,23 @@ function initUIEvents() {
       groupDropdownMenu.style.display = 'none';
     }
   });
-  // DM Panel toggle: DM butonuna tıklandığında DM paneli, gruplar/odalar (groupsAndRooms) panelinin yerine gelsin.
+  // DM Panel toggle: DM butonuna tıklandığında DM paneli, odalar paneli (roomPanel) yerine gelsin.
   toggleDMButton.addEventListener('click', () => {
     const dmPanel = document.getElementById('dmPanel');
-    const groupsAndRooms = document.getElementById('groupsAndRooms');
     if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
       dmPanel.style.display = 'block';
-      groupsAndRooms.style.display = 'none';
+      roomPanel.style.display = 'none';
       isDMMode = true;
     } else {
       dmPanel.style.display = 'none';
-      groupsAndRooms.style.display = 'flex';
+      roomPanel.style.display = 'flex';
       isDMMode = false;
     }
   });
   closeDMButton.addEventListener('click', () => {
     const dmPanel = document.getElementById('dmPanel');
-    const groupsAndRooms = document.getElementById('groupsAndRooms');
     dmPanel.style.display = 'none';
-    groupsAndRooms.style.display = 'flex';
+    roomPanel.style.display = 'flex';
     isDMMode = false;
   });
   leaveButton.addEventListener('click', () => {
