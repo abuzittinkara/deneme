@@ -111,7 +111,7 @@ const deleteGroupBtn = document.getElementById('deleteGroupBtn');
 
 // DM panel ve gruplar/odalar alanı
 const toggleDMButton = document.getElementById('toggleDMButton');
-const groupsAndRooms = document.getElementById('groupsAndRooms'); // Grupların ve odaların bulunduğu alan
+const groupsAndRooms = document.getElementById('groupsAndRooms'); // Grupların/odaların bulunduğu alan
 const closeDMButton = document.getElementById('closeDMButton');
 let isDMMode = false;
 
@@ -1070,7 +1070,7 @@ function initUIEvents() {
       groupDropdownMenu.style.display = 'none';
     }
   });
-  // DM Panel toggle: DM butonuna tıklandığında DM paneli, kanallar panelinin yerine geçsin.
+  // DM Panel toggle: DM butonuna tıklandığında DM paneli, gruplar/odalar panelinin yerine gelsin.
   toggleDMButton.addEventListener('click', () => {
     const dmPanel = document.getElementById('dmPanel');
     const groupsAndRooms = document.getElementById('groupsAndRooms');
