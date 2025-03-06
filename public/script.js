@@ -1074,13 +1074,17 @@ function initUIEvents() {
   });
   // DM Panel toggle:
   // DM paneli kapalıyken toggleDMButton (dm-toggle-btn) içinde "forum" ikonu gösteriliyor.
-  // DM paneli açıldığında aynı butonun ikonu "group" olarak değişecek, ayrıca DM açıldığında:
-  // 1. Gruplar panelindeki (grp-item) seçili (selected) sınıfı kaldırılacak.
-  // 2. "roomPanel" (kanallar paneli) ve "right-panel" gizlenecek.
+  // DM paneli açıldığında aynı butonun ikonu "group" olarak değişecek, ayrıca:
+  // - Gruplar panelindeki seçili (selected) sınıfı kaldırılacak.
+  // - "roomPanel" (kanallar paneli) ve ".right-panel" gizlenecek.
+  // - Ortadaki "selected-channel-title" başlığı "Arkadaşlar" olacak.
+  // - "channel-content-area" içine arkadaş arama kutucuğu eklenecek.
   toggleDMButton.addEventListener('click', () => {
     const dmPanel = document.getElementById('dmPanel');
     const roomPanel = document.getElementById('roomPanel');
     const rightPanel = document.getElementById('rightPanel');
+    const selectedChannelTitle = document.getElementById('selectedChannelTitle');
+    const channelContentArea = document.querySelector('.channel-content-area');
     if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
       dmPanel.style.display = 'block';
       roomPanel.style.display = 'none';
@@ -1090,6 +1094,16 @@ function initUIEvents() {
       document.querySelectorAll('.grp-item.selected').forEach(item => item.classList.remove('selected'));
       // Toggle buton ikonu "group" olarak ayarlansın
       toggleDMButton.querySelector('.material-icons').textContent = 'group';
+      // Ortadaki başlığı "Arkadaşlar" yapalım
+      if(selectedChannelTitle) {
+         selectedChannelTitle.textContent = "Arkadaşlar";
+      }
+      // channel-content-area içine arkadaş arama kutucuğu ekleyelim
+      if(channelContentArea) {
+         channelContentArea.innerHTML = `<div style="padding: 1rem;">
+             <input type="text" id="friendSearchInput" placeholder="Arkadaş ara..." style="width:100%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
+         </div>`;
+      }
     } else {
       dmPanel.style.display = 'none';
       roomPanel.style.display = 'flex';
@@ -1097,6 +1111,14 @@ function initUIEvents() {
       isDMMode = false;
       // Toggle buton ikonu "forum" olarak ayarlansın
       toggleDMButton.querySelector('.material-icons').textContent = 'forum';
+      // Başlığı eski haline getirelim
+      if(selectedChannelTitle) {
+         selectedChannelTitle.textContent = "Kanal Seçilmedi";
+      }
+      // channel-content-area içeriğini temizleyelim (veya önceki içeriğe geri dönecek şekilde ayarlayabilirsiniz)
+      if(channelContentArea) {
+         channelContentArea.innerHTML = "";
+      }
     }
   });
   leaveButton.addEventListener('click', () => {
