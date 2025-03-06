@@ -1070,7 +1070,7 @@ function initUIEvents() {
       groupDropdownMenu.style.display = 'none';
     }
   });
-  // DM Panel toggle: DM butonuna tıklandığında DM paneli, gruplar/odalar panelinin yerine gelsin.
+  // DM Panel toggle: DM butonuna tıklandığında DM paneli, gruplar/odalar (groupsAndRooms) panelinin yerine gelsin.
   toggleDMButton.addEventListener('click', () => {
     const dmPanel = document.getElementById('dmPanel');
     const groupsAndRooms = document.getElementById('groupsAndRooms');
