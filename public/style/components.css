@@ -534,21 +534,18 @@
 
 /* DM Panel */
 .dm-panel {
-  width: 265px;
+  width: 300px;
   background: #222;
   color: #fff;
   padding: 1rem;
   box-sizing: border-box;
   overflow: auto;
+  /* Değişiklik: DM paneli artık sidebar genişliği (65px) kadar offset ile, kanallar panelinin (300px genişlikte) yerine gelecek şekilde konumlandırılıyor */
   position: absolute;
-  left: 0;
+  left: 65px;
   top: 0;
   height: 100%;
-}
-.dm-close-btn {
-  position: absolute;
-  top: 1rem;
-  left: 0.55rem;
+  z-index: 5;
 }
 
 /* Context Menu */
