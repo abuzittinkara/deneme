@@ -1130,6 +1130,13 @@ function initUIEvents() {
          // Yeniden text channel öğelerini (textChannelContainer, textMessages vb.) seçelim
          textChannelContainer = document.getElementById('textChannelContainer');
          textMessages = document.getElementById('textMessages');
+         // Eğer daha önce seçili metin kanalı varsa, dataset.channelId'yi yeniden ayarla ve sunucudan geçmişi iste
+         if(currentTextChannel) {
+            textMessages.dataset.channelId = currentTextChannel;
+            socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: currentTextChannel });
+         }
+         // Metin kanalı event dinleyicilerini yeniden başlat
+         TextChannel.initTextChannelEvents(socket, textMessages);
       }
     }
   });
