@@ -142,8 +142,8 @@ const settingsButton = document.getElementById('settingsButton');
 let textChannelContainer = document.getElementById('textChannelContainer');
 let textMessages = document.getElementById('textMessages');
 const textChatInputBar = document.getElementById('text-chat-input-bar');
-const textChannelMessageInput = document.getElementById('textChannelMessageInput');
-const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
+let textChannelMessageInput = document.getElementById('textChannelMessageInput');
+let sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
 window.addEventListener('DOMContentLoaded', () => {
   // Orijinal channel-content-area içeriğini saklayalım.
@@ -181,6 +181,19 @@ window.addEventListener('DOMContentLoaded', () => {
   
   TextChannel.initTextChannelEvents(socket, textMessages);
 });
+
+function sendTextMessage() {
+  const msg = textChannelMessageInput.value.trim();
+  if (!msg) return;
+  socket.emit('textMessage', { 
+    groupId: selectedGroup, 
+    roomId: currentTextChannel, 
+    message: msg, 
+    username: username 
+  });
+  textChannelMessageInput.value = '';
+  sendTextMessageBtn.style.display = "none";
+}
 
 /* Yeni fonksiyon: Context Menu Gösterimi */
 function showChannelContextMenu(e, roomObj) {
@@ -1130,6 +1143,9 @@ function initUIEvents() {
          // Yeniden text channel öğelerini (textChannelContainer, textMessages vb.) seçelim
          textChannelContainer = document.getElementById('textChannelContainer');
          textMessages = document.getElementById('textMessages');
+         // Önemli: Yeni input elemanlarını da yeniden seçelim
+         textChannelMessageInput = document.getElementById('textChannelMessageInput');
+         sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
          // Eğer daha önce seçili metin kanalı varsa, dataset.channelId'yi yeniden ayarla ve sunucudan geçmişi iste
          if(currentTextChannel) {
             textMessages.dataset.channelId = currentTextChannel;
@@ -1137,6 +1153,21 @@ function initUIEvents() {
          }
          // Metin kanalı event dinleyicilerini yeniden başlat
          TextChannel.initTextChannelEvents(socket, textMessages);
+         // Ayrıca metin mesajı gönderme eventlerini de yeniden bağlayalım
+         textChannelMessageInput.addEventListener('input', () => {
+           if (textChannelMessageInput.value.trim() !== "") {
+             sendTextMessageBtn.style.display = "block";
+           } else {
+             sendTextMessageBtn.style.display = "none";
+           }
+         });
+         textChannelMessageInput.addEventListener('keydown', (e) => {
+           if (e.key === 'Enter') {
+             e.preventDefault();
+             sendTextMessage();
+           }
+         });
+         sendTextMessageBtn.addEventListener('click', sendTextMessage);
       }
     }
   });
@@ -1174,18 +1205,6 @@ function initUIEvents() {
   settingsButton.addEventListener('click', () => {
     // ...
   });
-  function sendTextMessage() {
-    const msg = textChannelMessageInput.value.trim();
-    if (!msg) return;
-    socket.emit('textMessage', { 
-      groupId: selectedGroup, 
-      roomId: currentTextChannel, 
-      message: msg, 
-      username: username 
-    });
-    textChannelMessageInput.value = '';
-    sendTextMessageBtn.style.display = "none";
-  }
   sendTextMessageBtn.addEventListener('click', sendTextMessage);
   textChannelMessageInput.addEventListener('input', () => {
     if (textChannelMessageInput.value.trim() !== "") {
