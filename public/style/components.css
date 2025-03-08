@@ -534,22 +534,50 @@
 
 /* DM Panel */
 .dm-panel {
-  width: 300px;
-  background: #222;
+  /* DM paneli için özel stiller eklendi */
+  background: #2d2d2d;
   color: #fff;
   padding: 1rem;
-  box-sizing: border-box;
-  overflow: auto;
-  /* Değişiklik: DM paneli artık sidebar genişliği (65px) kadar offset ile, kanallar panelinin (300px genişlikte) yerine gelecek şekilde konumlandırılıyor */
-  position: absolute;
-  left: 65px;
-  top: 0;
-  height: 100%;
-  z-index: 5;
 }
-.dm-close-btn {
-  /* DM paneli açıkken sol üstte, dm-toggle-btn ile aynı konumda yer alması için mutlak pozisyonlama kaldırıldı */
-  display: inline-flex;
+
+/* Yeni: DM paneli headerındaki friendsButton için stiller */
+#friendsButton {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+#friendsButton:hover {
+  background-color: #444;
+}
+
+/* DM Search Input (DM panelindeki arama kutucuğu) */
+.dm-search input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #666;
+  border-radius: 6px;
+  background: #444;
+  color: #fff;
+}
+
+/* DM Panel Header */
+.dm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* DM Header Title */
+.dm-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  color: #fff;
 }
 
 /* Context Menu */
