@@ -31,7 +31,9 @@
         <button id="loginButton" class="btn primary">Giriş Yap</button>
         <p style="margin-top: 1rem;">
           Hesabın yok mu?
-          <span id="showRegisterScreen" style="color: #fff; cursor: pointer; text-decoration: underline;">Yeni Hesap Oluştur</span>
+          <span id="showRegisterScreen" style="color: #fff; cursor: pointer; text-decoration: underline;">
+            Yeni Hesap Oluştur
+          </span>
         </p>
       </div>
     </div>
@@ -56,7 +58,9 @@
         <button id="backToLoginButton" class="btn secondary">Geri Gel</button>
         <p style="margin-top: 1rem;">
           Zaten hesabın var mı?
-          <span id="showLoginScreen" style="color: #fff; cursor: pointer; text-decoration: underline;">Oturum Aç</span>
+          <span id="showLoginScreen" style="color: #fff; cursor: pointer; text-decoration: underline;">
+            Oturum Aç
+          </span>
         </p>
       </div>
     </div>
@@ -76,7 +80,7 @@
               <span class="material-icons">add</span>
             </button>
           </div>
-          <!-- Odalar Paneli -->
+          <!-- Rooms Panel -->
           <div id="roomPanel" class="rooms-panel">
             <div class="room-panel-header">
               <h2 id="groupTitle" class="panel-title">Seçili Grup</h2>
@@ -90,24 +94,15 @@
             </div>
             <div id="roomList" class="room-list"></div>
           </div>
-        </div>
-        <!-- Kanal Durum Paneli -->
-        <div id="channelStatusPanel" class="channel-status-panel" style="display: none;">
-          <div class="chan-status-content">
-            <div id="signalBars" class="signal-bars">
-              <div class="cell-bar" id="cellBar1"></div>
-              <div class="cell-bar" id="cellBar2"></div>
-              <div class="cell-bar" id="cellBar3"></div>
-              <div class="cell-bar" id="cellBar4"></div>
+          <!-- DM Left Panel (Rooms panel yerine gösterilecek) -->
+          <div id="dmLeftPanel" class="dm-left-panel" style="display: none;">
+            <div class="dm-left-header" style="padding: 1rem; border-bottom: 1px solid #444;">
+              <input type="text" id="dmLeftSearchInput" placeholder="Arkadaş ara..." style="width:100%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
             </div>
-            <span id="pingValue" style="font-size: 0.85rem;">-- ms</span>
-            <button id="leaveButton" class="leave-btn">
-              <span class="material-icons">call_end</span>
-            </button>
-            <!-- Yeni Ekran Paylaşım Butonu -->
-            <button id="screenShareButton" class="screenshare-btn">
-              <span class="material-icons">desktop_windows</span>
-            </button>
+            <div id="dmLeftList" class="dm-left-list" style="padding: 1rem;">
+              <!-- DM arkadaş listesi buraya gelecek -->
+              <p style="color:#aaa;">Arkadaşlar buraya gelecek</p>
+            </div>
           </div>
         </div>
         <!-- Kullanıcı Paneli -->
@@ -134,7 +129,7 @@
         <div id="selectedChannelBar" class="selected-channel-bar">
           <h2 id="selectedChannelTitle" class="selected-channel-title">Kanal Seçilmedi</h2>
         </div>
-        <!-- Burada kanal mesajlarının gösterildiği alan -->
+        <!-- Kanal mesajlarının gösterildiği alan -->
         <div id="channelContentArea" class="channel-content-area">
           <!-- Voice kanallar için -->
           <div id="channelUsersContainer" class="channel-users-container" style="display: none;"></div>
@@ -168,7 +163,7 @@
             </div>
           </div>
         </div>
-        <!-- DM panel şablonu (gizli) -->
+        <!-- DM içerik alanı (varsa) -->
         <div id="dmTemplate" style="display: none;">
           <div class="dm-search" style="padding: 1rem;">
             <input type="text" id="dmSearchInput" placeholder="Arkadaş ara..." style="width:100%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">

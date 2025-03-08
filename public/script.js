@@ -34,68 +34,55 @@ function sendTextMessage() {
 }
 
 import * as TextChannel from './js/textChannel.js';
-import * as ScreenShare from './js/screenShare.js';  // Yeni ekran paylaşım modülü
+import * as ScreenShare from './js/screenShare.js';
 import { initTypingIndicator } from './js/typingIndicator.js';
 
 let socket = null;
-let device = null;   // mediasoup-client Device
+let device = null;
 let deviceIsLoaded = false;
 let sendTransport = null;
 let recvTransport = null;
 
-// Mikrofon akışı
 let localStream = null;
 let audioPermissionGranted = false;
 
-// Producer (mikrofon)
 let localProducer = null;
 
-// Remote audio consumer objeleri
-let consumers = {};  // consumerId -> consumer
-
-// Remote audio elementlerini saklayalım
+let consumers = {};
 let remoteAudios = [];
 
-// Global ekran paylaşım video elementi
 let screenShareVideo = null;
 
-// Kimlik
 let username = null;
 let currentGroup = null;
 let currentRoom = null;
 let selectedGroup = null;
-let currentTextChannel = null; // Metin kanalı için seçili kanal id'si
-let currentRoomType = null;    // "voice" veya "text"
+let currentTextChannel = null;
+let currentRoomType = null;
 
-// Yeni: Kullanıcının sesli kanala bağlandığı kanalın adını saklayacak değişken
 let activeVoiceChannelName = "";
 
-// Mikrofon / Kulaklık
 let micEnabled = true;
 let selfDeafened = false;
 let micWasEnabledBeforeDeaf = false;
 
-// Ses seviyesi analizi
 const SPEAKING_THRESHOLD = 0.02;
 const VOLUME_CHECK_INTERVAL = 100;
 let audioAnalyzers = {};
 
 let pingInterval = null;
 
-// Yeni: Orijinal channel-content-area içeriğini saklamak için değişken
 let originalChannelContentHTML = "";
 
 const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
 const callScreen = document.getElementById('callScreen');
 
-// Login
 const loginUsernameInput = document.getElementById('loginUsernameInput');
 const loginPasswordInput = document.getElementById('loginPasswordInput');
 const loginButton = document.getElementById('loginButton');
 const loginErrorMessage = document.getElementById('loginErrorMessage');
 
-// Register
 const regUsernameInput = document.getElementById('regUsernameInput');
 const regNameInput = document.getElementById('regNameInput');
 const regSurnameInput = document.getElementById('regSurnameInput');
@@ -108,11 +95,9 @@ const registerButton = document.getElementById('registerButton');
 const backToLoginButton = document.getElementById('backToLoginButton');
 const registerErrorMessage = document.getElementById('registerErrorMessage');
 
-// Ekran geçiş linkleri
 const showRegisterScreen = document.getElementById('showRegisterScreen');
 const showLoginScreen = document.getElementById('showLoginScreen');
 
-// Gruplar, Odalar
 const groupListDiv = document.getElementById('groupList');
 const createGroupButton = document.getElementById('createGroupButton');
 const roomListDiv = document.getElementById('roomList');
@@ -124,13 +109,10 @@ const renameGroupBtn = document.getElementById('renameGroupBtn');
 const createChannelBtn = document.getElementById('createChannelBtn');
 const deleteGroupBtn = document.getElementById('deleteGroupBtn');
 
-// DM modu için flag
 let isDMMode = false;
 
-// Sağ panel (userList)
 const userListDiv = document.getElementById('userList');
 
-// Kanal Durum Paneli
 const channelStatusPanel = document.getElementById('channelStatusPanel');
 channelStatusPanel.style.height = "100px";
 channelStatusPanel.style.zIndex = "20";
@@ -140,27 +122,24 @@ const cellBar2 = document.getElementById('cellBar2');
 const cellBar3 = document.getElementById('cellBar3');
 const cellBar4 = document.getElementById('cellBar4');
 
-// Ayrıl Butonu
 const leaveButton = document.getElementById('leaveButton');
 const screenShareButton = document.getElementById('screenShareButton');
 
-// Mikrofon / Kulaklık butonları
 const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
 const settingsButton = document.getElementById('settingsButton');
 
-// Metin Kanalı Elemanları
 let textChannelContainer = document.getElementById('textChannelContainer');
 let textMessages = document.getElementById('textMessages');
 const textChatInputBar = document.getElementById('text-chat-input-bar');
 let textChannelMessageInput = document.getElementById('textChannelMessageInput');
 let sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
-// DM şablon elemanını alma (index.html'den)
+// Yeni: DM şablon elementi (main content içindeki DM içeriği)
 const dmTemplate = document.getElementById('dmTemplate');
 
 window.addEventListener('DOMContentLoaded', () => {
-  const contentArea = document.querySelector('.channel-content-area');
+  const contentArea = document.getElementById('channelContentArea');
   originalChannelContentHTML = contentArea.innerHTML;
   
   toggleDMButton.querySelector('.material-icons').textContent = 'forum';
@@ -320,8 +299,7 @@ function displayScreenShareEndedMessage() {
     messageEl.style.borderRadius = '8px';
     messageEl.style.fontSize = '1.2rem';
   }
-  const contentAreaElem = document.querySelector('.channel-content-area');
-  contentAreaElem.appendChild(messageEl);
+  contentArea.appendChild(messageEl);
 }
 
 /* removeScreenShareEndedMessage */
@@ -337,7 +315,7 @@ function updateStatusPanel(ping) {
   const rssIcon = document.getElementById('rssIcon');
   const statusMessage = document.getElementById('statusMessage');
   const channelGroupInfo = document.getElementById('channelGroupInfo');
-  let color = "#2dbf2d"; // 0-60 ms: yeşil
+  let color = "#2dbf2d";
   if (ping >= 80) {
     color = "#ff0000";
   } else if (ping >= 60) {
@@ -1082,39 +1060,28 @@ function initUIEvents() {
     }
   });
   
-  // DM modu toggle: DM paneli, kanal panelinin olduğu (channelContentArea) alanda açılacak.
+  // DM modu toggle: DM açıldığında sol panelde (rooms paneli yerine) DM paneli gelsin.
   toggleDMButton.addEventListener('click', () => {
-    const contentArea = document.getElementById('channelContentArea');
     const roomPanel = document.getElementById('roomPanel');
+    const dmLeftPanel = document.getElementById('dmLeftPanel');
     const rightPanel = document.getElementById('rightPanel');
     const selectedChannelTitle = document.getElementById('selectedChannelTitle');
     if (!isDMMode) {
-      // DM modu aktif: Orijinal kanal içeriğini sakla ve DM şablonunu yükle.
-      originalChannelContentHTML = contentArea.innerHTML;
-      contentArea.innerHTML = dmTemplate.innerHTML;
+      roomPanel.style.display = 'none';
+      dmLeftPanel.style.display = 'block';
       isDMMode = true;
       toggleDMButton.querySelector('.material-icons').textContent = 'group';
       if(selectedChannelTitle) {
          selectedChannelTitle.textContent = "Arkadaşlar";
       }
     } else {
-      // DM modu kapalı: Eski kanal içeriğini geri yükle.
-      contentArea.innerHTML = originalChannelContentHTML;
+      roomPanel.style.display = 'block';
+      dmLeftPanel.style.display = 'none';
       isDMMode = false;
       toggleDMButton.querySelector('.material-icons').textContent = 'forum';
       if(selectedChannelTitle) {
          selectedChannelTitle.textContent = "Kanal Seçilmedi";
       }
-      // Tekrar metin kanal etkinliklerini başlat.
-      textChannelContainer = document.getElementById('textChannelContainer');
-      textMessages = document.getElementById('textMessages');
-      textChannelMessageInput = document.getElementById('textChannelMessageInput');
-      sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
-      if(currentTextChannel) {
-         textMessages.dataset.channelId = currentTextChannel;
-         socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: currentTextChannel });
-      }
-      TextChannel.initTextChannelEvents(socket, textMessages);
     }
   });
   
