@@ -322,6 +322,9 @@
 .text-message.only-message {
   max-width: 100%;
 }
+
+/* Ardışık mesajlarda artık .left-message sınıfı kullanılmayacak.
+   Bunun yerine aşağıdaki ayrı sınıfları kullanacaksınız: */
 .text-message.first-message {
   padding-top: 10px;
   padding-bottom: 0px;
@@ -336,7 +339,7 @@
   margin-bottom: 20px;
 }
 .text-message.only-message {
-  /* Tek mesaj için özel stil */
+  /* Tek mesaj (yalnızca bir mesaj varsa) için özel stil */
 }
 
 /* Mesaj kapsayıcı */
@@ -392,11 +395,15 @@
   color: #5a5a5a;
   margin-left: 4px;
 }
+
+/* Mesaj içeriği */
 .message-content {
   margin-top: 0px;
   margin-bottom: 0;
   padding: 0;
 }
+
+/* Hover Efekti: Ardışık mesaj sınıflarına fare üzerine gelindiğinde hover oluşsun */
 .text-message.first-message:hover,
 .text-message.middle-message:hover,
 .text-message.last-message:hover,
@@ -421,6 +428,7 @@
   background-color: #353535;
   border-radius: 2px;
 }
+
 /* Scrollbar - Firefox */
 #textMessages {
   scrollbar-width: none;
@@ -453,6 +461,7 @@
   padding: 0.5rem;
   margin-bottom: 0;
 }
+
 .chat-input-wrapper {
   position: relative;
   display: block;
@@ -680,13 +689,7 @@
 }
 
 /* Yeni: Filtre butonlarının bulunduğu container */
-/* Filtre butonları varsayılan olarak DM modunda görünmek üzere; bu konteynerin id'si "dmFilterButtons" */
-#dmFilterButtons {
-  display: none;
-}
-
-/* DM modunda, body.dm-active üzerinden filtre butonları gösterilsin */
-body.dm-active #dmFilterButtons {
+.filter-buttons {
   display: flex;
   align-items: center;
   gap: 10px;

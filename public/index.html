@@ -135,18 +135,7 @@
       <!-- Ortadaki Ana İçerik -->
       <div class="main-content">
         <div id="selectedChannelBar" class="selected-channel-bar">
-          <div class="title-and-filters">
-            <h2 id="selectedChannelTitle" class="selected-channel-title">Kanal Seçilmedi</h2>
-            <!-- DM moduna özel filtre butonları; bu konteyner body'de "dm-active" varsa gösterilecek -->
-            <div class="filter-buttons" id="dmFilterButtons">
-              <span class="vertical-separator"></span>
-              <button class="filter-btn" id="filter-online">Çevrimiçi</button>
-              <button class="filter-btn" id="filter-all">Hepsi</button>
-              <button class="filter-btn" id="filter-sent">Gönderilen</button>
-              <button class="filter-btn" id="filter-blocked">Engellenen</button>
-              <button class="filter-btn add-friend-btn" id="filter-addFriend">Arkadaş Ekle</button>
-            </div>
-          </div>
+          <h2 id="selectedChannelTitle" class="selected-channel-title">Kanal Seçilmedi</h2>
         </div>
         <div id="channelContentArea" class="channel-content-area">
           <!-- Voice kanallar için -->
@@ -191,6 +180,7 @@
 
     <!-- DM Paneli -->
     <div id="dmPanel" class="dm-panel" style="display: none;">
+      <!-- DM paneli için arama kutucuğu -->
       <div class="dm-search" style="padding: 1rem;">
          <input type="text" id="dmSearchInput" placeholder="Arkadaş ara..." style="width:100%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
       </div>
@@ -199,6 +189,15 @@
           <span class="material-icons">person</span>
           <span>Arkadaşlar</span>
         </div>
+      </div>
+      <!-- DM panel filtre butonları; sadece DM paneli açıldığında görünür -->
+      <div class="dm-filters" style="display: flex; align-items: center; gap: 10px; margin-top: 1rem;">
+         <span class="vertical-separator"></span>
+         <button class="filter-btn" id="filter-online">Çevrimiçi</button>
+         <button class="filter-btn" id="filter-all">Hepsi</button>
+         <button class="filter-btn" id="filter-sent">Gönderilen</button>
+         <button class="filter-btn" id="filter-blocked">Engellenen</button>
+         <button class="filter-btn add-friend-btn" id="filter-addFriend">Arkadaş Ekle</button>
       </div>
       <h3 style="margin-top: 2.5rem;">DM Mesajları</h3>
       <p>Birebir mesajlar buraya gelecek.</p>
@@ -260,21 +259,8 @@
     
     <script>
       function friendsButtonClicked() {
-        // Arkadaşlarla ilgili yapılacak işlemleri buraya ekleyebilirsiniz.
+        // Buraya arkadaşlarla ilgili yapılacak işlemleri ekleyebilirsiniz.
       }
-      
-      // DM modunun açılıp kapanmasını kontrol eden örnek kod:
-      document.getElementById('toggleDMButton').addEventListener('click', function() {
-        var dmPanel = document.getElementById('dmPanel');
-        if(dmPanel.style.display === 'none' || dmPanel.style.display === '') {
-          dmPanel.style.display = 'block';
-          // DM modunu aktif hale getir: body'ye "dm-active" sınıfı ekle
-          document.body.classList.add('dm-active');
-        } else {
-          dmPanel.style.display = 'none';
-          document.body.classList.remove('dm-active');
-        }
-      });
     </script>
   </body>
 </html>
