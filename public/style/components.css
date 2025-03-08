@@ -535,7 +535,7 @@
 /* DM Panel */
 .dm-panel {
   width: 300px;
-  background: #222;
+  background: #2d2d2d; 
   color: #fff;
   padding: 1rem;
   box-sizing: border-box;
