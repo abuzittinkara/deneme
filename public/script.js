@@ -178,8 +178,12 @@ window.addEventListener('DOMContentLoaded', () => {
   TextChannel.initTextChannelEvents(socket, textMessages);
 });
 
-/* Toggle DM Mode: DM tuşuna basıldığında, orijinal channelContentArea yerine DM moduna özgü
-   (dm-content-area, dm-selected-bar, dm-selected-title) sınıflar eklenerek, DM içeriği ortada görüntülenecek. */
+/* Toggle DM Mode:
+   DM tuşuna basıldığında, sol taraftaki (roomPanel ve rightPanel) alanlar gizlenir ve
+   ortadaki "channelContentArea" öğesi, orijinal "channel-content-area" yerine DM moduna ait
+   (dm-content-area) sınıflarıyla güncellenir. Üst bar da "dm-selected-bar" ve "dm-selected-title"
+   olarak değiştirilir. DM modundan çıkıldığında orijinal içerik ve sınıflar geri yüklenir.
+*/
 toggleDMButton.addEventListener('click', () => {
   const roomPanel = document.getElementById('roomPanel');
   const rightPanel = document.getElementById('rightPanel');
@@ -187,7 +191,6 @@ toggleDMButton.addEventListener('click', () => {
   const channelContentArea = document.getElementById('channelContentArea');
   
   if (!isDMMode) {
-    // DM modunu etkinleştir: dmPanel içeriği artık ortada channelContentArea içinde gösterilecek.
     roomPanel.style.display = 'none';
     rightPanel.style.display = 'none';
     isDMMode = true;
@@ -200,7 +203,7 @@ toggleDMButton.addEventListener('click', () => {
           <input type="text" id="friendSearchInput" placeholder="Arkadaş ara..." style="width:100%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
       </div>`;
     }
-    // DM’ye özgü sınıfları channelContentArea ve ilgili üst barlara ekle
+    // DM’ye özgü sınıfları ekle
     document.getElementById('selectedChannelBar').classList.remove('selected-channel-bar');
     document.getElementById('selectedChannelBar').classList.add('dm-selected-bar');
     document.getElementById('selectedChannelTitle').classList.remove('selected-channel-title');
@@ -208,7 +211,6 @@ toggleDMButton.addEventListener('click', () => {
     document.getElementById('channelContentArea').classList.remove('channel-content-area');
     document.getElementById('channelContentArea').classList.add('dm-content-area');
   } else {
-    // DM modunu kapat: orijinal içerik alanı geri yüklensin.
     isDMMode = false;
     roomPanel.style.display = 'flex';
     rightPanel.style.display = 'flex';
@@ -242,7 +244,6 @@ toggleDMButton.addEventListener('click', () => {
       });
       sendTextMessageBtn.addEventListener('click', sendTextMessage);
     }
-    // Orijinal sınıfları geri yükle
     document.getElementById('selectedChannelBar').classList.remove('dm-selected-bar');
     document.getElementById('selectedChannelBar').classList.add('selected-channel-bar');
     document.getElementById('selectedChannelTitle').classList.remove('dm-selected-title');

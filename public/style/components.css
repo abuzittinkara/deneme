@@ -347,8 +347,6 @@
   width: 100%;
   box-sizing: border-box;
 }
-
-/* Avatar */
 .message-avatar-container {
   position: absolute;
   left: 0;
@@ -716,9 +714,7 @@
   background: #a3156f;
 }
 
-/* Yeni: DM panel için ek filtre butonları kapsayıcısı (dm-filters) - bu container index.html içinde yer alıyor */
-
-/* Yeni: DM panel için seçili kanal barı */
+/* Yeni: DM panel için seçili üst bar */
 .dm-selected-bar {
   background: #444;
   border-bottom: 1px solid #666;
@@ -729,7 +725,7 @@
   box-sizing: border-box;
 }
 
-/* Yeni: DM panel için seçili kanal başlığı */
+/* Yeni: DM panel için seçili başlık */
 .dm-selected-title {
   margin: 0;
   font-size: 1.2rem;
@@ -737,7 +733,7 @@
   color: #fff;
 }
 
-/* Yeni: DM panel için içerik alanı */
+/* Yeni: DM panel için içerik alanı (dm-content-area) */
 .dm-content-area {
   flex: 1;
   padding: 1rem;
