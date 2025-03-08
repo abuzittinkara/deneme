@@ -137,7 +137,8 @@
         <div id="selectedChannelBar" class="selected-channel-bar">
           <div class="title-and-filters">
             <h2 id="selectedChannelTitle" class="selected-channel-title">Kanal Seçilmedi</h2>
-            <div class="filter-buttons">
+            <!-- DM moduna özel filtre butonları; bu konteyner body'de "dm-active" varsa gösterilecek -->
+            <div class="filter-buttons" id="dmFilterButtons">
               <span class="vertical-separator"></span>
               <button class="filter-btn" id="filter-online">Çevrimiçi</button>
               <button class="filter-btn" id="filter-all">Hepsi</button>
@@ -153,7 +154,6 @@
           <!-- Text kanallar için: mesajların listeleneceği alan + mesaj yazma kutusu -->
           <div id="textChannelContainer" class="text-channel-container" style="display: none;">
             <div id="textMessages" class="text-messages">
-              <!-- Örnek mesaj öğeleri (HTML üretiminiz dinamik olsa bile örnek olarak eklenmiştir) -->
               <div class="text-message first-message" data-timestamp="2025-02-24T14:47:08.391Z" data-sender="abuzorttin">
                 <div class="message-item" style="position: relative;">
                   <span class="hover-time">14:47</span>
@@ -191,12 +191,10 @@
 
     <!-- DM Paneli -->
     <div id="dmPanel" class="dm-panel" style="display: none;">
-      <!-- Yeni: DM paneli için arama kutucuğu -->
       <div class="dm-search" style="padding: 1rem;">
          <input type="text" id="dmSearchInput" placeholder="Arkadaş ara..." style="width:100%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
       </div>
       <div class="dm-header" style="display: flex; justify-content: space-between; align-items: center;">
-        <!-- Değişiklik: Buton yerine ikon ve metin içeren, tıklanabilir bir div -->
         <div id="friendsButton" class="dm-header-title" style="display: flex; align-items: center; gap: 0.5rem; font-size: 1rem; color: #fff; cursor: pointer;" onclick="friendsButtonClicked()">
           <span class="material-icons">person</span>
           <span>Arkadaşlar</span>
@@ -258,14 +256,25 @@
     <!-- Önce Socket.IO, sonra Mediasoup Client, en son script.js -->
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
     <script src="libs/mediasoup-client.min.js"></script>
-    <!-- script.js dosyasını modül olarak yüklemek için type="module" eklenmiştir -->
     <script type="module" src="script.js"></script>
     
-    <!-- Yeni: friendsButton için tıklanabilirlik işlevi tanımı (içerik boş bırakıldı) -->
     <script>
       function friendsButtonClicked() {
         // Arkadaşlarla ilgili yapılacak işlemleri buraya ekleyebilirsiniz.
       }
+      
+      // DM modunun açılıp kapanmasını kontrol eden örnek kod:
+      document.getElementById('toggleDMButton').addEventListener('click', function() {
+        var dmPanel = document.getElementById('dmPanel');
+        if(dmPanel.style.display === 'none' || dmPanel.style.display === '') {
+          dmPanel.style.display = 'block';
+          // DM modunu aktif hale getir: body'ye "dm-active" sınıfı ekle
+          document.body.classList.add('dm-active');
+        } else {
+          dmPanel.style.display = 'none';
+          document.body.classList.remove('dm-active');
+        }
+      });
     </script>
   </body>
 </html>
