@@ -679,12 +679,13 @@
   background-color: #2d2d2d;
 }
 
-/* Yeni: Arkadaşlar butonunun stil ve hover efekti (channel-item tarzında) */
+/* Yeni: Arkadaşlar butonunun stil ve hover efekti (channel-item tarzında, sol tarafa yaslı) */
 #friendsButton {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
+  flex-direction: row;
+  justify-content: flex-start !important;
+  align-items: flex-start !important;
+  gap: 0.5rem;
   width: 100%;
   cursor: pointer;
   padding: 7px 12px 3px 8px;
