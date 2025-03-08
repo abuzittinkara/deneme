@@ -178,81 +178,6 @@ window.addEventListener('DOMContentLoaded', () => {
   TextChannel.initTextChannelEvents(socket, textMessages);
 });
 
-/* Toggle DM Mode:
-   DM tuşuna basıldığında, sol taraftaki (roomPanel ve rightPanel) alanlar gizlenir ve
-   ortadaki "channelContentArea" öğesi, orijinal "channel-content-area" yerine DM moduna ait
-   (dm-content-area) sınıflarıyla güncellenir. Üst bar da "dm-selected-bar" ve "dm-selected-title"
-   olarak değiştirilir. DM modundan çıkıldığında orijinal içerik ve sınıflar geri yüklenir.
-*/
-toggleDMButton.addEventListener('click', () => {
-  const roomPanel = document.getElementById('roomPanel');
-  const rightPanel = document.getElementById('rightPanel');
-  const selectedChannelTitle = document.getElementById('selectedChannelTitle');
-  const channelContentArea = document.getElementById('channelContentArea');
-  
-  if (!isDMMode) {
-    roomPanel.style.display = 'none';
-    rightPanel.style.display = 'none';
-    isDMMode = true;
-    toggleDMButton.querySelector('.material-icons').textContent = 'group';
-    if (selectedChannelTitle) {
-      selectedChannelTitle.textContent = "Arkadaşlar";
-    }
-    if (channelContentArea) {
-      channelContentArea.innerHTML = `<div style="padding: 1rem;">
-          <input type="text" id="friendSearchInput" placeholder="Arkadaş ara..." style="width:100%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
-      </div>`;
-    }
-    // DM’ye özgü sınıfları ekle
-    document.getElementById('selectedChannelBar').classList.remove('selected-channel-bar');
-    document.getElementById('selectedChannelBar').classList.add('dm-selected-bar');
-    document.getElementById('selectedChannelTitle').classList.remove('selected-channel-title');
-    document.getElementById('selectedChannelTitle').classList.add('dm-selected-title');
-    document.getElementById('channelContentArea').classList.remove('channel-content-area');
-    document.getElementById('channelContentArea').classList.add('dm-content-area');
-  } else {
-    isDMMode = false;
-    roomPanel.style.display = 'flex';
-    rightPanel.style.display = 'flex';
-    toggleDMButton.querySelector('.material-icons').textContent = 'forum';
-    if (selectedChannelTitle) {
-      selectedChannelTitle.textContent = "Kanal Seçilmedi";
-    }
-    if (channelContentArea) {
-      channelContentArea.innerHTML = originalChannelContentHTML;
-      textChannelContainer = document.getElementById('textChannelContainer');
-      textMessages = document.getElementById('textMessages');
-      textChannelMessageInput = document.getElementById('textChannelMessageInput');
-      sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
-      if (currentTextChannel) {
-        textMessages.dataset.channelId = currentTextChannel;
-        socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: currentTextChannel });
-      }
-      TextChannel.initTextChannelEvents(socket, textMessages);
-      textChannelMessageInput.addEventListener('input', () => {
-        if (textChannelMessageInput.value.trim() !== "") {
-          sendTextMessageBtn.style.display = "block";
-        } else {
-          sendTextMessageBtn.style.display = "none";
-        }
-      });
-      textChannelMessageInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          sendTextMessage();
-        }
-      });
-      sendTextMessageBtn.addEventListener('click', sendTextMessage);
-    }
-    document.getElementById('selectedChannelBar').classList.remove('dm-selected-bar');
-    document.getElementById('selectedChannelBar').classList.add('selected-channel-bar');
-    document.getElementById('selectedChannelTitle').classList.remove('dm-selected-title');
-    document.getElementById('selectedChannelTitle').classList.add('selected-channel-title');
-    document.getElementById('channelContentArea').classList.remove('dm-content-area');
-    document.getElementById('channelContentArea').classList.add('channel-content-area');
-  }
-});
-
 function sendTextMessage() {
   const msg = textChannelMessageInput.value.trim();
   if (!msg) return;
@@ -393,8 +318,7 @@ function displayScreenShareEndedMessage() {
     messageEl.style.borderRadius = '8px';
     messageEl.style.fontSize = '1.2rem';
   }
-  const channelContentAreaEl = document.querySelector('.channel-content-area, .dm-content-area');
-  channelContentAreaEl.appendChild(messageEl);
+  channelContentArea.appendChild(messageEl);
 }
 
 /* removeScreenShareEndedMessage */
@@ -410,7 +334,7 @@ function updateStatusPanel(ping) {
   const rssIcon = document.getElementById('rssIcon');
   const statusMessage = document.getElementById('statusMessage');
   const channelGroupInfo = document.getElementById('channelGroupInfo');
-  let color = "#2dbf2d";
+  let color = "#2dbf2d"; // 0-60 ms: yeşil
   if (ping >= 80) {
     color = "#ff0000";
   } else if (ping >= 60) {
@@ -526,10 +450,12 @@ function initSocketEvents() {
       channelUsers.id = `channel-users-${roomObj.id}`;
       roomItem.appendChild(channelHeader);
       roomItem.appendChild(channelUsers);
+      
       roomItem.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         showChannelContextMenu(e, roomObj);
       });
+      
       roomItem.addEventListener('click', () => {
         if (roomObj.type === 'text') {
           console.log(`Text channel clicked => ${roomObj.name}`);
@@ -1154,13 +1080,13 @@ function initUIEvents() {
   });
   
   toggleDMButton.addEventListener('click', () => {
-    // Artık dmPanel'in kendisi gösterilmeyecek; DM moduyla ilgili içerik ortadaki channelContentArea içinde yer alacak.
+    const dmPanel = document.getElementById('dmPanel');
     const roomPanel = document.getElementById('roomPanel');
     const rightPanel = document.getElementById('rightPanel');
     const selectedChannelTitle = document.getElementById('selectedChannelTitle');
     const channelContentArea = document.getElementById('channelContentArea');
-    
-    if (!isDMMode) {
+    if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
+      dmPanel.style.display = 'block';
       roomPanel.style.display = 'none';
       rightPanel.style.display = 'none';
       isDMMode = true;
@@ -1173,6 +1099,7 @@ function initUIEvents() {
              <input type="text" id="friendSearchInput" placeholder="Arkadaş ara..." style="width:100%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
          </div>`;
       }
+      // DM paneline özgü sınıfları ekle
       document.getElementById('selectedChannelBar').classList.remove('selected-channel-bar');
       document.getElementById('selectedChannelBar').classList.add('dm-selected-bar');
       document.getElementById('selectedChannelTitle').classList.remove('selected-channel-title');
@@ -1180,9 +1107,10 @@ function initUIEvents() {
       document.getElementById('channelContentArea').classList.remove('channel-content-area');
       document.getElementById('channelContentArea').classList.add('dm-content-area');
     } else {
-      isDMMode = false;
+      dmPanel.style.display = 'none';
       roomPanel.style.display = 'flex';
       rightPanel.style.display = 'flex';
+      isDMMode = false;
       toggleDMButton.querySelector('.material-icons').textContent = 'forum';
       if(selectedChannelTitle) {
          selectedChannelTitle.textContent = "Kanal Seçilmedi";
@@ -1213,6 +1141,7 @@ function initUIEvents() {
          });
          sendTextMessageBtn.addEventListener('click', sendTextMessage);
       }
+      // Orijinal sınıflara dön
       document.getElementById('selectedChannelBar').classList.remove('dm-selected-bar');
       document.getElementById('selectedChannelBar').classList.add('selected-channel-bar');
       document.getElementById('selectedChannelTitle').classList.remove('dm-selected-title');
@@ -1238,7 +1167,6 @@ function initUIEvents() {
     textChannelContainer.style.display = 'none';
     socket.emit('browseGroup', currentGroup);
   });
-  
   micToggleButton.addEventListener('click', () => {
     micEnabled = !micEnabled;
     applyAudioStates();
