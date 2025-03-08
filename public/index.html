@@ -134,7 +134,7 @@
 
       <!-- Ortadaki Ana İçerik -->
       <div class="main-content">
-        <!-- Kanal paneli, gruplar/kanallar için kullanılan yapı olduğu için burada değişiklik yapmıyoruz -->
+        <!-- Kanal paneli -->
         <div id="selectedChannelBar" class="selected-channel-bar">
           <h2 id="selectedChannelTitle" class="selected-channel-title">Kanal Seçilmedi</h2>
         </div>
@@ -171,9 +171,33 @@
             </div>
           </div>
         </div>
-        <!-- DM mesajları için içerik alanı (eski DM panelindeki içerik alanı) -->
+        <!-- DM içerik alanı: DM paneline özgü tüm elemanları içerir -->
         <div id="dmContentArea" class="dm-content-area" style="display: none;">
-          <!-- DM mesajları buraya gelecek -->
+          <div class="dm-search" style="padding: 1rem;">
+            <input type="text" id="dmSearchInput" placeholder="Arkadaş ara..." style="width:100%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
+          </div>
+          <div class="dm-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div id="friendsButton" class="dm-header-title" style="display: flex; align-items: center; gap: 0.5rem; font-size: 1rem; color: #fff; cursor: pointer;" onclick="friendsButtonClicked()">
+              <span class="material-icons">person</span>
+              <span>Arkadaşlar</span>
+            </div>
+          </div>
+          <div class="dm-selected-bar">
+            <h2 id="dmSelectedTitle" class="dm-selected-title">Arkadaşlar</h2>
+            <div class="dm-filters" style="display: flex; align-items: center; gap: 10px; margin-top: 1rem;">
+              <span class="vertical-separator"></span>
+              <button class="filter-btn" id="filter-online">Çevrimiçi</button>
+              <button class="filter-btn" id="filter-all">Hepsi</button>
+              <button class="filter-btn" id="filter-sent">Gönderilen</button>
+              <button class="filter-btn" id="filter-blocked">Engellenen</button>
+              <button class="filter-btn add-friend-btn" id="filter-addFriend">Arkadaş Ekle</button>
+            </div>
+          </div>
+          <div id="dmMessages" class="dm-messages">
+            <!-- DM mesajları buraya gelecek -->
+          </div>
+          <h3 style="margin-top: 2.5rem;">DM Mesajları</h3>
+          <p>Birebir mesajlar buraya gelecek.</p>
         </div>
       </div>
 

@@ -319,7 +319,8 @@ function displayScreenShareEndedMessage() {
     messageEl.style.borderRadius = '8px';
     messageEl.style.fontSize = '1.2rem';
   }
-  channelContentArea.appendChild(messageEl);
+  const channelContentAreaElem = document.querySelector('.channel-content-area, .dm-content-area');
+  channelContentAreaElem.appendChild(messageEl);
 }
 
 /* removeScreenShareEndedMessage */
@@ -1080,7 +1081,7 @@ function initUIEvents() {
     }
   });
   
-  // DM modu toggle düzenlemesi: Artık dmPanel kullanılmıyor, dmContentArea ana içerikte yer alıyor.
+  // DM modu toggle düzenlemesi: Artık DM paneli, main content içinde yer alan dmContentArea'da gösterilecek.
   toggleDMButton.addEventListener('click', () => {
     const roomPanel = document.getElementById('roomPanel');
     const rightPanel = document.getElementById('rightPanel');
@@ -1096,14 +1097,8 @@ function initUIEvents() {
       if(selectedChannelTitle) {
          selectedChannelTitle.textContent = "Arkadaşlar";
       }
-      // Gizli olan channelContentArea yerine dmContentArea gösterilsin
       channelContentArea.style.display = 'none';
       dmContentArea.style.display = 'block';
-      // İsteğe bağlı: dmContentArea içerisine arkadaş arama inputu ekleniyor
-      dmContentArea.innerHTML = `<div style="padding: 1rem;">
-             <input type="text" id="friendSearchInput" placeholder="Arkadaş ara..." style="width:100%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
-         </div>`;
-      // DM'ye özgü stil sınıfları ekle
       document.getElementById('selectedChannelBar').classList.remove('selected-channel-bar');
       document.getElementById('selectedChannelBar').classList.add('dm-selected-bar');
       document.getElementById('selectedChannelTitle').classList.remove('selected-channel-title');
@@ -1117,7 +1112,6 @@ function initUIEvents() {
       if(selectedChannelTitle) {
          selectedChannelTitle.textContent = "Kanal Seçilmedi";
       }
-      // dmContentArea gizlensin, channelContentArea tekrar gösterilsin
       dmContentArea.style.display = 'none';
       channelContentArea.style.display = 'block';
       channelContentArea.innerHTML = originalChannelContentHTML;
@@ -1144,7 +1138,6 @@ function initUIEvents() {
          }
       });
       sendTextMessageBtn.addEventListener('click', sendTextMessage);
-      // Orijinal stil sınıflarına dön
       document.getElementById('selectedChannelBar').classList.remove('dm-selected-bar');
       document.getElementById('selectedChannelBar').classList.add('selected-channel-bar');
       document.getElementById('selectedChannelTitle').classList.remove('dm-selected-title');
