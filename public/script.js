@@ -74,8 +74,9 @@ let pingInterval = null;
 
 let originalChannelContentHTML = "";
 
-// ÖNEMLİ: channelStatusPanel global değişkeni, DOMContentLoaded sonrasında atanacak.
+// ÖNEMLİ: DOM'dan alınması gereken öğeler; bunların tanımlamaları DOMContentLoaded sonrasında yapılacak.
 let channelStatusPanel;
+let leaveButton;
 
 const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
@@ -122,9 +123,7 @@ const cellBar2 = document.getElementById('cellBar2');
 const cellBar3 = document.getElementById('cellBar3');
 const cellBar4 = document.getElementById('cellBar4');
 
-const leaveButton = document.getElementById('leaveButton');
 const screenShareButton = document.getElementById('screenShareButton');
-
 const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
 const settingsButton = document.getElementById('settingsButton');
@@ -139,8 +138,9 @@ let sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 const dmTemplate = document.getElementById('dmTemplate');
 
 window.addEventListener('DOMContentLoaded', () => {
-  // DOM hazır olduğunda channelStatusPanel alınır.
+  // DOM hazır olduğunda gerekli öğeler alınır.
   channelStatusPanel = document.getElementById('channelStatusPanel');
+  leaveButton = document.getElementById('leaveButton');
   
   const contentArea = document.getElementById('channelContentArea');
   originalChannelContentHTML = contentArea.innerHTML;
@@ -178,7 +178,7 @@ window.addEventListener('DOMContentLoaded', () => {
 /* Yeni fonksiyon: Context Menu Gösterimi */
 function showChannelContextMenu(e, roomObj) {
   const existingMenu = document.getElementById('channelContextMenu');
-  if(existingMenu) {
+  if (existingMenu) {
     existingMenu.remove();
   }
   const menu = document.createElement('div');
@@ -198,7 +198,7 @@ function showChannelContextMenu(e, roomObj) {
       text: 'Kanalın İsmini Değiştir',
       action: () => {
         const newName = prompt('Yeni kanal ismini girin:', roomObj.name);
-        if(newName && newName.trim() !== '') {
+        if (newName && newName.trim() !== '') {
           socket.emit('renameChannel', { channelId: roomObj.id, newName: newName.trim() });
         }
       }
@@ -206,7 +206,7 @@ function showChannelContextMenu(e, roomObj) {
     {
       text: 'Kanalı Sil',
       action: () => {
-        if(confirm('Bu kanalı silmek istediğinize emin misiniz?')) {
+        if (confirm('Bu kanalı silmek istediğinize emin misiniz?')) {
           socket.emit('deleteChannel', roomObj.id);
         }
       }
@@ -224,7 +224,7 @@ function showChannelContextMenu(e, roomObj) {
   });
   document.body.appendChild(menu);
   document.addEventListener('click', function handler() {
-    if(document.getElementById('channelContextMenu')){
+    if (document.getElementById('channelContextMenu')) {
       document.getElementById('channelContextMenu').remove();
     }
     document.removeEventListener('click', handler);
