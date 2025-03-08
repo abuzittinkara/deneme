@@ -318,7 +318,8 @@ function displayScreenShareEndedMessage() {
     messageEl.style.borderRadius = '8px';
     messageEl.style.fontSize = '1.2rem';
   }
-  channelContentArea.appendChild(messageEl);
+  const channelContentAreaEl = document.querySelector('.channel-content-area, .dm-content-area');
+  channelContentAreaEl.appendChild(messageEl);
 }
 
 /* removeScreenShareEndedMessage */
@@ -1090,16 +1091,14 @@ function initUIEvents() {
       roomPanel.style.display = 'none';
       rightPanel.style.display = 'none';
       isDMMode = true;
+      document.querySelectorAll('.grp-item.selected').forEach(item => item.classList.remove('selected'));
       toggleDMButton.querySelector('.material-icons').textContent = 'group';
       if(selectedChannelTitle) {
          selectedChannelTitle.textContent = "Arkadaşlar";
       }
-      if(channelContentArea) {
-         channelContentArea.innerHTML = `<div style="padding: 1rem;">
-             <input type="text" id="friendSearchInput" placeholder="Arkadaş ara..." style="width:100%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
-         </div>`;
-      }
-      // DM paneline özgü sınıfları ekle
+      // Artık dm paneli içine arkadaş arama kutusu eklenmeyecek,
+      // Filtre butonları (Çevrimiçi, Hepsi, Gönderilen, Engellenen, Arkadaş Ekle) 
+      // zaten "title-and-filters" içerisinde dm-selected-title'ın yanına ekli olacak.
       document.getElementById('selectedChannelBar').classList.remove('selected-channel-bar');
       document.getElementById('selectedChannelBar').classList.add('dm-selected-bar');
       document.getElementById('selectedChannelTitle').classList.remove('selected-channel-title');
@@ -1141,7 +1140,6 @@ function initUIEvents() {
          });
          sendTextMessageBtn.addEventListener('click', sendTextMessage);
       }
-      // Orijinal sınıflara dön
       document.getElementById('selectedChannelBar').classList.remove('dm-selected-bar');
       document.getElementById('selectedChannelBar').classList.add('selected-channel-bar');
       document.getElementById('selectedChannelTitle').classList.remove('dm-selected-title');
