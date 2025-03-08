@@ -5,7 +5,7 @@
 
 /* clearScreenShareUI */
 function clearScreenShareUI() {
-  const channelContentArea = document.querySelector('.channel-content-area');
+  const channelContentArea = document.querySelector('.channel-content-area, .dm-content-area');
   if (screenShareVideo && channelContentArea && channelContentArea.contains(screenShareVideo)) {
     channelContentArea.removeChild(screenShareVideo);
     screenShareVideo = null;
@@ -138,7 +138,6 @@ const deafenToggleButton = document.getElementById('deafenToggleButton');
 const settingsButton = document.getElementById('settingsButton');
 
 // Metin Kanalı Elemanları
-// (Bu öğeler, başlangıçta index.html’de mevcut; DM modunda içerik değiştirildiğinde orijinali kaybolmasın diye orijinal HTML’yi saklıyoruz)
 let textChannelContainer = document.getElementById('textChannelContainer');
 let textMessages = document.getElementById('textMessages');
 const textChatInputBar = document.getElementById('text-chat-input-bar');
@@ -146,18 +145,15 @@ let textChannelMessageInput = document.getElementById('textChannelMessageInput')
 let sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
 window.addEventListener('DOMContentLoaded', () => {
-  // Orijinal channel-content-area içeriğini saklayalım.
-  const channelContentArea = document.querySelector('.channel-content-area');
+  const channelContentArea = document.querySelector('.channel-content-area, .dm-content-area');
   originalChannelContentHTML = channelContentArea.innerHTML;
   
-  // Başlangıçta toggleDMButton içindeki ikon "forum" olarak ayarlansın.
   toggleDMButton.querySelector('.material-icons').textContent = 'forum';
   
   socket = io("https://fisqos.com.tr", { transports: ['websocket'] });
   console.log("Socket connected =>", socket.id);
   initSocketEvents();
   initUIEvents();
-  // Typing indicator modülünü başlatıyoruz; getCurrentTextChannel fonksiyonu currentTextChannel değerini döndürüyor.
   initTypingIndicator(socket, () => currentTextChannel, () => username);
   
   const tm = document.getElementById('textMessages');
@@ -197,7 +193,6 @@ function sendTextMessage() {
 
 /* Yeni fonksiyon: Context Menu Gösterimi */
 function showChannelContextMenu(e, roomObj) {
-  // Var olan context menu varsa kaldır
   const existingMenu = document.getElementById('channelContextMenu');
   if(existingMenu) {
     existingMenu.remove();
@@ -210,7 +205,6 @@ function showChannelContextMenu(e, roomObj) {
   menu.style.left = e.pageX + 'px';
   menu.style.display = 'flex';
   menu.style.flexDirection = 'column';
-  // Menü öğeleri
   const menuItems = [
     {
       text: 'Kanal Ayarları',
@@ -245,7 +239,6 @@ function showChannelContextMenu(e, roomObj) {
     menu.appendChild(menuItem);
   });
   document.body.appendChild(menu);
-  // Dışarı tıklanırsa menüyü kapat
   document.addEventListener('click', function handler() {
     if(document.getElementById('channelContextMenu')){
       document.getElementById('channelContextMenu').remove();
@@ -271,7 +264,7 @@ async function showScreenShare(producerId) {
     console.warn("recvTransport yok");
     return;
   }
-  const channelContentArea = document.querySelector('.channel-content-area');
+  const channelContentArea = document.querySelector('.channel-content-area, .dm-content-area');
   clearScreenShareUI();
   const consumeParams = await new Promise((resolve) => {
     socket.emit('consume', {
@@ -309,7 +302,7 @@ async function showScreenShare(producerId) {
 
 /* displayScreenShareEndedMessage */
 function displayScreenShareEndedMessage() {
-  const channelContentArea = document.querySelector('.channel-content-area');
+  const channelContentArea = document.querySelector('.channel-content-area, .dm-content-area');
   let messageEl = document.getElementById('screenShareEndedMessage');
   if (!messageEl) {
     messageEl = document.createElement('div');
@@ -458,7 +451,6 @@ function initSocketEvents() {
       roomItem.appendChild(channelHeader);
       roomItem.appendChild(channelUsers);
       
-      // Sağ tıklama ile context menu açılması
       roomItem.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         showChannelContextMenu(e, roomObj);
@@ -474,7 +466,6 @@ function initSocketEvents() {
             hideChannelStatusPanel();
             currentRoomType = "text";
           }
-          // Yeniden textMessages öğesini alıyoruz çünkü DM modundan sonra orijinal içerik yeniden yüklendiğinde yeni öğe oluşmuştur.
           textMessages = document.getElementById('textMessages');
           if(textMessages) textMessages.innerHTML = "";
           currentTextChannel = roomObj.id;
@@ -482,11 +473,9 @@ function initSocketEvents() {
           socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: roomObj.id });
           return;
         }
-        // Voice channel case:
         clearScreenShareUI();
         document.getElementById('channelUsersContainer').style.display = 'flex';
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
-        // Eğer kullanıcı zaten bağlı olduğu sesli kanalda ise; sadece arayüz güncellemesi yap.
         if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
           roomItem.classList.add('connected');
           updateVoiceChannelUI(roomObj.name);
@@ -534,7 +523,7 @@ function initSocketEvents() {
     consumeProducer(producerId);
   });
   socket.on('screenShareEnded', ({ userId }) => {
-    const channelContentArea = document.querySelector('.channel-content-area');
+    const channelContentArea = document.querySelector('.channel-content-area, .dm-content-area');
     if (screenShareVideo && channelContentArea && channelContentArea.contains(screenShareVideo)) {
       channelContentArea.removeChild(screenShareVideo);
       screenShareVideo = null;
@@ -878,7 +867,6 @@ function joinRoom(groupId, roomId, roomName) {
   console.log(`joinRoom çağrıldı: group=${groupId}, room=${roomId}, name=${roomName}`);
   socket.emit('joinRoom', { groupId, roomId });
   document.getElementById('selectedChannelTitle').textContent = roomName;
-  // Sesli kanala bağlanırken aktif kanal adını kaydediyoruz
   activeVoiceChannelName = roomName;
   showChannelStatusPanel();
   currentRoomType = "voice";
@@ -1001,7 +989,6 @@ function initUIEvents() {
     document.getElementById('groupModal').style.display = 'none';
     document.getElementById('joinGroupModal').style.display = 'flex';
   });
-  // JOIN GROUP MODAL EVENT LISTENERS
   document.getElementById('joinGroupIdBtn').addEventListener('click', () => {
     const grpIdVal = document.getElementById('joinGroupIdInput').value.trim();
     if (!grpIdVal) {
@@ -1014,7 +1001,6 @@ function initUIEvents() {
   document.getElementById('closeJoinGroupModal').addEventListener('click', () => {
     document.getElementById('joinGroupModal').style.display = 'none';
   });
-  // EK: Yeni Grup Kur modali için "Kapat" butonu event listener'ı ekleniyor.
   document.getElementById('closeCreateGroupModal').addEventListener('click', () => {
     document.getElementById('actualGroupCreateModal').style.display = 'none';
   });
@@ -1030,7 +1016,6 @@ function initUIEvents() {
       return;
     }
     const channelType = document.querySelector('input[name="channelType"]:checked').value;
-    // Eğer kullanıcı sesli kanalda değilse, seçili (browse edilen) grubu aktif hale getiriyoruz.
     if (currentRoomType !== "voice") {
       if (selectedGroup) {
         currentGroup = selectedGroup;
@@ -1093,67 +1078,54 @@ function initUIEvents() {
       groupDropdownMenu.style.display = 'none';
     }
   });
-  // DM Panel toggle:
-  // DM paneli kapalıyken toggleDMButton (dm-toggle-btn) içinde "forum" ikonu gösteriliyor.
-  // DM paneli açıldığında aynı butonun ikonu "group" olarak değişecek, ayrıca:
-  // - Gruplar panelindeki seçili (selected) sınıfı kaldırılacak.
-  // - "roomPanel" (kanallar paneli) ve ".right-panel" gizlenecek.
-  // - Ortadaki "selected-channel-title" başlığı "Arkadaşlar" olacak.
-  // - "channel-content-area" içine arkadaş arama kutucuğu eklenip, orijinal içerik saklanacak.
+  
   toggleDMButton.addEventListener('click', () => {
     const dmPanel = document.getElementById('dmPanel');
     const roomPanel = document.getElementById('roomPanel');
     const rightPanel = document.getElementById('rightPanel');
     const selectedChannelTitle = document.getElementById('selectedChannelTitle');
-    const channelContentArea = document.querySelector('.channel-content-area');
+    const channelContentArea = document.getElementById('channelContentArea');
     if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
-      // DM moduna geçerken, orijinal içerik zaten saklı.
       dmPanel.style.display = 'block';
       roomPanel.style.display = 'none';
       rightPanel.style.display = 'none';
       isDMMode = true;
-      // Seçili grup (grp-item selected) durumunu kaldır
-      document.querySelectorAll('.grp-item.selected').forEach(item => item.classList.remove('selected'));
-      // Toggle buton ikonu "group" olarak ayarlansın
       toggleDMButton.querySelector('.material-icons').textContent = 'group';
-      // Ortadaki başlığı "Arkadaşlar" yapalım
       if(selectedChannelTitle) {
          selectedChannelTitle.textContent = "Arkadaşlar";
       }
-      // channel-content-area içine arkadaş arama kutucuğu ekleyelim
       if(channelContentArea) {
          channelContentArea.innerHTML = `<div style="padding: 1rem;">
              <input type="text" id="friendSearchInput" placeholder="Arkadaş ara..." style="width:100%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
          </div>`;
       }
+      // DM paneline özgü sınıfları ekle
+      document.getElementById('selectedChannelBar').classList.remove('selected-channel-bar');
+      document.getElementById('selectedChannelBar').classList.add('dm-selected-bar');
+      document.getElementById('selectedChannelTitle').classList.remove('selected-channel-title');
+      document.getElementById('selectedChannelTitle').classList.add('dm-selected-title');
+      document.getElementById('channelContentArea').classList.remove('channel-content-area');
+      document.getElementById('channelContentArea').classList.add('dm-content-area');
     } else {
       dmPanel.style.display = 'none';
       roomPanel.style.display = 'flex';
       rightPanel.style.display = 'flex';
       isDMMode = false;
-      // Toggle buton ikonu "forum" olarak ayarlansın
       toggleDMButton.querySelector('.material-icons').textContent = 'forum';
-      // Başlığı eski haline getirelim
       if(selectedChannelTitle) {
          selectedChannelTitle.textContent = "Kanal Seçilmedi";
       }
-      // channel-content-area içeriğini orijinal içerikle geri yükleyelim
       if(channelContentArea) {
          channelContentArea.innerHTML = originalChannelContentHTML;
-         // Yeniden text channel öğelerini (textChannelContainer, textMessages vb.) seçelim
          textChannelContainer = document.getElementById('textChannelContainer');
          textMessages = document.getElementById('textMessages');
-         // Önemli: Yeni input elemanlarını da yeniden seçelim
          textChannelMessageInput = document.getElementById('textChannelMessageInput');
          sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
-         // Eğer daha önce seçili metin kanalı varsa, dataset.channelId'yi yeniden ayarla ve sunucudan geçmişi iste
          if(currentTextChannel) {
             textMessages.dataset.channelId = currentTextChannel;
             socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: currentTextChannel });
          }
-         // Metin kanalı event dinleyicilerini yeniden başlat
          TextChannel.initTextChannelEvents(socket, textMessages);
-         // Ayrıca metin mesajı gönderme eventlerini de yeniden bağlayalım
          textChannelMessageInput.addEventListener('input', () => {
            if (textChannelMessageInput.value.trim() !== "") {
              sendTextMessageBtn.style.display = "block";
@@ -1169,8 +1141,16 @@ function initUIEvents() {
          });
          sendTextMessageBtn.addEventListener('click', sendTextMessage);
       }
+      // Orijinal sınıflara dön
+      document.getElementById('selectedChannelBar').classList.remove('dm-selected-bar');
+      document.getElementById('selectedChannelBar').classList.add('selected-channel-bar');
+      document.getElementById('selectedChannelTitle').classList.remove('dm-selected-title');
+      document.getElementById('selectedChannelTitle').classList.add('selected-channel-title');
+      document.getElementById('channelContentArea').classList.remove('dm-content-area');
+      document.getElementById('channelContentArea').classList.add('channel-content-area');
     }
   });
+  
   leaveButton.addEventListener('click', () => {
     clearScreenShareUI();
     if (!currentRoom) return;
@@ -1312,7 +1292,6 @@ function showChannelStatusPanel() {
       </div>
     </div>
   `;
-  // LeaveChannelBtn hover ekle: mouseover'da ikon rengi #c61884, mouseout'da #aaa olsun.
   const leaveChannelBtn = document.getElementById('leaveChannelBtn');
   leaveChannelBtn.addEventListener('mouseenter', () => {
     const icon = leaveChannelBtn.querySelector('.material-icons');
@@ -1322,7 +1301,6 @@ function showChannelStatusPanel() {
     const icon = leaveChannelBtn.querySelector('.material-icons');
     if (icon) icon.style.color = "#aaa";
   });
-  // Hover efektleri: ekran paylaşım butonuna yalnızca aktif değilse uygulanıyor.
   const screenShareBtn = document.getElementById('screenShareStatusBtn');
   screenShareBtn.addEventListener('mouseenter', () => {
     if (!screenShareBtn.classList.contains('active')) {
@@ -1341,7 +1319,6 @@ function showChannelStatusPanel() {
       screenShareBtn.style.backgroundColor = "#444";
     }
   });
-  // Ekran paylaşım butonunun tıklanması:
   screenShareBtn.addEventListener('click', async () => {
     const icon = document.getElementById('screenShareIcon');
     if(window.screenShareProducerVideo) {
@@ -1449,7 +1426,6 @@ function insertSeparatorIfNeeded(prevTimestamp, currentTimestamp) {
   }
 }
 
-/* document.addEventListener('DOMContentLoaded', ...) */
 document.addEventListener('DOMContentLoaded', function() {
   const tm = document.getElementById('textMessages');
   let removeScrollingTimeout;
@@ -1471,7 +1447,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-/* updateUserList */
 function updateUserList(data) {
   userListDiv.innerHTML = '';
   const onlineTitle = document.createElement('div');
@@ -1507,7 +1482,6 @@ function updateUserList(data) {
   }
 }
 
-/* createUserItem */
 function createUserItem(username, isOnline) {
   const userItem = document.createElement('div');
   userItem.classList.add('user-item');
@@ -1536,7 +1510,8 @@ function createUserItem(username, isOnline) {
   return userItem;
 }
 
-/* getAllChannelsData */
 function getAllChannelsData(gId) {
   return {};
 }
+
+export { };
