@@ -178,19 +178,6 @@ window.addEventListener('DOMContentLoaded', () => {
   TextChannel.initTextChannelEvents(socket, textMessages);
 });
 
-function sendTextMessage() {
-  const msg = textChannelMessageInput.value.trim();
-  if (!msg) return;
-  socket.emit('textMessage', { 
-    groupId: selectedGroup, 
-    roomId: currentTextChannel, 
-    message: msg, 
-    username: username 
-  });
-  textChannelMessageInput.value = '';
-  sendTextMessageBtn.style.display = "none";
-}
-
 /* Yeni fonksiyon: Context Menu Gösterimi */
 function showChannelContextMenu(e, roomObj) {
   const existingMenu = document.getElementById('channelContextMenu');
@@ -1079,14 +1066,15 @@ function initUIEvents() {
     }
   });
   
+  // DM modu toggle düzenlemesi: Artık dmPanel kullanılmıyor, dmContentArea ana içerikte yer alıyor.
   toggleDMButton.addEventListener('click', () => {
-    const dmPanel = document.getElementById('dmPanel');
     const roomPanel = document.getElementById('roomPanel');
     const rightPanel = document.getElementById('rightPanel');
     const selectedChannelTitle = document.getElementById('selectedChannelTitle');
     const channelContentArea = document.getElementById('channelContentArea');
-    if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
-      dmPanel.style.display = 'block';
+    const dmContentArea = document.getElementById('dmContentArea');
+    if (!isDMMode) {
+      // DM modu aktif
       roomPanel.style.display = 'none';
       rightPanel.style.display = 'none';
       isDMMode = true;
@@ -1094,20 +1082,20 @@ function initUIEvents() {
       if(selectedChannelTitle) {
          selectedChannelTitle.textContent = "Arkadaşlar";
       }
-      if(channelContentArea) {
-         channelContentArea.innerHTML = `<div style="padding: 1rem;">
+      // Gizli olan channelContentArea yerine dmContentArea gösterilsin
+      channelContentArea.style.display = 'none';
+      dmContentArea.style.display = 'block';
+      // İsteğe bağlı: dmContentArea içerisine arkadaş arama inputu ekleniyor
+      dmContentArea.innerHTML = `<div style="padding: 1rem;">
              <input type="text" id="friendSearchInput" placeholder="Arkadaş ara..." style="width:100%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
          </div>`;
-      }
-      // DM paneline özgü sınıfları ekle
+      // DM'ye özgü stil sınıfları ekle
       document.getElementById('selectedChannelBar').classList.remove('selected-channel-bar');
       document.getElementById('selectedChannelBar').classList.add('dm-selected-bar');
       document.getElementById('selectedChannelTitle').classList.remove('selected-channel-title');
       document.getElementById('selectedChannelTitle').classList.add('dm-selected-title');
-      document.getElementById('channelContentArea').classList.remove('channel-content-area');
-      document.getElementById('channelContentArea').classList.add('dm-content-area');
     } else {
-      dmPanel.style.display = 'none';
+      // DM modu kapalı
       roomPanel.style.display = 'flex';
       rightPanel.style.display = 'flex';
       isDMMode = false;
@@ -1115,39 +1103,38 @@ function initUIEvents() {
       if(selectedChannelTitle) {
          selectedChannelTitle.textContent = "Kanal Seçilmedi";
       }
-      if(channelContentArea) {
-         channelContentArea.innerHTML = originalChannelContentHTML;
-         textChannelContainer = document.getElementById('textChannelContainer');
-         textMessages = document.getElementById('textMessages');
-         textChannelMessageInput = document.getElementById('textChannelMessageInput');
-         sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
-         if(currentTextChannel) {
-            textMessages.dataset.channelId = currentTextChannel;
-            socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: currentTextChannel });
-         }
-         TextChannel.initTextChannelEvents(socket, textMessages);
-         textChannelMessageInput.addEventListener('input', () => {
-           if (textChannelMessageInput.value.trim() !== "") {
-             sendTextMessageBtn.style.display = "block";
-           } else {
-             sendTextMessageBtn.style.display = "none";
-           }
-         });
-         textChannelMessageInput.addEventListener('keydown', (e) => {
-           if (e.key === 'Enter') {
-             e.preventDefault();
-             sendTextMessage();
-           }
-         });
-         sendTextMessageBtn.addEventListener('click', sendTextMessage);
+      // dmContentArea gizlensin, channelContentArea tekrar gösterilsin
+      dmContentArea.style.display = 'none';
+      channelContentArea.style.display = 'block';
+      channelContentArea.innerHTML = originalChannelContentHTML;
+      textChannelContainer = document.getElementById('textChannelContainer');
+      textMessages = document.getElementById('textMessages');
+      textChannelMessageInput = document.getElementById('textChannelMessageInput');
+      sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
+      if(currentTextChannel) {
+         textMessages.dataset.channelId = currentTextChannel;
+         socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: currentTextChannel });
       }
-      // Orijinal sınıflara dön
+      TextChannel.initTextChannelEvents(socket, textMessages);
+      textChannelMessageInput.addEventListener('input', () => {
+         if (textChannelMessageInput.value.trim() !== "") {
+           sendTextMessageBtn.style.display = "block";
+         } else {
+           sendTextMessageBtn.style.display = "none";
+         }
+      });
+      textChannelMessageInput.addEventListener('keydown', (e) => {
+         if (e.key === 'Enter') {
+           e.preventDefault();
+           sendTextMessage();
+         }
+      });
+      sendTextMessageBtn.addEventListener('click', sendTextMessage);
+      // Orijinal stil sınıflarına dön
       document.getElementById('selectedChannelBar').classList.remove('dm-selected-bar');
       document.getElementById('selectedChannelBar').classList.add('selected-channel-bar');
       document.getElementById('selectedChannelTitle').classList.remove('dm-selected-title');
       document.getElementById('selectedChannelTitle').classList.add('selected-channel-title');
-      document.getElementById('channelContentArea').classList.remove('dm-content-area');
-      document.getElementById('channelContentArea').classList.add('channel-content-area');
     }
   });
   
