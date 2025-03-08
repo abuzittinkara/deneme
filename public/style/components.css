@@ -678,7 +678,13 @@
   background-color: #2d2d2d;
 }
 
-/* Yeni: Arkadaşlar butonunun hover efekti */
+/* Yeni: Arkadaşlar butonunun stil ve hover efekti (channel-item ile uyumlu) */
+#friendsButton {
+  padding: 7px 12px 3px 8px;
+  border-radius: 5px;
+  background: #2d2d2d;
+  transition: background 0.3s ease;
+}
 #friendsButton:hover {
   background-color: #3d3d3d;
 }
