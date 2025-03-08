@@ -535,21 +535,16 @@
 /* DM Panel */
 .dm-panel {
   width: 300px;
-  background: #2d2d2d; 
+  background: #2d2d2d;
   color: #fff;
   padding: 1rem;
   box-sizing: border-box;
   overflow: auto;
-  /* Değişiklik: DM paneli artık sidebar genişliği (65px) kadar offset ile, kanallar panelinin (300px genişlikte) yerine gelecek şekilde konumlandırılıyor */
   position: absolute;
   left: 65px;
   top: 0;
   height: 100%;
   z-index: 5;
-}
-.dm-close-btn {
-  /* DM paneli açıkken sol üstte, dm-toggle-btn ile aynı konumda yer alması için mutlak pozisyonlama kaldırıldı */
-  display: inline-flex;
 }
 
 /* Context Menu */
@@ -683,29 +678,7 @@
   background-color: #2d2d2d;
 }
 
-/* Yeni: Hover sırasında (header içermeyen) mesajlarda saat bilgisinin gösterilmesi */
-.hover-time {
-  position: absolute;
-  left: -20px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: none;
-  font-size: 0.8em;
-  color: #5a5a5a;
-  width: 48px;
-  text-align: right;
-  padding-right: 4px;
-}
-.text-message:hover .hover-time {
-  display: block;
-}
-
-/* Ekran Paylaşım Göstergesi */
-.screen-share-indicator {
-  background-color: #c61884;
-  color: white;
-  padding: 2px 4px;
-  border-radius: 2px;
-  font-size: 10px;
-  margin-left: 4px;
+/* Yeni: Arkadaşlar butonunun hover efekti */
+#friendsButton:hover {
+  background-color: #3d3d3d;
 }
