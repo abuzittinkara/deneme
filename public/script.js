@@ -19,6 +19,20 @@ function clearScreenShareUI() {
   }
 }
 
+/* Yeni: sendTextMessage fonksiyonu */
+function sendTextMessage() {
+  const msg = textChannelMessageInput.value.trim();
+  if (!msg) return;
+  socket.emit('textMessage', { 
+    groupId: selectedGroup, 
+    roomId: currentTextChannel, 
+    message: msg, 
+    username: username 
+  });
+  textChannelMessageInput.value = '';
+  sendTextMessageBtn.style.display = "none";
+}
+
 import * as TextChannel from './js/textChannel.js';
 import * as ScreenShare from './js/screenShare.js';  // Yeni ekran paylaşım modülü
 import { initTypingIndicator } from './js/typingIndicator.js';
