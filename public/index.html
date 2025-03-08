@@ -186,8 +186,8 @@
          <input type="text" id="dmSearchInput" placeholder="Arkadaş ara..." style="width:100%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
       </div>
       <div class="dm-header" style="display: flex; justify-content: space-between; align-items: center;">
-        <!-- Değişiklik: Buton yerine ikon ve metin içeren bir div -->
-        <div id="friendsButton" class="dm-header-title" style="display: flex; align-items: center; gap: 0.5rem; font-size: 1rem; color: #fff;">
+        <!-- Değişiklik: Buton yerine ikon ve metin içeren, tıklanabilir bir div -->
+        <div id="friendsButton" class="dm-header-title" style="display: flex; align-items: center; gap: 0.5rem; font-size: 1rem; color: #fff; cursor: pointer;" onclick="friendsButtonClicked()">
           <span class="material-icons">person</span>
           <span>Arkadaşlar</span>
         </div>
@@ -250,5 +250,14 @@
     <script src="libs/mediasoup-client.min.js"></script>
     <!-- script.js dosyasını modül olarak yüklemek için type="module" eklenmiştir -->
     <script type="module" src="script.js"></script>
+    
+    <!-- Yeni: friendsButton için tıklanabilirlik işlevi tanımı -->
+    <script>
+      function friendsButtonClicked() {
+        // Burada arkadaşlarla ilgili istenen işlemi gerçekleştirebilirsiniz.
+        // Örneğin, bir modal açmak veya arkadaş listesini güncellemek gibi.
+        alert("Arkadaşlar butonuna tıklandı.");
+      }
+    </script>
   </body>
 </html>
