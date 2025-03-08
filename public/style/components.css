@@ -64,8 +64,8 @@
   background-color: #3d3d3d;
 }
 .channel-header {
-  display: block; 
-  overflow: auto; 
+  display: block;
+  overflow: auto;
   gap: 0.6rem;
   width: 100%;
   line-height: 1.2;
@@ -344,8 +344,8 @@
 
 /* Mesaj kapsayıcı */
 .message-item {
-  position: relative;     /* Avatar'ı absolute konumlandırmak için */
-  padding-left: 60px;     /* Avatar kadar soldan boşluk -> metin burada başlıyor */
+  position: relative;
+  padding-left: 60px;
   display: block;
   width: 100%;
   box-sizing: border-box;
@@ -679,23 +679,50 @@
   background-color: #2d2d2d;
 }
 
-/* Yeni: Arkadaşlar butonunun stil ve hover efekti (channel-item tarzında, sol tarafa yaslı) */
-#friendsButton {
+/* Yeni: Seçili kanal başlığı ve filtrelerin bulunduğu container */
+.title-and-filters {
   display: flex;
-  flex-direction: row;
-  justify-content: flex-start !important;
-  align-items: flex-start !important;
-  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
   width: 100%;
-  cursor: pointer;
-  padding: 7px 12px 3px 8px;
-  margin-bottom: 0;
-  border-radius: 5px;
+}
+
+/* Yeni: Filtre butonlarının bulunduğu container */
+.filter-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Yeni: Dikey separator */
+.vertical-separator {
+  display: inline-block;
+  width: 1px;
+  height: 24px;
+  background-color: #666;
+  margin-right: 10px;
+}
+
+/* Yeni: Filtre butonları */
+.filter-btn {
   background: #2d2d2d;
-  line-height: 1.2;
-  box-sizing: border-box;
+  color: #fff;
+  border: none;
+  padding: 7px 12px 3px 8px;
+  border-radius: 5px;
+  cursor: pointer;
   transition: background 0.3s ease;
 }
-#friendsButton:hover {
+.filter-btn:hover {
   background-color: #3d3d3d;
+}
+
+/* Yeni: Arkadaş Ekle butonunun özel stili */
+.add-friend-btn {
+  background: #c61884;
+  color: #fff;
+}
+.add-friend-btn:hover {
+  background: #a3156f;
 }

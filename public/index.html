@@ -135,7 +135,17 @@
       <!-- Ortadaki Ana İçerik -->
       <div class="main-content">
         <div id="selectedChannelBar" class="selected-channel-bar">
-          <h2 id="selectedChannelTitle" class="selected-channel-title">Kanal Seçilmedi</h2>
+          <div class="title-and-filters">
+            <h2 id="selectedChannelTitle" class="selected-channel-title">Kanal Seçilmedi</h2>
+            <div class="filter-buttons">
+              <span class="vertical-separator"></span>
+              <button class="filter-btn" id="filter-online">Çevrimiçi</button>
+              <button class="filter-btn" id="filter-all">Hepsi</button>
+              <button class="filter-btn" id="filter-sent">Gönderilen</button>
+              <button class="filter-btn" id="filter-blocked">Engellenen</button>
+              <button class="filter-btn add-friend-btn" id="filter-addFriend">Arkadaş Ekle</button>
+            </div>
+          </div>
         </div>
         <div id="channelContentArea" class="channel-content-area">
           <!-- Voice kanallar için -->
@@ -251,10 +261,10 @@
     <!-- script.js dosyasını modül olarak yüklemek için type="module" eklenmiştir -->
     <script type="module" src="script.js"></script>
     
-    <!-- Yeni: friendsButton için tıklanabilirlik işlevi tanımı (uyarı mesajı kaldırıldı) -->
+    <!-- Yeni: friendsButton için tıklanabilirlik işlevi tanımı (içerik boş bırakıldı) -->
     <script>
       function friendsButtonClicked() {
-        // Buraya arkadaşlarla ilgili yapılacak işlemleri ekleyebilirsiniz.
+        // Arkadaşlarla ilgili yapılacak işlemleri buraya ekleyebilirsiniz.
       }
     </script>
   </body>
