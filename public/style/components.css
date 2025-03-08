@@ -64,8 +64,8 @@
   background-color: #3d3d3d;
 }
 .channel-header {
-  display: block;
-  overflow: auto;
+  display: block; 
+  overflow: auto; 
   gap: 0.6rem;
   width: 100%;
   line-height: 1.2;
@@ -322,6 +322,9 @@
 .text-message.only-message {
   max-width: 100%;
 }
+
+/* Ardışık mesajlarda artık .left-message sınıfı kullanılmayacak.
+   Bunun yerine aşağıdaki ayrı sınıfları kullanacaksınız: */
 .text-message.first-message {
   padding-top: 10px;
   padding-bottom: 0px;
@@ -336,19 +339,19 @@
   margin-bottom: 20px;
 }
 .text-message.only-message {
-  /* Tek mesaj için */
+  /* Tek mesaj (yalnızca bir mesaj varsa) için özel stil */
 }
 
 /* Mesaj kapsayıcı */
 .message-item {
-  position: relative;
-  padding-left: 60px;
+  position: relative;     /* Avatar'ı absolute konumlandırmak için */
+  padding-left: 60px;     /* Avatar kadar soldan boşluk -> metin burada başlıyor */
   display: block;
   width: 100%;
   box-sizing: border-box;
 }
 
-/* Avatar */
+/* Avatar solda, metni etkilemesin */
 .message-avatar-container {
   position: absolute;
   left: 0;
@@ -362,6 +365,8 @@
   align-items: center;
   justify-content: center;
 }
+
+/* Kullanıcı adı ve tarih */
 .sender-info {
   display: flex;
   align-items: center;
@@ -390,11 +395,15 @@
   color: #5a5a5a;
   margin-left: 4px;
 }
+
+/* Mesaj içeriği */
 .message-content {
   margin-top: 0px;
   margin-bottom: 0;
   padding: 0;
 }
+
+/* Hover Efekti: Ardışık mesaj sınıflarına fare üzerine gelindiğinde hover oluşsun */
 .text-message.first-message:hover,
 .text-message.middle-message:hover,
 .text-message.last-message:hover,
@@ -419,6 +428,7 @@
   background-color: #353535;
   border-radius: 2px;
 }
+
 /* Scrollbar - Firefox */
 #textMessages {
   scrollbar-width: none;
@@ -451,6 +461,7 @@
   padding: 0.5rem;
   margin-bottom: 0;
 }
+
 .chat-input-wrapper {
   position: relative;
   display: block;
@@ -524,16 +535,21 @@
 /* DM Panel */
 .dm-panel {
   width: 300px;
-  background: #2d2d2d;
+  background: #222;
   color: #fff;
   padding: 1rem;
   box-sizing: border-box;
   overflow: auto;
+  /* Değişiklik: DM paneli artık sidebar genişliği (65px) kadar offset ile, kanallar panelinin (300px genişlikte) yerine gelecek şekilde konumlandırılıyor */
   position: absolute;
   left: 65px;
   top: 0;
   height: 100%;
   z-index: 5;
+}
+.dm-close-btn {
+  /* DM paneli açıkken sol üstte, dm-toggle-btn ile aynı konumda yer alması için mutlak pozisyonlama kaldırıldı */
+  display: inline-flex;
 }
 
 /* Context Menu */
@@ -620,7 +636,6 @@
 .layout-4-users .user-card {
   width: 100%;
   height: auto;
-  margin: 0;
 }
 .layout-n-users {
   display: grid;
@@ -668,81 +683,29 @@
   background-color: #2d2d2d;
 }
 
-/* Yeni: Seçili kanal başlığı ve filtrelerin bulunduğu container */
-.title-and-filters {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 10px;
-  width: 100%;
+/* Yeni: Hover sırasında (header içermeyen) mesajlarda saat bilgisinin gösterilmesi */
+.hover-time {
+  position: absolute;
+  left: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: none;
+  font-size: 0.8em;
+  color: #5a5a5a;
+  width: 48px;
+  text-align: right;
+  padding-right: 4px;
+}
+.text-message:hover .hover-time {
+  display: block;
 }
 
-/* Yeni: Filtre butonlarının bulunduğu container */
-.filter-buttons {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-/* Yeni: Dikey separator */
-.vertical-separator {
-  display: inline-block;
-  width: 1px;
-  height: 24px;
-  background-color: #666;
-  margin-right: 10px;
-}
-
-/* Yeni: Filtre butonları */
-.filter-btn {
-  background: #2d2d2d;
-  color: #fff;
-  border: none;
-  padding: 7px 12px 3px 8px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-.filter-btn:hover {
-  background-color: #3d3d3d;
-}
-
-/* Yeni: Arkadaş Ekle butonunun özel stili */
-.add-friend-btn {
-  background: #c61884;
-  color: #fff;
-}
-.add-friend-btn:hover {
-  background: #a3156f;
-}
-
-/* Yeni: DM panel için ek filtre butonları kapsayıcısı (dm-filters) - bu container index.html içinde yer alıyor */
-
-/* Yeni: DM panel için seçili kanal barı */
-.dm-selected-bar {
-  background: #444;
-  border-bottom: 1px solid #666;
-  padding: 0.75rem 1rem;
-  min-height: 50px;
-  display: flex;
-  align-items: center;
-  box-sizing: border-box;
-}
-
-/* Yeni: DM panel için seçili kanal başlığı */
-.dm-selected-title {
-  margin: 0;
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #fff;
-}
-
-/* Yeni: DM panel için içerik alanı */
-.dm-content-area {
-  flex: 1;
-  padding: 1rem;
-  box-sizing: border-box;
-  overflow: auto;
-  padding-bottom: 60px;
-  background: #333;
+/* Ekran Paylaşım Göstergesi */
+.screen-share-indicator {
+  background-color: #c61884;
+  color: white;
+  padding: 2px 4px;
+  border-radius: 2px;
+  font-size: 10px;
+  margin-left: 4px;
 }

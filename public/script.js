@@ -5,9 +5,9 @@
 
 /* clearScreenShareUI */
 function clearScreenShareUI() {
-  const contentArea = document.querySelector('.channel-content-area');
-  if (screenShareVideo && contentArea && contentArea.contains(screenShareVideo)) {
-    contentArea.removeChild(screenShareVideo);
+  const channelContentArea = document.querySelector('.channel-content-area');
+  if (screenShareVideo && channelContentArea && channelContentArea.contains(screenShareVideo)) {
+    channelContentArea.removeChild(screenShareVideo);
     screenShareVideo = null;
   }
   if (screenShareButton) {
@@ -19,22 +19,8 @@ function clearScreenShareUI() {
   }
 }
 
-/* Yeni: sendTextMessage fonksiyonu */
-function sendTextMessage() {
-  const msg = textChannelMessageInput.value.trim();
-  if (!msg) return;
-  socket.emit('textMessage', { 
-    groupId: selectedGroup, 
-    roomId: currentTextChannel, 
-    message: msg, 
-    username: username 
-  });
-  textChannelMessageInput.value = '';
-  sendTextMessageBtn.style.display = "none";
-}
-
 import * as TextChannel from './js/textChannel.js';
-import * as ScreenShare from './js/screenShare.js';
+import * as ScreenShare from './js/screenShare.js';  // Yeni ekran paylaşım modülü
 import { initTypingIndicator } from './js/typingIndicator.js';
 
 let socket = null;
@@ -43,16 +29,23 @@ let deviceIsLoaded = false;
 let sendTransport = null;
 let recvTransport = null;
 
+// Mikrofon akışı
 let localStream = null;
 let audioPermissionGranted = false;
 
+// Producer (mikrofon)
 let localProducer = null;
 
+// Remote audio consumer objeleri
 let consumers = {};  // consumerId -> consumer
+
+// Remote audio elementlerini saklayalım
 let remoteAudios = [];
 
+// Global ekran paylaşım video elementi
 let screenShareVideo = null;
 
+// Kimlik
 let username = null;
 let currentGroup = null;
 let currentRoom = null;
@@ -60,33 +53,34 @@ let selectedGroup = null;
 let currentTextChannel = null; // Metin kanalı için seçili kanal id'si
 let currentRoomType = null;    // "voice" veya "text"
 
+// Yeni: Kullanıcının sesli kanala bağlandığı kanalın adını saklayacak değişken
 let activeVoiceChannelName = "";
 
+// Mikrofon / Kulaklık
 let micEnabled = true;
 let selfDeafened = false;
 let micWasEnabledBeforeDeaf = false;
 
+// Ses seviyesi analizi
 const SPEAKING_THRESHOLD = 0.02;
 const VOLUME_CHECK_INTERVAL = 100;
 let audioAnalyzers = {};
 
 let pingInterval = null;
 
-let originalChannelContentHTML = "";
-
-// ÖNEMLİ: DOM'dan alınması gereken öğeler; bunların tanımlamaları DOMContentLoaded sonrasında yapılacak.
-let channelStatusPanel;
-let leaveButton;
+/* Formatlama fonksiyonları artık TextChannel modülünden sağlanıyor */
 
 const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
 const callScreen = document.getElementById('callScreen');
 
+// Login
 const loginUsernameInput = document.getElementById('loginUsernameInput');
 const loginPasswordInput = document.getElementById('loginPasswordInput');
 const loginButton = document.getElementById('loginButton');
 const loginErrorMessage = document.getElementById('loginErrorMessage');
 
+// Register
 const regUsernameInput = document.getElementById('regUsernameInput');
 const regNameInput = document.getElementById('regNameInput');
 const regSurnameInput = document.getElementById('regSurnameInput');
@@ -99,9 +93,11 @@ const registerButton = document.getElementById('registerButton');
 const backToLoginButton = document.getElementById('backToLoginButton');
 const registerErrorMessage = document.getElementById('registerErrorMessage');
 
+// Ekran geçiş linkleri
 const showRegisterScreen = document.getElementById('showRegisterScreen');
 const showLoginScreen = document.getElementById('showLoginScreen');
 
+// Gruplar, Odalar
 const groupListDiv = document.getElementById('groupList');
 const createGroupButton = document.getElementById('createGroupButton');
 const roomListDiv = document.getElementById('roomList');
@@ -113,47 +109,56 @@ const renameGroupBtn = document.getElementById('renameGroupBtn');
 const createChannelBtn = document.getElementById('createChannelBtn');
 const deleteGroupBtn = document.getElementById('deleteGroupBtn');
 
+// DM panel ve odalar alanı (kanallar paneli)
+const toggleDMButton = document.getElementById('toggleDMButton');
+const roomPanel = document.getElementById('roomPanel');
 let isDMMode = false;
 
+// Sağ panel (userList)
 const userListDiv = document.getElementById('userList');
 
+// Kanal Durum Paneli
+const channelStatusPanel = document.getElementById('channelStatusPanel');
+channelStatusPanel.style.height = "100px";
+channelStatusPanel.style.zIndex = "20";
 const pingValueSpan = document.getElementById('pingValue');
 const cellBar1 = document.getElementById('cellBar1');
 const cellBar2 = document.getElementById('cellBar2');
 const cellBar3 = document.getElementById('cellBar3');
 const cellBar4 = document.getElementById('cellBar4');
 
+// Ayrıl Butonu
+const leaveButton = document.getElementById('leaveButton');
 const screenShareButton = document.getElementById('screenShareButton');
+
+// Mikrofon / Kulaklık butonları
 const micToggleButton = document.getElementById('micToggleButton');
 const deafenToggleButton = document.getElementById('deafenToggleButton');
 const settingsButton = document.getElementById('settingsButton');
 
-let textChannelContainer = document.getElementById('textChannelContainer');
-let textMessages = document.getElementById('textMessages');
+// Metin Kanalı Elemanları
+const textChannelContainer = document.getElementById('textChannelContainer');
+const textMessages = document.getElementById('textMessages');
 const textChatInputBar = document.getElementById('text-chat-input-bar');
-let textChannelMessageInput = document.getElementById('textChannelMessageInput');
-let sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
+const textChannelMessageInput = document.getElementById('textChannelMessageInput');
+const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
-// DM şablon elementi (sol panelde gösterilecek DM paneli)
-const dmTemplate = document.getElementById('dmTemplate');
+// Ek: Seçili başlık ve ana içerik alanı
+const selectedChannelTitle = document.getElementById('selectedChannelTitle');
+const channelContentArea = document.getElementById('channelContentArea');
 
 window.addEventListener('DOMContentLoaded', () => {
-  // DOM hazır olduğunda gerekli öğeler alınır.
-  channelStatusPanel = document.getElementById('channelStatusPanel');
-  leaveButton = document.getElementById('leaveButton');
-  
-  const contentArea = document.getElementById('channelContentArea');
-  originalChannelContentHTML = contentArea.innerHTML;
-  
+  // Başlangıçta toggleDMButton içindeki ikon "forum" olarak ayarlansın.
   toggleDMButton.querySelector('.material-icons').textContent = 'forum';
   
   socket = io("https://fisqos.com.tr", { transports: ['websocket'] });
   console.log("Socket connected =>", socket.id);
   initSocketEvents();
   initUIEvents();
+  // Typing indicator modülünü başlatıyoruz; getCurrentTextChannel fonksiyonu currentTextChannel değerini döndürüyor.
   initTypingIndicator(socket, () => currentTextChannel, () => username);
   
-  const tm = document.getElementById('textMessages');
+  const tm = textMessages;
   let removeScrollingTimeout;
   if (tm) {
     tm.addEventListener('scroll', function() {
@@ -177,8 +182,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
 /* Yeni fonksiyon: Context Menu Gösterimi */
 function showChannelContextMenu(e, roomObj) {
+  // Var olan context menu varsa kaldır
   const existingMenu = document.getElementById('channelContextMenu');
-  if (existingMenu) {
+  if(existingMenu) {
     existingMenu.remove();
   }
   const menu = document.createElement('div');
@@ -189,6 +195,7 @@ function showChannelContextMenu(e, roomObj) {
   menu.style.left = e.pageX + 'px';
   menu.style.display = 'flex';
   menu.style.flexDirection = 'column';
+  // Menü öğeleri
   const menuItems = [
     {
       text: 'Kanal Ayarları',
@@ -198,7 +205,7 @@ function showChannelContextMenu(e, roomObj) {
       text: 'Kanalın İsmini Değiştir',
       action: () => {
         const newName = prompt('Yeni kanal ismini girin:', roomObj.name);
-        if (newName && newName.trim() !== '') {
+        if(newName && newName.trim() !== '') {
           socket.emit('renameChannel', { channelId: roomObj.id, newName: newName.trim() });
         }
       }
@@ -206,7 +213,7 @@ function showChannelContextMenu(e, roomObj) {
     {
       text: 'Kanalı Sil',
       action: () => {
-        if (confirm('Bu kanalı silmek istediğinize emin misiniz?')) {
+        if(confirm('Bu kanalı silmek istediğinize emin misiniz?')) {
           socket.emit('deleteChannel', roomObj.id);
         }
       }
@@ -223,8 +230,9 @@ function showChannelContextMenu(e, roomObj) {
     menu.appendChild(menuItem);
   });
   document.body.appendChild(menu);
+  // Dışarı tıklanırsa menüyü kapat
   document.addEventListener('click', function handler() {
-    if (document.getElementById('channelContextMenu')) {
+    if(document.getElementById('channelContextMenu')){
       document.getElementById('channelContextMenu').remove();
     }
     document.removeEventListener('click', handler);
@@ -233,7 +241,7 @@ function showChannelContextMenu(e, roomObj) {
 
 /* Yeni fonksiyon: updateVoiceChannelUI */
 function updateVoiceChannelUI(roomName) {
-  document.getElementById('selectedChannelTitle').textContent = roomName;
+  selectedChannelTitle.textContent = roomName;
   const channelUsersContainer = document.getElementById('channelUsersContainer');
   if (channelUsersContainer) {
     channelUsersContainer.style.display = 'flex';
@@ -248,7 +256,7 @@ async function showScreenShare(producerId) {
     console.warn("recvTransport yok");
     return;
   }
-  const contentArea = document.querySelector('.channel-content-area');
+  const channelContentArea = document.querySelector('.channel-content-area');
   clearScreenShareUI();
   const consumeParams = await new Promise((resolve) => {
     socket.emit('consume', {
@@ -280,13 +288,13 @@ async function showScreenShare(producerId) {
   videoEl.style.objectFit = "contain";
   const stream = new MediaStream([consumer.track]);
   videoEl.srcObject = stream;
-  contentArea.appendChild(videoEl);
+  channelContentArea.appendChild(videoEl);
   screenShareVideo = videoEl;
 }
 
 /* displayScreenShareEndedMessage */
 function displayScreenShareEndedMessage() {
-  const contentArea = document.querySelector('.channel-content-area');
+  const channelContentArea = document.querySelector('.channel-content-area');
   let messageEl = document.getElementById('screenShareEndedMessage');
   if (!messageEl) {
     messageEl = document.createElement('div');
@@ -302,7 +310,8 @@ function displayScreenShareEndedMessage() {
     messageEl.style.borderRadius = '8px';
     messageEl.style.fontSize = '1.2rem';
   }
-  contentArea.appendChild(messageEl);
+  const channelContentAreaElem = document.querySelector('.channel-content-area');
+  channelContentAreaElem.appendChild(messageEl);
 }
 
 /* removeScreenShareEndedMessage */
@@ -318,7 +327,7 @@ function updateStatusPanel(ping) {
   const rssIcon = document.getElementById('rssIcon');
   const statusMessage = document.getElementById('statusMessage');
   const channelGroupInfo = document.getElementById('channelGroupInfo');
-  let color = "#2dbf2d";
+  let color = "#2dbf2d"; // 0-60 ms: yeşil
   if (ping >= 80) {
     color = "#ff0000";
   } else if (ping >= 60) {
@@ -435,6 +444,7 @@ function initSocketEvents() {
       roomItem.appendChild(channelHeader);
       roomItem.appendChild(channelUsers);
       
+      // Sağ tıklama ile context menu açılması
       roomItem.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         showChannelContextMenu(e, roomObj);
@@ -443,23 +453,24 @@ function initSocketEvents() {
       roomItem.addEventListener('click', () => {
         if (roomObj.type === 'text') {
           console.log(`Text channel clicked => ${roomObj.name}`);
-          document.getElementById('selectedChannelTitle').textContent = roomObj.name;
+          selectedChannelTitle.textContent = roomObj.name;
           textChannelContainer.style.display = 'flex';
           document.getElementById('channelUsersContainer').style.display = 'none';
           if (!(currentRoom && currentRoomType === 'voice')) {
             hideChannelStatusPanel();
             currentRoomType = "text";
           }
-          textMessages = document.getElementById('textMessages');
-          if(textMessages) textMessages.innerHTML = "";
+          textMessages.innerHTML = "";
           currentTextChannel = roomObj.id;
-          if(textMessages) textMessages.dataset.channelId = roomObj.id;
+          textMessages.dataset.channelId = roomObj.id;
           socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: roomObj.id });
           return;
         }
+        // Voice channel case:
         clearScreenShareUI();
         document.getElementById('channelUsersContainer').style.display = 'flex';
         document.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('connected'));
+        // Eğer kullanıcı zaten bağlı olduğu sesli kanalda ise; sadece arayüz güncellemesi yap.
         if (currentRoom === roomObj.id && currentGroup === selectedGroup) {
           roomItem.classList.add('connected');
           updateVoiceChannelUI(roomObj.name);
@@ -507,9 +518,9 @@ function initSocketEvents() {
     consumeProducer(producerId);
   });
   socket.on('screenShareEnded', ({ userId }) => {
-    const contentArea = document.querySelector('.channel-content-area');
-    if (screenShareVideo && contentArea && contentArea.contains(screenShareVideo)) {
-      contentArea.removeChild(screenShareVideo);
+    const channelContentArea = document.querySelector('.channel-content-area');
+    if (screenShareVideo && channelContentArea && channelContentArea.contains(screenShareVideo)) {
+      channelContentArea.removeChild(screenShareVideo);
       screenShareVideo = null;
     }
     displayScreenShareEndedMessage();
@@ -850,7 +861,8 @@ function joinRoom(groupId, roomId, roomName) {
   }
   console.log(`joinRoom çağrıldı: group=${groupId}, room=${roomId}, name=${roomName}`);
   socket.emit('joinRoom', { groupId, roomId });
-  document.getElementById('selectedChannelTitle').textContent = roomName;
+  selectedChannelTitle.textContent = roomName;
+  // Sesli kanala bağlanırken aktif kanal adını kaydediyoruz
   activeVoiceChannelName = roomName;
   showChannelStatusPanel();
   currentRoomType = "voice";
@@ -973,6 +985,7 @@ function initUIEvents() {
     document.getElementById('groupModal').style.display = 'none';
     document.getElementById('joinGroupModal').style.display = 'flex';
   });
+  // JOIN GROUP MODAL EVENT LISTENERS
   document.getElementById('joinGroupIdBtn').addEventListener('click', () => {
     const grpIdVal = document.getElementById('joinGroupIdInput').value.trim();
     if (!grpIdVal) {
@@ -985,6 +998,7 @@ function initUIEvents() {
   document.getElementById('closeJoinGroupModal').addEventListener('click', () => {
     document.getElementById('joinGroupModal').style.display = 'none';
   });
+  // EK: Yeni Grup Kur modali için "Kapat" butonu event listener'ı ekleniyor.
   document.getElementById('closeCreateGroupModal').addEventListener('click', () => {
     document.getElementById('actualGroupCreateModal').style.display = 'none';
   });
@@ -1000,6 +1014,7 @@ function initUIEvents() {
       return;
     }
     const channelType = document.querySelector('input[name="channelType"]:checked').value;
+    // Eğer kullanıcı sesli kanalda değilse, seçili (browse edilen) grubu aktif hale getiriyoruz.
     if (currentRoomType !== "voice") {
       if (selectedGroup) {
         currentGroup = selectedGroup;
@@ -1062,34 +1077,31 @@ function initUIEvents() {
       groupDropdownMenu.style.display = 'none';
     }
   });
-  
-  // DM modu toggle: DM açıldığında sol panelde (rooms paneli yerine) DM paneli gelsin.
+  // DM Panel toggle: DM paneli kapalıyken toggleDMButton (dm-toggle-btn) içindeki ikon "forum" olacak;
+  // DM paneli açıldığında toggleDMButton içindeki ikon "group" olacak ve ayrıca selectedChannelTitle "Arkadaşlar" olarak
+  // ayarlanıp channelContentArea, kullanıcı arama inputu ile doldurulacak.
   toggleDMButton.addEventListener('click', () => {
-    const roomPanel = document.getElementById('roomPanel');
-    const dmLeftPanel = document.getElementById('dmLeftPanel');
-    const rightPanel = document.getElementById('rightPanel');
-    const selectedChannelTitle = document.getElementById('selectedChannelTitle');
-    if (!isDMMode) {
+    const dmPanel = document.getElementById('dmPanel');
+    if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
+      // DM paneli açılıyor:
+      dmPanel.style.display = 'block';
       roomPanel.style.display = 'none';
-      dmLeftPanel.style.display = 'block';
-      rightPanel.style.display = 'none';
       isDMMode = true;
       toggleDMButton.querySelector('.material-icons').textContent = 'group';
-      if(selectedChannelTitle) {
-         selectedChannelTitle.textContent = "Arkadaşlar";
-      }
+      selectedChannelTitle.textContent = 'Arkadaşlar';
+      channelContentArea.innerHTML = `<div style="padding: 1rem;">
+        <input type="text" id="friendSearchInput" placeholder="Kullanıcı ara..." style="width: 100%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
+      </div>`;
     } else {
-      roomPanel.style.display = 'block';
-      dmLeftPanel.style.display = 'none';
-      rightPanel.style.display = 'block';
+      // DM paneli kapatılıyor:
+      dmPanel.style.display = 'none';
+      roomPanel.style.display = 'flex';
       isDMMode = false;
       toggleDMButton.querySelector('.material-icons').textContent = 'forum';
-      if(selectedChannelTitle) {
-         selectedChannelTitle.textContent = "Kanal Seçilmedi";
-      }
+      selectedChannelTitle.textContent = 'Kanal Seçilmedi';
+      channelContentArea.innerHTML = '';
     }
   });
-  
   leaveButton.addEventListener('click', () => {
     clearScreenShareUI();
     if (!currentRoom) return;
@@ -1097,7 +1109,7 @@ function initUIEvents() {
     leaveRoomInternal();
     hideChannelStatusPanel();
     currentRoom = null;
-    document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
+    selectedChannelTitle.textContent = 'Kanal Seçilmedi';
     const container = document.getElementById('channelUsersContainer');
     if (container) {
       container.innerHTML = '';
@@ -1124,6 +1136,18 @@ function initUIEvents() {
   settingsButton.addEventListener('click', () => {
     // ...
   });
+  function sendTextMessage() {
+    const msg = textChannelMessageInput.value.trim();
+    if (!msg) return;
+    socket.emit('textMessage', { 
+      groupId: selectedGroup, 
+      roomId: currentTextChannel, 
+      message: msg, 
+      username: username 
+    });
+    textChannelMessageInput.value = '';
+    sendTextMessageBtn.style.display = "none";
+  }
   sendTextMessageBtn.addEventListener('click', sendTextMessage);
   textChannelMessageInput.addEventListener('input', () => {
     if (textChannelMessageInput.value.trim() !== "") {
@@ -1199,119 +1223,118 @@ function applyAudioStates() {
 
 /* hideChannelStatusPanel */
 function hideChannelStatusPanel() {
-  if (channelStatusPanel) {
-    channelStatusPanel.style.display = 'none';
-  }
+  channelStatusPanel.style.display = 'none';
   stopPingInterval();
 }
 
 /* showChannelStatusPanel */
 function showChannelStatusPanel() {
-  if (channelStatusPanel) {
-    channelStatusPanel.style.height = "100px";
-    channelStatusPanel.style.zIndex = "20";
-    channelStatusPanel.style.display = 'block';
-    channelStatusPanel.innerHTML = `
-      <div class="status-content" style="display: flex; flex-direction: column; height: 100%; justify-content: space-between; padding: 0 10px;">
-        <div class="status-main" style="display: flex; align-items: center; justify-content: space-between;">
-          <div style="display: flex; align-items: center;">
-            <span class="material-icons" id="rssIcon" style="font-size: 32px; margin-right: 8px;">rss_feed</span>
-            <div id="statusMessage" style="font-size: 1.2em; font-weight: bold;">sese bağlanıldı</div>
-          </div>
-          <button id="leaveChannelBtn" style="background: none; border: none; cursor: pointer;">
-            <span class="material-icons" style="font-size: 28px; color: #aaa;">call_end</span>
-          </button>
+  channelStatusPanel.style.height = "100px";
+  channelStatusPanel.style.zIndex = "20";
+  channelStatusPanel.style.display = 'block';
+  channelStatusPanel.innerHTML = `
+    <div class="status-content" style="display: flex; flex-direction: column; height: 100%; justify-content: space-between; padding: 0 10px;">
+      <div class="status-main" style="display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center;">
+          <span class="material-icons" id="rssIcon" style="font-size: 32px; margin-right: 8px;">rss_feed</span>
+          <div id="statusMessage" style="font-size: 1.2em; font-weight: bold;">sese bağlanıldı</div>
         </div>
-        <div style="display: flex; flex-direction: column;">
-          <div id="channelGroupInfo" style="font-size: 0.8em; margin-bottom: 4px; color: #aaa;"> </div>
-          <div class="status-buttons" style="display: flex; gap: 10px;">
-            <button class="status-btn" id="screenShareStatusBtn" style="flex: 1; padding: 6px 12px; border: 1px solid #ccc; background-color: #444; color: #fff; border-radius: 4px;">
-              <span class="material-icons" id="screenShareIcon">cast</span>
-            </button>
-            <button class="status-btn" style="flex: 1; padding: 6px 12px; border: 1px solid #ccc; background-color: #444; color: #fff; border-radius: 4px;">Buton 2</button>
-            <button class="status-btn" style="flex: 1; padding: 6px 12px; border: 1px solid #ccc; background-color: #444; color: #fff; border-radius: 4px;">Buton 3</button>
-          </div>
+        <button id="leaveChannelBtn" style="background: none; border: none; cursor: pointer;">
+          <span class="material-icons" style="font-size: 28px; color: #aaa;">call_end</span>
+        </button>
+      </div>
+      <div style="display: flex; flex-direction: column;">
+        <div id="channelGroupInfo" style="font-size: 0.8em; margin-bottom: 4px; color: #aaa;"> </div>
+        <div class="status-buttons" style="display: flex; gap: 10px;">
+          <button class="status-btn" id="screenShareStatusBtn" style="flex: 1; padding: 6px 12px; border: 1px solid #ccc; background-color: #444; color: #fff; border-radius: 4px;">
+            <span class="material-icons" id="screenShareIcon">cast</span>
+          </button>
+          <button class="status-btn" style="flex: 1; padding: 6px 12px; border: 1px solid #ccc; background-color: #444; color: #fff; border-radius: 4px;">Buton 2</button>
+          <button class="status-btn" style="flex: 1; padding: 6px 12px; border: 1px solid #ccc; background-color: #444; color: #fff; border-radius: 4px;">Buton 3</button>
         </div>
       </div>
-    `;
-    const leaveChannelBtn = document.getElementById('leaveChannelBtn');
-    leaveChannelBtn.addEventListener('mouseenter', () => {
-      const icon = leaveChannelBtn.querySelector('.material-icons');
-      if (icon) icon.style.color = "#c61884";
-    });
-    leaveChannelBtn.addEventListener('mouseleave', () => {
-      const icon = leaveChannelBtn.querySelector('.material-icons');
-      if (icon) icon.style.color = "#aaa";
-    });
-    const screenShareBtn = document.getElementById('screenShareStatusBtn');
-    screenShareBtn.addEventListener('mouseenter', () => {
-      if (!screenShareBtn.classList.contains('active')) {
-        screenShareBtn.style.borderColor = "#c61884";
-        screenShareBtn.style.color = "#c61884";
-        const icon = document.getElementById('screenShareIcon');
-        if(icon) icon.style.color = "#c61884";
-      }
-    });
-    screenShareBtn.addEventListener('mouseleave', () => {
-      if (!screenShareBtn.classList.contains('active')) {
-        screenShareBtn.style.borderColor = "#ccc";
-        screenShareBtn.style.color = "#fff";
-        const icon = document.getElementById('screenShareIcon');
-        if(icon) icon.style.color = "#fff";
-        screenShareBtn.style.backgroundColor = "#444";
-      }
-    });
-    screenShareBtn.addEventListener('click', async () => {
+    </div>
+  `;
+  // LeaveChannelBtn hover ekle: mouseover'da ikon rengi #c61884, mouseout'da #aaa olsun.
+  const leaveChannelBtn = document.getElementById('leaveChannelBtn');
+  leaveChannelBtn.addEventListener('mouseenter', () => {
+    const icon = leaveChannelBtn.querySelector('.material-icons');
+    if (icon) icon.style.color = "#c61884";
+  });
+  leaveChannelBtn.addEventListener('mouseleave', () => {
+    const icon = leaveChannelBtn.querySelector('.material-icons');
+    if (icon) icon.style.color = "#aaa";
+  });
+  // Hover efektleri: ekran paylaşım butonuna yalnızca aktif değilse uygulanıyor.
+  const screenShareBtn = document.getElementById('screenShareStatusBtn');
+  screenShareBtn.addEventListener('mouseenter', () => {
+    if (!screenShareBtn.classList.contains('active')) {
+      screenShareBtn.style.borderColor = "#c61884";
+      screenShareBtn.style.color = "#c61884";
       const icon = document.getElementById('screenShareIcon');
-      if(window.screenShareProducerVideo) {
-        await ScreenShare.stopScreenShare(socket);
-        screenShareBtn.classList.remove('active');
+      if(icon) icon.style.color = "#c61884";
+    }
+  });
+  screenShareBtn.addEventListener('mouseleave', () => {
+    if (!screenShareBtn.classList.contains('active')) {
+      screenShareBtn.style.borderColor = "#ccc";
+      screenShareBtn.style.color = "#fff";
+      const icon = document.getElementById('screenShareIcon');
+      if(icon) icon.style.color = "#fff";
+      screenShareBtn.style.backgroundColor = "#444";
+    }
+  });
+  // Ekran paylaşım butonunun tıklanması:
+  screenShareBtn.addEventListener('click', async () => {
+    const icon = document.getElementById('screenShareIcon');
+    if(window.screenShareProducerVideo) {
+      await ScreenShare.stopScreenShare(socket);
+      screenShareBtn.classList.remove('active');
+      if(icon) {
+        icon.textContent = "cast";
+        icon.style.color = "#fff";
+      }
+      screenShareBtn.style.borderColor = "#ccc";
+      screenShareBtn.style.color = "#fff";
+      screenShareBtn.style.backgroundColor = "#444";
+    } else {
+      try {
+        if(!sendTransport) {
+          alert("Ekran paylaşımı için transport henüz hazır değil.");
+          return;
+        }
+        clearScreenShareUI();
+        await ScreenShare.startScreenShare(sendTransport, socket);
+        screenShareBtn.classList.add('active');
         if(icon) {
-          icon.textContent = "cast";
+          icon.textContent = "cancel_presentation";
           icon.style.color = "#fff";
         }
-        screenShareBtn.style.borderColor = "#ccc";
-        screenShareBtn.style.color = "#fff";
-        screenShareBtn.style.backgroundColor = "#444";
-      } else {
-        try {
-          if(!sendTransport) {
-            alert("Ekran paylaşımı için transport henüz hazır değil.");
-            return;
-          }
-          clearScreenShareUI();
-          await ScreenShare.startScreenShare(sendTransport, socket);
-          screenShareBtn.classList.add('active');
-          if(icon) {
-            icon.textContent = "cancel_presentation";
-            icon.style.color = "#fff";
-          }
-          screenShareBtn.style.borderColor = "#c61884";
-          screenShareBtn.style.color = "#c61884";
-          screenShareBtn.style.backgroundColor = "#c61884";
-        } catch(error) {
-          console.error("Ekran paylaşımı başlatılırken hata:", error);
-        }
+        screenShareBtn.style.borderColor = "#c61884";
+        screenShareBtn.style.color = "#c61884";
+        screenShareBtn.style.backgroundColor = "#c61884";
+      } catch(error) {
+        console.error("Ekran paylaşımı başlatılırken hata:", error);
       }
-    });
-    document.getElementById('leaveChannelBtn').addEventListener('click', () => {
-      if (!currentRoom) return;
-      socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
-      leaveRoomInternal();
-      hideChannelStatusPanel();
-      currentRoom = null;
-      document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
-      const container = document.getElementById('channelUsersContainer');
-      if (container) {
-        container.innerHTML = '';
-        container.classList.remove('layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users');
-      }
-      textChannelContainer.style.display = 'none';
-      socket.emit('browseGroup', currentGroup);
-    });
-    startPingInterval();
-    updateStatusPanel(0);
-  }
+    }
+  });
+  document.getElementById('leaveChannelBtn').addEventListener('click', () => {
+    if (!currentRoom) return;
+    socket.emit('leaveRoom', { groupId: currentGroup, roomId: currentRoom });
+    leaveRoomInternal();
+    hideChannelStatusPanel();
+    currentRoom = null;
+    selectedChannelTitle.textContent = 'Kanal Seçilmedi';
+    const container = document.getElementById('channelUsersContainer');
+    if (container) {
+      container.innerHTML = '';
+      container.classList.remove('layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users');
+    }
+    textChannelContainer.style.display = 'none';
+    socket.emit('browseGroup', currentGroup);
+  });
+  startPingInterval();
+  updateStatusPanel(0);
 }
 
 /* startPingInterval */
@@ -1369,6 +1392,7 @@ function insertSeparatorIfNeeded(prevTimestamp, currentTimestamp) {
   }
 }
 
+/* document.addEventListener('DOMContentLoaded', ...) */
 document.addEventListener('DOMContentLoaded', function() {
   const tm = document.getElementById('textMessages');
   let removeScrollingTimeout;
@@ -1390,6 +1414,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
+/* updateUserList */
 function updateUserList(data) {
   userListDiv.innerHTML = '';
   const onlineTitle = document.createElement('div');
@@ -1425,6 +1450,7 @@ function updateUserList(data) {
   }
 }
 
+/* createUserItem */
 function createUserItem(username, isOnline) {
   const userItem = document.createElement('div');
   userItem.classList.add('user-item');
@@ -1453,8 +1479,7 @@ function createUserItem(username, isOnline) {
   return userItem;
 }
 
+/* getAllChannelsData */
 function getAllChannelsData(gId) {
   return {};
 }
-
-export { };
