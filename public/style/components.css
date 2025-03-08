@@ -631,6 +631,7 @@
 .layout-4-users .user-card {
   width: 100%;
   height: auto;
+  margin: 0;
 }
 .layout-n-users {
   display: grid;
@@ -678,11 +679,20 @@
   background-color: #2d2d2d;
 }
 
-/* Yeni: Arkadaşlar butonunun stil ve hover efekti (channel-item ile uyumlu) */
+/* Yeni: Arkadaşlar butonunun stil ve hover efekti (channel-item tarzında) */
 #friendsButton {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  cursor: pointer;
   padding: 7px 12px 3px 8px;
+  margin-bottom: 0;
   border-radius: 5px;
   background: #2d2d2d;
+  line-height: 1.2;
+  box-sizing: border-box;
   transition: background 0.3s ease;
 }
 #friendsButton:hover {
