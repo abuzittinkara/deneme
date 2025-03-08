@@ -31,9 +31,7 @@
         <button id="loginButton" class="btn primary">Giriş Yap</button>
         <p style="margin-top: 1rem;">
           Hesabın yok mu?
-          <span id="showRegisterScreen" style="color: #fff; cursor: pointer; text-decoration: underline;">
-            Yeni Hesap Oluştur
-          </span>
+          <span id="showRegisterScreen" style="color: #fff; cursor: pointer; text-decoration: underline;">Yeni Hesap Oluştur</span>
         </p>
       </div>
     </div>
@@ -58,9 +56,7 @@
         <button id="backToLoginButton" class="btn secondary">Geri Gel</button>
         <p style="margin-top: 1rem;">
           Zaten hesabın var mı?
-          <span id="showLoginScreen" style="color: #fff; cursor: pointer; text-decoration: underline;">
-            Oturum Aç
-          </span>
+          <span id="showLoginScreen" style="color: #fff; cursor: pointer; text-decoration: underline;">Oturum Aç</span>
         </p>
       </div>
     </div>
@@ -138,6 +134,7 @@
         <div id="selectedChannelBar" class="selected-channel-bar">
           <h2 id="selectedChannelTitle" class="selected-channel-title">Kanal Seçilmedi</h2>
         </div>
+        <!-- Burada kanal mesajlarının gösterildiği alan -->
         <div id="channelContentArea" class="channel-content-area">
           <!-- Voice kanallar için -->
           <div id="channelUsersContainer" class="channel-users-container" style="display: none;"></div>
@@ -171,8 +168,8 @@
             </div>
           </div>
         </div>
-        <!-- DM içerik alanı: DM paneline özgü tüm elemanları içerir -->
-        <div id="dmContentArea" class="dm-content-area" style="display: none;">
+        <!-- DM panel şablonu (gizli) -->
+        <div id="dmTemplate" style="display: none;">
           <div class="dm-search" style="padding: 1rem;">
             <input type="text" id="dmSearchInput" placeholder="Arkadaş ara..." style="width:100%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
           </div>

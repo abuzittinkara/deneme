@@ -5,9 +5,9 @@
 
 /* clearScreenShareUI */
 function clearScreenShareUI() {
-  const channelContentArea = document.querySelector('.channel-content-area, .dm-content-area');
-  if (screenShareVideo && channelContentArea && channelContentArea.contains(screenShareVideo)) {
-    channelContentArea.removeChild(screenShareVideo);
+  const contentArea = document.querySelector('.channel-content-area');
+  if (screenShareVideo && contentArea && contentArea.contains(screenShareVideo)) {
+    contentArea.removeChild(screenShareVideo);
     screenShareVideo = null;
   }
   if (screenShareButton) {
@@ -124,9 +124,7 @@ const renameGroupBtn = document.getElementById('renameGroupBtn');
 const createChannelBtn = document.getElementById('createChannelBtn');
 const deleteGroupBtn = document.getElementById('deleteGroupBtn');
 
-// DM panel ve odalar alanı (kanallar paneli)
-const toggleDMButton = document.getElementById('toggleDMButton');
-const roomPanel = document.getElementById('roomPanel');
+// DM modu için flag
 let isDMMode = false;
 
 // Sağ panel (userList)
@@ -158,9 +156,12 @@ const textChatInputBar = document.getElementById('text-chat-input-bar');
 let textChannelMessageInput = document.getElementById('textChannelMessageInput');
 let sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
+// DM şablon elemanını alma (index.html'den)
+const dmTemplate = document.getElementById('dmTemplate');
+
 window.addEventListener('DOMContentLoaded', () => {
-  const channelContentArea = document.querySelector('.channel-content-area, .dm-content-area');
-  originalChannelContentHTML = channelContentArea.innerHTML;
+  const contentArea = document.querySelector('.channel-content-area');
+  originalChannelContentHTML = contentArea.innerHTML;
   
   toggleDMButton.querySelector('.material-icons').textContent = 'forum';
   
@@ -265,7 +266,7 @@ async function showScreenShare(producerId) {
     console.warn("recvTransport yok");
     return;
   }
-  const channelContentArea = document.querySelector('.channel-content-area, .dm-content-area');
+  const contentArea = document.querySelector('.channel-content-area');
   clearScreenShareUI();
   const consumeParams = await new Promise((resolve) => {
     socket.emit('consume', {
@@ -297,13 +298,13 @@ async function showScreenShare(producerId) {
   videoEl.style.objectFit = "contain";
   const stream = new MediaStream([consumer.track]);
   videoEl.srcObject = stream;
-  channelContentArea.appendChild(videoEl);
+  contentArea.appendChild(videoEl);
   screenShareVideo = videoEl;
 }
 
 /* displayScreenShareEndedMessage */
 function displayScreenShareEndedMessage() {
-  const channelContentArea = document.querySelector('.channel-content-area, .dm-content-area');
+  const contentArea = document.querySelector('.channel-content-area');
   let messageEl = document.getElementById('screenShareEndedMessage');
   if (!messageEl) {
     messageEl = document.createElement('div');
@@ -319,8 +320,8 @@ function displayScreenShareEndedMessage() {
     messageEl.style.borderRadius = '8px';
     messageEl.style.fontSize = '1.2rem';
   }
-  const channelContentAreaElem = document.querySelector('.channel-content-area, .dm-content-area');
-  channelContentAreaElem.appendChild(messageEl);
+  const contentAreaElem = document.querySelector('.channel-content-area');
+  contentAreaElem.appendChild(messageEl);
 }
 
 /* removeScreenShareEndedMessage */
@@ -525,9 +526,9 @@ function initSocketEvents() {
     consumeProducer(producerId);
   });
   socket.on('screenShareEnded', ({ userId }) => {
-    const channelContentArea = document.querySelector('.channel-content-area, .dm-content-area');
-    if (screenShareVideo && channelContentArea && channelContentArea.contains(screenShareVideo)) {
-      channelContentArea.removeChild(screenShareVideo);
+    const contentArea = document.querySelector('.channel-content-area');
+    if (screenShareVideo && contentArea && contentArea.contains(screenShareVideo)) {
+      contentArea.removeChild(screenShareVideo);
       screenShareVideo = null;
     }
     displayScreenShareEndedMessage();
@@ -1081,40 +1082,30 @@ function initUIEvents() {
     }
   });
   
-  // DM modu toggle düzenlemesi: Artık DM paneli, main content içinde yer alan dmContentArea'da gösterilecek.
+  // DM modu toggle: DM paneli, kanal panelinin olduğu (channelContentArea) alanda açılacak.
   toggleDMButton.addEventListener('click', () => {
+    const contentArea = document.getElementById('channelContentArea');
     const roomPanel = document.getElementById('roomPanel');
     const rightPanel = document.getElementById('rightPanel');
     const selectedChannelTitle = document.getElementById('selectedChannelTitle');
-    const channelContentArea = document.getElementById('channelContentArea');
-    const dmContentArea = document.getElementById('dmContentArea');
     if (!isDMMode) {
-      // DM modu aktif
-      roomPanel.style.display = 'none';
-      rightPanel.style.display = 'none';
+      // DM modu aktif: Orijinal kanal içeriğini sakla ve DM şablonunu yükle.
+      originalChannelContentHTML = contentArea.innerHTML;
+      contentArea.innerHTML = dmTemplate.innerHTML;
       isDMMode = true;
       toggleDMButton.querySelector('.material-icons').textContent = 'group';
       if(selectedChannelTitle) {
          selectedChannelTitle.textContent = "Arkadaşlar";
       }
-      channelContentArea.style.display = 'none';
-      dmContentArea.style.display = 'block';
-      document.getElementById('selectedChannelBar').classList.remove('selected-channel-bar');
-      document.getElementById('selectedChannelBar').classList.add('dm-selected-bar');
-      document.getElementById('selectedChannelTitle').classList.remove('selected-channel-title');
-      document.getElementById('selectedChannelTitle').classList.add('dm-selected-title');
     } else {
-      // DM modu kapalı
-      roomPanel.style.display = 'flex';
-      rightPanel.style.display = 'flex';
+      // DM modu kapalı: Eski kanal içeriğini geri yükle.
+      contentArea.innerHTML = originalChannelContentHTML;
       isDMMode = false;
       toggleDMButton.querySelector('.material-icons').textContent = 'forum';
       if(selectedChannelTitle) {
          selectedChannelTitle.textContent = "Kanal Seçilmedi";
       }
-      dmContentArea.style.display = 'none';
-      channelContentArea.style.display = 'block';
-      channelContentArea.innerHTML = originalChannelContentHTML;
+      // Tekrar metin kanal etkinliklerini başlat.
       textChannelContainer = document.getElementById('textChannelContainer');
       textMessages = document.getElementById('textMessages');
       textChannelMessageInput = document.getElementById('textChannelMessageInput');
@@ -1124,24 +1115,6 @@ function initUIEvents() {
          socket.emit('joinTextChannel', { groupId: selectedGroup, roomId: currentTextChannel });
       }
       TextChannel.initTextChannelEvents(socket, textMessages);
-      textChannelMessageInput.addEventListener('input', () => {
-         if (textChannelMessageInput.value.trim() !== "") {
-           sendTextMessageBtn.style.display = "block";
-         } else {
-           sendTextMessageBtn.style.display = "none";
-         }
-      });
-      textChannelMessageInput.addEventListener('keydown', (e) => {
-         if (e.key === 'Enter') {
-           e.preventDefault();
-           sendTextMessage();
-         }
-      });
-      sendTextMessageBtn.addEventListener('click', sendTextMessage);
-      document.getElementById('selectedChannelBar').classList.remove('dm-selected-bar');
-      document.getElementById('selectedChannelBar').classList.add('selected-channel-bar');
-      document.getElementById('selectedChannelTitle').classList.remove('dm-selected-title');
-      document.getElementById('selectedChannelTitle').classList.add('selected-channel-title');
     }
   });
   
