@@ -1078,11 +1078,11 @@ function initUIEvents() {
     }
   });
   // DM Panel toggle: DM paneli kapalıyken toggleDMButton (dm-toggle-btn) içindeki ikon "forum" olacak;
-  // DM paneli açıldığında toggleDMButton içindeki ikon "group" olacak ve ayrıca selectedChannelTitle "Arkadaşlar" olarak
-  // ayarlanacak. Artık DM modu aktifken channelContentArea içeriği değiştirilmek yerine, ilgili alanlar gizlenip
-  // dmPanel üzerinden DM içeriği gösterilecek.
+  // DM paneli açıldığında toggleDMButton içindeki ikon "group" olacak ve ayrıca DM’ye ait sınıflar eklenecek.
   toggleDMButton.addEventListener('click', () => {
     const dmPanel = document.getElementById('dmPanel');
+    const selectedChannelBar = document.getElementById('selectedChannelBar');
+    const selectedChannelTitle = document.getElementById('selectedChannelTitle');
     if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
       // DM paneli açılıyor:
       dmPanel.style.display = 'block';
@@ -1090,7 +1090,16 @@ function initUIEvents() {
       channelContentArea.style.display = 'none';
       isDMMode = true;
       toggleDMButton.querySelector('.material-icons').textContent = 'group';
-      selectedChannelTitle.textContent = 'Arkadaşlar';
+      // DM'ye ait sınıfları ekle
+      if (selectedChannelBar) {
+        selectedChannelBar.classList.remove('selected-channel-bar');
+        selectedChannelBar.classList.add('dm-channel-bar');
+      }
+      if (selectedChannelTitle) {
+        selectedChannelTitle.classList.remove('selected-channel-title');
+        selectedChannelTitle.classList.add('dm-channel-title');
+        selectedChannelTitle.textContent = 'Arkadaşlar';
+      }
       dmPanel.innerHTML = `<div style="padding: 1rem;">
         <input type="text" id="friendSearchInput" placeholder="Kullanıcı ara..." style="width: 100%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
       </div>`;
@@ -1101,7 +1110,16 @@ function initUIEvents() {
       channelContentArea.style.display = 'block';
       isDMMode = false;
       toggleDMButton.querySelector('.material-icons').textContent = 'forum';
-      selectedChannelTitle.textContent = 'Kanal Seçilmedi';
+      // Orijinal sınıfları geri yükle
+      if (selectedChannelBar) {
+        selectedChannelBar.classList.remove('dm-channel-bar');
+        selectedChannelBar.classList.add('selected-channel-bar');
+      }
+      if (selectedChannelTitle) {
+        selectedChannelTitle.classList.remove('dm-channel-title');
+        selectedChannelTitle.classList.add('selected-channel-title');
+        selectedChannelTitle.textContent = 'Kanal Seçilmedi';
+      }
     }
   });
   leaveButton.addEventListener('click', () => {
