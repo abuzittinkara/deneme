@@ -713,4 +713,5 @@
 /* ÖZEL: dm-channel-title için stil tanımlaması */
 .dm-channel-title {
   padding-right: 16px;
+  font-size: 1.2rem;
 }
