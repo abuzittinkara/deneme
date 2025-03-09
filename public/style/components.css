@@ -540,7 +540,7 @@
   padding: 1rem;
   box-sizing: border-box;
   overflow: auto;
-  /* Değişiklik: DM paneli artık sidebar genişliği (65px) kadar offset ile, kanallar panelinin (300px genişlikte) yerine gelecek şekilde konumlandırılıyor */
+  /* DM paneli artık sidebar genişliği (65px) kadar offset ile, kanallar panelinin (300px genişlikte) yerine gelecek şekilde konumlandırılıyor */
   position: absolute;
   left: 65px;
   top: 0;
@@ -737,5 +737,13 @@
   color: inherit;
 }
 .dm-filter-item:hover {
-  text-decoration: underline;
+  background-color: #f0f0f0;
+}
+.dm-filter-item[data-filter="add"] {
+  background-color: #c61884;
+  border: 1px solid #c61884;
+  color: #fff;
+}
+.dm-filter-item[data-filter="add"]:hover {
+  background-color: #a3156f;
 }
