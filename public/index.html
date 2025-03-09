@@ -134,19 +134,17 @@
 
       <!-- Ortadaki Ana İçerik -->
       <div class="main-content">
-        <!-- Güncellenmiş: Seçili Kanal Barı; dmChannelTitle artık ayrı bir yapı içeriyor -->
+        <!-- Güncellenmiş: Seçili Kanal Barı; ayrı DM başlık öğesi eklenmiştir -->
         <div id="selectedChannelBar" class="selected-channel-bar">
           <h2 id="selectedChannelTitle" class="selected-channel-title">Kanal Seçilmedi</h2>
-          <h2 id="dmChannelTitle" class="dm-channel-title" style="display: none;">
-            <span class="dm-title-main">Arkadaşlar</span>
+          <h2 id="dmChannelTitle" class="dm-channel-title" style="display: none; margin-top: 0px; margin-bottom: 0px; height: 23px;">
+            <span class="dm-title-text">Arkadaşlar</span>
             <span class="dm-divider"></span>
-            <span class="dm-nav">
-              <a href="#" class="dm-nav-item">Çevrimiçi</a>
-              <a href="#" class="dm-nav-item">Hepsi</a>
-              <a href="#" class="dm-nav-item">Gönderilen</a>
-              <a href="#" class="dm-nav-item">Engellenen</a>
-              <a href="#" class="dm-nav-item">Arkadaş ekle</a>
-            </span>
+            <span class="dm-filter-item" data-filter="online">Çevrimiçi</span>
+            <span class="dm-filter-item" data-filter="all">Hepsi</span>
+            <span class="dm-filter-item" data-filter="sent">Gönderilen</span>
+            <span class="dm-filter-item" data-filter="blocked">Engellenen</span>
+            <span class="dm-filter-item" data-filter="add">Arkadaş ekle</span>
           </h2>
         </div>
         <div id="channelContentArea" class="channel-content-area">

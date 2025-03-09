@@ -178,6 +178,15 @@ window.addEventListener('DOMContentLoaded', () => {
   }
   
   TextChannel.initTextChannelEvents(socket, textMessages);
+
+  // DM Filter event listener: Tıklanabilir dm-filter-item öğeleri
+  document.addEventListener('click', function(e) {
+    if(e.target && e.target.classList.contains('dm-filter-item')) {
+      const filter = e.target.getAttribute('data-filter');
+      console.log("DM Filter clicked:", filter);
+      // Burada filtreleme işlemleri yapılabilir.
+    }
+  });
 });
 
 /* Yeni fonksiyon: Context Menu Gösterimi */
@@ -1077,7 +1086,7 @@ function initUIEvents() {
       groupDropdownMenu.style.display = 'none';
     }
   });
-  // DM Panel toggle: DM moduna geçerken artık ayrı bir DM başlık öğesi (dmChannelTitle) kullanıyoruz.
+  // DM Panel toggle: DM moduna geçişte artık dmChannelTitle öğesi kullanılıyor.
   toggleDMButton.addEventListener('click', () => {
     const dmPanel = document.getElementById('dmPanel');
     const selectedChannelTitle = document.getElementById('selectedChannelTitle');
@@ -1089,12 +1098,12 @@ function initUIEvents() {
       channelContentArea.style.display = 'none';
       isDMMode = true;
       toggleDMButton.querySelector('.material-icons').textContent = 'group';
+      // Seçili kanal başlığı gizlensin, dmChannelTitle gösterilsin.
       if (selectedChannelTitle) {
         selectedChannelTitle.style.display = 'none';
       }
       if (dmChannelTitle) {
         dmChannelTitle.style.display = 'block';
-        dmChannelTitle.textContent = 'Arkadaşlar';
       }
       dmPanel.innerHTML = `<div style="padding: 1rem;">
         <input type="text" id="friendSearchInput" placeholder="Kullanıcı ara..." style="width: 100%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
@@ -1106,6 +1115,7 @@ function initUIEvents() {
       channelContentArea.style.display = 'block';
       isDMMode = false;
       toggleDMButton.querySelector('.material-icons').textContent = 'forum';
+      // Seçili kanal başlığı gösterilsin, dmChannelTitle gizlensin.
       if (selectedChannelTitle) {
         selectedChannelTitle.style.display = 'block';
         selectedChannelTitle.textContent = 'Kanal Seçilmedi';

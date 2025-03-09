@@ -714,42 +714,28 @@
 .dm-channel-title {
   padding-right: 16px;
   font-size: 1.2rem;
-  display: inline-block;
-  vertical-align: middle;
 }
 
-/* DM başlık kısmındaki ana yazı */
-.dm-title-main {
-  display: inline-block;
+/* ÖZEL: dm-channel-title altındaki yeni yapı için */
+.dm-title-text {
   vertical-align: middle;
 }
-
-/* DM başlık kısmındaki dikey çizgi */
 .dm-divider {
   display: inline-block;
-  vertical-align: middle;
   width: 1px;
-  background-color: #ccc;
   height: 1em;
+  background-color: #ccc;
   margin: 0 8px;
-}
-
-/* DM navigasyon kısmı */
-.dm-nav {
-  display: inline-block;
   vertical-align: middle;
 }
-
-/* DM navigasyon öğeleri */
-.dm-nav-item {
-  margin-right: 12px;
+.dm-filter-item {
+  display: inline-block;
+  margin-right: 8px;
+  font-size: 1rem;
   cursor: pointer;
-  text-decoration: none;
+  vertical-align: middle;
   color: inherit;
 }
-.dm-nav-item:last-child {
-  margin-right: 0;
-}
-.dm-nav-item:hover {
-  color: #c61884;
+.dm-filter-item:hover {
+  text-decoration: underline;
 }
