@@ -1079,27 +1079,29 @@ function initUIEvents() {
   });
   // DM Panel toggle: DM paneli kapalıyken toggleDMButton (dm-toggle-btn) içindeki ikon "forum" olacak;
   // DM paneli açıldığında toggleDMButton içindeki ikon "group" olacak ve ayrıca selectedChannelTitle "Arkadaşlar" olarak
-  // ayarlanıp channelContentArea, kullanıcı arama inputu ile doldurulacak.
+  // ayarlanacak. Artık DM modu aktifken channelContentArea içeriği değiştirilmek yerine, ilgili alanlar gizlenip
+  // dmPanel üzerinden DM içeriği gösterilecek.
   toggleDMButton.addEventListener('click', () => {
     const dmPanel = document.getElementById('dmPanel');
     if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
       // DM paneli açılıyor:
       dmPanel.style.display = 'block';
       roomPanel.style.display = 'none';
+      channelContentArea.style.display = 'none';
       isDMMode = true;
       toggleDMButton.querySelector('.material-icons').textContent = 'group';
       selectedChannelTitle.textContent = 'Arkadaşlar';
-      channelContentArea.innerHTML = `<div style="padding: 1rem;">
+      dmPanel.innerHTML = `<div style="padding: 1rem;">
         <input type="text" id="friendSearchInput" placeholder="Kullanıcı ara..." style="width: 100%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
       </div>`;
     } else {
       // DM paneli kapatılıyor:
       dmPanel.style.display = 'none';
       roomPanel.style.display = 'flex';
+      channelContentArea.style.display = 'block';
       isDMMode = false;
       toggleDMButton.querySelector('.material-icons').textContent = 'forum';
       selectedChannelTitle.textContent = 'Kanal Seçilmedi';
-      channelContentArea.innerHTML = '';
     }
   });
   leaveButton.addEventListener('click', () => {
