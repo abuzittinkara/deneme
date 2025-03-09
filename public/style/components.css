@@ -734,11 +734,11 @@
   vertical-align: middle;
   color: inherit;
   padding: 4px 8px;
-  transition: background-color 0.3s ease, padding 0.3s ease;
+  transition: background-color 0.3s ease, padding 0.3s ease, font-weight 0.3s ease;
   font-weight: normal;
 }
 .dm-filter-item:hover {
-  background-color: #f0f0f0;
+  background-color: #444;
   padding: 4px 12px;
   font-weight: bold;
 }
@@ -747,11 +747,11 @@
   border: 1px solid #c61884;
   color: #fff;
   padding: 4px 8px;
-  transition: background-color 0.3s ease, padding 0.3s ease;
+  transition: background-color 0.3s ease, padding 0.3s ease, font-weight 0.3s ease;
   font-weight: normal;
 }
 .dm-filter-item[data-filter="add"]:hover {
-  background-color: #a3156f;
+  background-color: #444;
   padding: 4px 12px;
   font-weight: bold;
 }
