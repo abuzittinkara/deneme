@@ -1092,10 +1092,12 @@ function initUIEvents() {
       toggleDMButton.querySelector('.material-icons').textContent = 'group';
       // DM'ye ait sınıfları tamamen ata:
       if (selectedChannelBar) {
-        selectedChannelBar.className = 'dm-channel-bar';
+        selectedChannelBar.classList.remove('selected-channel-bar');
+        selectedChannelBar.classList.add('dm-channel-bar');
       }
       if (selectedChannelTitle) {
-        selectedChannelTitle.className = 'dm-channel-title';
+        selectedChannelTitle.classList.remove('selected-channel-title');
+        selectedChannelTitle.classList.add('dm-channel-title');
         selectedChannelTitle.textContent = 'Arkadaşlar';
       }
       dmPanel.innerHTML = `<div style="padding: 1rem;">
@@ -1110,10 +1112,12 @@ function initUIEvents() {
       toggleDMButton.querySelector('.material-icons').textContent = 'forum';
       // Orijinal sınıfları tamamen ata:
       if (selectedChannelBar) {
-        selectedChannelBar.className = 'selected-channel-bar';
+        selectedChannelBar.classList.remove('dm-channel-bar');
+        selectedChannelBar.classList.add('selected-channel-bar');
       }
       if (selectedChannelTitle) {
-        selectedChannelTitle.className = 'selected-channel-title';
+        selectedChannelTitle.classList.remove('dm-channel-title');
+        selectedChannelTitle.classList.add('selected-channel-title');
         selectedChannelTitle.textContent = 'Kanal Seçilmedi';
       }
     }
