@@ -116,6 +116,8 @@ let isDMMode = false;
 
 // Sağ panel
 const rightPanel = document.getElementById('rightPanel');
+// Kullanıcı listesi (rightPanel içinde)
+const userListDiv = document.getElementById('userList');
 
 // Kanal Durum Paneli
 const channelStatusPanel = document.getElementById('channelStatusPanel');
@@ -148,14 +150,12 @@ const selectedChannelTitle = document.getElementById('selectedChannelTitle');
 const channelContentArea = document.getElementById('channelContentArea');
 
 window.addEventListener('DOMContentLoaded', () => {
-  // Başlangıçta toggleDMButton içindeki ikon "forum" olarak ayarlansın.
   toggleDMButton.querySelector('.material-icons').textContent = 'forum';
   
   socket = io("https://fisqos.com.tr", { transports: ['websocket'] });
   console.log("Socket connected =>", socket.id);
   initSocketEvents();
   initUIEvents();
-  // Typing indicator modülünü başlatıyoruz; getCurrentTextChannel fonksiyonu currentTextChannel değerini döndürüyor.
   initTypingIndicator(socket, () => currentTextChannel, () => username);
   
   const tm = textMessages;
@@ -179,12 +179,10 @@ window.addEventListener('DOMContentLoaded', () => {
   
   TextChannel.initTextChannelEvents(socket, textMessages);
 
-  // DM Filter event listener: Tıklanabilir dm-filter-item öğeleri
   document.addEventListener('click', function(e) {
     if(e.target && e.target.classList.contains('dm-filter-item')) {
       const filter = e.target.getAttribute('data-filter');
       console.log("DM Filter clicked:", filter);
-      // Burada filtreleme işlemleri yapılabilir.
     }
   });
 });
@@ -412,7 +410,7 @@ function initSocketEvents() {
     });
   });
   socket.on('groupDeleted', ({ groupId }) => {
-    const grpItems = groupListDiv.querySelectorAll('.grp-item');
+    const grpItems = document.querySelectorAll('.grp-item');
     grpItems.forEach(item => {
       if (item.getAttribute('data-group-id') === groupId) {
         item.remove();
