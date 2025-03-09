@@ -1077,8 +1077,8 @@ function initUIEvents() {
       groupDropdownMenu.style.display = 'none';
     }
   });
-  // DM Panel toggle: DM paneli kapalıyken toggleDMButton (dm-toggle-btn) içindeki ikon "forum" olacak;
-  // DM paneli açıldığında toggleDMButton içindeki ikon "group" olacak ve ayrıca DM’ye ait sınıflar eklenecek.
+  // DM Panel toggle: DM paneli kapalıyken toggleDMButton içindeki ikon "forum" olacak;
+  // DM paneli açıldığında toggleDMButton içindeki ikon "group" olacak ve DM'ye ait tamamen ayrı sınıflar atanacak.
   toggleDMButton.addEventListener('click', () => {
     const dmPanel = document.getElementById('dmPanel');
     const selectedChannelBar = document.getElementById('selectedChannelBar');
@@ -1090,14 +1090,12 @@ function initUIEvents() {
       channelContentArea.style.display = 'none';
       isDMMode = true;
       toggleDMButton.querySelector('.material-icons').textContent = 'group';
-      // DM'ye ait sınıfları ekle
+      // DM'ye ait sınıfları tamamen ata:
       if (selectedChannelBar) {
-        selectedChannelBar.classList.remove('selected-channel-bar');
-        selectedChannelBar.classList.add('dm-channel-bar');
+        selectedChannelBar.className = 'dm-channel-bar';
       }
       if (selectedChannelTitle) {
-        selectedChannelTitle.classList.remove('selected-channel-title');
-        selectedChannelTitle.classList.add('dm-channel-title');
+        selectedChannelTitle.className = 'dm-channel-title';
         selectedChannelTitle.textContent = 'Arkadaşlar';
       }
       dmPanel.innerHTML = `<div style="padding: 1rem;">
@@ -1110,14 +1108,12 @@ function initUIEvents() {
       channelContentArea.style.display = 'block';
       isDMMode = false;
       toggleDMButton.querySelector('.material-icons').textContent = 'forum';
-      // Orijinal sınıfları geri yükle
+      // Orijinal sınıfları tamamen ata:
       if (selectedChannelBar) {
-        selectedChannelBar.classList.remove('dm-channel-bar');
-        selectedChannelBar.classList.add('selected-channel-bar');
+        selectedChannelBar.className = 'selected-channel-bar';
       }
       if (selectedChannelTitle) {
-        selectedChannelTitle.classList.remove('dm-channel-title');
-        selectedChannelTitle.classList.add('selected-channel-title');
+        selectedChannelTitle.className = 'selected-channel-title';
         selectedChannelTitle.textContent = 'Kanal Seçilmedi';
       }
     }
