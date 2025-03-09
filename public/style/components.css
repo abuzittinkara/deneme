@@ -714,4 +714,42 @@
 .dm-channel-title {
   padding-right: 16px;
   font-size: 1.2rem;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* DM başlık kısmındaki ana yazı */
+.dm-title-main {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* DM başlık kısmındaki dikey çizgi */
+.dm-divider {
+  display: inline-block;
+  vertical-align: middle;
+  width: 1px;
+  background-color: #ccc;
+  height: 1em;
+  margin: 0 8px;
+}
+
+/* DM navigasyon kısmı */
+.dm-nav {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* DM navigasyon öğeleri */
+.dm-nav-item {
+  margin-right: 12px;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+.dm-nav-item:last-child {
+  margin-right: 0;
+}
+.dm-nav-item:hover {
+  color: #c61884;
 }
