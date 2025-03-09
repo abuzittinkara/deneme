@@ -733,7 +733,7 @@
   cursor: pointer;
   vertical-align: middle;
   color: inherit;
-  padding: 4px 8px;
+  padding: 4px 12px;
   transition: background-color 0.3s ease, padding 0.3s ease, font-weight 0.3s ease;
   font-weight: normal;
 }
@@ -746,12 +746,11 @@
   background-color: #c61884;
   border: 1px solid #c61884;
   color: #fff;
-  padding: 4px 8px;
+  padding: 4px 12px;
   transition: background-color 0.3s ease, padding 0.3s ease, font-weight 0.3s ease;
   font-weight: normal;
 }
 .dm-filter-item[data-filter="add"]:hover {
-  background-color: #444;
   padding: 4px 12px;
   font-weight: bold;
 }
