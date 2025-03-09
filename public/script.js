@@ -1078,7 +1078,7 @@ function initUIEvents() {
     }
   });
   // DM Panel toggle: DM paneli kapalıyken toggleDMButton içindeki ikon "forum" olacak;
-  // DM paneli açıldığında toggleDMButton içindeki ikon "group" olacak ve ilgili öğeden tüm önceki sınıflar kaldırılıp sadece DM'ye ait sınıflar atanacak.
+  // DM paneli açıldığında toggleDMButton içindeki ikon "group" olacak ve DM'ye ait tamamen ayrı sınıflar atanacak.
   toggleDMButton.addEventListener('click', () => {
     const dmPanel = document.getElementById('dmPanel');
     const selectedChannelBar = document.getElementById('selectedChannelBar');
@@ -1090,7 +1090,7 @@ function initUIEvents() {
       channelContentArea.style.display = 'none';
       isDMMode = true;
       toggleDMButton.querySelector('.material-icons').textContent = 'group';
-      // İlgili öğeden tüm sınıfları kaldırıp sadece DM sınıfını ata
+      // İlgili öğelerin sınıf adını tamamen DM'ye özgü hale getir:
       if (selectedChannelBar) {
         selectedChannelBar.className = 'dm-channel-bar';
       }
@@ -1108,7 +1108,7 @@ function initUIEvents() {
       channelContentArea.style.display = 'block';
       isDMMode = false;
       toggleDMButton.querySelector('.material-icons').textContent = 'forum';
-      // İlgili öğeden DM sınıfını kaldırıp sadece normal sınıfı ata
+      // İlgili öğelerin sınıf adını tamamen orijinal hale getir:
       if (selectedChannelBar) {
         selectedChannelBar.className = 'selected-channel-bar';
       }

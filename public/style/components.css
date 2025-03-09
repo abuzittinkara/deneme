@@ -709,3 +709,8 @@
   font-size: 10px;
   margin-left: 4px;
 }
+
+/* ÖZEL: dm-channel-title için stil tanımlaması */
+.dm-channel-title {
+  padding-right: 16px;
+}
