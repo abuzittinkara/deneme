@@ -13,7 +13,11 @@ export function initFriendRequests(socket) {
     if (!dmContentArea) {
       dmContentArea = document.createElement('div');
       dmContentArea.id = 'dmContentArea';
+      // Aşağıdaki stil ayarları dmContentArea'nın tüm genişliği kaplamasını sağlar.
       dmContentArea.style.marginTop = '10px';
+      dmContentArea.style.width = '100%';
+      dmContentArea.style.display = 'block';
+      dmContentArea.style.clear = 'both';
       selectedChannelBar.appendChild(dmContentArea);
     }
     
