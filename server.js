@@ -60,7 +60,6 @@ async function loadGroupsFromDB() {
   try {
     const groupDocs = await Group.find({});
     groupDocs.forEach(groupDoc => {
-      // groupDoc.groupId kullanılarak gruplar global nesnesine ekleniyor.
       groups[groupDoc.groupId] = {
         owner: groupDoc.owner,
         name: groupDoc.name,
@@ -94,91 +93,150 @@ async function loadChannelsFromDB() {
   }
 }
 
-// Aşağıdaki yardımcı fonksiyonlar, orijinal implementasyonlarınıza göre düzenlenmelidir.
-// Örnek stub implementasyonlar verilmiştir:
-
+// Güncellenmiş sendGroupsListToUser fonksiyonu: Kullanıcının DB'deki gruplarını çekip socket'e gönderiyor.
 async function sendGroupsListToUser(socketId) {
-  // Buraya DB'den kullanıcının gruplarını çekip socket'e gönderecek kodu ekleyin.
-  console.log(`sendGroupsListToUser: socket ${socketId}`);
+  const userData = users[socketId];
+  if (!userData || !userData.username) return;
+  try {
+    const userDoc = await User.findOne({ username: userData.username }).populate('groups');
+    if (!userDoc) return;
+    const groupList = userDoc.groups.map(g => ({
+      id: g.groupId,
+      name: g.name,
+      owner: g.owner
+    }));
+    io.to(socketId).emit('groupsList', groupList);
+  } catch (err) {
+    console.error("sendGroupsListToUser hatası:", err);
+  }
 }
 
 function getAllChannelsData(groupId) {
-  return {};
+  if (!groups[groupId]) return {};
+  const channelsObj = {};
+  Object.keys(groups[groupId].rooms).forEach(roomId => {
+    const rm = groups[groupId].rooms[roomId];
+    channelsObj[roomId] = {
+      name: rm.name,
+      type: rm.type,
+      users: rm.users
+    };
+  });
+  return channelsObj;
 }
 
 function broadcastAllRoomsUsers(groupId) {
-  console.log(`broadcastAllRoomsUsers: group ${groupId}`);
+  if (!groups[groupId]) return;
+  Object.keys(groups[groupId].rooms).forEach(roomId => {
+    io.to(`${groupId}::${roomId}`).emit('roomUsers', groups[groupId].rooms[roomId].users);
+  });
 }
 
 async function getOnlineOfflineDataForGroup(groupId) {
-  return { online: [], offline: [] };
+  const groupDoc = await Group.findOne({ groupId }).populate('users');
+  if (!groupDoc) return { online: [], offline: [] };
+  const online = [];
+  const offline = [];
+  groupDoc.users.forEach(u => {
+    if (onlineUsernames.has(u.username)) {
+      online.push({ username: u.username });
+    } else {
+      offline.push({ username: u.username });
+    }
+  });
+  return { online, offline };
 }
 
 async function broadcastGroupUsers(groupId) {
-  const { online, offline } = await getOnlineOfflineDataForGroup(groupId);
-  io.to(groupId).emit('groupUsers', { online, offline });
+  if (!groupId) return;
+  try {
+    const { online, offline } = await getOnlineOfflineDataForGroup(groupId);
+    io.to(groupId).emit('groupUsers', { online, offline });
+  } catch (err) {
+    console.error("broadcastGroupUsers hata:", err);
+  }
 }
 
 async function sendGroupUsersToOneUser(socketId, groupId) {
-  const { online, offline } = await getOnlineOfflineDataForGroup(groupId);
-  io.to(socketId).emit('groupUsers', { online, offline });
+  if (!groupId) return;
+  try {
+    const { online, offline } = await getOnlineOfflineDataForGroup(groupId);
+    io.to(socketId).emit('groupUsers', { online, offline });
+  } catch (err) {
+    console.error("sendGroupUsersToOneUser hata:", err);
+  }
 }
 
 function broadcastAllChannelsData(groupId) {
-  const channelsData = getAllChannelsData(groupId);
-  io.to(groupId).emit('allChannelsData', channelsData);
+  if (!groups[groupId]) return;
+  const channelsObj = getAllChannelsData(groupId);
+  io.to(groupId).emit('allChannelsData', channelsObj);
 }
 
 function sendRoomsListToUser(socketId, groupId) {
-  io.to(socketId).emit('roomsList', []);
+  if (!groups[groupId]) return;
+  const groupObj = groups[groupId];
+  const roomArray = Object.keys(groupObj.rooms).map(rId => ({
+    id: rId,
+    name: groupObj.rooms[rId].name,
+    type: groupObj.rooms[rId].type
+  }));
+  io.to(socketId).emit('roomsList', roomArray);
 }
 
 function broadcastRoomsListToGroup(groupId) {
-  io.to(groupId).emit('roomsList', []);
+  if (!groups[groupId]) return;
+  const groupObj = groups[groupId];
+  const roomArray = Object.keys(groupObj.rooms).map(rId => ({
+    id: rId,
+    name: groupObj.rooms[rId].name,
+    type: groupObj.rooms[rId].type
+  }));
+  io.to(groupId).emit('roomsList', roomArray);
 }
 
 function sendAllChannelsDataToOneUser(socketId, groupId) {
-  const channelsData = getAllChannelsData(groupId);
-  io.to(socketId).emit('allChannelsData', channelsData);
+  if (!groups[groupId]) return;
+  const channelsObj = getAllChannelsData(groupId);
+  io.to(socketId).emit('allChannelsData', channelsObj);
 }
 
-// removeUserFromAllGroupsAndRooms fonksiyonu
 function removeUserFromAllGroupsAndRooms(socket) {
   const socketId = socket.id;
   Object.keys(groups).forEach(groupId => {
-    const group = groups[groupId];
-    group.users = group.users.filter(u => u.id !== socketId);
-    Object.keys(group.rooms).forEach(roomId => {
-      const room = group.rooms[roomId];
-      room.users = room.users.filter(u => u.id !== socketId);
-      if (room.producers) {
-        Object.keys(room.producers).forEach(pid => {
-          const producer = room.producers[pid];
+    const grpObj = groups[groupId];
+    grpObj.users = grpObj.users.filter(u => u.id !== socketId);
+    Object.keys(grpObj.rooms).forEach(roomId => {
+      const rmObj = grpObj.rooms[roomId];
+      rmObj.users = rmObj.users.filter(u => u.id !== socketId);
+      if (rmObj.producers) {
+        Object.keys(rmObj.producers).forEach(pid => {
+          const producer = rmObj.producers[pid];
           if (producer && producer.appData && producer.appData.peerId === socketId) {
             sfu.closeProducer(producer);
-            delete room.producers[pid];
+            delete rmObj.producers[pid];
           }
         });
       }
-      if (room.consumers) {
-        Object.keys(room.consumers).forEach(cid => {
-          const consumer = room.consumers[cid];
+      if (rmObj.consumers) {
+        Object.keys(rmObj.consumers).forEach(cid => {
+          const consumer = rmObj.consumers[cid];
           if (consumer && consumer.appData && consumer.appData.peerId === socketId) {
             sfu.closeConsumer(consumer);
-            delete room.consumers[cid];
+            delete rmObj.consumers[cid];
           }
         });
       }
-      if (room.transports) {
-        Object.keys(room.transports).forEach(tid => {
-          const transport = room.transports[tid];
-          if (transport && transport.appData && transport.appData.peerId === socketId) {
-            sfu.closeTransport(transport);
-            delete room.transports[tid];
+      if (rmObj.transports) {
+        Object.keys(rmObj.transports).forEach(tid => {
+          const tr = rmObj.transports[tid];
+          if (tr && tr.appData && tr.appData.peerId === socketId) {
+            sfu.closeTransport(tr);
+            delete rmObj.transports[tid];
           }
         });
       }
-      io.to(`${groupId}::${roomId}`).emit('roomUsers', room.users);
+      io.to(`${groupId}::${roomId}`).emit('roomUsers', rmObj.users);
       socket.leave(`${groupId}::${roomId}`);
     });
     socket.leave(groupId);
@@ -278,7 +336,7 @@ io.on('connection', (socket) => {
       try {
         await sendGroupsListToUser(socket.id);
       } catch (err) {
-        console.error("sendGroupsListToOneUser hata:", err);
+        console.error("sendGroupsListToUser hata:", err);
       }
       try {
         const userDoc = await User.findOne({ username: trimmedName }).populate('groups');
@@ -303,7 +361,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Ekran paylaşım eventleri
   socket.on('screenShareStatusChanged', ({ isScreenSharing }) => {
     if (users[socket.id]) {
       users[socket.id].isScreenSharing = isScreenSharing;
@@ -331,7 +388,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Typing indicator
   socket.on('typing', (data) => {
     socket.to(data.channel).emit('typing', data);
   });
@@ -339,7 +395,6 @@ io.on('connection', (socket) => {
     socket.to(data.channel).emit('stop typing', data);
   });
 
-  // createGroup
   socket.on('createGroup', async (groupName) => {
     if (!groupName) return;
     const trimmed = groupName.trim();
@@ -463,7 +518,6 @@ io.on('connection', (socket) => {
     await broadcastGroupUsers(groupId);
   });
 
-  // createRoom
   socket.on('createRoom', async ({ groupId, roomName, channelType }) => {
     try {
       if (!groups[groupId]) return;
@@ -509,7 +563,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // joinRoom
   socket.on('joinRoom', async ({ groupId, roomId }) => {
     if (!groups[groupId]) return;
     if (!groups[groupId].rooms[roomId]) return;
@@ -609,7 +662,6 @@ io.on('connection', (socket) => {
     broadcastAllChannelsData(groupId);
   });
 
-  // renameGroup
   socket.on('renameGroup', async (data) => {
     const { groupId, newName } = data;
     const userName = users[socket.id].username;
@@ -635,7 +687,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // deleteGroup
   socket.on('deleteGroup', async (grpId) => {
     const userName = users[socket.id].username;
     if (!groups[grpId]) {
@@ -672,7 +723,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // renameChannel
   socket.on('renameChannel', async (payload) => {
     try {
       const { channelId, newName } = payload;
@@ -699,7 +749,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // deleteChannel
   socket.on('deleteChannel', async (channelId) => {
     try {
       if (!channelId) return;
@@ -725,7 +774,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // SFU eventleri
   socket.on('createWebRtcTransport', async ({ groupId, roomId }, callback) => {
     try {
       if (!groups[groupId] || !groups[groupId].rooms[roomId]) {
@@ -830,7 +878,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Text channel eventleri
+  // Text channel olayları
   registerTextChannelEvents(socket, { Channel, Message, User });
 
   // ***** EK: Arkadaşlık isteği event handler’ları *****
@@ -916,7 +964,6 @@ io.on('connection', (socket) => {
   });
   // ***************************************************
 
-  // Disconnect
   socket.on("disconnect", async () => {
     console.log("disconnect:", socket.id);
     const userData = users[socket.id];
