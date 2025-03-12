@@ -1,14 +1,14 @@
 // public/js/friendRequests.js
 
 export function initFriendRequests(socket) {
-    // "selected-channel-bar" elementini alıyoruz (DM içerik alanının ekleneceği yer)
-    const selectedChannelBar = document.getElementById('selected-channel-bar');
+    // "selectedChannelBar" elementini alıyoruz (DM içerik alanının ekleneceği yer)
+    const selectedChannelBar = document.getElementById('selectedChannelBar');
     if (!selectedChannelBar) {
-      console.error("selected-channel-bar not found");
+      console.error("selectedChannelBar not found");
       return;
     }
     
-    // DM içerik alanı oluşturuluyor, selected-channel-bar altında.
+    // DM içerik alanı oluşturuluyor, selectedChannelBar altında.
     let dmContentArea = document.getElementById('dmContentArea');
     if (!dmContentArea) {
       dmContentArea = document.createElement('div');
