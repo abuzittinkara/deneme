@@ -104,7 +104,56 @@ export function initFriendRequests(socket) {
               const list = document.createElement('ul');
               response.requests.forEach(req => {
                 const li = document.createElement('li');
-                li.textContent = req.from;
+                li.style.display = 'flex';
+                li.style.alignItems = 'center';
+                li.style.justifyContent = 'space-between';
+                li.style.padding = '5px 0';
+                
+                const textSpan = document.createElement('span');
+                textSpan.textContent = `${req.from} adlı kullanıcıdan gelen istek`;
+                
+                // Accept button
+                const acceptBtn = document.createElement('button');
+                acceptBtn.style.marginRight = '5px';
+                acceptBtn.style.cursor = 'pointer';
+                acceptBtn.style.background = 'transparent';
+                acceptBtn.style.border = 'none';
+                acceptBtn.innerHTML = '<span class="material-icons" style="color: green;">check</span>';
+                acceptBtn.addEventListener('click', () => {
+                  socket.emit('acceptFriendRequest', { from: req.from }, (resp) => {
+                    if (resp.success) {
+                      alert('Arkadaşlık isteği kabul edildi.');
+                      li.remove();
+                    } else {
+                      alert('İstek kabul edilemedi: ' + resp.message);
+                    }
+                  });
+                });
+  
+                // Reject button
+                const rejectBtn = document.createElement('button');
+                rejectBtn.style.cursor = 'pointer';
+                rejectBtn.style.background = 'transparent';
+                rejectBtn.style.border = 'none';
+                rejectBtn.innerHTML = '<span class="material-icons" style="color: red;">close</span>';
+                rejectBtn.addEventListener('click', () => {
+                  socket.emit('rejectFriendRequest', { from: req.from }, (resp) => {
+                    if (resp.success) {
+                      alert('Arkadaşlık isteği reddedildi.');
+                      li.remove();
+                    } else {
+                      alert('İstek reddedilemedi: ' + resp.message);
+                    }
+                  });
+                });
+  
+                // Container for buttons
+                const btnContainer = document.createElement('div');
+                btnContainer.appendChild(acceptBtn);
+                btnContainer.appendChild(rejectBtn);
+  
+                li.appendChild(textSpan);
+                li.appendChild(btnContainer);
                 list.appendChild(li);
               });
               friendRequestContainer.appendChild(list);
@@ -139,4 +188,3 @@ export function initFriendRequests(socket) {
       });
     }
   }
-  
