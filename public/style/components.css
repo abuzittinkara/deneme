@@ -344,8 +344,8 @@
 
 /* Mesaj kapsayıcı */
 .message-item {
-  position: relative;     /* Avatar'ı absolute konumlandırmak için */
-  padding-left: 60px;     /* Avatar kadar soldan boşluk -> metin burada başlıyor */
+  position: relative;
+  padding-left: 60px;
   display: block;
   width: 100%;
   box-sizing: border-box;

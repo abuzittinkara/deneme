@@ -22,6 +22,7 @@ function clearScreenShareUI() {
 import * as TextChannel from './js/textChannel.js';
 import * as ScreenShare from './js/screenShare.js';  // Yeni ekran paylaşım modülü
 import { initTypingIndicator } from './js/typingIndicator.js';
+import { initFriendRequests } from './js/friendRequests.js';  // Yeni: friendRequests modülü
 
 let socket = null;
 let device = null;   // mediasoup-client Device
@@ -157,6 +158,7 @@ window.addEventListener('DOMContentLoaded', () => {
   initSocketEvents();
   initUIEvents();
   initTypingIndicator(socket, () => currentTextChannel, () => username);
+  initFriendRequests(socket);
   
   const tm = textMessages;
   let removeScrollingTimeout;
@@ -284,16 +286,19 @@ async function showScreenShare(producerId) {
   });
   consumer.appData = { peerId: consumeParams.producerPeerId };
   consumers[consumer.id] = consumer;
-  const videoEl = document.createElement('video');
-  videoEl.autoplay = true;
-  videoEl.controls = true;
-  videoEl.style.width = "100%";
-  videoEl.style.height = "100%";
-  videoEl.style.objectFit = "contain";
-  const stream = new MediaStream([consumer.track]);
-  videoEl.srcObject = stream;
-  channelContentArea.appendChild(videoEl);
-  screenShareVideo = videoEl;
+  if (consumer.kind === "audio") {
+    const { track } = consumer;
+    const audioEl = document.createElement('audio');
+    audioEl.srcObject = new MediaStream([track]);
+    audioEl.autoplay = true;
+    audioEl.dataset.peerId = consumer.appData.peerId;
+    remoteAudios.push(audioEl);
+    audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
+    startVolumeAnalysis(audioEl.srcObject, consumer.appData.peerId);
+    console.log("Yeni audio consumer oluşturuldu:", consumer.id, "-> konuşan:", consumer.appData.peerId);
+  } else if (consumer.kind === "video") {
+    console.log("Video consumer alındı, ekran paylaşım için tıklama ile consume edilecek. Producer:", consumeParams.producerId);
+  }
 }
 
 /* displayScreenShareEndedMessage */
