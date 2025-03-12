@@ -55,36 +55,62 @@ let friendRequests = {};  // key: hedef kullanıcı adı, value: [ { from, times
 let friends = {};         // key: kullanıcı adı, value: [ arkadaş kullanıcı adları, ... ]
 // ************************************************************************************
 
-// Helper fonksiyonlar (orijinal işlevselliğinizden değiştirmeden eklenen/stub fonksiyonlar)
-// Gerçek uygulamanızda bu fonksiyonların orijinal implementasyonlarını kullanın.
-
+// loadGroupsFromDB fonksiyonu: DB'deki tüm grupları belleğe yüklüyor.
 async function loadGroupsFromDB() {
-  // Orijinal loadGroupsFromDB implementasyonu burada yer almalı.
-  console.log("loadGroupsFromDB: Fonksiyon stub");
+  try {
+    const groupDocs = await Group.find({});
+    groupDocs.forEach(groupDoc => {
+      // groupDoc.groupId kullanılarak gruplar global nesnesine ekleniyor.
+      groups[groupDoc.groupId] = {
+        owner: groupDoc.owner,
+        name: groupDoc.name,
+        users: [],
+        rooms: {}
+      };
+    });
+    console.log("loadGroupsFromDB tamam, groups:", Object.keys(groups));
+  } catch (err) {
+    console.error("loadGroupsFromDB hata:", err);
+  }
 }
 
+// loadChannelsFromDB fonksiyonu: DB'deki tüm kanalları ilgili grupların rooms alanına yüklüyor.
 async function loadChannelsFromDB() {
-  // Orijinal loadChannelsFromDB implementasyonu burada yer almalı.
-  console.log("loadChannelsFromDB: Fonksiyon stub");
+  try {
+    const channelDocs = await Channel.find({}).populate('group');
+    channelDocs.forEach(ch => {
+      if (!ch.group) return;
+      const groupId = ch.group.groupId;
+      if (!groups[groupId]) return;
+      groups[groupId].rooms[ch.channelId] = {
+        name: ch.name,
+        type: ch.type,
+        users: []
+      };
+    });
+    console.log("loadChannelsFromDB tamam.");
+  } catch (err) {
+    console.error("loadChannelsFromDB hata:", err);
+  }
 }
+
+// Aşağıdaki yardımcı fonksiyonlar, orijinal implementasyonlarınıza göre düzenlenmelidir.
+// Örnek stub implementasyonlar verilmiştir:
 
 async function sendGroupsListToUser(socketId) {
-  // Orijinal sendGroupsListToUser implementasyonu burada yer almalı.
-  console.log(`sendGroupsListToUser: Fonksiyon stub, socket ${socketId}`);
+  // Buraya DB'den kullanıcının gruplarını çekip socket'e gönderecek kodu ekleyin.
+  console.log(`sendGroupsListToUser: socket ${socketId}`);
 }
 
 function getAllChannelsData(groupId) {
-  // Orijinal getAllChannelsData implementasyonu burada yer almalı.
   return {};
 }
 
 function broadcastAllRoomsUsers(groupId) {
-  // Orijinal broadcastAllRoomsUsers implementasyonu burada yer almalı.
-  console.log(`broadcastAllRoomsUsers: Fonksiyon stub, group ${groupId}`);
+  console.log(`broadcastAllRoomsUsers: group ${groupId}`);
 }
 
 async function getOnlineOfflineDataForGroup(groupId) {
-  // Orijinal implementasyona göre online/offline bilgileri döndürülmeli.
   return { online: [], offline: [] };
 }
 
@@ -104,12 +130,10 @@ function broadcastAllChannelsData(groupId) {
 }
 
 function sendRoomsListToUser(socketId, groupId) {
-  // Orijinal sendRoomsListToUser implementasyonu burada yer almalı.
   io.to(socketId).emit('roomsList', []);
 }
 
 function broadcastRoomsListToGroup(groupId) {
-  // Orijinal broadcastRoomsListToGroup implementasyonu burada yer almalı.
   io.to(groupId).emit('roomsList', []);
 }
 
@@ -169,7 +193,6 @@ app.use(express.static("public"));
 
 io.on('connection', (socket) => {
   console.log('Kullanıcı bağlandı:', socket.id);
-  // users[socket.id] nesnesine isScreenSharing ve screenShareProducerId özellikleri eklendi.
   users[socket.id] = {
     username: null,
     currentGroup: null,
@@ -280,7 +303,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Yeni: Ekran paylaşım durumunu güncelleyen event
+  // Ekran paylaşım eventleri
   socket.on('screenShareStatusChanged', ({ isScreenSharing }) => {
     if (users[socket.id]) {
       users[socket.id].isScreenSharing = isScreenSharing;
@@ -291,7 +314,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Yeni: Ekran paylaşımı başladığında producer ID'sini saklamak için event
   socket.on('screenShareStarted', ({ producerId }) => {
     if (users[socket.id]) {
       users[socket.id].screenShareProducerId = producerId;
@@ -302,7 +324,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Yeni: Ekran paylaşımı sonlandığında yayımlayan socket'in bu event'i tetiklemesi
   socket.on('screenShareEnded', () => {
     const userData = users[socket.id];
     if (userData && userData.currentGroup && userData.currentRoom) {
@@ -310,9 +331,8 @@ io.on('connection', (socket) => {
     }
   });
 
-  // EK: Typing indicator eventleri
+  // Typing indicator
   socket.on('typing', (data) => {
-    // data: { username, channel }
     socket.to(data.channel).emit('typing', data);
   });
   socket.on('stop typing', (data) => {
@@ -372,7 +392,6 @@ io.on('connection', (socket) => {
         socket.emit('errorMessage', "Böyle bir grup yok (DB).");
         return;
       }
-      // Burada ObjectId karşılaştırması için toString() kullanıyoruz.
       if (!groupDoc.users.some(u => u.toString() === userDoc._id.toString())) {
         groupDoc.users.push(userDoc._id);
         await groupDoc.save();
@@ -415,7 +434,7 @@ io.on('connection', (socket) => {
 
   socket.on('browseGroup', async (groupId) => {
     if (!groups[groupId]) return;
-    socket.join(groupId);  // EK: Tarayıcıdaki kullanıcının ilgili grup oda üyesi olmasını sağlıyoruz.
+    socket.join(groupId);
     sendRoomsListToUser(socket.id, groupId);
     sendAllChannelsDataToOneUser(socket.id, groupId);
     await sendGroupUsersToOneUser(socket.id, groupId);
@@ -502,13 +521,11 @@ io.on('connection', (socket) => {
     if (userData.currentGroup === groupId && userData.currentRoom === roomId) {
       return; 
     }
-    // Önceki odada ekran paylaşımı varsa sonlandır
     if (userData.isScreenSharing) {
       socket.emit('screenShareEnded');
       userData.isScreenSharing = false;
       userData.screenShareProducerId = null;
     }
-    // Eğer kullanıcı aynı grupta farklı bir odadan geçiş yapıyorsa, o odadaki producer'ları kapatıp yayın durumunu resetleyelim.
     if (userData.currentGroup === groupId && userData.currentRoom && groups[groupId].rooms[userData.currentRoom]) {
       const prevRoom = groups[groupId].rooms[userData.currentRoom];
       prevRoom.users = prevRoom.users.filter(u => u.id !== socket.id);
@@ -523,7 +540,6 @@ io.on('connection', (socket) => {
           }
         });
       }
-      // Yayın durumunu resetle ve eski odadaki tüm kullanıcılara "screenShareEnded" event'ini gönder
       userData.isScreenSharing = false;
       userData.screenShareProducerId = null;
       io.to(`${groupId}::${userData.currentRoom}`).emit('screenShareEnded', { userId: socket.id });
@@ -546,7 +562,6 @@ io.on('connection', (socket) => {
     rmObj.users.push({ id: socket.id, username: userName });
     userData.currentGroup = groupId;
     userData.currentRoom = roomId;
-    // Eğer kullanıcı farklı bir odaya geçiyorsa, yayın durumunu resetle
     users[socket.id].isScreenSharing = false;
     users[socket.id].screenShareProducerId = null;
     socket.join(groupId);
@@ -710,9 +725,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // ==============================
-  // SFU (createWebRtcTransport, produce, consume...) 
-  // ==============================
+  // SFU eventleri
   socket.on('createWebRtcTransport', async ({ groupId, roomId }, callback) => {
     try {
       if (!groups[groupId] || !groups[groupId].rooms[roomId]) {
@@ -817,7 +830,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Text channel olayları, yeni modül üzerinden kaydediliyor:
+  // Text channel eventleri
   registerTextChannelEvents(socket, { Channel, Message, User });
 
   // ***** EK: Arkadaşlık isteği event handler’ları *****
