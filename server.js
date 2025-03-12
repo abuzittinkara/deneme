@@ -55,26 +55,117 @@ let friendRequests = {};  // key: hedef kullanıcı adı, value: [ { from, times
 let friends = {};         // key: kullanıcı adı, value: [ arkadaş kullanıcı adları, ... ]
 // ************************************************************************************
 
+// Helper fonksiyonlar (orijinal işlevselliğinizden değiştirmeden eklenen/stub fonksiyonlar)
+// Gerçek uygulamanızda bu fonksiyonların orijinal implementasyonlarını kullanın.
+
+async function loadGroupsFromDB() {
+  // Orijinal loadGroupsFromDB implementasyonu burada yer almalı.
+  console.log("loadGroupsFromDB: Fonksiyon stub");
+}
+
+async function loadChannelsFromDB() {
+  // Orijinal loadChannelsFromDB implementasyonu burada yer almalı.
+  console.log("loadChannelsFromDB: Fonksiyon stub");
+}
+
+async function sendGroupsListToUser(socketId) {
+  // Orijinal sendGroupsListToUser implementasyonu burada yer almalı.
+  console.log(`sendGroupsListToUser: Fonksiyon stub, socket ${socketId}`);
+}
+
+function getAllChannelsData(groupId) {
+  // Orijinal getAllChannelsData implementasyonu burada yer almalı.
+  return {};
+}
+
+function broadcastAllRoomsUsers(groupId) {
+  // Orijinal broadcastAllRoomsUsers implementasyonu burada yer almalı.
+  console.log(`broadcastAllRoomsUsers: Fonksiyon stub, group ${groupId}`);
+}
+
+async function getOnlineOfflineDataForGroup(groupId) {
+  // Orijinal implementasyona göre online/offline bilgileri döndürülmeli.
+  return { online: [], offline: [] };
+}
+
+async function broadcastGroupUsers(groupId) {
+  const { online, offline } = await getOnlineOfflineDataForGroup(groupId);
+  io.to(groupId).emit('groupUsers', { online, offline });
+}
+
+async function sendGroupUsersToOneUser(socketId, groupId) {
+  const { online, offline } = await getOnlineOfflineDataForGroup(groupId);
+  io.to(socketId).emit('groupUsers', { online, offline });
+}
+
+function broadcastAllChannelsData(groupId) {
+  const channelsData = getAllChannelsData(groupId);
+  io.to(groupId).emit('allChannelsData', channelsData);
+}
+
+function sendRoomsListToUser(socketId, groupId) {
+  // Orijinal sendRoomsListToUser implementasyonu burada yer almalı.
+  io.to(socketId).emit('roomsList', []);
+}
+
+function broadcastRoomsListToGroup(groupId) {
+  // Orijinal broadcastRoomsListToGroup implementasyonu burada yer almalı.
+  io.to(groupId).emit('roomsList', []);
+}
+
+function sendAllChannelsDataToOneUser(socketId, groupId) {
+  const channelsData = getAllChannelsData(groupId);
+  io.to(socketId).emit('allChannelsData', channelsData);
+}
+
+// removeUserFromAllGroupsAndRooms fonksiyonu
+function removeUserFromAllGroupsAndRooms(socket) {
+  const socketId = socket.id;
+  Object.keys(groups).forEach(groupId => {
+    const group = groups[groupId];
+    group.users = group.users.filter(u => u.id !== socketId);
+    Object.keys(group.rooms).forEach(roomId => {
+      const room = group.rooms[roomId];
+      room.users = room.users.filter(u => u.id !== socketId);
+      if (room.producers) {
+        Object.keys(room.producers).forEach(pid => {
+          const producer = room.producers[pid];
+          if (producer && producer.appData && producer.appData.peerId === socketId) {
+            sfu.closeProducer(producer);
+            delete room.producers[pid];
+          }
+        });
+      }
+      if (room.consumers) {
+        Object.keys(room.consumers).forEach(cid => {
+          const consumer = room.consumers[cid];
+          if (consumer && consumer.appData && consumer.appData.peerId === socketId) {
+            sfu.closeConsumer(consumer);
+            delete room.consumers[cid];
+          }
+        });
+      }
+      if (room.transports) {
+        Object.keys(room.transports).forEach(tid => {
+          const transport = room.transports[tid];
+          if (transport && transport.appData && transport.appData.peerId === socketId) {
+            sfu.closeTransport(transport);
+            delete room.transports[tid];
+          }
+        });
+      }
+      io.to(`${groupId}::${roomId}`).emit('roomUsers', room.users);
+      socket.leave(`${groupId}::${roomId}`);
+    });
+    socket.leave(groupId);
+  });
+  if (users[socket.id]) {
+    users[socket.id].currentGroup = null;
+    users[socket.id].currentRoom = null;
+  }
+}
+
 app.use(express.static("public"));
-
-// -- loadGroupsFromDB, loadChannelsFromDB, sendGroupsListToUser, getAllChannelsData,
-// broadcastAllRoomsUsers, removeUserFromAllGroupsAndRooms, getOnlineOfflineDataForGroup,
-// broadcastGroupUsers, sendGroupUsersToOneUser, broadcastAllChannelsData,
-// sendRoomsListToUser, broadcastRoomsListToGroup gibi fonksiyonlar burada tanımlı (orijinal dosyanızdaki haliyle) --
-
-/* Örneğin, loadGroupsFromDB fonksiyonu gibi diğer yardımcı fonksiyonlarınız burada yer alıyor */
-// function loadGroupsFromDB() { ... }
-// function loadChannelsFromDB() { ... }
-// function sendGroupsListToUser(socketId) { ... }
-// function getAllChannelsData(groupId) { ... }
-// function broadcastAllRoomsUsers(groupId) { ... }
-// function removeUserFromAllGroupsAndRooms(socket) { ... }
-// function getOnlineOfflineDataForGroup(groupId) { ... }
-// function broadcastGroupUsers(groupId) { ... }
-// function sendGroupUsersToOneUser(socketId, groupId) { ... }
-// function broadcastAllChannelsData(groupId) { ... }
-// function sendRoomsListToUser(socketId, groupId) { ... }
-// function broadcastRoomsListToGroup(groupId) { ... }
 
 io.on('connection', (socket) => {
   console.log('Kullanıcı bağlandı:', socket.id);
