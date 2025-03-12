@@ -8,20 +8,23 @@ export function initFriendRequests(socket) {
       return;
     }
     
-    // DM içerik alanı oluşturuluyor, selectedChannelBar altında.
-    let dmContentArea = document.getElementById('dmContentArea');
-    if (!dmContentArea) {
-      dmContentArea = document.createElement('div');
-      dmContentArea.id = 'dmContentArea';
-      dmContentArea.style.marginTop = '10px';
-      selectedChannelBar.appendChild(dmContentArea);
-    }
-    
     // DM başlık alanı: "dmChannelTitle" elementini alıyoruz
     const dmChannelTitle = document.getElementById('dmChannelTitle');
     if (!dmChannelTitle) {
       console.error("dmChannelTitle not found");
       return;
+    }
+    
+    // DM içerik alanını kontrol ediyoruz; eğer yoksa dmChannelTitle'nın altına (afterend) ekliyoruz.
+    let dmContentArea = document.getElementById('dmContentArea');
+    if (!dmContentArea) {
+      dmContentArea = document.createElement('div');
+      dmContentArea.id = 'dmContentArea';
+      // dmContentArea'nın tüm genişliği kaplaması ve alt satırda yer alması için stil veriyoruz.
+      dmContentArea.style.display = 'block';
+      dmContentArea.style.width = '100%';
+      dmContentArea.style.marginTop = '10px';
+      dmChannelTitle.insertAdjacentElement('afterend', dmContentArea);
     }
     
     // "Arkadaş ekle" butonunu dmChannelTitle içinden data-filter="add" ile seçiyoruz
