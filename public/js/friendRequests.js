@@ -1,14 +1,14 @@
 // public/js/friendRequests.js
 
 export function initFriendRequests(socket) {
-    // selectedChannelBar elementini alıyoruz
+    // "selected-channel-bar" elementini alıyoruz (arkadaş isteklerinin listeleneceği alan)
     const selectedChannelBar = document.getElementById('selectedChannelBar');
     if (!selectedChannelBar) {
       console.error("selectedChannelBar not found");
       return;
     }
     
-    // Arkadaş istekleri için kullanılacak kapsayıcıyı oluşturuyoruz (eğer yoksa)
+    // Arkadaş isteklerini listelemek için kullanılacak kapsayıcıyı oluşturuyoruz (eğer mevcut değilse)
     let friendRequestContainer = document.getElementById('friendRequestContainer');
     if (!friendRequestContainer) {
       friendRequestContainer = document.createElement('div');
@@ -17,7 +17,7 @@ export function initFriendRequests(socket) {
       selectedChannelBar.appendChild(friendRequestContainer);
     }
     
-    // DM başlık alanı: dmChannelTitle elementini alıyoruz
+    // DM başlık alanı: "dmChannelTitle" elementini alıyoruz
     const dmChannelTitle = document.getElementById('dmChannelTitle');
     if (!dmChannelTitle) {
       console.error("dmChannelTitle not found");
@@ -31,7 +31,7 @@ export function initFriendRequests(socket) {
       return;
     }
     
-    // "Arkadaş ekle" butonuna tıklandığında arama kutusunu ekle
+    // "Arkadaş ekle" butonuna tıklayınca, arama kutusunu ekle
     friendAddButton.addEventListener('click', () => {
       // Kapsayıcıyı temizle
       friendRequestContainer.innerHTML = '';
@@ -76,12 +76,12 @@ export function initFriendRequests(socket) {
         });
       }
   
-      // Buton tıklama olayını ekle
+      // Butona tıklayınca isteği gönder
       sendButton.addEventListener('click', () => {
         sendFriendRequest();
       });
   
-      // Enter tuşu ile isteği göndermek için input üzerinde keydown olayı ekle
+      // Input üzerinde Enter tuşuna basılırsa isteği gönder
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           sendFriendRequest();
@@ -89,7 +89,7 @@ export function initFriendRequests(socket) {
       });
     });
   
-    // "Beklemede" ve "Hepsi" butonlarının işlevselliğini ekliyoruz.
+    // "Beklemede" (data-filter="sent") ve "Hepsi" (data-filter="all") butonlarının işlevselliğini ekliyoruz.
     const pendingFilterButton = dmChannelTitle.querySelector('.dm-filter-item[data-filter="sent"]');
     const acceptedFilterButton = dmChannelTitle.querySelector('.dm-filter-item[data-filter="all"]');
   
