@@ -2,7 +2,7 @@
 
 export function initFriendRequests(socket) {
     // "selected-channel-bar" elementini alıyoruz (DM içerik alanının ekleneceği yer)
-    const selectedChannelBar = document.getElementById('selectedChannelBar');
+    const selectedChannelBar = document.getElementById('selected-channel-bar');
     if (!selectedChannelBar) {
       console.error("selected-channel-bar not found");
       return;
