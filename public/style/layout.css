@@ -150,6 +150,8 @@
   font-size: 1.2rem;
   font-weight: 600;
   color: #aaa;
+  text-align: left;
+  align-self: flex-start;
 }
 .channel-content-area {
   flex: 1;
