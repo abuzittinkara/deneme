@@ -7,21 +7,34 @@ export function initFriendRequests(socket) {
     console.error("selectedChannelBar not found");
     return;
   }
-  
-  // DM içerik alanı oluşturuluyor, selectedChannelBar altında.
-  let dmContentArea = document.getElementById('dmContentArea');
-  if (!dmContentArea) {
-    dmContentArea = document.createElement('div');
-    dmContentArea.id = 'dmContentArea';
-    dmContentArea.style.marginTop = '10px';
-    selectedChannelBar.appendChild(dmContentArea);
-  }
-  
+
+  // Burada selectedChannelBar'ı dikey (column) yerleşimli yapıyoruz,
+  // böylece dmChannelTitle üstte, dmContentArea ise altta tam genişlikte duracak.
+  selectedChannelBar.style.display = 'flex';
+  selectedChannelBar.style.flexDirection = 'column';
+
   // DM başlık alanı: "dmChannelTitle" elementini alıyoruz
   const dmChannelTitle = document.getElementById('dmChannelTitle');
   if (!dmChannelTitle) {
     console.error("dmChannelTitle not found");
     return;
+  }
+
+  // dmChannelTitle'ı blok halinde, genişliği %100 olacak şekilde ayarlıyoruz.
+  dmChannelTitle.style.display = 'block';
+  dmChannelTitle.style.width = '100%';
+
+  // DM içerik alanı oluşturuluyor, dmChannelTitle'ın altında ayrı bir satırda.
+  let dmContentArea = document.getElementById('dmContentArea');
+  if (!dmContentArea) {
+    dmContentArea = document.createElement('div');
+    dmContentArea.id = 'dmContentArea';
+    // Tüm genişliği kaplasın:
+    dmContentArea.style.display = 'block';
+    dmContentArea.style.width = '100%';
+    // Biraz üst boşluk bırakalım (opsiyonel):
+    dmContentArea.style.marginTop = '10px';
+    selectedChannelBar.appendChild(dmContentArea);
   }
   
   // "Arkadaş ekle" butonunu dmChannelTitle içinden data-filter="add" ile seçiyoruz
