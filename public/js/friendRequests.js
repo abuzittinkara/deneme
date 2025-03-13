@@ -8,32 +8,29 @@ export function initFriendRequests(socket) {
     return;
   }
 
-  // Burada selectedChannelBar'ı dikey (column) yerleşimli yapıyoruz,
-  // böylece dmChannelTitle üstte, dmContentArea ise altta tam genişlikte duracak.
+  // selectedChannelBar'ı dikey (column) yerleşimli yapıyoruz.
+  // Böylece dmChannelTitle üstte, dmContentArea altta konumlanır.
   selectedChannelBar.style.display = 'flex';
   selectedChannelBar.style.flexDirection = 'column';
 
   // DM başlık alanı: "dmChannelTitle" elementini alıyoruz
+  // (HTML'de style="display: none;" şeklinde gizlenmiş olarak duracak)
   const dmChannelTitle = document.getElementById('dmChannelTitle');
   if (!dmChannelTitle) {
     console.error("dmChannelTitle not found");
     return;
   }
-
-  // dmChannelTitle'ı blok halinde, genişliği %100 olacak şekilde ayarlıyoruz.
-  dmChannelTitle.style.display = 'block';
-  dmChannelTitle.style.width = '100%';
+  // ÖNEMLİ: Burada dmChannelTitle’a .style.display = 'block' atamadık,
+  // çünkü DM tuşuna basılmadığı sürece gözükmemesi isteniyor.
 
   // DM içerik alanı oluşturuluyor, dmChannelTitle'ın altında ayrı bir satırda.
   let dmContentArea = document.getElementById('dmContentArea');
   if (!dmContentArea) {
     dmContentArea = document.createElement('div');
     dmContentArea.id = 'dmContentArea';
-    // Tüm genişliği kaplasın:
     dmContentArea.style.display = 'block';
     dmContentArea.style.width = '100%';
-    // Biraz üst boşluk bırakalım (opsiyonel):
-    dmContentArea.style.marginTop = '10px';
+    dmContentArea.style.marginTop = '10px'; // Biraz boşluk
     selectedChannelBar.appendChild(dmContentArea);
   }
   
