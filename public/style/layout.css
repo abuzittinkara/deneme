@@ -139,8 +139,8 @@
   z-index: 10;
   background: #353535;
   border-bottom: 1px solid #444;
-  padding: 0.75rem 1rem;
-  min-height: 50px;
+  padding: 0 1rem; /* Sadece yatay padding verildi */
+  height: 50px; /* Yükseklik sabit 50px olarak ayarlandı */
   display: flex;
   align-items: center;
   box-sizing: border-box;
