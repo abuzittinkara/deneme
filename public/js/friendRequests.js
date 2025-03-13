@@ -20,6 +20,9 @@ export function initFriendRequests(socket) {
     console.error("dmChannelTitle not found");
     return;
   }
+  // DM başlık alanını sol tarafa hizalamak için:
+  dmChannelTitle.style.textAlign = 'left';
+  dmChannelTitle.style.alignSelf = 'flex-start';
   // ÖNEMLİ: Burada dmChannelTitle’a .style.display = 'block' atamadık,
   // çünkü DM tuşuna basılmadığı sürece gözükmemesi isteniyor.
 
