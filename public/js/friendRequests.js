@@ -20,8 +20,8 @@ export function initFriendRequests(socket) {
     console.error("dmChannelTitle not found");
     return;
   }
-  // ÖNEMLİ: Burada dmChannelTitle’a .style.display = 'block' atamadık,
-  // çünkü DM tuşuna basılmadığı sürece gözükmemesi isteniyor.
+  // Ek: dmChannelTitle'ın sol tarafa yaslanması için textAlign left olarak ayarlandı.
+  dmChannelTitle.style.textAlign = 'left';
 
   // DM içerik alanı oluşturuluyor, dmChannelTitle'ın altında ayrı bir satırda.
   let dmContentArea = document.getElementById('dmContentArea');
@@ -30,9 +30,13 @@ export function initFriendRequests(socket) {
     dmContentArea.id = 'dmContentArea';
     dmContentArea.style.display = 'block';
     dmContentArea.style.width = '100%';
-    dmContentArea.style.marginTop = '0'; // Boşluk bırakmıyoruz.
-    dmContentArea.style.height = 'calc(100% - 50px)'; // selectedChannelBar'ın yüksekliği 50px olduğundan kalan alanı kaplasın.
-    selectedChannelBar.parentNode.insertBefore(dmContentArea, selectedChannelBar.nextSibling);
+    dmContentArea.style.marginTop = '0'; // Hiç boşluk bırakmıyoruz.
+    dmContentArea.style.height = 'calc(100% - 50px)'; // selectedChannelBar'ın yüksekliği 50px kabul edilerek kalan alanı kaplasın.
+    if (selectedChannelBar.nextSibling) {
+      selectedChannelBar.parentNode.insertBefore(dmContentArea, selectedChannelBar.nextSibling);
+    } else {
+      selectedChannelBar.parentNode.appendChild(dmContentArea);
+    }
   }
   
   // "Arkadaş ekle" butonunu dmChannelTitle içinden data-filter="add" ile seçiyoruz
