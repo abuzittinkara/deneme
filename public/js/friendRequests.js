@@ -33,6 +33,9 @@ export function initFriendRequests(socket) {
     dmContentArea.style.marginLeft = '0';
     dmContentArea.style.marginTop = '0'; // Boşluk bırakmıyoruz.
     dmContentArea.style.height = 'calc(100% - 50px)'; // selectedChannelBar'ın yüksekliği 50px olduğundan kalan alanı kaplasın.
+    // Eklenen padding ve box-sizing: border-box sayesinde içerikler kutu sınırları içinde kalacak.
+    dmContentArea.style.padding = '0.75rem 1rem';
+    dmContentArea.style.boxSizing = 'border-box';
     selectedChannelBar.parentNode.insertBefore(dmContentArea, selectedChannelBar.nextSibling);
   }
   
