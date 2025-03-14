@@ -1097,18 +1097,20 @@ function initUIEvents() {
       if (dmChannelTitle) {
         dmChannelTitle.style.display = 'block';
       }
-      // Artık dmPanel içeriğini tamamen yenilemek yerine,
-      // "dmSearchContainer" adında bir kapsayıcı oluşturup içerisine friendSearchInput'u ekliyoruz.
-      let dmSearchContainer = document.getElementById('dmSearchContainer');
-      if (!dmSearchContainer) {
-        dmSearchContainer = document.createElement('div');
-        dmSearchContainer.id = 'dmSearchContainer';
-        dmSearchContainer.style.padding = '0 1rem';
-        // dmPanel içindeki diğer içeriklerin (örneğin, friend filter butonları) silinmemesi için
-        // dmSearchContainer'ı dmPanel'in en üstüne ekliyoruz.
-        dmPanel.insertBefore(dmSearchContainer, dmPanel.firstChild);
+      // Artık dmPanel yerine dmContentArea içine dmSearchContainer ekleyeceğiz.
+      const dmContentArea = document.getElementById('dmContentArea');
+      if (dmContentArea) {
+        let dmSearchContainer = document.getElementById('dmSearchContainer');
+        if (!dmSearchContainer) {
+          dmSearchContainer = document.createElement('div');
+          dmSearchContainer.id = 'dmSearchContainer';
+          dmSearchContainer.style.padding = '0 1rem';
+          dmContentArea.insertBefore(dmSearchContainer, dmContentArea.firstChild);
+        }
+        dmSearchContainer.innerHTML = `<input type="text" id="friendSearchInput" placeholder="Kullanıcı ara..." style="width: 100%; height: 29px; box-sizing: border-box; margin-top: 10px; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">`;
+      } else {
+        console.error("dmContentArea not found");
       }
-      dmSearchContainer.innerHTML = `<input type="text" id="friendSearchInput" placeholder="Kullanıcı ara..." style="width: 100%; height: 29px; box-sizing: border-box; margin-top: 10px; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">`;
     } else {
       dmPanel.style.display = 'none';
       roomPanel.style.display = 'flex';
