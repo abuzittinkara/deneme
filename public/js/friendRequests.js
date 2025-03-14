@@ -23,7 +23,9 @@ export function initFriendRequests(socket) {
   // ÖNEMLİ: Burada dmChannelTitle’a .style.display = 'block' atamadık,
   // çünkü DM tuşuna basılmadığı sürece gözükmemesi isteniyor.
 
-  // DM içerik alanı oluşturuluyor, dmChannelTitle'ın altında ayrı bir satırda.
+  // DM içerik alanı oluşturuluyor.
+  // Önceden dmContentArea, selectedChannelBar'ın sonraki kardeşi olarak ekleniyordu.
+  // Şimdi dmContentArea, dmPanel'in içine ekleniyor.
   let dmContentArea = document.getElementById('dmContentArea');
   if (!dmContentArea) {
     dmContentArea = document.createElement('div');
@@ -33,15 +35,15 @@ export function initFriendRequests(socket) {
     dmContentArea.style.marginLeft = '0';
     dmContentArea.style.marginTop = '0'; // Boşluk bırakmıyoruz.
     dmContentArea.style.height = 'calc(100% - 50px)'; // selectedChannelBar'ın yüksekliği 50px olduğundan kalan alanı kaplasın.
+    // Eklenen padding ve box-sizing: border-box sayesinde içerikler kutu sınırları içinde kalacak.
     dmContentArea.style.padding = '0.75rem 1rem';
     dmContentArea.style.boxSizing = 'border-box';
-    // dmContentArea artık dmPanel'in bir çocuğu olarak eklenecek.
+    // dmPanel'i alıp, dmContentArea'yı onun içine ekliyoruz.
     const dmPanel = document.getElementById('dmPanel');
     if (dmPanel) {
       dmPanel.appendChild(dmContentArea);
     } else {
-      // Eğer dmPanel bulunamazsa, eski yöntem kullanılsın.
-      selectedChannelBar.parentNode.insertBefore(dmContentArea, selectedChannelBar.nextSibling);
+      console.error("dmPanel not found");
     }
   }
   
