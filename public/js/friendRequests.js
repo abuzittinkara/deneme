@@ -29,7 +29,8 @@ export function initFriendRequests(socket) {
     dmContentArea = document.createElement('div');
     dmContentArea.id = 'dmContentArea';
     dmContentArea.style.display = 'block';
-    dmContentArea.style.width = '100%';
+    dmContentArea.style.width = 'calc(100% - 365px)';
+    dmContentArea.style.marginLeft = '365px';
     dmContentArea.style.marginTop = '0'; // Boşluk bırakmıyoruz.
     dmContentArea.style.height = 'calc(100% - 50px)'; // selectedChannelBar'ın yüksekliği 50px olduğundan kalan alanı kaplasın.
     selectedChannelBar.parentNode.insertBefore(dmContentArea, selectedChannelBar.nextSibling);
