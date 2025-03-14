@@ -1097,11 +1097,18 @@ function initUIEvents() {
       if (dmChannelTitle) {
         dmChannelTitle.style.display = 'block';
       }
-      // Güncellenmiş: dmPanel içinde çıkan friendSearchInput'un yüksekliği 29px,
-      // dikeyde dmChannelTitle ile aynı hizada (ortalı) olması için:
-      dmPanel.innerHTML = `<div style="padding: 0 1rem;">
-        <input type="text" id="friendSearchInput" placeholder="Kullanıcı ara..." style="width: 100%; height: 29px; box-sizing: border-box; margin-top: 10px; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
-      </div>`;
+      // Artık dmPanel içeriğini tamamen yenilemek yerine,
+      // "dmSearchContainer" adında bir kapsayıcı oluşturup içerisine friendSearchInput'u ekliyoruz.
+      let dmSearchContainer = document.getElementById('dmSearchContainer');
+      if (!dmSearchContainer) {
+        dmSearchContainer = document.createElement('div');
+        dmSearchContainer.id = 'dmSearchContainer';
+        dmSearchContainer.style.padding = '0 1rem';
+        // dmPanel içindeki diğer içeriklerin (örneğin, friend filter butonları) silinmemesi için
+        // dmSearchContainer'ı dmPanel'in en üstüne ekliyoruz.
+        dmPanel.insertBefore(dmSearchContainer, dmPanel.firstChild);
+      }
+      dmSearchContainer.innerHTML = `<input type="text" id="friendSearchInput" placeholder="Kullanıcı ara..." style="width: 100%; height: 29px; box-sizing: border-box; margin-top: 10px; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">`;
     } else {
       dmPanel.style.display = 'none';
       roomPanel.style.display = 'flex';
