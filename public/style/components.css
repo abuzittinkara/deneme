@@ -487,7 +487,7 @@
 /* Right Panel */
 .right-panel {
   width: 200px;
-  background: #1f1f1f;
+  background: #2d2d2d;
   padding: 1rem;
   display: flex;
   flex-direction: column;
@@ -535,7 +535,7 @@
 /* DM Panel */
 .dm-panel {
   width: 300px;
-  background: #222;
+  background: #2d2d2d;
   color: #fff;
   padding: 1rem;
   box-sizing: border-box;
