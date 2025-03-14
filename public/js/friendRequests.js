@@ -23,21 +23,28 @@ export function initFriendRequests(socket) {
   // ÖNEMLİ: Burada dmChannelTitle’a .style.display = 'block' atamadık,
   // çünkü DM tuşuna basılmadığı sürece gözükmemesi isteniyor.
 
-  // DM içerik alanı artık dmPanel elementinin kendisi olacak.
-  let dmContentArea = document.getElementById('dmPanel');
+  // DM içerik alanı oluşturuluyor, dmChannelTitle'ın altında ayrı bir satırda.
+  let dmContentArea = document.getElementById('dmContentArea');
   if (!dmContentArea) {
-    console.error("dmPanel element not found");
-    return;
+    dmContentArea = document.createElement('div');
+    dmContentArea.id = 'dmContentArea';
+    dmContentArea.style.display = 'block';
+    dmContentArea.style.width = '100%';
+    dmContentArea.style.marginLeft = '0';
+    dmContentArea.style.marginTop = '0'; // Boşluk bırakmıyoruz.
+    dmContentArea.style.height = 'calc(100% - 50px)'; // selectedChannelBar'ın yüksekliği 50px olduğundan kalan alanı kaplasın.
+    dmContentArea.style.padding = '0.75rem 1rem';
+    dmContentArea.style.boxSizing = 'border-box';
+    // dmContentArea artık dmPanel'in bir çocuğu olarak eklenecek.
+    const dmPanel = document.getElementById('dmPanel');
+    if (dmPanel) {
+      dmPanel.appendChild(dmContentArea);
+    } else {
+      // Eğer dmPanel bulunamazsa, eski yöntem kullanılsın.
+      selectedChannelBar.parentNode.insertBefore(dmContentArea, selectedChannelBar.nextSibling);
+    }
   }
-  // dmPanel'in stillerini ayarlıyoruz.
-  dmContentArea.style.display = 'block';
-  dmContentArea.style.width = '100%';
-  dmContentArea.style.marginLeft = '0';
-  dmContentArea.style.marginTop = '0'; // Boşluk bırakmıyoruz.
-  dmContentArea.style.height = 'calc(100% - 50px)'; // selectedChannelBar'ın yüksekliği 50px olduğundan kalan alanı kaplasın.
-  dmContentArea.style.padding = '0.75rem 1rem';
-  dmContentArea.style.boxSizing = 'border-box';
-
+  
   // "Arkadaş ekle" butonunu dmChannelTitle içinden data-filter="add" ile seçiyoruz
   const friendAddButton = dmChannelTitle.querySelector('.dm-filter-item[data-filter="add"]');
   if (!friendAddButton) {
@@ -45,7 +52,7 @@ export function initFriendRequests(socket) {
     return;
   }
   
-  // "Arkadaş ekle" butonuna tıklayınca, dmPanel (dmContentArea) içerisine arama kutusu eklenir
+  // "Arkadaş ekle" butonuna tıklayınca, dmContentArea içerisine arama kutusu eklenir
   friendAddButton.addEventListener('click', () => {
     dmContentArea.innerHTML = '';
 
