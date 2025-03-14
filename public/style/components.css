@@ -712,6 +712,7 @@
 .dm-channel-title {
   padding-right: 16px;
   font-size: 1.2rem;
+  text-align: left;
 }
 
 /* ÖZEL: dm-channel-title altındaki yeni yapı için */
