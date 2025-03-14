@@ -1082,6 +1082,7 @@ function initUIEvents() {
   // DM Panel toggle: DM moduna geçince, dmChannelTitle gösterilsin, selectedChannelTitle ve rightPanel gizlensin.
   toggleDMButton.addEventListener('click', () => {
     const dmPanel = document.getElementById('dmPanel');
+    const dmContentArea = document.getElementById('dmContentArea');
     const selectedChannelTitle = document.getElementById('selectedChannelTitle');
     const dmChannelTitle = document.getElementById('dmChannelTitle');
     if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
@@ -1097,20 +1098,10 @@ function initUIEvents() {
       if (dmChannelTitle) {
         dmChannelTitle.style.display = 'block';
       }
-      // Artık dmPanel yerine dmContentArea içine dmSearchContainer ekleyeceğiz.
-      const dmContentArea = document.getElementById('dmContentArea');
-      if (dmContentArea) {
-        let dmSearchContainer = document.getElementById('dmSearchContainer');
-        if (!dmSearchContainer) {
-          dmSearchContainer = document.createElement('div');
-          dmSearchContainer.id = 'dmSearchContainer';
-          dmSearchContainer.style.padding = '0 1rem';
-          dmContentArea.insertBefore(dmSearchContainer, dmContentArea.firstChild);
-        }
-        dmSearchContainer.innerHTML = `<input type="text" id="friendSearchInput" placeholder="Kullanıcı ara..." style="width: 100%; height: 29px; box-sizing: border-box; margin-top: 10px; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">`;
-      } else {
-        console.error("dmContentArea not found");
-      }
+      // FriendSearchInput gibi içerikler dmContentArea içine eklenecek:
+      dmContentArea.innerHTML = `<div style="padding: 0 1rem;">
+        <input type="text" id="friendSearchInput" placeholder="Kullanıcı ara..." style="width: 100%; height: 29px; box-sizing: border-box; margin-top: 10px; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
+      </div>`;
     } else {
       dmPanel.style.display = 'none';
       roomPanel.style.display = 'flex';
