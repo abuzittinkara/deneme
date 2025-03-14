@@ -58,14 +58,6 @@ export function initFriendRequests(socket) {
   friendAddButton.addEventListener('click', () => {
     dmContentArea.innerHTML = '';
 
-    // Bir wrapper oluşturup, içerisindeki öğeleri ortalamak için ayarlıyoruz.
-    const wrapper = document.createElement('div');
-    wrapper.style.display = 'flex';
-    wrapper.style.justifyContent = 'center';
-    wrapper.style.alignItems = 'center';
-    wrapper.style.gap = '8px';
-    wrapper.style.width = '100%';
-
     // Arama kutusu (input) oluştur
     const input = document.createElement('input');
     input.type = 'text';
@@ -75,7 +67,7 @@ export function initFriendRequests(socket) {
     input.style.border = '1px solid #666';
     input.style.borderRadius = '6px';
     input.style.width = 'calc(100% - 120px)';
-    // margin-right kaldırıldı; wrapper'ın gap değeri kullanılacak.
+    input.style.marginRight = '8px';
 
     // "Arkadaşlık İsteği Gönder" butonunu oluştur
     const sendButton = document.createElement('button');
@@ -88,12 +80,8 @@ export function initFriendRequests(socket) {
     sendButton.style.color = '#fff';
     sendButton.style.cursor = 'pointer';
 
-    // Input ve butonu wrapper içerisine ekleyelim
-    wrapper.appendChild(input);
-    wrapper.appendChild(sendButton);
-
-    // Wrapper'ı dmContentArea içerisine ekleyelim
-    dmContentArea.appendChild(wrapper);
+    dmContentArea.appendChild(input);
+    dmContentArea.appendChild(sendButton);
 
     // Arkadaşlık isteğini gönderme fonksiyonu
     function sendFriendRequest() {
