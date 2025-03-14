@@ -23,9 +23,7 @@ export function initFriendRequests(socket) {
   // ÖNEMLİ: Burada dmChannelTitle’a .style.display = 'block' atamadık,
   // çünkü DM tuşuna basılmadığı sürece gözükmemesi isteniyor.
 
-  // DM içerik alanı oluşturuluyor.
-  // Önceden dmContentArea, selectedChannelBar'ın sonraki kardeşi olarak ekleniyordu.
-  // Şimdi dmContentArea, dmPanel'in içine ekleniyor.
+  // DM içerik alanı oluşturuluyor, dmChannelTitle'ın altında ayrı bir satırda.
   let dmContentArea = document.getElementById('dmContentArea');
   if (!dmContentArea) {
     dmContentArea = document.createElement('div');
@@ -38,13 +36,7 @@ export function initFriendRequests(socket) {
     // Eklenen padding ve box-sizing: border-box sayesinde içerikler kutu sınırları içinde kalacak.
     dmContentArea.style.padding = '0.75rem 1rem';
     dmContentArea.style.boxSizing = 'border-box';
-    // dmPanel'i alıp, dmContentArea'yı onun içine ekliyoruz.
-    const dmPanel = document.getElementById('dmPanel');
-    if (dmPanel) {
-      dmPanel.appendChild(dmContentArea);
-    } else {
-      console.error("dmPanel not found");
-    }
+    selectedChannelBar.parentNode.insertBefore(dmContentArea, selectedChannelBar.nextSibling);
   }
   
   // "Arkadaş ekle" butonunu dmChannelTitle içinden data-filter="add" ile seçiyoruz
@@ -58,14 +50,6 @@ export function initFriendRequests(socket) {
   friendAddButton.addEventListener('click', () => {
     dmContentArea.innerHTML = '';
 
-    // Arama kutusu ve buton için bir container oluşturuyoruz ve bu container'ı ortalıyoruz.
-    const container = document.createElement('div');
-    container.style.display = 'flex';
-    container.style.flexDirection = 'column';
-    container.style.alignItems = 'center';
-    container.style.gap = '8px';
-    container.style.width = '100%';
-
     // Arama kutusu (input) oluştur
     const input = document.createElement('input');
     input.type = 'text';
@@ -74,7 +58,8 @@ export function initFriendRequests(socket) {
     input.style.padding = '8px';
     input.style.border = '1px solid #666';
     input.style.borderRadius = '6px';
-    input.style.width = '80%';
+    input.style.width = 'calc(100% - 120px)';
+    input.style.marginRight = '8px';
 
     // "Arkadaşlık İsteği Gönder" butonunu oluştur
     const sendButton = document.createElement('button');
@@ -86,12 +71,9 @@ export function initFriendRequests(socket) {
     sendButton.style.borderRadius = '6px';
     sendButton.style.color = '#fff';
     sendButton.style.cursor = 'pointer';
-    sendButton.style.width = '80%';
-    sendButton.style.marginTop = '8px';
 
-    container.appendChild(input);
-    container.appendChild(sendButton);
-    dmContentArea.appendChild(container);
+    dmContentArea.appendChild(input);
+    dmContentArea.appendChild(sendButton);
 
     // Arkadaşlık isteğini gönderme fonksiyonu
     function sendFriendRequest() {
