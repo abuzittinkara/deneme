@@ -1097,8 +1097,10 @@ function initUIEvents() {
       if (dmChannelTitle) {
         dmChannelTitle.style.display = 'block';
       }
-      dmPanel.innerHTML = `<div style="padding: 1rem;">
-        <input type="text" id="friendSearchInput" placeholder="Kullanıcı ara..." style="width: 100%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
+      // Güncellenmiş: dmPanel içinde çıkan friendSearchInput'un yüksekliği 29px,
+      // dikeyde dmChannelTitle ile aynı hizada (ortalı) olması için:
+      dmPanel.innerHTML = `<div style="padding: 0 1rem;">
+        <input type="text" id="friendSearchInput" placeholder="Kullanıcı ara..." style="width: 100%; height: 29px; box-sizing: border-box; margin-top: 10px; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
       </div>`;
     } else {
       dmPanel.style.display = 'none';
