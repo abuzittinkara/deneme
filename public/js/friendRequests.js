@@ -61,7 +61,7 @@ export function initFriendRequests(socket) {
     // Arama kutusu ve buton için bir container oluşturuyoruz ve bu container'ı ortalıyoruz.
     const container = document.createElement('div');
     container.style.display = 'flex';
-    container.style.justifyContent = 'center';
+    container.style.flexDirection = 'column';
     container.style.alignItems = 'center';
     container.style.gap = '8px';
     container.style.width = '100%';
@@ -74,8 +74,7 @@ export function initFriendRequests(socket) {
     input.style.padding = '8px';
     input.style.border = '1px solid #666';
     input.style.borderRadius = '6px';
-    input.style.width = 'calc(100% - 120px)';
-    // Artık marginRight eklemiyoruz
+    input.style.width = '80%';
 
     // "Arkadaşlık İsteği Gönder" butonunu oluştur
     const sendButton = document.createElement('button');
@@ -87,6 +86,8 @@ export function initFriendRequests(socket) {
     sendButton.style.borderRadius = '6px';
     sendButton.style.color = '#fff';
     sendButton.style.cursor = 'pointer';
+    sendButton.style.width = '80%';
+    sendButton.style.marginTop = '8px';
 
     container.appendChild(input);
     container.appendChild(sendButton);
