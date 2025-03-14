@@ -1081,15 +1081,14 @@ function initUIEvents() {
   });
   // DM Panel toggle: DM moduna geçince, dmChannelTitle gösterilsin, selectedChannelTitle ve rightPanel gizlensin.
   toggleDMButton.addEventListener('click', () => {
-    const dmPanel = document.getElementById('dmPanel');
-    const dmContentArea = document.getElementById('dmContentArea');
+    // Artık dmPanel kullanılmayacak; bunun yerine channelContentArea kullanılacak.
     const selectedChannelTitle = document.getElementById('selectedChannelTitle');
     const dmChannelTitle = document.getElementById('dmChannelTitle');
-    if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
-      dmPanel.style.display = 'block';
+    if (!isDMMode) {
+      // DM moduna geçiliyor.
       roomPanel.style.display = 'none';
-      channelContentArea.style.display = 'none';
-      rightPanel.style.display = 'none';  // Sağ paneli gizle
+      rightPanel.style.display = 'none';
+      channelContentArea.style.display = 'block';
       isDMMode = true;
       toggleDMButton.querySelector('.material-icons').textContent = 'group';
       if (selectedChannelTitle) {
@@ -1098,23 +1097,36 @@ function initUIEvents() {
       if (dmChannelTitle) {
         dmChannelTitle.style.display = 'block';
       }
-      // FriendSearchInput gibi içerikler dmContentArea içine eklenecek:
-      dmContentArea.innerHTML = `<div style="padding: 0 1rem;">
-        <input type="text" id="friendSearchInput" placeholder="Kullanıcı ara..." style="width: 100%; height: 29px; box-sizing: border-box; margin-top: 10px; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
+      // DM modunda, channelContentArea içine dmContentArea ekleniyor.
+      let dmContentArea = document.getElementById('dmContentArea');
+      if (!dmContentArea) {
+        dmContentArea = document.createElement('div');
+        dmContentArea.id = 'dmContentArea';
+        dmContentArea.style.padding = '0.75rem 1rem';
+        dmContentArea.style.boxSizing = 'border-box';
+        // dmContentArea, channelContentArea'nin en üstüne ekleniyor.
+        channelContentArea.insertBefore(dmContentArea, channelContentArea.firstChild);
+      }
+      dmContentArea.innerHTML = `<div style="width:100%; display:flex; justify-content:center; align-items:center;">
+        <input type="text" id="friendSearchInput" placeholder="Kullanıcı ara..." style="width: 100%; max-width:300px; height:29px; box-sizing:border-box; margin-top:10px; border:1px solid #666; border-radius:6px; background:#444; color:#fff;">
       </div>`;
     } else {
-      dmPanel.style.display = 'none';
-      roomPanel.style.display = 'flex';
-      channelContentArea.style.display = 'block';
-      rightPanel.style.display = 'flex';  // Sağ paneli geri getir
+      // DM modundan çıkılıyor.
       isDMMode = false;
       toggleDMButton.querySelector('.material-icons').textContent = 'forum';
+      roomPanel.style.display = 'flex';
+      rightPanel.style.display = 'flex';
+      channelContentArea.style.display = 'block';
       if (selectedChannelTitle) {
         selectedChannelTitle.style.display = 'block';
         selectedChannelTitle.textContent = 'Kanal Seçilmedi';
       }
       if (dmChannelTitle) {
         dmChannelTitle.style.display = 'none';
+      }
+      let dmContentArea = document.getElementById('dmContentArea');
+      if (dmContentArea) {
+        dmContentArea.innerHTML = '';
       }
     }
   });
