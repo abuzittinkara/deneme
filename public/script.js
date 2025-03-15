@@ -153,8 +153,7 @@ const channelContentArea = document.getElementById('channelContentArea');
 // Yeni: DM modunda kullanılacak content alanı (selectedDMBar altında)
 const dmContentArea = document.getElementById('dmContentArea');
 
-// "dmPanel" yine mevcut (display:none); 
-// Fakat asıl DM içeriğini dmContentArea’ya yerleştireceğiz.
+// "dmPanel" yine mevcut (display:none); DM paneli, dmChatSearchInput öğesini barındıracak
 const dmPanel = document.getElementById('dmPanel');
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -979,8 +978,8 @@ function initUIEvents() {
     loginScreen.style.display = 'block';
   });
   showRegisterScreen.addEventListener('click', () => {
-    registerScreen.style.display = 'none';
-    loginScreen.style.display = 'block';
+    loginScreen.style.display = 'none';
+    registerScreen.style.display = 'block';
   });
   showLoginScreen.addEventListener('click', () => {
     registerScreen.style.display = 'none';
@@ -1103,9 +1102,8 @@ function initUIEvents() {
       toggleDMButton.querySelector('.material-icons').textContent = 'group';
       selectedChannelBar.style.display = 'none';
       selectedDMBar.style.display = 'block';
-
-      // Artık içeriği "dmContentArea"ya yazıyoruz:
-      dmContentArea.innerHTML = `
+      // "dmChatSearchInput" artık dmPanel içine yerleştiriliyor
+      dmPanel.innerHTML = `
         <div style="padding: 1rem; display: flex; justify-content: center;">
           <input type="text" id="dmChatSearchInput" placeholder="Kullanıcı ara..." 
                  style="width: 90%; padding: 0.5rem; border: 1px solid #666; 
