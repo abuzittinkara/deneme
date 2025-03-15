@@ -134,10 +134,10 @@
 
       <!-- Ortadaki Ana İçerik -->
       <div class="main-content">
-        <!-- Güncellenmiş: Seçili Kanal Barı ve DM Üst Bar; DM Üst Bar ayrı bir konteynerde olacak -->
-        <div id="selectedChannelBar" class="selected-channel-bar" style="display: none;">
-          <h2 id="selectedChannelTitle" class="selected-channel-title" style="display: none;">Kanal Seçilmedi</h2>
-          <h2 id="dmChannelTitle" class="dm-channel-title" style="display: block;">
+        <!-- Güncellenmiş: Seçili Kanal Barı; ayrı DM başlık öğesi eklenmiştir -->
+        <div id="selectedChannelBar" class="selected-channel-bar">
+          <h2 id="selectedChannelTitle" class="selected-channel-title">Kanal Seçilmedi</h2>
+          <h2 id="dmChannelTitle" class="dm-channel-title" style="display: none;">
             <span class="dm-title-text">Arkadaşlar</span>
             <span class="dm-divider"></span>
             <span class="dm-filter-item" data-filter="online">Çevrimiçi</span>
@@ -147,10 +147,7 @@
             <span class="dm-filter-item" data-filter="add">Arkadaş ekle</span>
           </h2>
         </div>
-        <div id="selectedDMBar" style="display: none; flex-direction: column;">
-          <h2 style="text-align: center; margin: 0; padding: 0.5rem 0;">DM Üst Bar</h2>
-        </div>
-        <div id="channelContentArea" class="channel-content-area" style="display: none;">
+        <div id="channelContentArea" class="channel-content-area">
           <!-- Voice kanallar için -->
           <div id="channelUsersContainer" class="channel-users-container" style="display: none;"></div>
           <!-- Text kanallar için: mesajların listeleneceği alan + mesaj yazma kutusu -->
@@ -178,9 +175,9 @@
             </div>
             <div id="textChatInputBar" class="text-chat-input-bar">
               <div class="chat-input-wrapper">
-                <input type="text" id="textChannelMessageInput" class="chat-input" placeholder="Bir mesaj yazın...">
+                <input type="text" id="textChannelMessageInput" class="chat-input" placeholder="Bir mesaj yazın..." />
                 <span id="sendTextMessageBtn" class="send-icon">send</span>
-              <div id="typingIndicator" style="position: absolute; top: calc(100% + 5px); left: 10px; font-size: 0.9em; color: #aaa; visibility: hidden;"></div></div>
+              </div>
             </div>
           </div>
         </div>

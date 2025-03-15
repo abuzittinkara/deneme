@@ -1079,21 +1079,11 @@ function initUIEvents() {
       groupDropdownMenu.style.display = 'none';
     }
   });
-  // DM Panel toggle: DM moduna geçince, "selectedChannelBar" yerine DM'ye özel "selectedDMBar" görünür; ayrıca dmChannelTitle de gösterilir.
+  // DM Panel toggle: DM moduna geçince, dmChannelTitle gösterilsin, selectedChannelTitle ve rightPanel gizlensin.
   toggleDMButton.addEventListener('click', () => {
     const dmPanel = document.getElementById('dmPanel');
     const selectedChannelTitle = document.getElementById('selectedChannelTitle');
     const dmChannelTitle = document.getElementById('dmChannelTitle');
-    const selectedChannelBar = document.getElementById('selectedChannelBar');
-    // "selectedDMBar" öğesini dmPanel içerisine ekleyelim (innerHTML ataması yapmadan)
-    let selectedDMBar = document.getElementById('selectedDMBar');
-    if (!selectedDMBar) {
-      selectedDMBar = document.createElement('div');
-      selectedDMBar.id = 'selectedDMBar';
-      selectedDMBar.style.display = 'none';
-      selectedDMBar.style.flexDirection = 'column';
-      dmPanel.appendChild(selectedDMBar);
-    }
     if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
       dmPanel.style.display = 'block';
       roomPanel.style.display = 'none';
@@ -1107,24 +1097,9 @@ function initUIEvents() {
       if (dmChannelTitle) {
         dmChannelTitle.style.display = 'block';
       }
-      if (selectedChannelBar) {
-        selectedChannelBar.style.display = 'none';
-      }
-      // selectedDMBar görünür olsun ve içeriğini ayarla
-      selectedDMBar.style.display = 'block';
-      selectedDMBar.innerHTML = `<h2 style="text-align: center; margin: 0; padding: 0.5rem 0;">DM Üst Bar</h2>`;
-      // Arama inputunu ise selectedDMBar yerine dmPanel'in alt kısmına ekleyin
-      // (Burada dmPanel'in diğer içeriğini değiştirmeden ekleme yapılabilir)
-      const dmSearchContainer = document.createElement('div');
-      dmSearchContainer.style.padding = '1rem';
-      dmSearchContainer.style.display = 'flex';
-      dmSearchContainer.style.justifyContent = 'center';
-      dmSearchContainer.style.paddingLeft = '0';
-      dmSearchContainer.style.paddingRight = '0';
-      dmSearchContainer.style.paddingTop = '0';
-      dmSearchContainer.innerHTML = `<input type="text" id="dmChatSearchInput" placeholder="Kullanıcı ara..." style="width: 90%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff; padding-top: 6px; padding-bottom: 6px;">`;
-      // Önce dmPanel içeriğini temizlemeden, sadece dmSearchContainer'ı ekleyelim
-      dmPanel.appendChild(dmSearchContainer);
+      dmPanel.innerHTML = `<div style="padding: 1rem;">
+        <input type="text" id="friendSearchInput" placeholder="Kullanıcı ara..." style="width: 100%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
+      </div>`;
     } else {
       dmPanel.style.display = 'none';
       roomPanel.style.display = 'flex';
@@ -1139,15 +1114,6 @@ function initUIEvents() {
       if (dmChannelTitle) {
         dmChannelTitle.style.display = 'none';
       }
-      let selectedDMBar = document.getElementById('selectedDMBar');
-      if (selectedDMBar) {
-        selectedDMBar.style.display = 'none';
-      }
-      if (selectedChannelBar) {
-        selectedChannelBar.style.display = 'block';
-      }
-      // Ayrıca dmPanel içindeki dmSearchContainer'ı temizleyelim
-      dmPanel.innerHTML = '';
     }
   });
   leaveButton.addEventListener('click', () => {
