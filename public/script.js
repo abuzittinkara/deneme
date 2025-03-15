@@ -151,6 +151,7 @@ const selectedChannelTitle = document.getElementById('selectedChannelTitle');
 const channelContentArea = document.getElementById('channelContentArea');
 
 // Yeni: DM modunda kullanılacak content alanı (selectedDMBar altında)
+// Artık dmContentArea, selectedDMBar'dan hemen sonra main-content içinde yer alıyor.
 const dmContentArea = document.getElementById('dmContentArea');
 
 // "dmPanel" yine mevcut (display:none); DM paneli, dmChatSearchInput öğesini barındıracak
@@ -598,6 +599,47 @@ function initSocketEvents() {
     }
   });
 }
+
+/* DM Panel toggle: DM moduna geçerken DM ve kanal header'larını ayrıştırıyoruz. 
+   Güncelleme: dmContentArea'nın display değeri de DM ve Kanal modlarına göre ayarlanıyor. */
+toggleDMButton.addEventListener('click', () => {
+  const channelContentArea = document.getElementById('channelContentArea');
+  const selectedChannelBar = document.getElementById('selectedChannelBar');
+  const selectedDMBar = document.getElementById('selectedDMBar');
+  const dmContentArea = document.getElementById('dmContentArea');
+  
+  if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
+    // DM moduna geç
+    dmPanel.style.display = 'block';
+    roomPanel.style.display = 'none';
+    channelContentArea.style.display = 'none';
+    rightPanel.style.display = 'none';
+    isDMMode = true;
+    toggleDMButton.querySelector('.material-icons').textContent = 'group';
+    selectedChannelBar.style.display = 'none';
+    selectedDMBar.style.display = 'block';
+    dmContentArea.style.display = 'block';
+    dmPanel.innerHTML = `
+      <div style="padding: 1rem; display: flex; justify-content: center;">
+        <input type="text" id="dmChatSearchInput" placeholder="Kullanıcı ara..." 
+               style="width: 90%; padding: 0.5rem; border: 1px solid #666; 
+                      border-radius: 6px; background: #444; color: #fff;">
+      </div>
+    `;
+  } else {
+    // Kanal moduna geç
+    dmPanel.style.display = 'none';
+    roomPanel.style.display = 'flex';
+    channelContentArea.style.display = 'block';
+    rightPanel.style.display = 'flex';
+    isDMMode = false;
+    toggleDMButton.querySelector('.material-icons').textContent = 'forum';
+    selectedDMBar.style.display = 'none';
+    dmContentArea.style.display = 'none';
+    selectedChannelBar.style.display = 'block';
+    document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
+  }
+});
 
 /* startSfuFlow */
 function startSfuFlow() {
@@ -1091,6 +1133,7 @@ function initUIEvents() {
     const channelContentArea = document.getElementById('channelContentArea');
     const selectedChannelBar = document.getElementById('selectedChannelBar');
     const selectedDMBar = document.getElementById('selectedDMBar');
+    const dmContentArea = document.getElementById('dmContentArea');
     
     if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
       // DM moduna geç
@@ -1102,7 +1145,7 @@ function initUIEvents() {
       toggleDMButton.querySelector('.material-icons').textContent = 'group';
       selectedChannelBar.style.display = 'none';
       selectedDMBar.style.display = 'block';
-      // "dmChatSearchInput" artık dmPanel içine yerleştiriliyor
+      dmContentArea.style.display = 'block';
       dmPanel.innerHTML = `
         <div style="padding: 1rem; display: flex; justify-content: center;">
           <input type="text" id="dmChatSearchInput" placeholder="Kullanıcı ara..." 
@@ -1119,6 +1162,7 @@ function initUIEvents() {
       isDMMode = false;
       toggleDMButton.querySelector('.material-icons').textContent = 'forum';
       selectedDMBar.style.display = 'none';
+      dmContentArea.style.display = 'none';
       selectedChannelBar.style.display = 'block';
       document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
     }
