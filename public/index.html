@@ -133,13 +133,14 @@
       </div>
 
       <!-- Ortadaki Ana İçerik -->
-      <div class="main-content">
+      <!-- main-content artık flex container olarak ayarlandı -->
+      <div class="main-content" style="display: flex; flex-direction: column; height: 100%;">
         <!-- Seçili Kanal Barı (kanal moduna özel) -->
         <div id="selectedChannelBar" class="selected-channel-bar">
           <h2 id="selectedChannelTitle" class="selected-channel-title">Kanal Seçilmedi</h2>
         </div>
         <!-- Seçili DM Barı (DM moduna özel) -->
-        <div id="selectedDMBar" class="selected-channel-bar" style="display: none;">
+        <div id="selectedDMBar" class="selected-channel-bar" style="display: none; flex-direction: column;">
           <h2 id="dmChannelTitle" class="dm-channel-title">
             <span class="dm-title-text">Arkadaşlar</span>
             <span class="dm-divider"></span>
@@ -149,8 +150,8 @@
             <span class="dm-filter-item" data-filter="blocked">Engellenen</span>
             <span class="dm-filter-item" data-filter="add">Arkadaş ekle</span>
           </h2>
-          <!-- "dmContentArea" artık "selectedDMBar" altında yer alıyor -->
-          <div id="dmContentArea"></div>
+          <!-- dmContentArea, selectedDMBar'ın borderından (başlıktan) sonra başlayıp kalan alanı kaplayacak -->
+          <div id="dmContentArea" style="flex: 1; overflow: auto;"></div>
         </div>
         <div id="channelContentArea" class="channel-content-area">
           <!-- Voice kanallar için -->
