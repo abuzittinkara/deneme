@@ -1102,6 +1102,8 @@ function initUIEvents() {
       </div>`;
     } else {
       dmPanel.style.display = 'none';
+      // DM'ye ait içeriği kaldırıyoruz:
+      dmPanel.innerHTML = "";
       roomPanel.style.display = 'flex';
       channelContentArea.style.display = 'block';
       rightPanel.style.display = 'flex';  // Sağ paneli geri getir
