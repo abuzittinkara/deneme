@@ -1098,7 +1098,7 @@ function initUIEvents() {
         dmChannelTitle.style.display = 'block';
       }
       dmPanel.innerHTML = `<div style="padding: 1rem; display: flex; justify-content: center;">
-        <input type="text" id="dmChatSearchInput" placeholder="Kullanıcı ara..." style="width: 80%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;">
+        <input type="text" id="dmChatSearchInput" placeholder="Kullanıcı ara..." style="width: 90%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff;padding-top: 6px;padding-bottom: 6px;">
       </div>`;
     } else {
       dmPanel.style.display = 'none';
