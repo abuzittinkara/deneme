@@ -9,7 +9,6 @@ export function initFriendRequests(socket) {
   }
 
   // selectedChannelBar'ı dikey (column) yerleşimli yapıyoruz.
-  // Böylece dmChannelTitle üstte, dmContentArea altta konumlanır.
   selectedChannelBar.style.display = 'flex';
   selectedChannelBar.style.flexDirection = 'column';
 
@@ -33,21 +32,21 @@ export function initFriendRequests(socket) {
     dmContentArea.style.marginLeft = '0';
     dmContentArea.style.marginTop = '0'; // Boşluk bırakmıyoruz.
     dmContentArea.style.height = 'calc(100% - 50px)'; // selectedChannelBar'ın yüksekliği 50px olduğundan kalan alanı kaplasın.
-    // Eklenen padding ve box-sizing: border-box sayesinde içerikler kutu sınırları içinde kalacak.
     dmContentArea.style.padding = '0.75rem 1rem';
     dmContentArea.style.boxSizing = 'border-box';
     selectedChannelBar.parentNode.insertBefore(dmContentArea, selectedChannelBar.nextSibling);
   }
   
-  // "Arkadaş ekle" butonunu dmChannelTitle içinden data-filter="add" ile seçiyoruz
+  // "Arkadaş ekle" butonunu dmChannelTitle içinden data-filter="add" ile seçiyoruz.
   const friendAddButton = dmChannelTitle.querySelector('.dm-filter-item[data-filter="add"]');
   if (!friendAddButton) {
     console.error("Friend add button not found");
     return;
   }
   
-  // "Arkadaş ekle" butonuna tıklayınca, dmContentArea içerisine arama kutusu eklenir
+  // "Arkadaş ekle" butonuna tıklayınca, dmContentArea içerisine arama kutusu eklenir.
   friendAddButton.addEventListener('click', () => {
+    dmContentArea.style.display = 'block'; // dmContentArea'nın görünür olduğundan emin oluyoruz.
     dmContentArea.innerHTML = '';
 
     // Arama kutusu (input) oluştur
@@ -104,6 +103,7 @@ export function initFriendRequests(socket) {
   const pendingFilterButton = dmChannelTitle.querySelector('.dm-filter-item[data-filter="sent"]');
   if (pendingFilterButton) {
     pendingFilterButton.addEventListener('click', () => {
+      dmContentArea.style.display = 'block'; // Görünür yapıyoruz.
       dmContentArea.innerHTML = '';
       socket.emit('getPendingFriendRequests', {}, (response) => {
         if (response.success && Array.isArray(response.requests)) {
@@ -177,6 +177,7 @@ export function initFriendRequests(socket) {
   const acceptedFilterButton = dmChannelTitle.querySelector('.dm-filter-item[data-filter="all"]');
   if (acceptedFilterButton) {
     acceptedFilterButton.addEventListener('click', () => {
+      dmContentArea.style.display = 'block'; // Görünür yapıyoruz.
       dmContentArea.innerHTML = '';
       socket.emit('getAcceptedFriendRequests', {}, (response) => {
         if (response.success && Array.isArray(response.friends)) {
