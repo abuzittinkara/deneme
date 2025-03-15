@@ -599,33 +599,39 @@ function initSocketEvents() {
   });
 }
 
-/* DM Panel toggle: DM moduna geçerken DM ve kanal header'larını ayrıştırıyoruz.
-   Güncelleme: DM moduna geçişte ilgili alanların display değerlerini "flex" olarak ayarlıyoruz. */
+/* DM Panel toggle: DM moduna geçerken ilgili alanların display değerlerini güncelliyoruz.
+   Artık DM moduna geçerken "roomPanel", "channelContentArea", "rightPanel" ve "selectedChannelBar" gizlenecek;
+   bunun yerine "dmPanel" (sol paneldeki DM paneli), "selectedDMBar" ve "dmContentArea" görünecek. */
 toggleDMButton.addEventListener('click', () => {
   console.log("toggleDMButton clicked, current isDMMode:", isDMMode);
   const channelContentArea = document.getElementById('channelContentArea');
   const selectedChannelBar = document.getElementById('selectedChannelBar');
   const selectedDMBar = document.getElementById('selectedDMBar');
   const dmContentArea = document.getElementById('dmContentArea');
+  // DM paneli (sol panelde yer alan)
+  const dmPanel = document.getElementById('dmPanel');
   
   if (!isDMMode) {
-    // DM moduna geç: ilgili alanlar flex container olarak ayarlanıyor.
+    // DM moduna geç: ilgili alanları gizle ve DM alanlarını göster.
     roomPanel.style.display = 'none';
     channelContentArea.style.display = 'none';
     rightPanel.style.display = 'none';
     selectedChannelBar.style.display = 'none';
+    // DM alanları: selectedDMBar, dmContentArea ve dmPanel
     selectedDMBar.style.display = 'flex';
     dmContentArea.style.display = 'flex';
+    dmPanel.style.display = 'block';
     toggleDMButton.querySelector('.material-icons').textContent = 'group';
     isDMMode = true;
     console.log("Switched to DM mode");
   } else {
-    // Kanal moduna geç: eski görünüm geri yüklenecek.
+    // Kanal moduna geç: DM alanlarını gizle ve kanal alanlarını göster.
     roomPanel.style.display = 'flex';
     channelContentArea.style.display = 'flex';
     rightPanel.style.display = 'flex';
     selectedDMBar.style.display = 'none';
     dmContentArea.style.display = 'none';
+    dmPanel.style.display = 'none';
     selectedChannelBar.style.display = 'flex';
     toggleDMButton.querySelector('.material-icons').textContent = 'forum';
     document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
@@ -1121,32 +1127,36 @@ function initUIEvents() {
     }
   });
   
-  // DM Panel toggle: DM moduna geçerken DM ve kanal header'larını ayrıştırıyoruz.
+  // DM Panel toggle: DM moduna geçerken ilgili alanların display değerlerini güncelliyoruz.
   toggleDMButton.addEventListener('click', () => {
     console.log("toggleDMButton clicked, current isDMMode:", isDMMode);
     const channelContentArea = document.getElementById('channelContentArea');
     const selectedChannelBar = document.getElementById('selectedChannelBar');
     const selectedDMBar = document.getElementById('selectedDMBar');
     const dmContentArea = document.getElementById('dmContentArea');
+    const dmPanel = document.getElementById('dmPanel');
     
     if (!isDMMode) {
-      // DM moduna geç: ilgili alanların display değerleri flex olarak ayarlanıyor.
+      // DM moduna geç: ilgili alanlar gizlenecek, DM ile ilgili alanlar gösterilecek.
       roomPanel.style.display = 'none';
       channelContentArea.style.display = 'none';
       rightPanel.style.display = 'none';
       selectedChannelBar.style.display = 'none';
+      // DM alanları: selectedDMBar, dmContentArea ve dmPanel
       selectedDMBar.style.display = 'flex';
       dmContentArea.style.display = 'flex';
+      dmPanel.style.display = 'block';
       toggleDMButton.querySelector('.material-icons').textContent = 'group';
       isDMMode = true;
       console.log("Switched to DM mode");
     } else {
-      // Kanal moduna geç: ilgili alanlar geri yükleniyor.
+      // Kanal moduna geç: DM ile ilgili alanlar gizlenecek, kanal ile ilgili alanlar geri yüklenecek.
       roomPanel.style.display = 'flex';
       channelContentArea.style.display = 'flex';
       rightPanel.style.display = 'flex';
       selectedDMBar.style.display = 'none';
       dmContentArea.style.display = 'none';
+      dmPanel.style.display = 'none';
       selectedChannelBar.style.display = 'flex';
       toggleDMButton.querySelector('.material-icons').textContent = 'forum';
       document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
