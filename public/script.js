@@ -1079,11 +1079,13 @@ function initUIEvents() {
       groupDropdownMenu.style.display = 'none';
     }
   });
-  // DM Panel toggle: DM moduna geçince, dmChannelTitle gösterilsin, selectedChannelTitle ve rightPanel gizlensin.
+  // DM Panel toggle: DM moduna geçince, dmChannelTitle, selectedDMBar (DM'ye özel) görünür, selectedChannelBar ve rightPanel gizlensin.
   toggleDMButton.addEventListener('click', () => {
     const dmPanel = document.getElementById('dmPanel');
     const selectedChannelTitle = document.getElementById('selectedChannelTitle');
     const dmChannelTitle = document.getElementById('dmChannelTitle');
+    const selectedChannelBar = document.getElementById('selectedChannelBar');
+    const selectedDMBar = document.getElementById('selectedDMBar');
     if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
       dmPanel.style.display = 'block';
       roomPanel.style.display = 'none';
@@ -1096,6 +1098,12 @@ function initUIEvents() {
       }
       if (dmChannelTitle) {
         dmChannelTitle.style.display = 'block';
+      }
+      if (selectedChannelBar) {
+        selectedChannelBar.style.display = 'none';
+      }
+      if (selectedDMBar) {
+        selectedDMBar.style.display = 'block';
       }
       dmPanel.innerHTML = `<div style="padding: 1rem; display: flex; justify-content: center; padding-left: 0px; padding-right: 0px; padding-top: 0px;">
         <input type="text" id="dmChatSearchInput" placeholder="Kullanıcı ara..." style="width: 90%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff; padding-top: 6px; padding-bottom: 6px;">
@@ -1113,6 +1121,12 @@ function initUIEvents() {
       }
       if (dmChannelTitle) {
         dmChannelTitle.style.display = 'none';
+      }
+      if (selectedDMBar) {
+        selectedDMBar.style.display = 'none';
+      }
+      if (selectedChannelBar) {
+        selectedChannelBar.style.display = 'block';
       }
     }
   });
