@@ -511,7 +511,7 @@ function initSocketEvents() {
     showChannelStatusPanel();
     if (!audioPermissionGranted || !localStream) {
       requestMicrophoneAccess().then(() => {
-        console.log("Mikrofon alındı, SFU akışı başlatılıyor...");
+        console.log("Mikrofon izni alındı, SFU akışı başlatılıyor...");
         startSfuFlow();
       }).catch(err => {
         console.error("SFU akışı için mikrofon izni alınamadı:", err);
@@ -599,48 +599,7 @@ function initSocketEvents() {
   });
 }
 
-/* DM Panel toggle: DM moduna geçerken ilgili alanların display değerlerini güncelliyoruz.
-   Artık DM moduna geçerken "roomPanel", "channelContentArea", "rightPanel" ve "selectedChannelBar" gizlenecek;
-   bunun yerine "dmPanel" (sol paneldeki DM paneli), "selectedDMBar" ve "dmContentArea" görünecek. */
-toggleDMButton.addEventListener('click', () => {
-  console.log("toggleDMButton clicked, current isDMMode:", isDMMode);
-  const channelContentArea = document.getElementById('channelContentArea');
-  const selectedChannelBar = document.getElementById('selectedChannelBar');
-  const selectedDMBar = document.getElementById('selectedDMBar');
-  const dmContentArea = document.getElementById('dmContentArea');
-  const dmPanel = document.getElementById('dmPanel');
-  
-  if (!isDMMode) {
-    // DM moduna geç: ilgili alanları gizle ve DM alanlarını göster.
-    roomPanel.style.display = 'none';
-    channelContentArea.style.display = 'none';
-    rightPanel.style.display = 'none';
-    selectedChannelBar.style.display = 'none';
-    
-    // DM alanları: selectedDMBar, dmContentArea ve dmPanel
-    selectedDMBar.style.display = 'flex';
-    dmContentArea.style.display = 'flex';
-    dmPanel.style.display = 'block';
-    
-    toggleDMButton.querySelector('.material-icons').textContent = 'group';
-    isDMMode = true;
-    console.log("Switched to DM mode");
-  } else {
-    // Kanal moduna geç: DM alanlarını gizle ve kanal alanlarını göster.
-    roomPanel.style.display = 'flex';
-    channelContentArea.style.display = 'flex';
-    rightPanel.style.display = 'flex';
-    selectedDMBar.style.display = 'none';
-    dmContentArea.style.display = 'none';
-    dmPanel.style.display = 'none';
-    selectedChannelBar.style.display = 'flex';
-    
-    toggleDMButton.querySelector('.material-icons').textContent = 'forum';
-    document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
-    isDMMode = false;
-    console.log("Switched to channel mode");
-  }
-});
+/* DM Panel toggle işlevi, her tıklamada DM moduna geçiş veya çıkış yapar (initUIEvents içinde tanımlanacak). */
 
 /* startSfuFlow */
 function startSfuFlow() {
@@ -1129,7 +1088,7 @@ function initUIEvents() {
     }
   });
   
-  // DM Panel toggle: DM moduna geçişte ilgili alanları kontrol ediyoruz.
+  // DM Panel toggle: Her tıklamada DM modunu aç/kapa.
   toggleDMButton.addEventListener('click', () => {
     console.log("toggleDMButton clicked, current isDMMode:", isDMMode);
     const channelContentArea = document.getElementById('channelContentArea');
@@ -1139,13 +1098,12 @@ function initUIEvents() {
     const dmPanel = document.getElementById('dmPanel');
     
     if (!isDMMode) {
-      // DM moduna geç: ilgili alanları gizle ve DM ile ilgili alanları göster.
+      // DM moduna geç
       roomPanel.style.display = 'none';
       channelContentArea.style.display = 'none';
       rightPanel.style.display = 'none';
       selectedChannelBar.style.display = 'none';
       
-      // DM alanları: selectedDMBar, dmContentArea ve dmPanel
       selectedDMBar.style.display = 'flex';
       dmContentArea.style.display = 'flex';
       dmPanel.style.display = 'block';
@@ -1154,7 +1112,7 @@ function initUIEvents() {
       isDMMode = true;
       console.log("Switched to DM mode");
     } else {
-      // Kanal moduna geç: DM ile ilgili alanları gizle ve kanal alanlarını göster.
+      // Kanal moduna geri dön
       roomPanel.style.display = 'flex';
       channelContentArea.style.display = 'flex';
       rightPanel.style.display = 'flex';
@@ -1450,33 +1408,10 @@ function updateCellBars(ping) {
   if (barsActive >= 4) cellBar4.classList.add('active');
 }
 
-/* insertSeparatorIfNeeded */
-function insertSeparatorIfNeeded(prevTimestamp, currentTimestamp) {
-  if (!prevTimestamp || TextChannel.isDifferentDay(prevTimestamp, currentTimestamp)) {
-    insertDateSeparator(currentTimestamp);
-  }
+/* getAllChannelsData */
+function getAllChannelsData(gId) {
+  return {};
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-  const tm = document.getElementById('textMessages');
-  let removeScrollingTimeout;
-  if (tm) {
-    tm.addEventListener('scroll', function() {
-      const atBottom = tm.scrollTop + tm.clientHeight >= tm.scrollHeight - 5;
-      if (!atBottom) {
-        clearTimeout(removeScrollingTimeout);
-        tm.classList.add('scrolling');
-      } else {
-        removeScrollingTimeout = setTimeout(() => {
-          const stillAtBottom = tm.scrollTop + tm.clientHeight >= tm.scrollHeight - 5;
-          if (stillAtBottom) {
-            tm.classList.remove('scrolling');
-          }
-        }, 1000);
-      }
-    });
-  }
-});
 
 /* updateUserList */
 function updateUserList(data) {
@@ -1543,7 +1478,23 @@ function createUserItem(username, isOnline) {
   return userItem;
 }
 
-/* getAllChannelsData */
-function getAllChannelsData(gId) {
-  return {};
-}
+document.addEventListener('DOMContentLoaded', function() {
+  const tm = document.getElementById('textMessages');
+  let removeScrollingTimeout;
+  if (tm) {
+    tm.addEventListener('scroll', function() {
+      const atBottom = tm.scrollTop + tm.clientHeight >= tm.scrollHeight - 5;
+      if (!atBottom) {
+        clearTimeout(removeScrollingTimeout);
+        tm.classList.add('scrolling');
+      } else {
+        removeScrollingTimeout = setTimeout(() => {
+          const stillAtBottom = tm.scrollTop + tm.clientHeight >= tm.scrollHeight - 5;
+          if (stillAtBottom) {
+            tm.classList.remove('scrolling');
+          }
+        }, 1000);
+      }
+    });
+  }
+});
