@@ -599,35 +599,38 @@ function initSocketEvents() {
   });
 }
 
-/* DM Panel toggle: DM moduna geçerken DM ve kanal header'larını ayrıştırıyoruz. 
-   Güncelleme: dmPanel kullanımı kaldırıldı; bunun yerine selectedDMBar ve dmContentArea kontrol ediliyor. */
+/* DM Panel toggle: DM moduna geçerken DM ve kanal header'larını ayrıştırıyoruz.
+   Güncelleme: DM moduna geçişte ilgili alanların display değerlerini "flex" olarak ayarlıyoruz. */
 toggleDMButton.addEventListener('click', () => {
+  console.log("toggleDMButton clicked, current isDMMode:", isDMMode);
   const channelContentArea = document.getElementById('channelContentArea');
   const selectedChannelBar = document.getElementById('selectedChannelBar');
   const selectedDMBar = document.getElementById('selectedDMBar');
   const dmContentArea = document.getElementById('dmContentArea');
   
   if (!isDMMode) {
-    // DM moduna geç
+    // DM moduna geç: ilgili alanlar flex container olarak ayarlanıyor.
     roomPanel.style.display = 'none';
     channelContentArea.style.display = 'none';
     rightPanel.style.display = 'none';
     selectedChannelBar.style.display = 'none';
-    selectedDMBar.style.display = 'block';
-    dmContentArea.style.display = 'block';
+    selectedDMBar.style.display = 'flex';
+    dmContentArea.style.display = 'flex';
     toggleDMButton.querySelector('.material-icons').textContent = 'group';
     isDMMode = true;
+    console.log("Switched to DM mode");
   } else {
-    // Kanal moduna geç
+    // Kanal moduna geç: eski görünüm geri yüklenecek.
     roomPanel.style.display = 'flex';
-    channelContentArea.style.display = 'block';
+    channelContentArea.style.display = 'flex';
     rightPanel.style.display = 'flex';
     selectedDMBar.style.display = 'none';
     dmContentArea.style.display = 'none';
-    selectedChannelBar.style.display = 'block';
+    selectedChannelBar.style.display = 'flex';
     toggleDMButton.querySelector('.material-icons').textContent = 'forum';
     document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
     isDMMode = false;
+    console.log("Switched to channel mode");
   }
 });
 
@@ -1120,32 +1123,35 @@ function initUIEvents() {
   
   // DM Panel toggle: DM moduna geçerken DM ve kanal header'larını ayrıştırıyoruz.
   toggleDMButton.addEventListener('click', () => {
+    console.log("toggleDMButton clicked, current isDMMode:", isDMMode);
     const channelContentArea = document.getElementById('channelContentArea');
     const selectedChannelBar = document.getElementById('selectedChannelBar');
     const selectedDMBar = document.getElementById('selectedDMBar');
     const dmContentArea = document.getElementById('dmContentArea');
     
     if (!isDMMode) {
-      // DM moduna geç
+      // DM moduna geç: ilgili alanların display değerleri flex olarak ayarlanıyor.
       roomPanel.style.display = 'none';
       channelContentArea.style.display = 'none';
       rightPanel.style.display = 'none';
       selectedChannelBar.style.display = 'none';
-      selectedDMBar.style.display = 'block';
-      dmContentArea.style.display = 'block';
+      selectedDMBar.style.display = 'flex';
+      dmContentArea.style.display = 'flex';
       toggleDMButton.querySelector('.material-icons').textContent = 'group';
       isDMMode = true;
+      console.log("Switched to DM mode");
     } else {
-      // Kanal moduna geç
+      // Kanal moduna geç: ilgili alanlar geri yükleniyor.
       roomPanel.style.display = 'flex';
-      channelContentArea.style.display = 'block';
+      channelContentArea.style.display = 'flex';
       rightPanel.style.display = 'flex';
       selectedDMBar.style.display = 'none';
       dmContentArea.style.display = 'none';
-      selectedChannelBar.style.display = 'block';
+      selectedChannelBar.style.display = 'flex';
       toggleDMButton.querySelector('.material-icons').textContent = 'forum';
       document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
       isDMMode = false;
+      console.log("Switched to channel mode");
     }
   });
   
