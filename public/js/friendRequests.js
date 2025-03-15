@@ -1,29 +1,26 @@
 // public/js/friendRequests.js
 
 export function initFriendRequests(socket) {
-  // "selectedChannelBar" elementini alıyoruz (DM içerik alanının ekleneceği yer)
-  const selectedChannelBar = document.getElementById('selectedChannelBar');
-  if (!selectedChannelBar) {
-    console.error("selectedChannelBar not found");
-    return;
-  }
-
-  // selectedChannelBar'ı dikey (column) yerleşimli yapıyoruz.
-  // Böylece dmChannelTitle üstte, dmContentArea altta konumlanır.
-  selectedChannelBar.style.display = 'flex';
-  selectedChannelBar.style.flexDirection = 'column';
-
-  // DM başlık alanı: "dmChannelTitle" elementini alıyoruz
-  // (HTML'de style="display: none;" şeklinde gizlenmiş olarak duracak)
+  // Öncelikle, DM başlık alanını (dmChannelTitle) alıyoruz.
   const dmChannelTitle = document.getElementById('dmChannelTitle');
   if (!dmChannelTitle) {
     console.error("dmChannelTitle not found");
     return;
   }
-  // ÖNEMLİ: Burada dmChannelTitle’a .style.display = 'block' atamadık,
-  // çünkü DM tuşuna basılmadığı sürece gözükmemesi isteniyor.
-
-  // DM içerik alanı oluşturuluyor, dmChannelTitle'ın altında ayrı bir satırda.
+  
+  // DM moduna özel kapsayıcı olarak "selectedDMBar" oluşturuyoruz.
+  let selectedDMBar = document.getElementById('selectedDMBar');
+  if (!selectedDMBar) {
+    selectedDMBar = document.createElement('div');
+    selectedDMBar.id = 'selectedDMBar';
+    // DM moduna ait kapsayıcıyı dikey (column) yerleşimli yapıyoruz.
+    selectedDMBar.style.display = 'flex';
+    selectedDMBar.style.flexDirection = 'column';
+    // "selectedDMBar"ı dmChannelTitle'ın hemen altına yerleştiriyoruz.
+    dmChannelTitle.parentNode.insertBefore(selectedDMBar, dmChannelTitle.nextSibling);
+  }
+  
+  // DM içerik alanı (dmContentArea) oluşturuluyor; bu alan, artık "selectedDMBar" içerisine ekleniyor.
   let dmContentArea = document.getElementById('dmContentArea');
   if (!dmContentArea) {
     dmContentArea = document.createElement('div');
@@ -32,21 +29,21 @@ export function initFriendRequests(socket) {
     dmContentArea.style.width = '100%';
     dmContentArea.style.marginLeft = '0';
     dmContentArea.style.marginTop = '0'; // Boşluk bırakmıyoruz.
-    dmContentArea.style.height = 'calc(100% - 50px)'; // selectedChannelBar'ın yüksekliği 50px olduğundan kalan alanı kaplasın.
-    // Eklenen padding ve box-sizing: border-box sayesinde içerikler kutu sınırları içinde kalacak.
+    dmContentArea.style.height = 'calc(100% - 50px)'; // selectedDMBar'ın yüksekliği 50px olduğundan kalan alanı kaplasın.
+    // Eklenen padding ve box-sizing sayesinde içerikler kutu sınırları içinde kalır.
     dmContentArea.style.padding = '0.75rem 1rem';
     dmContentArea.style.boxSizing = 'border-box';
-    selectedChannelBar.parentNode.insertBefore(dmContentArea, selectedChannelBar.nextSibling);
+    selectedDMBar.appendChild(dmContentArea);
   }
   
-  // "Arkadaş ekle" butonunu dmChannelTitle içinden data-filter="add" ile seçiyoruz
+  // "Arkadaş ekle" butonunu dmChannelTitle içinden data-filter="add" ile seçiyoruz.
   const friendAddButton = dmChannelTitle.querySelector('.dm-filter-item[data-filter="add"]');
   if (!friendAddButton) {
     console.error("Friend add button not found");
     return;
   }
   
-  // "Arkadaş ekle" butonuna tıklayınca, dmContentArea içerisine arama kutusu eklenir
+  // "Arkadaş ekle" butonuna tıklayınca, dmContentArea içerisine arama kutusu eklenir.
   friendAddButton.addEventListener('click', () => {
     dmContentArea.innerHTML = '';
 
