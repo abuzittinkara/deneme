@@ -140,8 +140,8 @@
         </div>
         <!-- Seçili DM Barı (DM moduna özel) -->
         <div id="selectedDMBar" class="selected-channel-bar" style="display: none; flex-direction: column;">
-          <!-- dmChannelTitle doğrudan selectedDMBar içinde -->
-          <h2 id="dmChannelTitle" class="dm-channel-title" style="margin: 0; border-bottom: 1px solid #ccc; padding: 0.5rem 0;">
+          <!-- dmChannelTitle doğrudan selectedDMBar içinde yer alır -->
+          <h2 id="dmChannelTitle" class="dm-channel-title" style="margin: 0; border-bottom: 1px solid #ccc; padding: 0.5rem 0; display: flex; align-items: center; justify-content: center;">
             <span class="dm-title-text">Arkadaşlar</span>
             <span class="dm-divider"></span>
             <span class="dm-filter-item" data-filter="online">Çevrimiçi</span>
@@ -150,6 +150,7 @@
             <span class="dm-filter-item" data-filter="blocked">Engellenen</span>
             <span class="dm-filter-item" data-filter="add">Arkadaş ekle</span>
           </h2>
+          <!-- dmContentArea, dmChannelTitle'dan tamamen ayrı, selectedDMBar içinde ayrı bir blok olarak yer alır -->
           <div id="dmContentArea" style="flex: 1; overflow: auto;"></div>
         </div>
         <div id="channelContentArea" class="channel-content-area">
