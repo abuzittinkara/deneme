@@ -133,7 +133,6 @@
       </div>
 
       <!-- Ortadaki Ana İçerik -->
-      <!-- main-content artık flex container olarak ayarlandı -->
       <div class="main-content" style="display: flex; flex-direction: column; height: 100%;">
         <!-- Seçili Kanal Barı (kanal moduna özel) -->
         <div id="selectedChannelBar" class="selected-channel-bar">
@@ -141,16 +140,17 @@
         </div>
         <!-- Seçili DM Barı (DM moduna özel) -->
         <div id="selectedDMBar" class="selected-channel-bar" style="display: none; flex-direction: column;">
-          <h2 id="dmChannelTitle" class="dm-channel-title">
-            <span class="dm-title-text">Arkadaşlar</span>
-            <span class="dm-divider"></span>
-            <span class="dm-filter-item" data-filter="online">Çevrimiçi</span>
-            <span class="dm-filter-item" data-filter="all">Hepsi</span>
-            <span class="dm-filter-item" data-filter="sent">Beklemede</span>
-            <span class="dm-filter-item" data-filter="blocked">Engellenen</span>
-            <span class="dm-filter-item" data-filter="add">Arkadaş ekle</span>
-          </h2>
-          <!-- dmContentArea, selectedDMBar'ın borderından (başlıktan) sonra başlayıp kalan alanı kaplayacak -->
+          <div id="dmHeader" style="border-bottom: 1px solid #ccc; padding: 0.5rem 0;">
+            <h2 id="dmChannelTitle" class="dm-channel-title" style="margin: 0;">
+              <span class="dm-title-text">Arkadaşlar</span>
+              <span class="dm-divider"></span>
+              <span class="dm-filter-item" data-filter="online">Çevrimiçi</span>
+              <span class="dm-filter-item" data-filter="all">Hepsi</span>
+              <span class="dm-filter-item" data-filter="sent">Beklemede</span>
+              <span class="dm-filter-item" data-filter="blocked">Engellenen</span>
+              <span class="dm-filter-item" data-filter="add">Arkadaş ekle</span>
+            </h2>
+          </div>
           <div id="dmContentArea" style="flex: 1; overflow: auto;"></div>
         </div>
         <div id="channelContentArea" class="channel-content-area">
