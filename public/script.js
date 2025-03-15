@@ -150,6 +150,10 @@ const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 const selectedChannelTitle = document.getElementById('selectedChannelTitle');
 const channelContentArea = document.getElementById('channelContentArea');
 
+// Yeni: "selectedChannelBar"ın orijinal içeriğini saklayalım (kanallar moduna ait)
+const selectedChannelBarElem = document.getElementById('selectedChannelBar');
+const originalSelectedChannelBarContent = selectedChannelBarElem.innerHTML;
+
 window.addEventListener('DOMContentLoaded', () => {
   toggleDMButton.querySelector('.material-icons').textContent = 'forum';
   
@@ -1079,70 +1083,35 @@ function initUIEvents() {
       groupDropdownMenu.style.display = 'none';
     }
   });
-  
-  // DM Modu Toggle
+  // DM Panel toggle: DM moduna geçince, "selectedChannelBar" öğesi DM'ye özel içeriğe dönüştürülecek.
   toggleDMButton.addEventListener('click', () => {
-    const selectedChannelBar = document.getElementById('selectedChannelBar');
-    const dmChannelTitle = document.getElementById('dmChannelTitle');
-    const selectedChannelTitle = document.getElementById('selectedChannelTitle');
-    if (!isDMMode) {
-      // DM moduna geçiliyor:
+    const dmPanel = document.getElementById('dmPanel');
+    // "selectedChannelBar" artık DM modunda farklı içerikle gösterilecek.
+    if (dmPanel.style.display === 'none' || dmPanel.style.display === '') {
+      dmPanel.style.display = 'block';
+      roomPanel.style.display = 'none';
+      channelContentArea.style.display = 'none';
+      rightPanel.style.display = 'none';  // Sağ paneli gizle
       isDMMode = true;
       toggleDMButton.querySelector('.material-icons').textContent = 'group';
-      // DM'ye özel sınıf ekleniyor:
-      selectedChannelBar.classList.add('selectedDmContentBar');
-      // dmChannelTitle görünür yapılıyor:
-      dmChannelTitle.style.display = 'block';
-      // Kanal başlığı gizleniyor:
-      if (selectedChannelTitle) {
-        selectedChannelTitle.style.display = 'none';
-      }
-      // dmContentArea oluşturulup, selectedChannelBar içine ekleniyor (eğer yoksa):
-      let dmContentArea = document.getElementById('dmContentArea');
-      if (!dmContentArea) {
-        dmContentArea = document.createElement('div');
-        dmContentArea.id = 'dmContentArea';
-        dmContentArea.style.display = 'block';
-        dmContentArea.style.width = '100%';
-        dmContentArea.style.marginLeft = '0';
-        dmContentArea.style.marginTop = '0';
-        dmContentArea.style.height = 'calc(100% - 50px)';
-        dmContentArea.style.padding = '0.75rem 1rem';
-        dmContentArea.style.boxSizing = 'border-box';
-        selectedChannelBar.appendChild(dmContentArea);
-      }
-      // Gizlenecek diğer DM moduna ait öğeler (varsa) burada eklenebilir.
-      // DM panel varsa gizleniyor:
-      const dmPanel = document.getElementById('dmPanel');
-      if (dmPanel) {
-        dmPanel.style.display = 'none';
-      }
+      // DM moduna geçince, selectedChannelBar içeriğini DM'ye özel hale getiriyoruz.
+      selectedChannelBarElem.innerHTML = `<h2 id="dmChannelTitle" class="dm-channel-title">DM</h2>
+      <div id="dmContentArea" class="dm-content-area"></div>`;
+      // dmPanel içeriğini de güncelliyoruz (önceden yapılan düzenlemelerle):
+      dmPanel.innerHTML = `<div style="padding: 1rem; display: flex; justify-content: center; padding-left: 0px; padding-right: 0px; padding-top: 0px;">
+        <input type="text" id="dmChatSearchInput" placeholder="Kullanıcı ara..." style="width: 90%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff; padding-top: 6px; padding-bottom: 6px;">
+      </div>`;
     } else {
-      // DM modundan çıkılıyor:
+      dmPanel.style.display = 'none';
+      roomPanel.style.display = 'flex';
+      channelContentArea.style.display = 'block';
+      rightPanel.style.display = 'flex';  // Sağ paneli geri getir
       isDMMode = false;
       toggleDMButton.querySelector('.material-icons').textContent = 'forum';
-      // DM'ye özel sınıf kaldırılıyor:
-      selectedChannelBar.classList.remove('selectedDmContentBar');
-      // dmChannelTitle gizleniyor:
-      dmChannelTitle.style.display = 'none';
-      // Kanal başlığı tekrar görünür oluyor:
-      if (selectedChannelTitle) {
-        selectedChannelTitle.style.display = 'block';
-        selectedChannelTitle.textContent = 'Kanal Seçilmedi';
-      }
-      // selectedChannelBar içindeki dmContentArea kaldırılıyor:
-      const dmContentArea = document.getElementById('dmContentArea');
-      if (dmContentArea && dmContentArea.parentNode === selectedChannelBar) {
-        selectedChannelBar.removeChild(dmContentArea);
-      }
-      // DM panel varsa gizleniyor:
-      const dmPanel = document.getElementById('dmPanel');
-      if (dmPanel) {
-        dmPanel.style.display = 'none';
-      }
+      // Kanallar moduna dönünce, selectedChannelBar öğesinin orijinal içeriğine geri dönüyoruz.
+      selectedChannelBarElem.innerHTML = originalSelectedChannelBarContent;
     }
   });
-  
   leaveButton.addEventListener('click', () => {
     clearScreenShareUI();
     if (!currentRoom) return;
