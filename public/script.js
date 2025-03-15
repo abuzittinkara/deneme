@@ -608,7 +608,6 @@ toggleDMButton.addEventListener('click', () => {
   const selectedChannelBar = document.getElementById('selectedChannelBar');
   const selectedDMBar = document.getElementById('selectedDMBar');
   const dmContentArea = document.getElementById('dmContentArea');
-  // DM paneli (sol panelde yer alan)
   const dmPanel = document.getElementById('dmPanel');
   
   if (!isDMMode) {
@@ -617,10 +616,12 @@ toggleDMButton.addEventListener('click', () => {
     channelContentArea.style.display = 'none';
     rightPanel.style.display = 'none';
     selectedChannelBar.style.display = 'none';
+    
     // DM alanları: selectedDMBar, dmContentArea ve dmPanel
     selectedDMBar.style.display = 'flex';
     dmContentArea.style.display = 'flex';
     dmPanel.style.display = 'block';
+    
     toggleDMButton.querySelector('.material-icons').textContent = 'group';
     isDMMode = true;
     console.log("Switched to DM mode");
@@ -633,6 +634,7 @@ toggleDMButton.addEventListener('click', () => {
     dmContentArea.style.display = 'none';
     dmPanel.style.display = 'none';
     selectedChannelBar.style.display = 'flex';
+    
     toggleDMButton.querySelector('.material-icons').textContent = 'forum';
     document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
     isDMMode = false;
@@ -1127,7 +1129,7 @@ function initUIEvents() {
     }
   });
   
-  // DM Panel toggle: DM moduna geçerken ilgili alanların display değerlerini güncelliyoruz.
+  // DM Panel toggle: DM moduna geçişte ilgili alanları kontrol ediyoruz.
   toggleDMButton.addEventListener('click', () => {
     console.log("toggleDMButton clicked, current isDMMode:", isDMMode);
     const channelContentArea = document.getElementById('channelContentArea');
@@ -1137,20 +1139,22 @@ function initUIEvents() {
     const dmPanel = document.getElementById('dmPanel');
     
     if (!isDMMode) {
-      // DM moduna geç: ilgili alanlar gizlenecek, DM ile ilgili alanlar gösterilecek.
+      // DM moduna geç: ilgili alanları gizle ve DM ile ilgili alanları göster.
       roomPanel.style.display = 'none';
       channelContentArea.style.display = 'none';
       rightPanel.style.display = 'none';
       selectedChannelBar.style.display = 'none';
+      
       // DM alanları: selectedDMBar, dmContentArea ve dmPanel
       selectedDMBar.style.display = 'flex';
       dmContentArea.style.display = 'flex';
       dmPanel.style.display = 'block';
+      
       toggleDMButton.querySelector('.material-icons').textContent = 'group';
       isDMMode = true;
       console.log("Switched to DM mode");
     } else {
-      // Kanal moduna geç: DM ile ilgili alanlar gizlenecek, kanal ile ilgili alanlar geri yüklenecek.
+      // Kanal moduna geç: DM ile ilgili alanları gizle ve kanal alanlarını göster.
       roomPanel.style.display = 'flex';
       channelContentArea.style.display = 'flex';
       rightPanel.style.display = 'flex';
@@ -1158,6 +1162,7 @@ function initUIEvents() {
       dmContentArea.style.display = 'none';
       dmPanel.style.display = 'none';
       selectedChannelBar.style.display = 'flex';
+      
       toggleDMButton.querySelector('.material-icons').textContent = 'forum';
       document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
       isDMMode = false;
