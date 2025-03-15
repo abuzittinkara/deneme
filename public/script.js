@@ -150,6 +150,13 @@ const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 const selectedChannelTitle = document.getElementById('selectedChannelTitle');
 const channelContentArea = document.getElementById('channelContentArea');
 
+// Yeni: DM modunda kullanılacak content alanı (selectedDMBar altında)
+const dmContentArea = document.getElementById('dmContentArea');
+
+// "dmPanel" yine mevcut (display:none); 
+// Fakat asıl DM içeriğini dmContentArea’ya yerleştireceğiz.
+const dmPanel = document.getElementById('dmPanel');
+
 window.addEventListener('DOMContentLoaded', () => {
   toggleDMButton.querySelector('.material-icons').textContent = 'forum';
   
@@ -972,8 +979,8 @@ function initUIEvents() {
     loginScreen.style.display = 'block';
   });
   showRegisterScreen.addEventListener('click', () => {
-    loginScreen.style.display = 'none';
-    registerScreen.style.display = 'block';
+    registerScreen.style.display = 'none';
+    loginScreen.style.display = 'block';
   });
   showLoginScreen.addEventListener('click', () => {
     registerScreen.style.display = 'none';
@@ -1082,10 +1089,7 @@ function initUIEvents() {
   
   // DM Panel toggle: DM moduna geçerken DM ve kanal header'larını ayrıştırıyoruz.
   toggleDMButton.addEventListener('click', () => {
-    const dmPanel = document.getElementById('dmPanel');
-    const roomPanel = document.getElementById('roomPanel');
     const channelContentArea = document.getElementById('channelContentArea');
-    const rightPanel = document.getElementById('rightPanel');
     const selectedChannelBar = document.getElementById('selectedChannelBar');
     const selectedDMBar = document.getElementById('selectedDMBar');
     
@@ -1099,9 +1103,15 @@ function initUIEvents() {
       toggleDMButton.querySelector('.material-icons').textContent = 'group';
       selectedChannelBar.style.display = 'none';
       selectedDMBar.style.display = 'block';
-      dmPanel.innerHTML = `<div style="padding: 1rem; display: flex; justify-content: center; padding-left: 0px; padding-right: 0px; padding-top: 0px;">
-        <input type="text" id="dmChatSearchInput" placeholder="Kullanıcı ara..." style="width: 90%; padding: 0.5rem; border: 1px solid #666; border-radius: 6px; background: #444; color: #fff; padding-top: 6px; padding-bottom: 6px;">
-      </div>`;
+
+      // Artık içeriği "dmContentArea"ya yazıyoruz:
+      dmContentArea.innerHTML = `
+        <div style="padding: 1rem; display: flex; justify-content: center;">
+          <input type="text" id="dmChatSearchInput" placeholder="Kullanıcı ara..." 
+                 style="width: 90%; padding: 0.5rem; border: 1px solid #666; 
+                        border-radius: 6px; background: #444; color: #fff;">
+        </div>
+      `;
     } else {
       // Kanal moduna geç
       dmPanel.style.display = 'none';
@@ -1115,9 +1125,6 @@ function initUIEvents() {
       document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
     }
   });
-  
-  // DM Panel toggle: DM moduna geçince, dmChannelTitle, selectedDMBar (DM’ye özel) görünür; selectedChannelBar ve rightPanel gizlensin.
-  // (Eski dinamik oluşturma kodu kaldırıldı, çünkü artık index.html'de sabit olarak tanımlı.)
   
   leaveButton.addEventListener('click', () => {
     clearScreenShareUI();
