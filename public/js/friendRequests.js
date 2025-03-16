@@ -243,10 +243,20 @@ export function initFriendRequests(socket) {
     friendsButton.style.border = 'none';
     friendsButton.style.cursor = 'pointer';
     friendsButton.addEventListener('click', () => {
-      const dmChannelTitle = document.getElementById('dmChannelTitle');
-      if (dmChannelTitle) {
-        dmChannelTitle.style.display = 'flex';
-        dmChannelTitle.innerHTML = getDefaultDmChannelTitleHtml();
+      const selectedDMBar = document.getElementById('selectedDMBar');
+      if (selectedDMBar) {
+        selectedDMBar.innerHTML = '';
+        const h2 = document.createElement('h2');
+        h2.id = 'dmChannelTitle';
+        h2.className = 'dm-channel-title';
+        h2.style.margin = '0';
+        h2.style.borderBottom = '1px solid #ccc';
+        h2.style.padding = '0.5rem 0';
+        h2.style.display = 'flex';
+        h2.style.alignItems = 'center';
+        h2.style.justifyContent = 'flex-start';
+        h2.innerHTML = getDefaultDmChannelTitleHtml();
+        selectedDMBar.appendChild(h2);
       }
       const dmContentArea = document.getElementById('dmContentArea');
       if (dmContentArea) {
@@ -277,6 +287,7 @@ export function initFriendRequests(socket) {
               if (selectedDMBar) {
                 selectedDMBar.innerHTML = '';
                 const h2 = document.createElement('h2');
+                h2.id = 'dmChannelTitle';
                 h2.className = 'dm-channel-title';
                 h2.style.margin = '0';
                 h2.style.borderBottom = '1px solid #ccc';
