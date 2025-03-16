@@ -198,4 +198,103 @@ export function initFriendRequests(socket) {
       });
     });
   }
+  
+  // Yeni ek: dmPanel'in sol tarafında (dmPanel içeriği) arkadaş listesini oluşturmak
+  renderFriendList();
+
+  // Fonksiyon: dmPanel'e arkadaş listesini render eder
+  function renderFriendList() {
+    const dmPanel = document.getElementById('dmPanel');
+    if (!dmPanel) {
+      console.error("dmPanel not found");
+      return;
+    }
+    // dmPanel içeriğini temizle
+    dmPanel.innerHTML = '';
+
+    // Üstte "Arkadaşlar" butonunu ekle
+    const friendsButton = document.createElement('button');
+    friendsButton.textContent = 'Arkadaşlar';
+    friendsButton.style.width = '100%';
+    friendsButton.style.padding = '10px';
+    friendsButton.style.background = '#c61884';
+    friendsButton.style.color = '#fff';
+    friendsButton.style.border = 'none';
+    friendsButton.style.cursor = 'pointer';
+    friendsButton.addEventListener('click', () => {
+      // "Arkadaşlar" butonuna tıklandığında, selectedDMBar'daki dmChannelTitle görünür olsun (filtre seçenekleri)
+      const dmChannelTitle = document.getElementById('dmChannelTitle');
+      if (dmChannelTitle) {
+        dmChannelTitle.style.display = 'flex';
+      }
+      // Ayrıca, dmContentArea'da herhangi bir DM sohbeti görüntülenmiyorsa temizleyebilir veya varsayılan mesaj gösterebiliriz
+      const dmContentArea = document.getElementById('dmContentArea');
+      if (dmContentArea) {
+        dmContentArea.innerHTML = '';
+      }
+    });
+    dmPanel.appendChild(friendsButton);
+
+    // Arkadaş listesini sunucudan alalım
+    socket.emit('getAcceptedFriendRequests', {}, (response) => {
+      if (response.success && Array.isArray(response.friends)) {
+        if (response.friends.length === 0) {
+          const noFriends = document.createElement('div');
+          noFriends.textContent = 'Hiç arkadaşınız yok.';
+          noFriends.style.padding = '10px';
+          dmPanel.appendChild(noFriends);
+        } else {
+          response.friends.forEach(friend => {
+            const friendItem = document.createElement('div');
+            friendItem.textContent = friend.username;
+            friendItem.style.padding = '10px';
+            friendItem.style.borderBottom = '1px solid #444';
+            friendItem.style.cursor = 'pointer';
+            friendItem.addEventListener('click', () => {
+              // Arkadaş listesinde bir arkadaşa tıklanırsa,
+              // selectedDMBar'da o arkadaşın kullanıcı adını göster
+              const selectedDMBar = document.getElementById('selectedDMBar');
+              if (selectedDMBar) {
+                selectedDMBar.innerHTML = '';
+                const h2 = document.createElement('h2');
+                h2.className = 'dm-channel-title';
+                h2.style.margin = '0';
+                h2.style.borderBottom = '1px solid #ccc';
+                h2.style.padding = '0.5rem 0';
+                h2.style.display = 'flex';
+                h2.style.alignItems = 'center';
+                h2.style.justifyContent = 'flex-start';
+                h2.textContent = friend.username;
+                selectedDMBar.appendChild(h2);
+              }
+              // dmContentArea'da bu arkadaşıyla olan mesajları yükle
+              const dmContentArea = document.getElementById('dmContentArea');
+              if (dmContentArea) {
+                dmContentArea.innerHTML = 'Bu kişiyle DM mesajları yükleniyor...';
+              }
+              socket.emit('joinDM', { friend: friend.username }, (res) => {
+                if (res.success && res.messages) {
+                  // Gelen mesajları dmContentArea'ya render et
+                  dmContentArea.innerHTML = '';
+                  res.messages.forEach(msg => {
+                    const msgDiv = document.createElement('div');
+                    msgDiv.textContent = `${msg.username}: ${msg.content}`;
+                    dmContentArea.appendChild(msgDiv);
+                  });
+                } else {
+                  dmContentArea.innerHTML = 'DM mesajları yüklenirken hata oluştu.';
+                }
+              });
+            });
+            dmPanel.appendChild(friendItem);
+          });
+        }
+      } else {
+        const errorDiv = document.createElement('div');
+        errorDiv.textContent = 'Arkadaşlar alınırken hata oluştu.';
+        errorDiv.style.padding = '10px';
+        dmPanel.appendChild(errorDiv);
+      }
+    });
+  }
 }
