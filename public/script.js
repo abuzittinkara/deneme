@@ -599,60 +599,7 @@ function initSocketEvents() {
   });
 }
 
-/* DM Panel toggle: Her tıklamada DM moduna geçiş veya çıkış yapar. */
-toggleDMButton.addEventListener('click', () => {
-  console.log("toggleDMButton clicked, current isDMMode:", isDMMode);
-  const channelContentArea = document.getElementById('channelContentArea');
-  const selectedChannelBar = document.getElementById('selectedChannelBar');
-  const selectedDMBar = document.getElementById('selectedDMBar');
-  const dmContentArea = document.getElementById('dmContentArea');
-  const dmPanel = document.getElementById('dmPanel');
-  
-  if (!isDMMode) {
-    // DM moduna geç: ilgili alanları gizle ve DM alanlarını göster.
-    roomPanel.style.display = 'none';
-    channelContentArea.style.display = 'none';
-    rightPanel.style.display = 'none';
-    selectedChannelBar.style.display = 'none';
-    
-    // DM alanları: selectedDMBar, dmContentArea ve dmPanel
-    selectedDMBar.style.display = 'flex';
-    dmContentArea.style.display = 'flex';
-    dmPanel.style.display = 'block';
-    
-    // Yeni: dmPanel açılınca "dmChatSearchInput" öğesini ekle (eğer yoksa)
-    if (!document.getElementById('dmChatSearchInput')) {
-      const searchInput = document.createElement('input');
-      searchInput.type = 'text';
-      searchInput.id = 'dmChatSearchInput';
-      searchInput.placeholder = 'DM araması yapın...';
-      searchInput.style.width = '100%';
-      searchInput.style.padding = '8px';
-      searchInput.style.border = '1px solid #666';
-      searchInput.style.borderRadius = '6px';
-      searchInput.style.marginBottom = '8px';
-      dmPanel.appendChild(searchInput);
-    }
-    
-    toggleDMButton.querySelector('.material-icons').textContent = 'group';
-    isDMMode = true;
-    console.log("Switched to DM mode");
-  } else {
-    // Kanal moduna geç: DM alanlarını gizle ve kanal alanlarını göster.
-    roomPanel.style.display = 'flex';
-    channelContentArea.style.display = 'flex';
-    rightPanel.style.display = 'flex';
-    selectedDMBar.style.display = 'none';
-    dmContentArea.style.display = 'none';
-    dmPanel.style.display = 'none';
-    selectedChannelBar.style.display = 'flex';
-    
-    toggleDMButton.querySelector('.material-icons').textContent = 'forum';
-    document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
-    isDMMode = false;
-    console.log("Switched to channel mode");
-  }
-});
+/* DM Panel toggle işlevi, her tıklamada DM moduna geçiş veya çıkış yapar (initUIEvents içinde tanımlanacak). */
 
 /* startSfuFlow */
 function startSfuFlow() {
@@ -1141,7 +1088,7 @@ function initUIEvents() {
     }
   });
   
-  // DM Panel toggle: Her tıklamada DM moduna geçiş veya çıkış yapar.
+  // DM Panel toggle: Her tıklamada DM modunu aç/kapa.
   toggleDMButton.addEventListener('click', () => {
     console.log("toggleDMButton clicked, current isDMMode:", isDMMode);
     const channelContentArea = document.getElementById('channelContentArea');
@@ -1151,36 +1098,21 @@ function initUIEvents() {
     const dmPanel = document.getElementById('dmPanel');
     
     if (!isDMMode) {
-      // DM moduna geç: ilgili alanları gizle ve DM alanlarını göster.
+      // DM moduna geç
       roomPanel.style.display = 'none';
       channelContentArea.style.display = 'none';
       rightPanel.style.display = 'none';
       selectedChannelBar.style.display = 'none';
       
-      // DM alanları: selectedDMBar, dmContentArea ve dmPanel
       selectedDMBar.style.display = 'flex';
       dmContentArea.style.display = 'flex';
       dmPanel.style.display = 'block';
-      
-      // Yeni: dmPanel açılınca "dmChatSearchInput" öğesini ekle (eğer yoksa)
-      if (!document.getElementById('dmChatSearchInput')) {
-        const searchInput = document.createElement('input');
-        searchInput.type = 'text';
-        searchInput.id = 'dmChatSearchInput';
-        searchInput.placeholder = 'DM araması yapın...';
-        searchInput.style.width = '100%';
-        searchInput.style.padding = '8px';
-        searchInput.style.border = '1px solid #666';
-        searchInput.style.borderRadius = '6px';
-        searchInput.style.marginBottom = '8px';
-        dmPanel.appendChild(searchInput);
-      }
       
       toggleDMButton.querySelector('.material-icons').textContent = 'group';
       isDMMode = true;
       console.log("Switched to DM mode");
     } else {
-      // Kanal moduna geç: DM alanlarını gizle ve kanal alanlarını göster.
+      // Kanal moduna geri dön
       roomPanel.style.display = 'flex';
       channelContentArea.style.display = 'flex';
       rightPanel.style.display = 'flex';
