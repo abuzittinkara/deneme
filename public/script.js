@@ -599,7 +599,59 @@ function initSocketEvents() {
   });
 }
 
-/* DM Panel toggle işlevi, her tıklamada DM moduna geçiş veya çıkış yapar (initUIEvents içinde tanımlanacak). */
+/* DM Panel toggle: Her tıklamada DM modunu aç/kapa. */
+toggleDMButton.addEventListener('click', () => {
+  console.log("toggleDMButton clicked, current isDMMode:", isDMMode);
+  const channelContentArea = document.getElementById('channelContentArea');
+  const selectedChannelBar = document.getElementById('selectedChannelBar');
+  const selectedDMBar = document.getElementById('selectedDMBar');
+  const dmContentArea = document.getElementById('dmContentArea');
+  const dmPanel = document.getElementById('dmPanel');
+  
+  if (!isDMMode) {
+    // DM moduna geç
+    roomPanel.style.display = 'none';
+    channelContentArea.style.display = 'none';
+    rightPanel.style.display = 'none';
+    selectedChannelBar.style.display = 'none';
+    
+    selectedDMBar.style.display = 'flex';
+    dmContentArea.style.display = 'flex';
+    dmPanel.style.display = 'block';
+    
+    // Yeni: dmPanel içinde dmChatSearchInput oluştur
+    if (!document.getElementById('dmChatSearchInput')) {
+      const dmChatSearchInput = document.createElement('input');
+      dmChatSearchInput.type = 'text';
+      dmChatSearchInput.id = 'dmChatSearchInput';
+      dmChatSearchInput.placeholder = 'Arama...';
+      dmChatSearchInput.style.padding = '8px';
+      dmChatSearchInput.style.border = '1px solid #666';
+      dmChatSearchInput.style.borderRadius = '6px';
+      dmChatSearchInput.style.width = 'calc(100% - 20px)';
+      dmChatSearchInput.style.margin = '10px';
+      dmPanel.appendChild(dmChatSearchInput);
+    }
+    
+    toggleDMButton.querySelector('.material-icons').textContent = 'group';
+    isDMMode = true;
+    console.log("Switched to DM mode");
+  } else {
+    // Kanal moduna geri dön
+    roomPanel.style.display = 'flex';
+    channelContentArea.style.display = 'flex';
+    rightPanel.style.display = 'flex';
+    selectedDMBar.style.display = 'none';
+    dmContentArea.style.display = 'none';
+    dmPanel.style.display = 'none';
+    selectedChannelBar.style.display = 'flex';
+    
+    toggleDMButton.querySelector('.material-icons').textContent = 'forum';
+    document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
+    isDMMode = false;
+    console.log("Switched to channel mode");
+  }
+});
 
 /* startSfuFlow */
 function startSfuFlow() {
@@ -1107,6 +1159,20 @@ function initUIEvents() {
       selectedDMBar.style.display = 'flex';
       dmContentArea.style.display = 'flex';
       dmPanel.style.display = 'block';
+      
+      // Yeni: dmPanel içinde dmChatSearchInput oluştur
+      if (!document.getElementById('dmChatSearchInput')) {
+        const dmChatSearchInput = document.createElement('input');
+        dmChatSearchInput.type = 'text';
+        dmChatSearchInput.id = 'dmChatSearchInput';
+        dmChatSearchInput.placeholder = 'Arama...';
+        dmChatSearchInput.style.padding = '8px';
+        dmChatSearchInput.style.border = '1px solid #666';
+        dmChatSearchInput.style.borderRadius = '6px';
+        dmChatSearchInput.style.width = 'calc(100% - 20px)';
+        dmChatSearchInput.style.margin = '10px';
+        dmPanel.appendChild(dmChatSearchInput);
+      }
       
       toggleDMButton.querySelector('.material-icons').textContent = 'group';
       isDMMode = true;
