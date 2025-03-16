@@ -52,10 +52,9 @@ const onlineUsernames = new Set();
 
 // ***** EK: Arkadaşlık isteği ve arkadaş listesi için in‑memory veri yapıları *****
 let friendRequests = {};  // key: hedef kullanıcı adı, value: [ { from, timestamp }, ... ]
-let friends = {};         // key: kullanıcı adı, value: [ arkadaş kullanıcı adları, ... ]
+// Eski in-memory "friends" yapısı kaldırıldı; kabul edilen arkadaşlıklar artık DB üzerinden tutulacak.
 // ************************************************************************************
 
-// loadGroupsFromDB fonksiyonu: DB'deki tüm grupları belleğe yüklüyor.
 async function loadGroupsFromDB() {
   try {
     const groupDocs = await Group.find({});
@@ -73,7 +72,6 @@ async function loadGroupsFromDB() {
   }
 }
 
-// loadChannelsFromDB fonksiyonu: DB'deki tüm kanalları ilgili grupların rooms alanına yüklüyor.
 async function loadChannelsFromDB() {
   try {
     const channelDocs = await Channel.find({}).populate('group');
@@ -316,7 +314,8 @@ io.on('connection', (socket) => {
         birthdate: new Date(birthdate),
         email,
         phone,
-        groups: []
+        groups: [],
+        friends: []
       });
       await newUser.save();
       socket.emit('registerResult', { success: true });
@@ -911,31 +910,45 @@ io.on('connection', (socket) => {
     callback({ success: true, requests });
   });
 
-  socket.on('acceptFriendRequest', (data, callback) => {
-    const username = users[socket.id]?.username;
-    if (!username) {
-      return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
+  socket.on('acceptFriendRequest', async (data, callback) => {
+    try {
+      const username = users[socket.id]?.username;
+      if (!username) {
+        return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
+      }
+      const fromUsername = data.from;
+      if (!fromUsername) {
+        return callback({ success: false, message: 'Kimin isteği kabul edileceği belirtilmedi.' });
+      }
+      
+      // Remove pending friend request in memory
+      if (friendRequests[username]) {
+        friendRequests[username] = friendRequests[username].filter(req => req.from !== fromUsername);
+      }
+      
+      // Get both user documents from DB
+      const userDoc = await User.findOne({ username });
+      const friendDoc = await User.findOne({ username: fromUsername });
+      if (!userDoc || !friendDoc) {
+        return callback({ success: false, message: 'Kullanıcılar bulunamadı.' });
+      }
+      
+      // Check if friend already added, if not, add them
+      if (!userDoc.friends.includes(friendDoc._id)) {
+        userDoc.friends.push(friendDoc._id);
+      }
+      if (!friendDoc.friends.includes(userDoc._id)) {
+        friendDoc.friends.push(userDoc._id);
+      }
+      
+      await userDoc.save();
+      await friendDoc.save();
+      
+      callback({ success: true });
+    } catch (err) {
+      console.error("acceptFriendRequest error:", err);
+      callback({ success: false, message: 'Arkadaşlık isteği kabul edilirken hata oluştu.' });
     }
-    const fromUsername = data.from;
-    if (!fromUsername) {
-      return callback({ success: false, message: 'Kimin isteği kabul edileceği belirtilmedi.' });
-    }
-    if (friendRequests[username]) {
-      friendRequests[username] = friendRequests[username].filter(req => req.from !== fromUsername);
-    }
-    if (!friends[username]) {
-      friends[username] = [];
-    }
-    if (!friends[fromUsername]) {
-      friends[fromUsername] = [];
-    }
-    if (!friends[username].includes(fromUsername)) {
-      friends[username].push(fromUsername);
-    }
-    if (!friends[fromUsername].includes(username)) {
-      friends[fromUsername].push(username);
-    }
-    callback({ success: true });
   });
 
   socket.on('rejectFriendRequest', (data, callback) => {
@@ -953,14 +966,22 @@ io.on('connection', (socket) => {
     callback({ success: true });
   });
 
-  socket.on('getAcceptedFriendRequests', (data, callback) => {
-    const username = users[socket.id]?.username;
-    if (!username) {
-      return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
+  socket.on('getAcceptedFriendRequests', async (data, callback) => {
+    try {
+      const username = users[socket.id]?.username;
+      if (!username) {
+        return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
+      }
+      const userDoc = await User.findOne({ username }).populate('friends');
+      if (!userDoc) {
+        return callback({ success: false, message: 'Kullanıcı bulunamadı.' });
+      }
+      const acceptedFriends = userDoc.friends.map(friendDoc => ({ username: friendDoc.username }));
+      callback({ success: true, friends: acceptedFriends });
+    } catch (err) {
+      console.error("getAcceptedFriendRequests error:", err);
+      callback({ success: false, message: 'Arkadaşlar alınırken hata oluştu.' });
     }
-    const accepted = friends[username] || [];
-    const acceptedFriends = accepted.map(friendUsername => ({ username: friendUsername }));
-    callback({ success: true, friends: acceptedFriends });
   });
   // ***************************************************
 

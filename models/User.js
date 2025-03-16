@@ -11,7 +11,9 @@ const UserSchema = new mongoose.Schema({
   phone: { type: String },
 
   // Bu kullanıcının üyesi olduğu Gruplar (MongoDB ObjectId listesi)
-  groups: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Group' }]
+  groups: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Group' }],
+  // Arkadaşlar listesi (kalıcı olarak DB’de saklanacak)
+  friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
 });
 
 module.exports = mongoose.model('User', UserSchema);
