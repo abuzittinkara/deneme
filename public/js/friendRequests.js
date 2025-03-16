@@ -210,6 +210,19 @@ export function initFriendRequests(socket) {
     });
   }
   
+  // Fonksiyon: Varsayılan dmChannelTitle içeriğini döndüren fonksiyon
+  function getDefaultDmChannelTitleHtml() {
+    return `
+      <span class="dm-title-text">Arkadaşlar</span>
+      <span class="dm-divider"></span>
+      <span class="dm-filter-item" data-filter="online">Çevrimiçi</span>
+      <span class="dm-filter-item" data-filter="all">Hepsi</span>
+      <span class="dm-filter-item" data-filter="sent">Beklemede</span>
+      <span class="dm-filter-item" data-filter="blocked">Engellenen</span>
+      <span class="dm-filter-item" data-filter="add">Arkadaş ekle</span>
+    `;
+  }
+  
   // Fonksiyon: dmPanel'e arkadaş listesini render eder
   function renderFriendList() {
     const dmPanel = document.getElementById('dmPanel');
@@ -220,7 +233,7 @@ export function initFriendRequests(socket) {
     // dmPanel içeriğini temizle
     dmPanel.innerHTML = '';
 
-    // Üstte "Arkadaşlar" butonunu ekle
+    // Üstte "Arkadaşlar" butonunu ekle ve tıklandığında dmChannelTitle'in içeriğini resetle
     const friendsButton = document.createElement('button');
     friendsButton.textContent = 'Arkadaşlar';
     friendsButton.style.width = '100%';
@@ -230,12 +243,11 @@ export function initFriendRequests(socket) {
     friendsButton.style.border = 'none';
     friendsButton.style.cursor = 'pointer';
     friendsButton.addEventListener('click', () => {
-      // "Arkadaşlar" butonuna tıklandığında, selectedDMBar'daki dmChannelTitle görünür olsun (filtre seçenekleri)
       const dmChannelTitle = document.getElementById('dmChannelTitle');
       if (dmChannelTitle) {
         dmChannelTitle.style.display = 'flex';
+        dmChannelTitle.innerHTML = getDefaultDmChannelTitleHtml();
       }
-      // Ayrıca, dmContentArea'da herhangi bir DM sohbeti görüntülenmiyorsa temizleyebilir veya varsayılan mesaj gösterebiliriz
       const dmContentArea = document.getElementById('dmContentArea');
       if (dmContentArea) {
         dmContentArea.innerHTML = '';
