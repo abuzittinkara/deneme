@@ -976,7 +976,7 @@ io.on('connection', (socket) => {
       if (!userDoc) {
         return callback({ success: false, message: 'Kullanıcı bulunamadı.' });
       }
-      const acceptedFriends = userDoc.friends.map(friendDoc => ({ username: friendDoc.username }));
+      const acceptedFriends = (userDoc.friends || []).map(friendDoc => ({ username: friendDoc.username }));
       callback({ success: true, friends: acceptedFriends });
     } catch (err) {
       console.error("getAcceptedFriendRequests error:", err);
