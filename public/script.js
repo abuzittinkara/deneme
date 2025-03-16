@@ -599,7 +599,7 @@ function initSocketEvents() {
   });
 }
 
-/* DM Panel toggle işlevi, her tıklamada DM moduna geçiş veya çıkış yapar (initUIEvents içinde tanımlanacak). */
+/* DM Panel toggle: Her tıklamada DM modunu aç/kapa. */
 toggleDMButton.addEventListener('click', () => {
   console.log("toggleDMButton clicked, current isDMMode:", isDMMode);
   const channelContentArea = document.getElementById('channelContentArea');
@@ -619,17 +619,17 @@ toggleDMButton.addEventListener('click', () => {
     dmContentArea.style.display = 'flex';
     dmPanel.style.display = 'block';
     
-    // Ekstra: dmPanel içerisine "dmChatSearchInput" adlı inputu ekle (eğer henüz oluşturulmamışsa)
+    // Yeni: dmPanel içinde dmChatSearchInput oluştur
     if (!document.getElementById('dmChatSearchInput')) {
       const dmChatSearchInput = document.createElement('input');
-      dmChatSearchInput.id = 'dmChatSearchInput';
       dmChatSearchInput.type = 'text';
-      dmChatSearchInput.placeholder = 'DM Chat Search...';
+      dmChatSearchInput.id = 'dmChatSearchInput';
+      dmChatSearchInput.placeholder = 'Arama...';
       dmChatSearchInput.style.padding = '8px';
       dmChatSearchInput.style.border = '1px solid #666';
       dmChatSearchInput.style.borderRadius = '6px';
-      dmChatSearchInput.style.width = 'calc(100% - 16px)';
-      dmChatSearchInput.style.margin = '8px';
+      dmChatSearchInput.style.width = 'calc(100% - 20px)';
+      dmChatSearchInput.style.margin = '10px';
       dmPanel.appendChild(dmChatSearchInput);
     }
     
@@ -1160,17 +1160,17 @@ function initUIEvents() {
       dmContentArea.style.display = 'flex';
       dmPanel.style.display = 'block';
       
-      // Ekstra: dmPanel içerisine "dmChatSearchInput" adlı inputu ekle (eğer henüz oluşturulmamışsa)
+      // Yeni: dmPanel içinde dmChatSearchInput oluştur
       if (!document.getElementById('dmChatSearchInput')) {
         const dmChatSearchInput = document.createElement('input');
-        dmChatSearchInput.id = 'dmChatSearchInput';
         dmChatSearchInput.type = 'text';
-        dmChatSearchInput.placeholder = 'DM Chat Search...';
+        dmChatSearchInput.id = 'dmChatSearchInput';
+        dmChatSearchInput.placeholder = 'Arama...';
         dmChatSearchInput.style.padding = '8px';
         dmChatSearchInput.style.border = '1px solid #666';
         dmChatSearchInput.style.borderRadius = '6px';
-        dmChatSearchInput.style.width = 'calc(100% - 16px)';
-        dmChatSearchInput.style.margin = '8px';
+        dmChatSearchInput.style.width = 'calc(100% - 20px)';
+        dmChatSearchInput.style.margin = '10px';
         dmPanel.appendChild(dmChatSearchInput);
       }
       
