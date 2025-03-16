@@ -1540,5 +1540,3 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
-
-export { isDifferentDay, formatTimestamp, formatLongDate, insertDateSeparator, renderTextMessages, initTextChannelEvents, appendNewMessage };
