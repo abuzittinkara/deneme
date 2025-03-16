@@ -96,7 +96,24 @@
           </div>
         </div>
         <!-- Kanal Durum Paneli -->
-        <div id="channelStatusPanel" class="channel-status-panel" style="display: none;"></div>
+        <div id="channelStatusPanel" class="channel-status-panel" style="display: none;">
+          <div class="chan-status-content">
+            <div id="signalBars" class="signal-bars">
+              <div class="cell-bar" id="cellBar1"></div>
+              <div class="cell-bar" id="cellBar2"></div>
+              <div class="cell-bar" id="cellBar3"></div>
+              <div class="cell-bar" id="cellBar4"></div>
+            </div>
+            <span id="pingValue" style="font-size: 0.85rem;">-- ms</span>
+            <button id="leaveButton" class="leave-btn">
+              <span class="material-icons">call_end</span>
+            </button>
+            <!-- Yeni Ekran Paylaşım Butonu -->
+            <button id="screenShareButton" class="screenshare-btn">
+              <span class="material-icons">desktop_windows</span>
+            </button>
+          </div>
+        </div>
         <!-- Kullanıcı Paneli -->
         <div id="leftUserPanel" class="user-panel">
           <div class="user-panel-content">
@@ -122,9 +139,22 @@
           <h2 id="selectedChannelTitle" class="selected-channel-title">Kanal Seçilmedi</h2>
         </div>
         <!-- Seçili DM Barı (DM moduna özel) -->
-        <div id="selectedDMBar" class="selected-channel-bar" style="display: none;"></div>
+        <div id="selectedDMBar" class="selected-channel-bar" style="display: none;">
+          <!-- dmChannelTitle doğrudan selectedDMBar içinde yer alır, sol hizalı -->
+          <h2 id="dmChannelTitle" class="dm-channel-title" style="margin: 0; border-bottom: 1px solid #ccc; padding: 0.5rem 0; display: flex; align-items: center; justify-content: flex-start;">
+            <span class="dm-title-text">Arkadaşlar</span>
+            <span class="dm-divider"></span>
+            <span class="dm-filter-item" data-filter="online">Çevrimiçi</span>
+            <span class="dm-filter-item" data-filter="all">Hepsi</span>
+            <span class="dm-filter-item" data-filter="sent">Beklemede</span>
+            <span class="dm-filter-item" data-filter="blocked">Engellenen</span>
+            <span class="dm-filter-item" data-filter="add">Arkadaş ekle</span>
+          </h2>
+        </div>
         <!-- dmContentArea, selectedDMBar'dan hemen sonra, main-content'in geri kalanını dolduracak şekilde konumlandırılmıştır -->
-        <div id="dmContentArea" style="display: none; flex: 1; overflow: auto;"></div>
+        <div id="dmContentArea" style="display: none; flex: 1; overflow: auto;">
+          <!-- DM içerikleri buraya gelecek -->
+        </div>
         <div id="channelContentArea" class="channel-content-area">
           <!-- Voice kanallar için -->
           <div id="channelUsersContainer" class="channel-users-container" style="display: none;"></div>
@@ -168,9 +198,7 @@
     </div>
 
     <!-- DM Paneli -->
-    <div id="dmPanel" class="dm-panel" style="display: none;">
-      <input type="text" id="dmChatSearchInput" placeholder="Arama..." style="padding: 8px; border: 1px solid #666; border-radius: 6px; width: calc(100% - 20px); margin: 10px;">
-    </div>
+    <div id="dmPanel" class="dm-panel" style="display: none;"></div>
 
     <!-- Modal: Grup Seçenekleri -->
     <div id="groupModal" class="modal">
