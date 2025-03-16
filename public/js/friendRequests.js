@@ -20,7 +20,7 @@ export function initFriendRequests(socket) {
     return;
   }
   // ÖNEMLİ: Burada dmChannelTitle’a .style.display = 'block' atamadık,
-  // çünkü DM tuşuna basılmadığı sürece gözükmemesi isteniyor.
+  // çünkü DM tuşuna basılmadığı sürece gözükmesi istenmiyor.
 
   // DM içerik alanı oluşturuluyor, dmChannelTitle'ın altında ayrı bir satırda.
   let dmContentArea = document.getElementById('dmContentArea');
@@ -133,6 +133,8 @@ export function initFriendRequests(socket) {
                   if (resp.success) {
                     alert('Arkadaşlık isteği kabul edildi.');
                     li.remove();
+                    // Refresh friend list after accepting
+                    renderFriendList();
                   } else {
                     alert('İstek kabul edilemedi: ' + resp.message);
                   }
@@ -200,8 +202,14 @@ export function initFriendRequests(socket) {
   }
   
   // Yeni ek: dmPanel'in sol tarafında (dmPanel içeriği) arkadaş listesini oluşturmak
-  renderFriendList();
-
+  // Kullanıcı "toggleDMButton"a tıkladığında dmPanel içerisinde arkadaş listesinin otomatik gelmesi sağlanacak.
+  const toggleDMButton = document.getElementById('toggleDMButton');
+  if (toggleDMButton) {
+    toggleDMButton.addEventListener('click', () => {
+      renderFriendList();
+    });
+  }
+  
   // Fonksiyon: dmPanel'e arkadaş listesini render eder
   function renderFriendList() {
     const dmPanel = document.getElementById('dmPanel');
