@@ -544,10 +544,8 @@
   left: 65px;
   top: 0;
   height: 100%;
-  z-index: 50;
+  z-index: 5;
 }
-
-/* DM Close Button */
 .dm-close-btn {
   display: inline-flex;
 }
