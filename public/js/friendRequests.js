@@ -236,11 +236,11 @@ export function initFriendRequests(socket) {
     // dmPanel içeriğini temizle
     dmPanel.innerHTML = '';
 
-    // Yeni: dm-panel-header oluşturuluyor ve ölçüleri 268x26, padding 12px 16px, border-bottom 1px solid #444; ayrıca en üste yapışık ve ortalanmış
+    // Yeni: dm-panel-header oluşturuluyor ve ölçüleri 268x25, padding 12px 16px, border-bottom 1px solid #444; ayrıca en üste yapışık ve ortalanmış
     const dmPanelHeader = document.createElement('div');
     dmPanelHeader.className = 'dm-panel-header';
     dmPanelHeader.style.width = '268px';
-    dmPanelHeader.style.height = '26px';
+    dmPanelHeader.style.height = '25px';
     dmPanelHeader.style.backgroundColor = '#333';
     dmPanelHeader.style.display = 'flex';
     dmPanelHeader.style.alignItems = 'center';
@@ -248,7 +248,6 @@ export function initFriendRequests(socket) {
     dmPanelHeader.style.position = 'sticky';
     dmPanelHeader.style.top = '0';
     dmPanelHeader.style.margin = '0 auto';
-    dmPanelHeader.style.boxSizing = 'border-box';
     dmPanelHeader.style.padding = '12px 16px';
     dmPanelHeader.style.borderBottom = '1px solid #444';
     // Arama kutucuğu oluşturuluyor
