@@ -54,7 +54,7 @@ export function initFriendRequests(socket) {
     input.type = 'text';
     input.id = 'friendSearchInput';
     input.placeholder = 'Kullanıcı adı girin...';
-    input.style.padding = '8px';
+    input.style.padding = '8px'; // Bu kısım arama kutusu için varsayılan, isteğe bağlı
     input.style.border = '1px solid #666';
     input.style.borderRadius = '6px';
     input.style.width = 'calc(100% - 120px)';
@@ -236,7 +236,7 @@ export function initFriendRequests(socket) {
     // dmPanel içeriğini temizle
     dmPanel.innerHTML = '';
 
-    // Yeni: dm-panel-header oluşturuluyor ve ölçüleri 268x25, padding 12px 16px, border-bottom 1px solid #444; ayrıca en üste yapışık ve ortalanmış
+    // Yeni: dm-panel-header oluşturuluyor ve ölçüleri 268x25, padding-top/bottom 12px, padding-left/right 16px, border-bottom 1px solid #444; ayrıca en üste yapışık ve ortalanmış
     const dmPanelHeader = document.createElement('div');
     dmPanelHeader.className = 'dm-panel-header';
     dmPanelHeader.style.width = '268px';
@@ -255,9 +255,10 @@ export function initFriendRequests(socket) {
     searchInput.type = 'text';
     searchInput.placeholder = 'DM sohbetlerinde arama...';
     searchInput.style.width = '90%';
-    searchInput.style.padding = '8px';
+    searchInput.style.padding = '4px 8px'; // padding-top/bottom 4px, left/right 8px
     searchInput.style.border = '1px solid #444';
     searchInput.style.borderRadius = '4px';
+    searchInput.style.color = '#1e1e1e'; // metin rengi
     searchInput.addEventListener('input', function() {
       const query = searchInput.value.toLowerCase();
       const friendItems = dmPanel.querySelectorAll('.friend-item');
