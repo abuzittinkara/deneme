@@ -54,7 +54,7 @@ export function initFriendRequests(socket) {
     input.type = 'text';
     input.id = 'friendSearchInput';
     input.placeholder = 'Kullanıcı adı girin...';
-    input.style.padding = '8px'; // Bu kısım arama kutusu için varsayılan, isteğe bağlı
+    input.style.padding = '8px';
     input.style.border = '1px solid #666';
     input.style.borderRadius = '6px';
     input.style.width = 'calc(100% - 120px)';
@@ -258,7 +258,9 @@ export function initFriendRequests(socket) {
     searchInput.style.padding = '4px 8px'; // padding-top/bottom 4px, left/right 8px
     searchInput.style.border = '1px solid #444';
     searchInput.style.borderRadius = '4px';
-    searchInput.style.color = '#1e1e1e'; // metin rengi
+    // Arka plan rengini #1e1e1e, metin rengini beyaz yapıyoruz.
+    searchInput.style.backgroundColor = '#1e1e1e';
+    searchInput.style.color = 'white';
     searchInput.addEventListener('input', function() {
       const query = searchInput.value.toLowerCase();
       const friendItems = dmPanel.querySelectorAll('.friend-item');
