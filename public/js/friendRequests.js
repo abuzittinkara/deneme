@@ -49,7 +49,7 @@ export function initFriendRequests(socket) {
     dmContentArea.style.display = 'block'; // dmContentArea'nın görünür olduğundan emin oluyoruz.
     dmContentArea.innerHTML = '';
 
-    // Arama kutusu (input) oluştur
+    // Arama kutusu (input) oluşturuluyor
     const input = document.createElement('input');
     input.type = 'text';
     input.id = 'friendSearchInput';
@@ -60,7 +60,7 @@ export function initFriendRequests(socket) {
     input.style.width = 'calc(100% - 120px)';
     input.style.marginRight = '8px';
 
-    // "Arkadaşlık İsteği Gönder" butonunu oluştur
+    // "Arkadaşlık İsteği Gönder" butonunu oluşturuluyor
     const sendButton = document.createElement('button');
     sendButton.textContent = 'Arkadaşlık İsteği Gönder';
     sendButton.id = 'sendFriendRequestButton';
@@ -254,13 +254,12 @@ export function initFriendRequests(socket) {
     const searchInput = document.createElement('input');
     searchInput.type = 'text';
     searchInput.placeholder = 'DM sohbetlerinde arama...';
-    searchInput.style.width = '90%';
+    searchInput.style.width = '100%'; // %100 olarak ayarlandı
     searchInput.style.padding = '4px 8px'; // padding-top/bottom 4px, left/right 8px
     searchInput.style.border = '1px solid #444';
     searchInput.style.borderRadius = '4px';
-    // Arka plan rengini #1e1e1e, metin rengini beyaz yapıyoruz.
-    searchInput.style.backgroundColor = '#1e1e1e';
-    searchInput.style.color = 'white';
+    searchInput.style.backgroundColor = '#1e1e1e'; // Arka plan rengi
+    searchInput.style.color = '#fff'; // Yazı rengi
     searchInput.addEventListener('input', function() {
       const query = searchInput.value.toLowerCase();
       const friendItems = dmPanel.querySelectorAll('.friend-item');
