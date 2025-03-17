@@ -233,7 +233,7 @@ export function initFriendRequests(socket) {
     // dmPanel içeriğini temizle
     dmPanel.innerHTML = '';
 
-    // Yeni: dm-panel-header oluşturuluyor ve ölçüleri 300x50 olarak ayarlanıyor
+    // Yeni: dm-panel-header oluşturuluyor ve ölçüleri 300x50 olarak ayarlanıyor, üstte yapışık ve ortalanmış
     const dmPanelHeader = document.createElement('div');
     dmPanelHeader.className = 'dm-panel-header';
     dmPanelHeader.style.width = '300px';
@@ -242,6 +242,9 @@ export function initFriendRequests(socket) {
     dmPanelHeader.style.display = 'flex';
     dmPanelHeader.style.alignItems = 'center';
     dmPanelHeader.style.justifyContent = 'center';
+    dmPanelHeader.style.position = 'sticky';
+    dmPanelHeader.style.top = '0';
+    dmPanelHeader.style.margin = '0 auto';
     // Arama kutucuğu oluşturuluyor
     const searchInput = document.createElement('input');
     searchInput.type = 'text';
