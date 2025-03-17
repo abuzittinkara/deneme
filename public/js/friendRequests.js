@@ -233,16 +233,20 @@ export function initFriendRequests(socket) {
     // dmPanel içeriğini temizle
     dmPanel.innerHTML = '';
 
-    // Yeni: dm-panel-header oluşturuluyor
+    // Yeni: dm-panel-header oluşturuluyor ve ölçüleri 300x50 olarak ayarlanıyor
     const dmPanelHeader = document.createElement('div');
     dmPanelHeader.className = 'dm-panel-header';
-    dmPanelHeader.style.padding = '10px';
+    dmPanelHeader.style.width = '300px';
+    dmPanelHeader.style.height = '50px';
     dmPanelHeader.style.backgroundColor = '#333';
+    dmPanelHeader.style.display = 'flex';
+    dmPanelHeader.style.alignItems = 'center';
+    dmPanelHeader.style.justifyContent = 'center';
     // Arama kutucuğu oluşturuluyor
     const searchInput = document.createElement('input');
     searchInput.type = 'text';
     searchInput.placeholder = 'DM sohbetlerinde arama...';
-    searchInput.style.width = '100%';
+    searchInput.style.width = '90%';
     searchInput.style.padding = '8px';
     searchInput.style.border = '1px solid #444';
     searchInput.style.borderRadius = '4px';
