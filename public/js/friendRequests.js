@@ -230,10 +230,13 @@ export function initFriendRequests(socket) {
       console.error("dmPanel not found");
       return;
     }
+    // dmPanel'in padding'ini 0 yapıyoruz.
+    dmPanel.style.padding = '0';
+
     // dmPanel içeriğini temizle
     dmPanel.innerHTML = '';
 
-    // Yeni: dm-panel-header oluşturuluyor ve ölçüleri 300x50 olarak ayarlanıyor, üstte yapışık ve ortalanmış
+    // Yeni: dm-panel-header oluşturuluyor ve ölçüleri 300x50, padding-top/bottom 12px, padding-left/right 16px, border-bottom 1px solid #444; ayrıca en üste yapışık ve ortalanmış
     const dmPanelHeader = document.createElement('div');
     dmPanelHeader.className = 'dm-panel-header';
     dmPanelHeader.style.width = '300px';
@@ -245,6 +248,8 @@ export function initFriendRequests(socket) {
     dmPanelHeader.style.position = 'sticky';
     dmPanelHeader.style.top = '0';
     dmPanelHeader.style.margin = '0 auto';
+    dmPanelHeader.style.padding = '12px 16px';
+    dmPanelHeader.style.borderBottom = '1px solid #444';
     // Arama kutucuğu oluşturuluyor
     const searchInput = document.createElement('input');
     searchInput.type = 'text';
