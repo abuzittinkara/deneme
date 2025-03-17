@@ -19,7 +19,8 @@ export function initFriendRequests(socket) {
     console.error("dmChannelTitle not found");
     return;
   }
-  // Not: DM tuşuna basılmadığı sürece dmChannelTitle görünmeyecek.
+  // ÖNEMLİ: Burada dmChannelTitle’a .style.display = 'block' atamadık,
+  // çünkü DM tuşuna basılmadığı sürece gözükmesi istenmiyor.
 
   // DM içerik alanı oluşturuluyor, dmChannelTitle'ın altında ayrı bir satırda.
   let dmContentArea = document.getElementById('dmContentArea');
@@ -102,7 +103,7 @@ export function initFriendRequests(socket) {
   const pendingFilterButton = dmChannelTitle.querySelector('.dm-filter-item[data-filter="sent"]');
   if (pendingFilterButton) {
     pendingFilterButton.addEventListener('click', () => {
-      dmContentArea.style.display = 'block';
+      dmContentArea.style.display = 'block'; // Görünür yapıyoruz.
       dmContentArea.innerHTML = '';
       socket.emit('getPendingFriendRequests', {}, (response) => {
         if (response.success && Array.isArray(response.requests)) {
@@ -178,7 +179,7 @@ export function initFriendRequests(socket) {
   const acceptedFilterButton = dmChannelTitle.querySelector('.dm-filter-item[data-filter="all"]');
   if (acceptedFilterButton) {
     acceptedFilterButton.addEventListener('click', () => {
-      dmContentArea.style.display = 'block';
+      dmContentArea.style.display = 'block'; // Görünür yapıyoruz.
       dmContentArea.innerHTML = '';
       socket.emit('getAcceptedFriendRequests', {}, (response) => {
         if (response.success && Array.isArray(response.friends)) {
@@ -200,7 +201,7 @@ export function initFriendRequests(socket) {
     });
   }
   
-  // Yeni ek: dmPanel'in sol tarafında (dmPanel içeriği) arkadaş listesini oluşturmak.
+  // Yeni ek: dmPanel'in sol tarafında (dmPanel içeriği) arkadaş listesini oluşturmak
   // Kullanıcı "toggleDMButton"a tıkladığında dmPanel içerisinde arkadaş listesinin otomatik gelmesi sağlanacak.
   const toggleDMButton = document.getElementById('toggleDMButton');
   if (toggleDMButton) {
@@ -232,19 +233,43 @@ export function initFriendRequests(socket) {
     // dmPanel içeriğini temizle
     dmPanel.innerHTML = '';
 
-    // Oluştur: dm-panel-header (roomPanel'deki room-panel-header benzeri yapı)
+    // Yeni: dm-panel-header oluşturuluyor
     const dmPanelHeader = document.createElement('div');
     dmPanelHeader.className = 'dm-panel-header';
-    // dm-panel-header içerisine "Arkadaşlar" butonunu ekleyelim
-    const headerButton = document.createElement('button');
-    headerButton.textContent = 'Arkadaşlar';
-    headerButton.style.width = '100%';
-    headerButton.style.padding = '10px';
-    headerButton.style.background = '#c61884';
-    headerButton.style.color = '#fff';
-    headerButton.style.border = 'none';
-    headerButton.style.cursor = 'pointer';
-    headerButton.addEventListener('click', () => {
+    dmPanelHeader.style.padding = '10px';
+    dmPanelHeader.style.backgroundColor = '#333';
+    // Arama kutucuğu oluşturuluyor
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.placeholder = 'DM sohbetlerinde arama...';
+    searchInput.style.width = '100%';
+    searchInput.style.padding = '8px';
+    searchInput.style.border = '1px solid #444';
+    searchInput.style.borderRadius = '4px';
+    searchInput.addEventListener('input', function() {
+      const query = searchInput.value.toLowerCase();
+      const friendItems = dmPanel.querySelectorAll('.friend-item');
+      friendItems.forEach(item => {
+        if(item.textContent.toLowerCase().indexOf(query) > -1) {
+          item.style.display = 'block';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    });
+    dmPanelHeader.appendChild(searchInput);
+    dmPanel.appendChild(dmPanelHeader);
+
+    // Üstte "Arkadaşlar" butonunu ekle ve tıklandığında dmChannelTitle'in içeriğini resetle
+    const friendsButton = document.createElement('button');
+    friendsButton.textContent = 'Arkadaşlar';
+    friendsButton.style.width = '100%';
+    friendsButton.style.padding = '10px';
+    friendsButton.style.background = '#c61884';
+    friendsButton.style.color = '#fff';
+    friendsButton.style.border = 'none';
+    friendsButton.style.cursor = 'pointer';
+    friendsButton.addEventListener('click', () => {
       const selectedDMBar = document.getElementById('selectedDMBar');
       if (selectedDMBar) {
         selectedDMBar.innerHTML = '';
@@ -265,8 +290,7 @@ export function initFriendRequests(socket) {
         dmContentArea.innerHTML = '';
       }
     });
-    dmPanelHeader.appendChild(headerButton);
-    dmPanel.appendChild(dmPanelHeader);
+    dmPanel.appendChild(friendsButton);
 
     // Arkadaş listesini sunucudan alalım
     socket.emit('getAcceptedFriendRequests', {}, (response) => {
@@ -279,11 +303,14 @@ export function initFriendRequests(socket) {
         } else {
           response.friends.forEach(friend => {
             const friendItem = document.createElement('div');
+            friendItem.className = 'friend-item';
             friendItem.textContent = friend.username;
             friendItem.style.padding = '10px';
             friendItem.style.borderBottom = '1px solid #444';
             friendItem.style.cursor = 'pointer';
             friendItem.addEventListener('click', () => {
+              // Arkadaş listesinde bir arkadaşa tıklanırsa,
+              // selectedDMBar'da o arkadaşın kullanıcı adını göster
               const selectedDMBar = document.getElementById('selectedDMBar');
               if (selectedDMBar) {
                 selectedDMBar.innerHTML = '';
@@ -298,7 +325,8 @@ export function initFriendRequests(socket) {
                 h2.style.justifyContent = 'flex-start';
                 h2.textContent = friend.username;
                 selectedDMBar.appendChild(h2);
-              }""
+              }
+              // dmContentArea'da bu arkadaşıyla olan mesajları yükle
               const dmContentArea = document.getElementById('dmContentArea');
               if (dmContentArea) {
                 dmContentArea.innerHTML = 'Bu kişiyle DM mesajları yükleniyor...';
