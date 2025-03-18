@@ -236,12 +236,12 @@ export function initFriendRequests(socket) {
     // dmPanel içeriğini temizle
     dmPanel.innerHTML = '';
 
-    // Yeni: dm-panel-header oluşturuluyor. Inline stiller kaldırıldı; stil ayarları CSS'den verilecek.
+    // Yeni: dm-panel-header oluşturuluyor. Inline stiller kaldırıldı; stil ayarları CSS üzerinden uygulanacak.
     const dmPanelHeader = document.createElement('div');
     dmPanelHeader.className = 'dm-panel-header';
     dmPanel.appendChild(dmPanelHeader);
 
-    // Arama kutucuğu oluşturuluyor (bu kısımda inline stil kullanmaya devam edilebilir veya CSS ile taşınabilir)
+    // Arama kutucuğu oluşturuluyor
     const searchInput = document.createElement('input');
     searchInput.type = 'text';
     // Güncellendi: placeholder metni "Bir konuşma bulun veya başlatın..." olarak ayarlandı
@@ -264,7 +264,6 @@ export function initFriendRequests(socket) {
       });
     });
     dmPanelHeader.appendChild(searchInput);
-    // dmPanelHeader stil ayarları artık CSS'den alınacak, bu yüzden inline stil ataması yok.
     dmPanel.appendChild(dmPanelHeader);
 
     // Üstte "Arkadaşlar" butonunu ekle ve tıklandığında dmChannelTitle'in içeriğini resetle
@@ -293,12 +292,6 @@ export function initFriendRequests(socket) {
         const h2 = document.createElement('h2');
         h2.id = 'dmChannelTitle';
         h2.className = 'dm-channel-title';
-        h2.style.margin = '0';
-        h2.style.borderBottom = '1px solid #ccc';
-        h2.style.padding = '0.5rem 0';
-        h2.style.display = 'flex';
-        h2.style.alignItems = 'center';
-        h2.style.justifyContent = 'flex-start';
         h2.innerHTML = getDefaultDmChannelTitleHtml();
         selectedDMBar.appendChild(h2);
       }
@@ -334,12 +327,6 @@ export function initFriendRequests(socket) {
                 const h2 = document.createElement('h2');
                 h2.id = 'dmChannelTitle';
                 h2.className = 'dm-channel-title';
-                h2.style.margin = '0';
-                h2.style.borderBottom = '1px solid #ccc';
-                h2.style.padding = '0.5rem 0';
-                h2.style.display = 'flex';
-                h2.style.alignItems = 'center';
-                h2.style.justifyContent = 'flex-start';
                 h2.textContent = friend.username;
                 selectedDMBar.appendChild(h2);
               }
