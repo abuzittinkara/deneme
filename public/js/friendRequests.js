@@ -253,7 +253,6 @@ export function initFriendRequests(socket) {
     // Arama kutucuğu oluşturuluyor
     const searchInput = document.createElement('input');
     searchInput.type = 'text';
-    // Güncellendi: placeholder metni "Bir konuşma bulun veya başlatın..." olarak ayarlandı
     searchInput.placeholder = 'Bir konuşma bulun veya başlatın...';
     searchInput.style.width = '100%';
     searchInput.style.padding = '4px 8px'; // padding-top/bottom 4px, left/right 8px
@@ -277,12 +276,13 @@ export function initFriendRequests(socket) {
 
     // Üstte "Arkadaşlar" butonunu ekle ve tıklandığında dmChannelTitle'in içeriğini resetle
     const friendsButton = document.createElement('button');
-    // Buton içeriğinde ikon ve metin olacak; ikon 30x30, rengi "#aaa", margin-right: 1rem; metin "#fff"
+    // Buton içeriğinde ikon ve metin olacak; ikon için span.material-icons ölçüsü 30x30, rengi "#aaa", margin-right: 1rem;
+    // Butonun kendisi 250x24, yazı rengi "#aaa", sola hizalı.
     friendsButton.innerHTML = '<span class="material-icons" style="display:inline-block; width:30px; height:30px; color:#aaa; margin-right:1rem;">group</span>Arkadaşlar';
-    friendsButton.style.width = '100%';
-    friendsButton.style.padding = '10px';
+    friendsButton.style.width = '250px';
+    friendsButton.style.height = '24px';
     friendsButton.style.background = '#2d2d2d';
-    friendsButton.style.color = '#fff';
+    friendsButton.style.color = '#aaa';
     friendsButton.style.border = 'none';
     friendsButton.style.cursor = 'pointer';
     friendsButton.style.textAlign = 'left';
