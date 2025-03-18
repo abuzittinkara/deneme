@@ -279,7 +279,7 @@ export function initFriendRequests(socket) {
     const friendsButton = document.createElement('button');
     // Butonun içeriğine ikon ekleniyor; inline stiller kaldırılarak "dm-group-icon" sınıfı ekleniyor.
     friendsButton.innerHTML = '<span class="material-icons dm-group-icon">group</span>Arkadaşlar';
-    friendsButton.style.width = '100%';
+    friendsButton.style.width = '250px';
     friendsButton.style.padding = '10px';
     friendsButton.style.background = '#2d2d2d';
     friendsButton.style.color = '#aaa';
