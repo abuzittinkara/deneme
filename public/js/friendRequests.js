@@ -54,16 +54,14 @@ export function initFriendRequests(socket) {
     input.type = 'text';
     input.id = 'friendSearchInput';
     input.placeholder = 'Kullanıcı adı girin...';
-    input.style.padding = '8px';
-    input.style.border = '1px solid #666';
-    input.style.borderRadius = '6px';
-    input.style.width = 'calc(100% - 120px)';
-    input.style.marginRight = '8px';
+    // Inline stiller kaldırıldı; artık "dm-search-input" sınıfı üzerinden stil verilecek.
+    input.className = 'dm-search-input';
 
     // "Arkadaşlık İsteği Gönder" butonunu oluşturuluyor
     const sendButton = document.createElement('button');
     sendButton.textContent = 'Arkadaşlık İsteği Gönder';
     sendButton.id = 'sendFriendRequestButton';
+    // Inline stiller burada da bırakılmış ancak isterseniz benzer şekilde CSS sınıfı ekleyebilirsiniz.
     sendButton.style.padding = '8px 12px';
     sendButton.style.background = '#c61884';
     sendButton.style.border = 'none';
@@ -246,17 +244,13 @@ export function initFriendRequests(socket) {
     searchInput.type = 'text';
     // Güncellendi: placeholder metni "Bir konuşma bulun veya başlatın..." olarak ayarlandı
     searchInput.placeholder = 'Bir konuşma bulun veya başlatın...';
-    searchInput.style.width = '100%';
-    searchInput.style.padding = '4px 8px'; // padding-top/bottom 4px, left/right 8px
-    searchInput.style.border = '1px solid #444';
-    searchInput.style.borderRadius = '4px';
-    searchInput.style.backgroundColor = '#1e1e1e'; // Arka plan rengi
-    searchInput.style.color = '#fff'; // Yazı rengi
+    // Inline stiller kaldırıldı; "dm-search-input" sınıfı eklendi.
+    searchInput.className = 'dm-search-input';
     searchInput.addEventListener('input', function() {
       const query = searchInput.value.toLowerCase();
       const friendItems = dmPanel.querySelectorAll('.friend-item');
       friendItems.forEach(item => {
-        if(item.textContent.toLowerCase().indexOf(query) > -1) {
+        if (item.textContent.toLowerCase().indexOf(query) > -1) {
           item.style.display = 'block';
         } else {
           item.style.display = 'none';
