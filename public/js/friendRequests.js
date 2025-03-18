@@ -253,8 +253,9 @@ export function initFriendRequests(socket) {
     // Arama kutucuğu oluşturuluyor
     const searchInput = document.createElement('input');
     searchInput.type = 'text';
-    searchInput.placeholder = 'DM sohbetlerinde arama...';
-    searchInput.style.width = '100%'; // %100 olarak ayarlandı
+    // Güncellendi: placeholder metni "Bir konuşma bulun veya başlatın..." olarak ayarlandı
+    searchInput.placeholder = 'Bir konuşma bulun veya başlatın...';
+    searchInput.style.width = '100%';
     searchInput.style.padding = '4px 8px'; // padding-top/bottom 4px, left/right 8px
     searchInput.style.border = '1px solid #444';
     searchInput.style.borderRadius = '4px';
