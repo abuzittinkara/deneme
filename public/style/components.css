@@ -216,6 +216,8 @@
   width: 300px;
   background: #262626;
   padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
   box-sizing: border-box;
   border-top: 1px solid #444;
   bottom: 0;
@@ -766,4 +768,12 @@
   background-color: #444;
   padding: 4px 12px;
   font-weight: bold;
+}
+
+/* Yeni: dm-group-icon sınıfı, "Arkadaşlar" butonundaki "group" ikonunun stilini ayarlar */
+.dm-group-icon {
+  font-size: 30px;
+  margin-right: 1rem;
+  vertical-align: middle;
+  color: #aaa;
 }
