@@ -777,3 +777,9 @@
   vertical-align: middle;
   color: #aaa;
 }
+
+.dm-panel-header {
+  background: #353535;
+  /* İstediğiniz diğer stil özelliklerini buraya ekleyebilirsiniz (padding, margin, border, vs.) */
+}
+
