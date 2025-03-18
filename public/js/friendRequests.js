@@ -277,15 +277,15 @@ export function initFriendRequests(socket) {
 
     // Üstte "Arkadaşlar" butonunu ekle ve tıklandığında dmChannelTitle'in içeriğini resetle
     const friendsButton = document.createElement('button');
-    // Butonun içeriğine "group" ikonu ekleniyor
-    friendsButton.innerHTML = '<span class="material-icons" style="vertical-align: middle; margin-right: 4px;">group</span>Arkadaşlar';
+    // Buton içeriğinde ikon ve metin olacak; ikon 30x30, rengi "#aaa", margin-right: 1rem; metin "#fff"
+    friendsButton.innerHTML = '<span class="material-icons" style="display:inline-block; width:30px; height:30px; color:#aaa; margin-right:1rem;">group</span>Arkadaşlar';
     friendsButton.style.width = '100%';
     friendsButton.style.padding = '10px';
-    // Arka plan rengi "#2d2d2d", hover durumunda "#1e1e1e" olacak şekilde ayarlanıyor
     friendsButton.style.background = '#2d2d2d';
     friendsButton.style.color = '#fff';
     friendsButton.style.border = 'none';
     friendsButton.style.cursor = 'pointer';
+    friendsButton.style.textAlign = 'left';
     friendsButton.addEventListener('mouseover', () => {
       friendsButton.style.background = '#1e1e1e';
     });
