@@ -279,16 +279,14 @@ export function initFriendRequests(socket) {
     const friendsButton = document.createElement('button');
     // Butonun içeriğine ikon ekleniyor; inline stiller kaldırılarak "dm-group-icon" sınıfı ekleniyor.
     friendsButton.innerHTML = '<span class="material-icons dm-group-icon">group</span>Arkadaşlar';
-    friendsButton.style.width = '250px';
+    friendsButton.style.width = '270px';
+    friendsButton.style.margin = '0 auto';
     friendsButton.style.padding = '10px';
     friendsButton.style.background = '#2d2d2d';
     friendsButton.style.color = '#aaa';
     friendsButton.style.border = 'none';
     friendsButton.style.cursor = 'pointer';
     friendsButton.style.textAlign = 'left';
-    // Yeni ek: butonu yatayda ortalamak için display block ve margin 0 auto ekleniyor.
-    friendsButton.style.display = 'block';
-    friendsButton.style.margin = '0 auto';
     friendsButton.addEventListener('mouseover', () => {
       friendsButton.style.background = '#1e1e1e';
     });
