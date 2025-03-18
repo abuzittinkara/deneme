@@ -772,7 +772,7 @@
 
 /* Yeni: dm-group-icon sınıfı, "Arkadaşlar" butonundaki "group" ikonunun stilini ayarlar */
 .dm-group-icon {
-  font-size: 30px;
+  font-size: 30px !important;
   margin-right: 1rem;
   vertical-align: middle;
   color: #aaa;
