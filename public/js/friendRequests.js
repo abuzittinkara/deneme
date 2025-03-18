@@ -269,21 +269,7 @@ export function initFriendRequests(socket) {
     // Üstte "Arkadaşlar" butonunu ekle ve tıklandığında dmChannelTitle'in içeriğini resetle
     const friendsButton = document.createElement('button');
     friendsButton.innerHTML = '<span class="material-icons dm-group-icon">group</span>Arkadaşlar';
-    friendsButton.style.display = 'block';
-    friendsButton.style.width = '270px';
-    friendsButton.style.margin = '0 auto';
-    friendsButton.style.padding = '10px';
-    friendsButton.style.background = '#2d2d2d';
-    friendsButton.style.color = '#aaa';
-    friendsButton.style.border = 'none';
-    friendsButton.style.cursor = 'pointer';
-    friendsButton.style.textAlign = 'left';
-    friendsButton.addEventListener('mouseover', () => {
-      friendsButton.style.background = '#1e1e1e';
-    });
-    friendsButton.addEventListener('mouseout', () => {
-      friendsButton.style.background = '#2d2d2d';
-    });
+    friendsButton.className = 'dm-friends-button';
     friendsButton.addEventListener('click', () => {
       const selectedDMBar = document.getElementById('selectedDMBar');
       if (selectedDMBar) {

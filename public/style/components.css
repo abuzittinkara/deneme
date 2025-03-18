@@ -799,3 +799,18 @@
   border-bottom: 1px solid #444;
 }
 
+.dm-friends-button {
+  display: block;
+  width: 270px;
+  margin: 0 auto;
+  padding: 10px;
+  background: #2d2d2d;
+  color: #aaa;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.dm-friends-button:hover {
+  background: #1e1e1e;
+}
