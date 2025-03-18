@@ -286,6 +286,9 @@ export function initFriendRequests(socket) {
     friendsButton.style.border = 'none';
     friendsButton.style.cursor = 'pointer';
     friendsButton.style.textAlign = 'left';
+    // Yeni ek: butonu yatayda ortalamak için display block ve margin 0 auto ekleniyor.
+    friendsButton.style.display = 'block';
+    friendsButton.style.margin = '0 auto';
     friendsButton.addEventListener('mouseover', () => {
       friendsButton.style.background = '#1e1e1e';
     });
