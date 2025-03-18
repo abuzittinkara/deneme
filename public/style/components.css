@@ -719,8 +719,9 @@
   align-items: center;
   justify-content: flex-start;
   font-size: 1.2rem;
-  padding-right: 16px;
+  /* İhtiyaç halinde ek stil ayarlarını buraya ekleyebilirsiniz */
 }
+
 
 /* ÖZEL: dm-channel-title altındaki yeni yapı için */
 .dm-title-text {

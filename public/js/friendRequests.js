@@ -268,7 +268,6 @@ export function initFriendRequests(socket) {
 
     // Üstte "Arkadaşlar" butonunu ekle ve tıklandığında dmChannelTitle'in içeriğini resetle
     const friendsButton = document.createElement('button');
-    // Butonun içeriğine ikon ekleniyor; inline stiller kaldırılarak "dm-group-icon" sınıfı ekleniyor.
     friendsButton.innerHTML = '<span class="material-icons dm-group-icon">group</span>Arkadaşlar';
     friendsButton.style.display = 'block';
     friendsButton.style.width = '270px';
@@ -319,8 +318,6 @@ export function initFriendRequests(socket) {
             friendItem.style.borderBottom = '1px solid #444';
             friendItem.style.cursor = 'pointer';
             friendItem.addEventListener('click', () => {
-              // Arkadaş listesinde bir arkadaşa tıklanırsa,
-              // selectedDMBar'da o arkadaşın kullanıcı adını göster
               const selectedDMBar = document.getElementById('selectedDMBar');
               if (selectedDMBar) {
                 selectedDMBar.innerHTML = '';
@@ -330,7 +327,6 @@ export function initFriendRequests(socket) {
                 h2.textContent = friend.username;
                 selectedDMBar.appendChild(h2);
               }
-              // dmContentArea'da bu arkadaşıyla olan mesajları yükle
               const dmContentArea = document.getElementById('dmContentArea');
               if (dmContentArea) {
                 dmContentArea.innerHTML = 'Bu kişiyle DM mesajları yükleniyor...';
