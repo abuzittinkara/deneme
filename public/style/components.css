@@ -228,42 +228,18 @@
   align-items: center;
   gap: 0.6rem;
 }
+/* Global user-profile-pic (varsayılan olarak dmPanel dışında kullanılacak) */
 .user-profile-pic {
-  /* Bu kural leftUserPanel için uygulanacak */
-  width: 40px;
-  height: 40px;
+  width: 30px;
+  height: 30px;
   background: #666;
   border-radius: 45%;
   margin-right: 10px;
 }
-.left-username {
-  font-size: 0.9rem;
-  color: #aaa;
-}
-.user-panel-buttons {
-  display: flex;
-  gap: 0.8rem;
-  margin-left: auto;
-  align-items: center;
-  margin-right: 0.4rem;
-}
-.user-panel-btn {
-  background: none;
-  border: none;
-  color: #aaa;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  width: 20px;
-  height: 20px;
-}
-.user-panel-btn:hover .material-icons {
-  color: #666 !important;
-}
-.user-panel-btn.btn-muted .material-icons {
-  color: #c61884 !important;
+/* LeftUserPanel'deki profil resmi için (değiştirilmiş boyut: 40x40) */
+#leftUserPanel .user-profile-pic {
+  width: 40px;
+  height: 40px;
 }
 
 /* Settings Panel */
@@ -326,7 +302,6 @@
 .text-message.only-message {
   max-width: 100%;
 }
-
 /* Ardışık mesajlarda artık .left-message sınıfı kullanılmayacak.
    Bunun yerine aşağıdaki ayrı sınıfları kullanacaksınız: */
 .text-message.first-message {
@@ -844,12 +819,13 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  color: #aaa;
 }
 .friend-item:hover {
   background-color: #1e1e1e;
 }
 
-/* Yeni: dmPanel içindeki friend-item içerisindeki user-profile-pic için özel stil */
+/* Yeni: friend-item içindeki user-profile-pic için (sadece dmPanel içindeki friend-item'de uygulanacak) */
 .dm-panel .friend-item .user-profile-pic {
   width: 30px;
   height: 30px;
