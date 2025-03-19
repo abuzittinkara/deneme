@@ -229,10 +229,11 @@
   gap: 0.6rem;
 }
 .user-profile-pic {
-  width: 40px;
-  height: 40px;
+  width: 30px;
+  height: 30px;
   background: #666;
-  border-radius: 45%;
+  border-radius: 50%;
+  margin-right: 10px;
 }
 .left-username {
   font-size: 0.9rem;
@@ -816,7 +817,6 @@
   cursor: pointer;
   text-align: left;
 }
-
 .dm-friends-button:hover {
   background: #1e1e1e;
 }
@@ -836,25 +836,29 @@
   width: 250px;
   height: 40px;
   line-height: 40px;
-  margin-bottom: 8px;
-  padding-bottom: 2px;
-  padding-left: 10px;
-  padding-right: 10px;
-  padding-top: 2px;
-  margin-top: 8px;
+  margin: 8px auto;
+  padding: 2px 10px;
   border-radius: 5px;
   cursor: pointer;
-  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 }
 .friend-item:hover {
   background-color: #1e1e1e;
 }
 
-/* Selected state definitions */
-.dm-friends-button.selected {
-  background: #353535;
+/* Yeni: user-profile-pic */
+.user-profile-pic {
+  width: 30px;
+  height: 30px;
+  background: #666;
+  border-radius: 50%;
+  margin-right: 10px;
 }
 
-.friend-item.selected {
+/* Seçili durum stilleri */
+.friend-item.selected,
+.dm-friends-button.selected {
   background: #353535;
 }
