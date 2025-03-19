@@ -833,9 +833,12 @@
 
 /* Yeni: friend-item stilleri */
 .friend-item {
-  padding: 10px;
+  width: 270px;
+  height: 40px;
+  line-height: 40px;
   border-bottom: 1px solid #444;
   cursor: pointer;
+  margin: 0 auto;
 }
 .friend-item:hover {
   background-color: #1e1e1e;
