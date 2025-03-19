@@ -172,6 +172,3 @@
   text-align: left;
   align-self: flex-start;
 }
-
-/* Not: dm-channel-title tanımı bu dosyadan kaldırıldı.
-   Artık dm-channel-title stili public/style/components.css üzerinden yönetiliyor. */
