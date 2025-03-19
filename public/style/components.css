@@ -713,7 +713,6 @@
 /* ÖZEL: dm-channel-title için stil tanımlaması */
 .dm-channel-title {
   margin: 0;
-  border-bottom: 1px solid #ccc;
   padding: 0.5rem 0;
   display: flex;
   align-items: center;
@@ -785,6 +784,7 @@
   color: #aaa;
 }
 
+/* Yeni: dm-panel-header */
 .dm-panel-header {
   width: 268px;
   height: 25px;
@@ -799,16 +799,12 @@
   border-bottom: 1px solid #444;
 }
 
+/* Yeni: dm-friends-button */
 .dm-friends-button {
   display: block;
   width: 270px;
   margin: 0 auto;
-  margin-top: 8px;
-  margin-bottom: 8px;
-  padding-top: 2px;
-  padding-bottom: 2px;
-  padding-left: 10px;
-  padding-right: 10px;
+  padding: 10px;
   background: #2d2d2d;
   color: #aaa;
   border: none;
@@ -820,6 +816,7 @@
   background: #1e1e1e;
 }
 
+/* Yeni: dm-search-input */
 .dm-search-input {
   width: 100%;
   padding: 4px 8px;
@@ -827,4 +824,14 @@
   border-radius: 4px;
   background-color: #1e1e1e;
   color: #fff;
+}
+
+/* Yeni: friend-item stilleri */
+.friend-item {
+  padding: 10px;
+  border-bottom: 1px solid #444;
+  cursor: pointer;
+}
+.friend-item:hover {
+  background-color: #1e1e1e;
 }
