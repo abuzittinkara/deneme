@@ -836,7 +836,13 @@
   width: 270px;
   height: 40px;
   line-height: 40px;
-  border-bottom: 1px solid #444;
+  margin-bottom: 8px;
+  padding-bottom: 2px;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 2px;
+  margin-top: 8px;
+  border-radius: 5px;
   cursor: pointer;
   margin: 0 auto;
 }
