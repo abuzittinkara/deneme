@@ -843,6 +843,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  color: #aaa;
 }
 .friend-item:hover {
   background-color: #1e1e1e;
