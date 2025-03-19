@@ -229,9 +229,9 @@
   gap: 0.6rem;
 }
 .user-profile-pic {
-  /* Global user-profile-pic (örneğin leftUserPanel için) */
-  width: 30px;
-  height: 30px;
+  /* Bu kural leftUserPanel için uygulanacak */
+  width: 40px;
+  height: 40px;
   background: #666;
   border-radius: 50%;
   margin-right: 10px;
@@ -849,7 +849,7 @@
   background-color: #1e1e1e;
 }
 
-/* Yeni: friend-item içindeki user-profile-pic (sadece dmPanel içindeki friend-item'lerde uygulanacak) */
+/* Yeni: dmPanel içindeki friend-item içerisindeki user-profile-pic için özel stil */
 .dm-panel .friend-item .user-profile-pic {
   width: 30px;
   height: 30px;
