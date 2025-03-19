@@ -235,6 +235,11 @@
   border-radius: 50%;
   margin-right: 10px;
 }
+/* Sol paneldeki profil resmi 40x40 */
+#leftUserPanel .user-profile-pic {
+  width: 40px;
+  height: 40px;
+}
 .left-username {
   font-size: 0.9rem;
   color: #aaa;
@@ -849,6 +854,12 @@
   background-color: #1e1e1e;
 }
 
+/* Seçili durum stilleri */
+.friend-item.selected,
+.dm-friends-button.selected {
+  background: #353535;
+}
+
 /* Yeni: user-profile-pic */
 .user-profile-pic {
   width: 30px;
@@ -858,8 +869,8 @@
   margin-right: 10px;
 }
 
-/* Seçili durum stilleri */
-.friend-item.selected,
-.dm-friends-button.selected {
-  background: #353535;
+/* Bu kural, leftUserPanel içindeki user-profile-pic'in boyutunu 40x40 yapar */
+#leftUserPanel .user-profile-pic {
+  width: 40px;
+  height: 40px;
 }
