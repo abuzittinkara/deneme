@@ -111,11 +111,8 @@ export function initFriendRequests(socket) {
             const list = document.createElement('ul');
             response.requests.forEach(req => {
               const li = document.createElement('li');
-              li.style.display = 'flex';
-              li.style.alignItems = 'center';
-              li.style.justifyContent = 'space-between';
-              li.style.padding = '5px 0';
-
+              li.className = 'friend-item';
+              
               const textSpan = document.createElement('span');
               textSpan.textContent = `${req.from} adlı kullanıcıdan gelen istek`;
 
@@ -187,6 +184,7 @@ export function initFriendRequests(socket) {
             const list = document.createElement('ul');
             response.friends.forEach(friend => {
               const li = document.createElement('li');
+              li.className = 'friend-item';
               li.textContent = friend.username;
               list.appendChild(li);
             });
@@ -294,7 +292,6 @@ export function initFriendRequests(socket) {
             const friendItem = document.createElement('div');
             friendItem.className = 'friend-item';
             friendItem.textContent = friend.username;
-            // Inline stiller kaldırıldı; "friend-item" stilleri CSS dosyasından verilecek.
             friendItem.addEventListener('click', () => {
               const selectedDMBar = document.getElementById('selectedDMBar');
               if (selectedDMBar) {
