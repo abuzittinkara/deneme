@@ -61,7 +61,7 @@ export function initFriendRequests(socket) {
     const sendButton = document.createElement('button');
     sendButton.textContent = 'Arkadaşlık İsteği Gönder';
     sendButton.id = 'sendFriendRequestButton';
-    // Inline stiller burada da bırakılmış ancak isterseniz benzer şekilde CSS sınıfı ekleyebilirsiniz.
+    // Inline stiller burada da kaldırıldı; isterseniz bu buton için de ayrı bir CSS sınıfı tanımlayabilirsiniz.
     sendButton.style.padding = '8px 12px';
     sendButton.style.background = '#c61884';
     sendButton.style.border = 'none';
@@ -250,7 +250,7 @@ export function initFriendRequests(socket) {
       const query = searchInput.value.toLowerCase();
       const friendItems = dmPanel.querySelectorAll('.friend-item');
       friendItems.forEach(item => {
-        if (item.textContent.toLowerCase().indexOf(query) > -1) {
+        if(item.textContent.toLowerCase().indexOf(query) > -1) {
           item.style.display = 'block';
         } else {
           item.style.display = 'none';
