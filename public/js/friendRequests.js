@@ -61,7 +61,7 @@ export function initFriendRequests(socket) {
     const sendButton = document.createElement('button');
     sendButton.textContent = 'Arkadaşlık İsteği Gönder';
     sendButton.id = 'sendFriendRequestButton';
-    // Inline stiller burada da kaldırıldı; isterseniz bu buton için de ayrı bir CSS sınıfı tanımlayabilirsiniz.
+    // Inline stiller burada da bırakılmış ancak isterseniz benzer şekilde CSS sınıfı ekleyebilirsiniz.
     sendButton.style.padding = '8px 12px';
     sendButton.style.background = '#c61884';
     sendButton.style.border = 'none';
@@ -294,9 +294,7 @@ export function initFriendRequests(socket) {
             const friendItem = document.createElement('div');
             friendItem.className = 'friend-item';
             friendItem.textContent = friend.username;
-            friendItem.style.padding = '10px';
-            friendItem.style.borderBottom = '1px solid #444';
-            friendItem.style.cursor = 'pointer';
+            // Inline stiller kaldırıldı; "friend-item" stilleri CSS dosyasından verilecek.
             friendItem.addEventListener('click', () => {
               const selectedDMBar = document.getElementById('selectedDMBar');
               if (selectedDMBar) {
