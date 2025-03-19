@@ -64,7 +64,7 @@ export function initFriendRequests(socket) {
     const sendButton = document.createElement('button');
     sendButton.textContent = 'Arkadaşlık İsteği Gönder';
     sendButton.id = 'sendFriendRequestButton';
-    // Inline stiller burada da kaldırıldı (isterseniz CSS üzerinden stillendirin)
+    // Inline stiller kaldırıldı (isterseniz CSS üzerinden stillendirin)
     sendButton.className = 'dm-send-request-btn';
 
     dmContentArea.appendChild(input);
@@ -111,9 +111,23 @@ export function initFriendRequests(socket) {
             const list = document.createElement('ul');
             response.requests.forEach(req => {
               const li = document.createElement('li');
-              // Eğer friend-item olarak seçili yapılması gerekiyorsa, inline stilleri kaldırdık; CSS sınıfı uygulanacak.
-              li.className = 'friend-item';
-              li.textContent = `${req.from} adlı kullanıcıdan gelen istek`;
+              li.style.display = 'flex';
+              li.style.alignItems = 'center';
+              li.style.justifyContent = 'space-between';
+              li.style.padding = '5px 0';
+
+              // Profil fotoğrafı alanı
+              const profilePic = document.createElement('div');
+              profilePic.className = 'user-profile-pic';
+              // İsteğe bağlı: varsayılan profil fotoğrafı veya arka plan rengi CSS üzerinden ayarlanabilir.
+
+              // Kullanıcı adını gösteren span
+              const textSpan = document.createElement('span');
+              textSpan.textContent = `${req.from}`;
+              
+              // Kapsayıcıya ekleyelim
+              li.appendChild(profilePic);
+              li.appendChild(textSpan);
 
               // Accept button
               const acceptBtn = document.createElement('button');
@@ -182,8 +196,17 @@ export function initFriendRequests(socket) {
             response.friends.forEach(friend => {
               const li = document.createElement('li');
               li.className = 'friend-item';
-              li.textContent = friend.username;
-              // friend-item'e tıklandığında seçili durumu ayarlayalım (aşağıdaki bölümde olduğu gibi)
+              // Oluşturulan friend-item yapısına profil fotoğrafı ekleyelim.
+              const profilePic = document.createElement('div');
+              profilePic.className = 'user-profile-pic';
+              
+              const usernameSpan = document.createElement('span');
+              usernameSpan.textContent = friend.username;
+              
+              li.appendChild(profilePic);
+              li.appendChild(usernameSpan);
+              
+              // friend-item'e tıklandığında seçili durumu ayarlayalım
               li.addEventListener('click', () => {
                 removeSelectedStates();
                 li.classList.add('selected');
@@ -321,7 +344,18 @@ export function initFriendRequests(socket) {
           response.friends.forEach(friend => {
             const friendItem = document.createElement('div');
             friendItem.className = 'friend-item';
-            friendItem.textContent = friend.username;
+            // Ek olarak, friend-item içerisine profil fotoğrafı alanı ekleyelim:
+            const profilePic = document.createElement('div');
+            profilePic.className = 'user-profile-pic';
+            // Varsayılan profil fotoğrafı/arka plan rengi CSS üzerinden ayarlanabilir.
+
+            const usernameSpan = document.createElement('span');
+            usernameSpan.textContent = friend.username;
+            
+            friendItem.appendChild(profilePic);
+            friendItem.appendChild(usernameSpan);
+            
+            // friend-item'e tıklandığında seçili durumu ayarlayalım
             friendItem.addEventListener('click', () => {
               removeSelectedStates();
               friendItem.classList.add('selected');
