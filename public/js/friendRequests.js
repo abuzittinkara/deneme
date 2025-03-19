@@ -46,6 +46,8 @@ export function initFriendRequests(socket) {
   
   // "Arkadaş ekle" butonuna tıklayınca, dmContentArea içerisine arama kutusu eklenir.
   friendAddButton.addEventListener('click', () => {
+    // Seçili olan diğerleri sıfırlanıyor
+    clearSelected();
     dmContentArea.style.display = 'block'; // dmContentArea'nın görünür olduğundan emin oluyoruz.
     dmContentArea.innerHTML = '';
 
@@ -61,7 +63,6 @@ export function initFriendRequests(socket) {
     const sendButton = document.createElement('button');
     sendButton.textContent = 'Arkadaşlık İsteği Gönder';
     sendButton.id = 'sendFriendRequestButton';
-    // Inline stiller burada da bırakılmış ancak isterseniz benzer şekilde CSS sınıfı ekleyebilirsiniz.
     sendButton.style.padding = '8px 12px';
     sendButton.style.background = '#c61884';
     sendButton.style.border = 'none';
@@ -71,6 +72,11 @@ export function initFriendRequests(socket) {
 
     dmContentArea.appendChild(input);
     dmContentArea.appendChild(sendButton);
+
+    // Seçili durumu friend-item üzerinde gösterelim
+    clearSelected();
+    // friend-item değil, burada dm-friends-button seçimi kalmasın
+    // (yani, dm-friends-button'un seçili durumunu kaldırıyoruz)
 
     // Arkadaşlık isteğini gönderme fonksiyonu
     function sendFriendRequest() {
@@ -101,6 +107,7 @@ export function initFriendRequests(socket) {
   const pendingFilterButton = dmChannelTitle.querySelector('.dm-filter-item[data-filter="sent"]');
   if (pendingFilterButton) {
     pendingFilterButton.addEventListener('click', () => {
+      clearSelected();
       dmContentArea.style.display = 'block'; // Görünür yapıyoruz.
       dmContentArea.innerHTML = '';
       socket.emit('getPendingFriendRequests', {}, (response) => {
@@ -111,8 +118,11 @@ export function initFriendRequests(socket) {
             const list = document.createElement('ul');
             response.requests.forEach(req => {
               const li = document.createElement('li');
-              li.className = 'friend-item';
-              
+              li.style.display = 'flex';
+              li.style.alignItems = 'center';
+              li.style.justifyContent = 'space-between';
+              li.style.padding = '5px 0';
+
               const textSpan = document.createElement('span');
               textSpan.textContent = `${req.from} adlı kullanıcıdan gelen istek`;
 
@@ -174,6 +184,7 @@ export function initFriendRequests(socket) {
   const acceptedFilterButton = dmChannelTitle.querySelector('.dm-filter-item[data-filter="all"]');
   if (acceptedFilterButton) {
     acceptedFilterButton.addEventListener('click', () => {
+      clearSelected();
       dmContentArea.style.display = 'block'; // Görünür yapıyoruz.
       dmContentArea.innerHTML = '';
       socket.emit('getAcceptedFriendRequests', {}, (response) => {
@@ -184,8 +195,41 @@ export function initFriendRequests(socket) {
             const list = document.createElement('ul');
             response.friends.forEach(friend => {
               const li = document.createElement('li');
-              li.className = 'friend-item';
               li.textContent = friend.username;
+              // friend-item seçildiğinde selected sınıfını ekleyeceğiz:
+              li.className = 'friend-item';
+              // Inline stiller kaldırıldı; CSS üzerinden stil verilecek.
+              li.addEventListener('click', () => {
+                // Tüm dm-friends-button ve friend-item öğelerinden "selected" sınıfını kaldır.
+                clearSelected();
+                // Tıklanan friend-item'e "selected" sınıfı ekle.
+                li.classList.add('selected');
+                const selectedDMBar = document.getElementById('selectedDMBar');
+                if (selectedDMBar) {
+                  selectedDMBar.innerHTML = '';
+                  const h2 = document.createElement('h2');
+                  h2.id = 'dmChannelTitle';
+                  h2.className = 'dm-channel-title';
+                  h2.textContent = friend.username;
+                  selectedDMBar.appendChild(h2);
+                }
+                const dmContentArea = document.getElementById('dmContentArea');
+                if (dmContentArea) {
+                  dmContentArea.innerHTML = 'Bu kişiyle DM mesajları yükleniyor...';
+                }
+                socket.emit('joinDM', { friend: friend.username }, (res) => {
+                  if (res.success && res.messages) {
+                    dmContentArea.innerHTML = '';
+                    res.messages.forEach(msg => {
+                      const msgDiv = document.createElement('div');
+                      msgDiv.textContent = `${msg.username}: ${msg.content}`;
+                      dmContentArea.appendChild(msgDiv);
+                    });
+                  } else {
+                    dmContentArea.innerHTML = 'DM mesajları yüklenirken hata oluştu.';
+                  }
+                });
+              });
               list.appendChild(li);
             });
             dmContentArea.appendChild(list);
@@ -202,6 +246,9 @@ export function initFriendRequests(socket) {
   const toggleDMButton = document.getElementById('toggleDMButton');
   if (toggleDMButton) {
     toggleDMButton.addEventListener('click', () => {
+      clearSelected();
+      // dm-friends-button seçili olsun:
+      toggleDMButton.classList.add('selected');
       renderFriendList();
     });
   }
@@ -263,6 +310,8 @@ export function initFriendRequests(socket) {
     friendsButton.innerHTML = '<span class="material-icons dm-group-icon">group</span>Arkadaşlar';
     friendsButton.className = 'dm-friends-button';
     friendsButton.addEventListener('click', () => {
+      clearSelected();
+      friendsButton.classList.add('selected');
       const selectedDMBar = document.getElementById('selectedDMBar');
       if (selectedDMBar) {
         selectedDMBar.innerHTML = '';
@@ -293,6 +342,8 @@ export function initFriendRequests(socket) {
             friendItem.className = 'friend-item';
             friendItem.textContent = friend.username;
             friendItem.addEventListener('click', () => {
+              clearSelected();
+              friendItem.classList.add('selected');
               const selectedDMBar = document.getElementById('selectedDMBar');
               if (selectedDMBar) {
                 selectedDMBar.innerHTML = '';
@@ -328,6 +379,13 @@ export function initFriendRequests(socket) {
         errorDiv.style.padding = '10px';
         dmPanel.appendChild(errorDiv);
       }
+    });
+  }
+  
+  // Helper: Tüm dm-friends-button ve friend-item öğelerinden "selected" sınıfını kaldırır.
+  function clearSelected() {
+    document.querySelectorAll('.dm-friends-button.selected, .friend-item.selected').forEach(el => {
+      el.classList.remove('selected');
     });
   }
 }
