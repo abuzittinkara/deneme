@@ -64,8 +64,8 @@
   background-color: #3d3d3d;
 }
 .channel-header {
-  display: block; 
-  overflow: auto; 
+  display: block;
+  overflow: auto;
   gap: 0.6rem;
   width: 100%;
   line-height: 1.2;
@@ -833,7 +833,7 @@
 
 /* Yeni: friend-item stilleri */
 .friend-item {
-  width: 270px;
+  width: 250px;
   height: 40px;
   line-height: 40px;
   margin-bottom: 8px;
