@@ -64,8 +64,8 @@
   background-color: #3d3d3d;
 }
 .channel-header {
-  display: block;
-  overflow: auto;
+  display: block; 
+  overflow: auto; 
   gap: 0.6rem;
   width: 100%;
   line-height: 1.2;
@@ -833,19 +833,19 @@
 
 /* Yeni: friend-item stilleri */
 .friend-item {
-  width: 250px;
-  height: 40px;
-  line-height: 40px;
-  margin-bottom: 8px;
-  padding-bottom: 2px;
-  padding-left: 10px;
-  padding-right: 10px;
-  padding-top: 2px;
-  margin-top: 8px;
-  border-radius: 5px;
+  padding: 10px;
+  border-bottom: 1px solid #444;
   cursor: pointer;
-  margin: 0 auto;
 }
 .friend-item:hover {
   background-color: #1e1e1e;
+}
+
+/* Selected state definitions */
+.dm-friends-button.selected {
+  background: #353535;
+}
+
+.friend-item.selected {
+  background: #353535;
 }
