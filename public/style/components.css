@@ -233,7 +233,7 @@
   width: 40px;
   height: 40px;
   background: #666;
-  border-radius: 50%;
+  border-radius: 45%;
   margin-right: 10px;
 }
 .left-username {
@@ -362,7 +362,7 @@
   top: 0;
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+  border-radius: 45%;
   overflow: hidden;
   background: #666;
   display: flex;
@@ -382,7 +382,7 @@
   width: 40px;
   height: 40px;
   background-color: #666;
-  border-radius: 50%;
+  border-radius: 45%;
   color: #fff;
   font-weight: bold;
   display: flex;
