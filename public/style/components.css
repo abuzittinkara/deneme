@@ -232,13 +232,8 @@
   width: 30px;
   height: 30px;
   background: #666;
-  border-radius: 50%;
+  border-radius: 45%;
   margin-right: 10px;
-}
-/* Sol paneldeki profil resmi 40x40 */
-#leftUserPanel .user-profile-pic {
-  width: 40px;
-  height: 40px;
 }
 .left-username {
   font-size: 0.9rem;
@@ -860,17 +855,40 @@
   background: #353535;
 }
 
-/* Yeni: user-profile-pic */
-.user-profile-pic {
-  width: 30px;
-  height: 30px;
+/* Yeni: leftUserPanel'deki user-profile-pic için özel stil */
+#leftUserPanel .user-profile-pic {
+  width: 40px;
+  height: 40px;
   background: #666;
   border-radius: 45%;
   margin-right: 10px;
 }
 
-/* Bu kural, leftUserPanel içindeki user-profile-pic'in boyutunu 40x40 yapar */
-#leftUserPanel .user-profile-pic {
-  width: 40px;
-  height: 40px;
+/* Yeni: Sohbet kanalı container'ı */
+.text-channel-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+/* Yeni: Mesajlar alanı */
+.text-messages {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* (Opsiyonel: Friend-item içindeki profil fotoğrafı için) */
+.friend-item .user-profile-pic {
+  width: 30px;
+  height: 30px;
+  background: #666;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+/* (Opsiyonel: Eğer friend-item içeriğinde profil fotoğrafı ve kullanıcı adı yan yana olacaksa, 
+   friend-item içindeki elemanların hizalanması için ek stil) */
+.friend-item span {
+  vertical-align: middle;
 }
