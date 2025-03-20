@@ -443,13 +443,12 @@
 
 /* Text Yazma Kutusu ve Gönder Butonu */
 .text-chat-input-bar {
-  position: relative;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
+  position: absolute;
+  bottom: 0;
   width: 100%;
+  z-index: 50;
+  background: #2d2d2d;
   padding: 0.5rem;
-  padding-bottom: 23px;
   box-sizing: border-box;
 }
 .text-chat-input-bar .chat-input {
@@ -866,6 +865,7 @@
 
 /* Yeni: Sohbet kanalı container'ı */
 .text-channel-container {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
