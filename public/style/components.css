@@ -442,15 +442,27 @@
 }
 
 /* Text Yazma Kutusu ve Gönder Butonu */
-/* Güncellendi: text-chat-input-bar artık absolute olarak container'ın en altında sabitlenecek */
 .text-chat-input-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  padding: 0.5rem;
+  padding-bottom: 23px;
+  box-sizing: border-box;
+}
+.text-chat-input-bar .chat-input {
+  flex: 1;
   width: 100%;
   box-sizing: border-box;
+  padding-right: 40px;
+  background: #444;
+  border: 1px solid #666;
+  border-radius: 6px;
+  color: #fff;
   padding: 0.5rem;
-  /* İstenirse arka plan veya border eklenebilir */
+  margin-bottom: 0;
 }
 
 .chat-input-wrapper {
@@ -858,24 +870,12 @@
   flex-direction: column;
   width: 100%;
   height: 100%;
-  position: relative;
 }
 
 /* Yeni: Mesajlar alanı */
 .text-messages {
   flex: 1;
   overflow-y: auto;
-  margin-bottom: 50px; /* Input bar yüksekliğine göre ayarlandı */
-}
-
-/* Güncellendi: Text Yazma Kutusu ve Gönder Butonu */
-.text-chat-input-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 0.5rem;
 }
 
 /* (Opsiyonel: Friend-item içindeki profil fotoğrafı için) */
