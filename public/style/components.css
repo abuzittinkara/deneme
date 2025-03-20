@@ -442,32 +442,17 @@
 }
 
 /* Text Yazma Kutusu ve Gönder Butonu */
+/* Güncellendi: text-chat-input-bar artık absolute olarak container'ın en altında sabitlenecek */
 .text-chat-input-bar {
-  /* Düzenleme: Sohbet kanalının input barı container'ı artık dikeyde en alta yerleşecek.
-     Eğer container bir flex container ise, margin-top: auto kullanarak input barın en alta itilmesini sağlıyoruz.
-     Alternatif olarak sticky konumlandırma da eklenebilir. */
-  width: 100%;
-  margin-top: auto;
-  /* Eğer ekranın sabit alt kısmında kalması isteniyorsa; (isteğe bağlı)
-  position: sticky;
+  position: absolute;
   bottom: 0;
-  z-index: 2;
-  */
-}
-.text-chat-input-bar .chat-input {
-  flex: 1;
+  left: 0;
   width: 100%;
   box-sizing: border-box;
-  padding-right: 40px;
-  background: #444;
-  border: 1px solid #666;
-  border-radius: 6px;
-  color: #fff;
   padding: 0.5rem;
-  margin-bottom: 0;
+  /* İstenirse arka plan veya border eklenebilir */
 }
 
-/* Chat input wrapper */
 .chat-input-wrapper {
   position: relative;
   display: block;
@@ -873,12 +858,24 @@
   flex-direction: column;
   width: 100%;
   height: 100%;
+  position: relative;
 }
 
 /* Yeni: Mesajlar alanı */
 .text-messages {
   flex: 1;
   overflow-y: auto;
+  margin-bottom: 50px; /* Input bar yüksekliğine göre ayarlandı */
+}
+
+/* Güncellendi: Text Yazma Kutusu ve Gönder Butonu */
+.text-chat-input-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem;
 }
 
 /* (Opsiyonel: Friend-item içindeki profil fotoğrafı için) */
@@ -894,15 +891,4 @@
    friend-item içindeki elemanların hizalanması için ek stil) */
 .friend-item span {
   vertical-align: middle;
-}
-
-/* Yeni: Text Chat Input Bar – ekranın en altına sabit (container içinde en alta itilmek için) */
-.text-chat-input-bar {
-  width: 100%;
-  margin-top: auto;
-  /* Alternatif: Eğer input barın, scroll sırasında sabit kalması isteniyorsa:
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
-  */
 }
