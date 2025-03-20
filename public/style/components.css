@@ -876,6 +876,7 @@
 .text-messages {
   flex: 1;
   overflow-y: auto;
+  margin-bottom: 60px;
 }
 
 /* (Opsiyonel: Friend-item içindeki profil fotoğrafı için) */
