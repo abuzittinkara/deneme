@@ -36,6 +36,8 @@ export function initTypingIndicator(socket, getCurrentTextChannel, getLocalUsern
     typingIndicator.style.color = '#aaa';
     // Başlangıçta görünmez olsun
     typingIndicator.style.visibility = 'hidden';
+    // Başlangıçta aktif kanal bilgisini set ediyoruz
+    typingIndicator.setAttribute('data-channel', getCurrentTextChannel());
     inputField.parentElement.appendChild(typingIndicator);
   }
 
@@ -43,6 +45,12 @@ export function initTypingIndicator(socket, getCurrentTextChannel, getLocalUsern
 
   // Basit, sabit metin gösterecek fonksiyon (animasyon kaldırıldı)
   function showStaticTyping(username) {
+    const currentChannel = getCurrentTextChannel();
+    // Typing indicator sadece aktif kanal için gösterilsin
+    if (typingIndicator.getAttribute('data-channel') !== currentChannel) {
+      typingIndicator.style.visibility = 'hidden';
+      return;
+    }
     typingIndicator.style.visibility = 'visible';
     typingIndicator.textContent = username + " yazıyor...";
   }
@@ -56,8 +64,27 @@ export function initTypingIndicator(socket, getCurrentTextChannel, getLocalUsern
     typingIndicator.style.visibility = 'hidden';
   }
 
+  // Kanal değişikliği durumunda typing indicator'ı güncellemek için event listener ekliyoruz.
+  // Eğer kanal değiştiyse, indicator'ın data-channel attribute'unu güncelliyoruz ve görünürlüğünü kapatıyoruz.
+  socket.on('updateCurrentChannel', (data) => {
+    if (typingIndicator && data && data.channel) {
+      typingIndicator.setAttribute('data-channel', data.channel);
+      typingIndicator.style.visibility = 'hidden';
+    }
+  });
+
+  // Alternatif olarak, channel change için global bir custom event dinleyicisi ekliyoruz.
+  document.addEventListener('channelChanged', (e) => {
+    if (typingIndicator && e.detail && e.detail.newChannel) {
+      typingIndicator.setAttribute('data-channel', e.detail.newChannel);
+      typingIndicator.style.visibility = 'hidden';
+    }
+  });
+
   // Yerel input alanındaki değişiklikleri dinliyoruz.
   inputField.addEventListener('input', () => {
+    // Her input değişiminde indicator'ın data-channel attribute'unu güncelliyoruz.
+    typingIndicator.setAttribute('data-channel', getCurrentTextChannel());
     const inputText = inputField.value.trim();
     if (inputText !== "") {
       socket.emit('typing', { username: getLocalUsername(), channel: getCurrentTextChannel() });
@@ -80,7 +107,6 @@ export function initTypingIndicator(socket, getCurrentTextChannel, getLocalUsern
   socket.on('typing', (data) => {
     // data: { username: "X", channel: "kanalID" }
     if (data.channel === getCurrentTextChannel() && data.username !== getLocalUsername()) {
-      // Diğer kullanıcının typing event'ini aldığımızda sabit metni gösteriyoruz
       showStaticTyping(data.username);
     }
   });
