@@ -1,72 +1,3 @@
-/* Genel Ayarlar */
-body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Roboto', sans-serif;
-  background: #2d2d2d;
-  color: #aaa;
-  font-size: 16px;
-}
-
-/* Material icons => 20px */
-.material-icons {
-  font-size: 20px !important;
-}
-
-/* Ekran kapsayıcı */
-.screen-container {
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Kart */
-.card {
-  background: #2d2d2d;
-  padding: 2rem;
-  border-radius: 8px;
-  min-width: 320px;
-  text-align: center;
-  border: none;
-  box-shadow: none;
-}
-
-/* Uygulama Başlığı */
-.app-title {
-  margin: 0 0 1rem;
-  font-size: 1.5rem;
-}
-
-/* Inputlar */
-.input-text {
-  display: block;
-  width: 260px;
-  max-width: 90%;
-  padding: 0.6rem;
-  background: #444;
-  color: #fff;
-  border: 1px solid #666;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  margin: 0.6rem auto;
-  box-sizing: border-box;
-}
-
-/* Shake Animasyonu */
-@keyframes shake {
-  0% { transform: translateX(0); }
-  20% { transform: translateX(-4px); }
-  40% { transform: translateX(4px); }
-  60% { transform: translateX(-4px); }
-  80% { transform: translateX(4px); }
-  100% { transform: translateX(0); }
-}
-.shake {
-  animation: shake 0.4s;
-}
-
 /* Butonlar */
 .btn {
   padding: 0.75rem 1.25rem;
@@ -133,8 +64,8 @@ body {
   background-color: #3d3d3d;
 }
 .channel-header {
-  display: block; 
-  overflow: auto; 
+  display: block;
+  overflow: auto;
   gap: 0.6rem;
   width: 100%;
   line-height: 1.2;
@@ -158,7 +89,7 @@ body {
   box-sizing: border-box;
 }
 
-/* Güncel: Kanal kullanıcı alanı */
+/* Kanal Kullanıcıları */
 .channel-user {
   width: 100%;
   display: flex;
@@ -394,9 +325,6 @@ body {
 .text-message.only-message {
   max-width: 100%;
 }
-
-/* Ardışık mesajlarda artık .left-message sınıfı kullanılmayacak.
-   Bunun yerine aşağıdaki ayrı sınıfları kullanacaksınız: */
 .text-message.first-message {
   padding-top: 10px;
   padding-bottom: 0px;
@@ -413,8 +341,6 @@ body {
 .text-message.only-message {
   /* Tek mesaj (yalnızca bir mesaj varsa) için özel stil */
 }
-
-/* Mesaj kapsayıcı */
 .message-item {
   position: relative;
   padding-left: 60px;
@@ -422,8 +348,6 @@ body {
   width: 100%;
   box-sizing: border-box;
 }
-
-/* Avatar solda, metni etkilemesin */
 .message-avatar-container {
   position: absolute;
   left: 0;
@@ -437,8 +361,6 @@ body {
   align-items: center;
   justify-content: center;
 }
-
-/* Kullanıcı adı ve tarih */
 .sender-info {
   display: flex;
   align-items: center;
@@ -467,15 +389,11 @@ body {
   color: #5a5a5a;
   margin-left: 4px;
 }
-
-/* Mesaj içeriği */
 .message-content {
   margin-top: 0px;
   margin-bottom: 0;
   padding: 0;
 }
-
-/* Hover Efekti: Ardışık mesaj sınıflarına fare üzerine gelindiğinde hover oluşsun */
 .text-message.first-message:hover,
 .text-message.middle-message:hover,
 .text-message.last-message:hover,
@@ -483,7 +401,6 @@ body {
   background-color: #2d2d2d;
   cursor: pointer;
 }
-
 /* Scrollbar - WebKit */
 #textMessages::-webkit-scrollbar {
   width: 0px;
@@ -500,7 +417,6 @@ body {
   background-color: #353535;
   border-radius: 2px;
 }
-
 /* Scrollbar - Firefox */
 #textMessages {
   scrollbar-width: none;
@@ -510,21 +426,28 @@ body {
   scrollbar-color: #666 #353535;
 }
 
-/* Text Yazma Kutusu ve Gönder Butonu */
+/* 
+   AŞAĞIDAKİ BLOK (text-chat-input-bar, chat-input-wrapper, chat-input, typing-indicator) 
+   DÜZENLENMİŞ HÂLDİR 
+*/
 .text-chat-input-bar {
   position: absolute;
   bottom: 0;
   width: 100%;
-  height: 56px;
+  height: 56px; /* Sabit 56px yükseklik */
   z-index: 50;
   background: #2d2d2d;
-  padding: 0 8px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  justify-content: center; /* İçerikleri dikey merkezle */
+  padding: 4px 8px;       /* 4px üst/alt + 8px yanlar */
+  gap: 2px;              /* Input ve typingIndicator arası boşluk */
 }
 .text-chat-input-bar .chat-input-wrapper {
-  height: 28px;
+  height: 28px; /* Input satırı yüksekliği */
+  display: flex;
+  align-items: center;
 }
 .text-chat-input-bar .chat-input {
   height: 100%;
@@ -536,17 +459,16 @@ body {
   border: 1px solid #666;
   border-radius: 6px;
   color: #fff;
-  margin-bottom: 0;
+  margin: 0; /* Margin-bottom yerine tamamen 0 */
 }
-/* Yeni: Typing Indicator'ın CSS düzenlemesi */
-#typingIndicator {
-  position: absolute;
-  bottom: 8px;
-  left: 10px;
-  font-size: 0.9em;
+.typing-indicator {
+  font-size: 0.85rem;
   color: #aaa;
+  height: 16px;
+  line-height: 16px; 
   visibility: hidden;
-  white-space: nowrap;
+  margin: 0; 
+  padding-left: 4px; /* Gözle görünür biraz boşluk */
 }
 
 /* Right Panel */
@@ -781,7 +703,6 @@ body {
   align-items: center;
   justify-content: flex-start;
   font-size: 1.2rem;
-  /* İhtiyaç halinde ek stil ayarlarını buraya ekleyebilirsiniz */
 }
 
 /* ÖZEL: dm-channel-title altındaki yeni yapı için */
