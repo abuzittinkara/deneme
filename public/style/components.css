@@ -448,7 +448,7 @@
   width: 100%;
   z-index: 50;
   background: #2d2d2d;
-  padding: 0.5rem;
+  padding: 0.5rem 0.5rem calc(0.5rem + 24px) 0.5rem;
   box-sizing: border-box;
 }
 .text-chat-input-bar .chat-input {
