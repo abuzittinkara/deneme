@@ -1,3 +1,72 @@
+/* Genel Ayarlar */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', sans-serif;
+  background: #2d2d2d;
+  color: #aaa;
+  font-size: 16px;
+}
+
+/* Material icons => 20px */
+.material-icons {
+  font-size: 20px !important;
+}
+
+/* Ekran kapsayıcı */
+.screen-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Kart */
+.card {
+  background: #2d2d2d;
+  padding: 2rem;
+  border-radius: 8px;
+  min-width: 320px;
+  text-align: center;
+  border: none;
+  box-shadow: none;
+}
+
+/* Uygulama Başlığı */
+.app-title {
+  margin: 0 0 1rem;
+  font-size: 1.5rem;
+}
+
+/* Inputlar */
+.input-text {
+  display: block;
+  width: 260px;
+  max-width: 90%;
+  padding: 0.6rem;
+  background: #444;
+  color: #fff;
+  border: 1px solid #666;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  margin: 0.6rem auto;
+  box-sizing: border-box;
+}
+
+/* Shake Animasyonu */
+@keyframes shake {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+  100% { transform: translateX(0); }
+}
+.shake {
+  animation: shake 0.4s;
+}
+
 /* Butonlar */
 .btn {
   padding: 0.75rem 1.25rem;
@@ -469,12 +538,15 @@
   color: #fff;
   margin-bottom: 0;
 }
-/* Değişiklik: Typing Indicator öğesi her zaman 24px boşluk alanı rezerve edecek şekilde ayarlandı */
-.typing-indicator {
-  height: 16px;
-  margin-top: 4px;
-  margin-bottom: 8px;
+/* Yeni: Typing Indicator'ın CSS düzenlemesi */
+#typingIndicator {
+  position: absolute;
+  bottom: 8px;
+  left: 10px;
+  font-size: 0.9em;
+  color: #aaa;
   visibility: hidden;
+  white-space: nowrap;
 }
 
 /* Right Panel */
@@ -868,54 +940,4 @@
   flex: 1;
   overflow-y: auto;
   margin-bottom: 60px;
-}
-
-/* (Opsiyonel: Friend-item içindeki profil fotoğrafı için) */
-.friend-item .user-profile-pic {
-  width: 30px;
-  height: 30px;
-  background: #666;
-  border-radius: 50%;
-  margin-right: 10px;
-}
-
-/* (Opsiyonel: Eğer friend-item içeriğinde profil fotoğrafı ve kullanıcı adı yan yana olacaksa, 
-   friend-item içindeki elemanların hizalanması için ek stil) */
-.friend-item span {
-  vertical-align: middle;
-}
-
-/* Text Yazma Kutusu ve Gönder Butonu */
-.text-chat-input-bar {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 56px;
-  z-index: 50;
-  background: #2d2d2d;
-  padding: 0 8px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-}
-.text-chat-input-bar .chat-input-wrapper {
-  height: 28px;
-}
-.text-chat-input-bar .chat-input {
-  height: 100%;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 0 0.5rem;
-  padding-right: 40px;
-  background: #444;
-  border: 1px solid #666;
-  border-radius: 6px;
-  color: #fff;
-  margin-bottom: 0;
-}
-.typing-indicator {
-  height: 16px;
-  margin-top: 4px;
-  margin-bottom: 8px;
-  visibility: hidden;
 }
