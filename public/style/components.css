@@ -429,36 +429,36 @@
 /*
   AŞAĞIDAKİ BLOK (text-chat-input-bar, chat-input-wrapper, chat-input, typing-indicator)
   YENİDEN DÜZENLENMİŞ HÂLDİR.
-  typingIndicator artık doğrudan textChatInputBar içinde, 
-  textChannelMessageInput ise bar’ın en üstüne yapışık haldedir.
+  "typingIndicator" doğrudan "textChatInputBar" içinde,
+  "textChannelMessageInput" (chat-input) hemen altında gösterilir.
 */
 .text-chat-input-bar {
   position: absolute;
   bottom: 0;
   width: 100%;
-  height: 56px; /* Sabit 56px */
+  height: 56px; /* Sabit toplam yükseklik */
   z-index: 50;
   background: #2d2d2d;
-  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;  /* En üstte başlayacak şekilde */
+  justify-content: flex-start;
   align-items: stretch;
-  padding: 0 8px 4px 8px;       /* Üst:0, sağ:8, alt:4, sol:8 */
-  gap: 2px;                    /* Elemanlar arası boşluk */
+  box-sizing: border-box;
+  padding: 4px 8px;   /* Üst/alt = 4px, Yanlar = 8px */
+  gap: 2px;          /* Elemanlar arası dikey boşluk (input + typingIndicator) */
 }
 .text-chat-input-bar .chat-input-wrapper {
-  height: 28px; /* Input satırı */
+  height: 28px; /* Input yüksekliği */
   display: flex;
   align-items: center;
-  margin-top: 0; 
+  margin: 0;
 }
 .text-chat-input-bar .chat-input {
+  flex: 1;
   height: 100%;
-  width: 100%;
   box-sizing: border-box;
   padding: 0 0.5rem;
-  padding-right: 40px;
+  padding-right: 40px; /* Sağda “Gönder” ikonuna alan */
   background: #444;
   border: 1px solid #666;
   border-radius: 6px;
@@ -470,7 +470,7 @@
   color: #aaa;
   height: 16px;
   line-height: 16px;
-  visibility: hidden;
+  visibility: hidden; /* Yazma yoksa görünmeyecek */
   margin: 0;
   padding-left: 4px;
 }
