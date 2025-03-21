@@ -8,7 +8,7 @@
  * Yerel kullanıcı kendi yazarken ekranında typing göstergesi görünmez.
  * Socket üzerinden “typing” ve “stop typing” event’leri gönderilir; 
  * diğer istemciler (aynı text kanalda) bu event’leri aldığında ilgili kullanıcının adını kullanarak 
- * “X yazıyor...” mesajını gösterir.
+ * “X yazıyor…” mesajını gösterir.
  *
  * Kullanım:
  * import { initTypingIndicator } from './js/typingIndicator.js';
@@ -36,84 +36,86 @@ export function initTypingIndicator(socket, getCurrentTextChannel, getLocalUsern
     typingIndicator.style.color = '#aaa';
     // Başlangıçta görünmez olsun
     typingIndicator.style.visibility = 'hidden';
-    // Başlangıçta aktif kanal bilgisini set ediyoruz
+    // Indicator'ın bağlı olduğu kanal bilgisini saklamak için attribute ekliyoruz
     typingIndicator.setAttribute('data-channel', getCurrentTextChannel());
     inputField.parentElement.appendChild(typingIndicator);
   }
-
-  let typingInterval = null; // Yerel kullanıcının typing event’ini periyodik göndermek için
-
-  // Basit, sabit metin gösterecek fonksiyon (animasyon kaldırıldı)
-  function showStaticTyping(username) {
-    const currentChannel = getCurrentTextChannel();
-    // Typing indicator sadece aktif kanal için gösterilsin
-    if (typingIndicator.getAttribute('data-channel') !== currentChannel) {
+  
+  // Aktif kanalda diğer kullanıcıların typing eventlerini saklamak için bir set kullanıyoruz
+  let activeTypers = new Set();
+  
+  // Typing indicator'ı güncelleyen yardımcı fonksiyon
+  function updateIndicator() {
+    if (activeTypers.size > 0) {
+      const names = Array.from(activeTypers).join(', ');
+      typingIndicator.textContent = names + " yazıyor...";
+      typingIndicator.style.visibility = 'visible';
+    } else {
+      typingIndicator.textContent = "";
       typingIndicator.style.visibility = 'hidden';
-      return;
     }
-    typingIndicator.style.visibility = 'visible';
-    typingIndicator.textContent = username + " yazıyor...";
   }
-
-  function hideTyping() {
-    if (typingInterval) {
-      clearInterval(typingInterval);
-      typingInterval = null;
-    }
-    socket.emit('stop typing', { username: getLocalUsername(), channel: getCurrentTextChannel() });
-    typingIndicator.style.visibility = 'hidden';
-  }
-
-  // Kanal değişikliği durumunda typing indicator'ı güncellemek için event listener ekliyoruz.
-  // Eğer kanal değiştiyse, indicator'ın data-channel attribute'unu güncelliyoruz ve görünürlüğünü kapatıyoruz.
-  socket.on('updateCurrentChannel', (data) => {
-    if (typingIndicator && data && data.channel) {
-      typingIndicator.setAttribute('data-channel', data.channel);
-      typingIndicator.style.visibility = 'hidden';
+  
+  // Diğer kullanıcılardan gelen typing eventlerini dinliyoruz
+  socket.on('typing', (data) => {
+    // data: { username, channel }
+    if (data.channel === getCurrentTextChannel() && data.username !== getLocalUsername()) {
+      activeTypers.add(data.username);
+      updateIndicator();
     }
   });
-
-  // Alternatif olarak, channel change için global bir custom event dinleyicisi ekliyoruz.
-  document.addEventListener('channelChanged', (e) => {
-    if (typingIndicator && e.detail && e.detail.newChannel) {
-      typingIndicator.setAttribute('data-channel', e.detail.newChannel);
-      typingIndicator.style.visibility = 'hidden';
+  
+  socket.on('stop typing', (data) => {
+    if (data.channel === getCurrentTextChannel() && data.username !== getLocalUsername()) {
+      activeTypers.delete(data.username);
+      updateIndicator();
     }
   });
-
+  
   // Yerel input alanındaki değişiklikleri dinliyoruz.
+  // NOT: Yerel kullanıcı kendi typing event’lerini indicator'a eklemiyoruz.
+  let typingInterval = null;
   inputField.addEventListener('input', () => {
-    // Her input değişiminde indicator'ın data-channel attribute'unu güncelliyoruz.
+    // Her input değişiminde indicator'ın bağlı olduğu kanal bilgisini güncelliyoruz.
     typingIndicator.setAttribute('data-channel', getCurrentTextChannel());
     const inputText = inputField.value.trim();
     if (inputText !== "") {
       socket.emit('typing', { username: getLocalUsername(), channel: getCurrentTextChannel() });
-      // Eğer henüz periyodik typing interval başlamadıysa başlatıyoruz
       if (!typingInterval) {
         typingInterval = setInterval(() => {
           if (inputField.value.trim() !== "") {
             socket.emit('typing', { username: getLocalUsername(), channel: getCurrentTextChannel() });
           } else {
-            hideTyping();
+            clearInterval(typingInterval);
+            typingInterval = null;
+            socket.emit('stop typing', { username: getLocalUsername(), channel: getCurrentTextChannel() });
           }
         }, 2000);
       }
     } else {
-      hideTyping();
+      if (typingInterval) {
+        clearInterval(typingInterval);
+        typingInterval = null;
+      }
+      socket.emit('stop typing', { username: getLocalUsername(), channel: getCurrentTextChannel() });
     }
   });
-
-  // Diğer kullanıcılardan gelen typing eventlerini dinliyoruz.
-  socket.on('typing', (data) => {
-    // data: { username: "X", channel: "kanalID" }
-    if (data.channel === getCurrentTextChannel() && data.username !== getLocalUsername()) {
-      showStaticTyping(data.username);
+  
+  // Kanal değişikliği durumunda indicator'ın bağlı olduğu kanal bilgisini güncelleyelim ve aktif listemizi temizleyelim.
+  socket.on('updateCurrentChannel', (data) => {
+    if (data && data.channel) {
+      typingIndicator.setAttribute('data-channel', data.channel);
+      activeTypers.clear();
+      updateIndicator();
     }
   });
-
-  socket.on('stop typing', (data) => {
-    if (data.channel === getCurrentTextChannel() && data.username !== getLocalUsername()) {
-      typingIndicator.style.visibility = 'hidden';
+  
+  // Alternatif: Global channel değişikliği event’i dinleniyor
+  document.addEventListener('channelChanged', (e) => {
+    if (e.detail && e.detail.newChannel) {
+      typingIndicator.setAttribute('data-channel', e.detail.newChannel);
+      activeTypers.clear();
+      updateIndicator();
     }
   });
 }
