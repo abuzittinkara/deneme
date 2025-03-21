@@ -426,28 +426,32 @@
   scrollbar-color: #666 #353535;
 }
 
-/* 
-   AŞAĞIDAKİ BLOK (text-chat-input-bar, chat-input-wrapper, chat-input, typing-indicator) 
-   DÜZENLENMİŞ HÂLDİR 
+/*
+  AŞAĞIDAKİ BLOK (text-chat-input-bar, chat-input-wrapper, chat-input, typing-indicator)
+  YENİDEN DÜZENLENMİŞ HÂLDİR.
+  typingIndicator artık doğrudan textChatInputBar içinde, 
+  textChannelMessageInput ise bar’ın en üstüne yapışık haldedir.
 */
 .text-chat-input-bar {
   position: absolute;
   bottom: 0;
   width: 100%;
-  height: 56px; /* Sabit 56px yükseklik */
+  height: 56px; /* Sabit 56px */
   z-index: 50;
   background: #2d2d2d;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* İçerikleri dikey merkezle */
-  padding: 4px 8px;       /* 4px üst/alt + 8px yanlar */
-  gap: 2px;              /* Input ve typingIndicator arası boşluk */
+  justify-content: flex-start;  /* En üstte başlayacak şekilde */
+  align-items: stretch;
+  padding: 0 8px 4px 8px;       /* Üst:0, sağ:8, alt:4, sol:8 */
+  gap: 2px;                    /* Elemanlar arası boşluk */
 }
 .text-chat-input-bar .chat-input-wrapper {
-  height: 28px; /* Input satırı yüksekliği */
+  height: 28px; /* Input satırı */
   display: flex;
   align-items: center;
+  margin-top: 0; 
 }
 .text-chat-input-bar .chat-input {
   height: 100%;
@@ -459,16 +463,16 @@
   border: 1px solid #666;
   border-radius: 6px;
   color: #fff;
-  margin: 0; /* Margin-bottom yerine tamamen 0 */
+  margin: 0;
 }
 .typing-indicator {
   font-size: 0.85rem;
   color: #aaa;
   height: 16px;
-  line-height: 16px; 
+  line-height: 16px;
   visibility: hidden;
-  margin: 0; 
-  padding-left: 4px; /* Gözle görünür biraz boşluk */
+  margin: 0;
+  padding-left: 4px;
 }
 
 /* Right Panel */
@@ -621,6 +625,7 @@
 .layout-4-users .user-card {
   width: 100%;
   height: auto;
+  margin: 0;
 }
 .layout-n-users {
   display: grid;
