@@ -449,6 +449,7 @@
 }
 .text-chat-input-bar .chat-input-wrapper {
   height: 28px; /* Input yükseklik */
+  position: relative;
   display: flex;
   align-items: center;
   margin: 0;
