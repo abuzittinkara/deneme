@@ -446,44 +446,26 @@
   position: absolute;
   bottom: 0;
   width: 100%;
+  height: 56px;
   z-index: 50;
   background: #2d2d2d;
-  padding: 0.5rem 0.5rem calc(0.5rem + 24px) 0.5rem;
+  padding: 0 8px 24px 8px;
   box-sizing: border-box;
 }
+.text-chat-input-bar .chat-input-wrapper {
+  height: calc(100% - 24px);
+}
 .text-chat-input-bar .chat-input {
-  flex: 1;
+  height: 100%;
   width: 100%;
   box-sizing: border-box;
+  padding: 0 0.5rem 0 0.5rem;
   padding-right: 40px;
   background: #444;
   border: 1px solid #666;
   border-radius: 6px;
   color: #fff;
-  padding: 0.5rem;
   margin-bottom: 0;
-}
-
-.chat-input-wrapper {
-  position: relative;
-  display: block;
-  width: 100%;
-}
-.chat-input-wrapper .send-icon {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-family: 'Material Icons Outlined';
-  font-size: 24px;
-  transition: color 0.3s ease, font-family 0.3s ease;
-  color: #aaa;
-  cursor: pointer;
-  display: none;
-}
-.chat-input-wrapper .send-icon:hover {
-  font-family: 'Material Icons';
-  color: #c61884;
 }
 
 /* Right Panel */
