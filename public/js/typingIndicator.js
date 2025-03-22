@@ -73,7 +73,7 @@ export function initTypingIndicator(socket, getCurrentTextChannel, getLocalUsern
   });
   
   // Yerel input alanındaki değişiklikleri dinliyoruz.
-  // NOT: Yerel kullanıcı kendi typing event’lerini indicator'a eklemiyoruz.
+  // NOT: Yerel kullanıcı kendi typing event’lerini indicator’a eklemiyoruz.
   let typingInterval = null;
   inputField.addEventListener('input', () => {
     // Her input değişiminde indicator'ın bağlı olduğu kanal bilgisini güncelliyoruz.
@@ -101,7 +101,22 @@ export function initTypingIndicator(socket, getCurrentTextChannel, getLocalUsern
     }
   });
   
-  // Kanal değişikliği durumunda indicator'ın bağlı olduğu kanal bilgisini güncelleyelim ve aktif listemizi temizleyelim.
+  // Fonksiyon: Kanal değişikliğini kontrol eder.
+  // Eğer getCurrentTextChannel() değeri, indicator'ın mevcut "data-channel" attribute'undan farklıysa,
+  // indicator güncellenir, aktif typing listesi temizlenir.
+  function checkChannelChange() {
+    const currentChannel = getCurrentTextChannel();
+    if (typingIndicator.getAttribute('data-channel') !== currentChannel) {
+      typingIndicator.setAttribute('data-channel', currentChannel);
+      activeTypers.clear();
+      updateIndicator();
+    }
+  }
+  
+  // Kanal değişikliğini düzenli olarak kontrol etmek için polling ekliyoruz (500ms aralıkla).
+  setInterval(checkChannelChange, 500);
+  
+  // Ayrıca socket üzerinden veya global event üzerinden kanal değişikliğini dinlemeye çalışıyoruz:
   socket.on('updateCurrentChannel', (data) => {
     if (data && data.channel) {
       typingIndicator.setAttribute('data-channel', data.channel);
@@ -110,7 +125,6 @@ export function initTypingIndicator(socket, getCurrentTextChannel, getLocalUsern
     }
   });
   
-  // Alternatif: Global channel değişikliği event’i dinleniyor
   document.addEventListener('channelChanged', (e) => {
     if (e.detail && e.detail.newChannel) {
       typingIndicator.setAttribute('data-channel', e.detail.newChannel);
