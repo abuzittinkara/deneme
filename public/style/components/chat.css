@@ -1,8 +1,8 @@
 /* "textMessages" container’ı hiçbir zaman main-content genişliğini aşmasın */
 #textMessages {
-  width: 100%;
-  overflow-x: hidden;
-  white-space: normal;
+  width: 100% !important;
+  overflow-x: hidden !important;
+  white-space: normal !important;
   box-sizing: border-box;
   display: block;
 }
