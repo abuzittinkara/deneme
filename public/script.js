@@ -599,7 +599,47 @@ function initSocketEvents() {
   });
 }
 
-/* DM Panel toggle işlevi, her tıklamada DM moduna geçiş veya çıkış yapar (initUIEvents içinde tanımlanacak). */
+/* DM Panel toggle işlevi, her tıklamada DM modunu aç/kapa. */
+toggleDMButton.addEventListener('click', () => {
+  console.log("toggleDMButton clicked, current isDMMode:", isDMMode);
+  const channelContentArea = document.getElementById('channelContentArea');
+  const selectedChannelBar = document.getElementById('selectedChannelBar');
+  const selectedDMBar = document.getElementById('selectedDMBar');
+  const dmContentArea = document.getElementById('dmContentArea');
+  const dmPanel = document.getElementById('dmPanel');
+  
+  if (!isDMMode) {
+    // DM moduna geç
+    roomPanel.style.display = 'none';
+    channelContentArea.style.display = 'none';
+    rightPanel.style.display = 'none';
+    selectedChannelBar.style.display = 'none';
+    
+    selectedDMBar.style.display = 'flex';
+    dmContentArea.style.display = 'flex';
+    dmPanel.style.display = 'block';
+    
+    toggleDMButton.querySelector('.material-icons').textContent = 'group';
+    isDMMode = true;
+    console.log("Switched to DM mode");
+  } else {
+    // Kanal moduna geri dön
+    roomPanel.style.display = 'flex';
+    channelContentArea.style.display = 'flex';
+    channelContentArea.style.width = '100%';  // Eklenen satır: Kanal alanının genişliğini sıfırla
+    rightPanel.style.display = 'flex';
+    selectedDMBar.style.display = 'none';
+    dmContentArea.style.display = 'none';
+    dmPanel.style.display = 'none';
+    selectedChannelBar.style.display = 'flex';
+    
+    toggleDMButton.querySelector('.material-icons').textContent = 'forum';
+    document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
+    document.getElementById('textMessages').style.width = '100%';  // Eklenen satır: textMessages genişliğini sıfırla
+    isDMMode = false;
+    console.log("Switched to channel mode");
+  }
+});
 
 /* startSfuFlow */
 function startSfuFlow() {
@@ -1115,6 +1155,7 @@ function initUIEvents() {
       // Kanal moduna geri dön
       roomPanel.style.display = 'flex';
       channelContentArea.style.display = 'flex';
+      channelContentArea.style.width = '100%';  // Eklenen satır: Kanal alanının genişliğini sıfırla
       rightPanel.style.display = 'flex';
       selectedDMBar.style.display = 'none';
       dmContentArea.style.display = 'none';
@@ -1123,6 +1164,7 @@ function initUIEvents() {
       
       toggleDMButton.querySelector('.material-icons').textContent = 'forum';
       document.getElementById('selectedChannelTitle').textContent = 'Kanal Seçilmedi';
+      document.getElementById('textMessages').style.width = '100%';  // Eklenen satır: textMessages genişliğini sıfırla
       isDMMode = false;
       console.log("Switched to channel mode");
     }
