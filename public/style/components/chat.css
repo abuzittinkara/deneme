@@ -15,7 +15,7 @@
   border-radius: 8px;
   max-width: 100%;
   word-wrap: break-word;
-  overflow-wrap: break-word;   /* Eklenen satır: Uzun kelimelerin otomatik sarılması için */
+  overflow-wrap: break-word;   /* Uzun kelimelerin kırılması için */
   display: block;
   text-align: left;
   transition: background-color 0.2s ease, width 0.2s ease;
@@ -96,7 +96,8 @@
   margin-top: 0px;
   margin-bottom: 0;
   padding: 0;
-  overflow-wrap: break-word;   /* Eklenen satır: Mesaj içeriğinin otomatik sarılması için */
+  overflow-wrap: break-word;   /* Uzun kelimelerin kırılması için */
+  white-space: normal;         /* EK: Metnin otomatik alt satıra geçmesi için */
 }
 .text-message:hover,
 .text-message:hover .message-content {
