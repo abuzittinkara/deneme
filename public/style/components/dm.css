@@ -1,0 +1,184 @@
+/* DM Panel */
+.dm-panel {
+  width: 300px;
+  background: #2d2d2d;
+  color: #fff;
+  padding: 1rem;
+  box-sizing: border-box;
+  overflow: auto;
+  position: absolute;
+  left: 65px;
+  top: 0;
+  height: 100%;
+  z-index: 5;
+}
+.dm-close-btn {
+  display: inline-flex;
+}
+
+/* Context Menu */
+.context-menu {
+  position: absolute;
+  background: #2d2d2d;
+  border: 1px solid #444;
+  border-radius: 6px;
+  z-index: 999999;
+  min-width: 130px;
+  display: none;
+  flex-direction: column;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+.context-menu-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #fff;
+  border-bottom: 1px solid #444;
+}
+.context-menu-item:last-child {
+  border-bottom: none;
+}
+.context-menu-item:hover {
+  background: #444;
+}
+
+/* DM Channel Title & Filters */
+.dm-channel-title {
+  margin: 0;
+  padding: 0.5rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  font-size: 1.2rem;
+}
+.dm-title-text {
+  vertical-align: middle;
+}
+.dm-divider {
+  display: inline-block;
+  width: 1px;
+  height: 1em;
+  background-color: #ccc;
+  margin: 0 8px;
+  vertical-align: middle;
+}
+.dm-filter-item {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  vertical-align: middle;
+  color: inherit;
+  padding: 4px 12px;
+  transition: background-color 0.3s ease, padding 0.3s ease, font-weight 0.3s ease;
+  font-weight: normal;
+  min-width: 100px;
+}
+.dm-filter-item:hover {
+  background-color: #444;
+  padding: 4px 12px;
+  font-weight: bold;
+}
+.dm-filter-item[data-filter="add"] {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  vertical-align: middle;
+  color: inherit;
+  padding: 4px 12px;
+  transition: background-color 0.3s ease, padding 0.3s ease, font-weight 0.3s ease;
+  font-weight: normal;
+  min-width: 100px;
+  background-color: #c61884;
+  border: 1px solid #c61884;
+  color: #fff;
+}
+.dm-filter-item[data-filter="add"]:hover {
+  background-color: #444;
+  padding: 4px 12px;
+  font-weight: bold;
+}
+
+/* DM Group Icon */
+.dm-group-icon {
+  font-size: 30px !important;
+  margin-right: 1rem;
+  vertical-align: middle;
+  color: #aaa;
+}
+
+/* DM Panel Header */
+.dm-panel-header {
+  width: 268px;
+  height: 25px;
+  background: #353535;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: sticky;
+  top: 0;
+  margin: 0 auto;
+  padding: 12px 16px;
+  border-bottom: 1px solid #444;
+}
+
+/* DM Friends Button */
+.dm-friends-button {
+  display: block;
+  width: 270px;
+  margin: 0 auto;
+  margin-bottom: 8px;
+  padding-bottom: 2px;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 2px;
+  margin-top: 8px;
+  border-radius: 5px;
+  background: #2d2d2d;
+  color: #aaa;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+.dm-friends-button:hover {
+  background: #1e1e1e;
+}
+
+/* DM Search Input */
+.dm-search-input {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background-color: #1e1e1e;
+  color: #fff;
+}
+
+/* Friend Item */
+.friend-item {
+  width: 250px;
+  height: 40px;
+  line-height: 40px;
+  margin: 8px auto;
+  padding: 2px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  color: #aaa;
+}
+.friend-item:hover {
+  background-color: #1e1e1e;
+}
+
+/* Seçili Durum */
+.friend-item.selected,
+.dm-friends-button.selected {
+  background: #353535;
+}

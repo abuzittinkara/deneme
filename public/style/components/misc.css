@@ -1,0 +1,97 @@
+/* Kullanıcı Kartları */
+.user-card {
+  position: relative;
+  background: #2d2d2d;
+  border: 1px solid #444;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0.5rem;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+}
+.layout-1-user {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+.layout-1-user .user-card {
+  width: 100%;
+  margin: 0;
+  height: auto;
+}
+.layout-2-users {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  width: 100%;
+  height: auto;
+}
+.layout-2-users .user-card {
+  width: 100%;
+  height: auto;
+  margin: 0;
+}
+.layout-3-users {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  width: 100%;
+  height: auto;
+}
+.layout-3-users .user-card:nth-child(3) {
+  grid-column: 1 / span 2;
+  width: 100%;
+}
+.layout-4-users {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  width: 100%;
+  height: auto;
+}
+.layout-4-users .user-card {
+  width: 100%;
+  height: auto;
+  margin: 0;
+}
+.layout-n-users {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  width: 100%;
+  height: auto;
+}
+.layout-n-users .user-card {
+  width: 100%;
+  height: auto;
+}
+
+/* Tarih Ayırıcı Stili */
+.date-separator {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin: 10px 0;
+  min-height: 24px;
+  position: relative;
+  color: #5a5a5a;
+}
+.date-separator::before,
+.date-separator::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #5a5a5a;
+  margin: 0 10px;
+}
+.date-separator .separator-text {
+  white-space: nowrap;
+  font-size: 0.85rem;
+  color: #5a5a5a;
+  padding: 0 10px;
+  background: transparent;
+  border-radius: 4px;
+}

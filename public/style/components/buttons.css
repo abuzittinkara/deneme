@@ -1,0 +1,46 @@
+/* Butonlar */
+.btn {
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 0rem;
+  transition: background 0.3s ease;
+}
+.btn.primary {
+  background: #c61884;
+  color: #fff;
+}
+.btn.primary:hover {
+  background: #a3156f;
+}
+.btn.secondary {
+  background: #444;
+  color: #fff;
+}
+.btn.secondary:hover {
+  background: #666;
+}
+.btn.small-btn {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+}
+
+/* Circle Butonlar (DM ve Grup Oluşturma) */
+.circle-btn {
+  background-color: #c61884;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.circle-btn:hover {
+  background-color: #a3156f;
+}
