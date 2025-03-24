@@ -1,6 +1,26 @@
+/* Custom Scrollbar for Channel Content Area */
+#channelContentArea {
+  scrollbar-width: thin;
+  scrollbar-color: #666 #353535;
+  overflow-y: auto;
+}
+
+#channelContentArea::-webkit-scrollbar {
+  width: 4px;
+  background: #353535;
+}
+
+#channelContentArea::-webkit-scrollbar-track {
+  background: #353535;
+}
+
+#channelContentArea::-webkit-scrollbar-thumb {
+  background-color: #353535;
+  border-radius: 2px;
+}
+
 /* Yeni ek: Text Channel Container için gerekli ayarlar */
 .text-channel-container {
-  flex: 1;
   min-width: 0;
   overflow-x: hidden;
 }
