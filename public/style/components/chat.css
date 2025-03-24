@@ -1,9 +1,3 @@
-/* Yeni ek: Text Channel Container için gerekli ayarlar */
-.text-channel-container {
-  min-width: 0;
-  overflow-x: hidden;
-}
-
 /* "textMessages" container’ı hiçbir zaman main-content genişliğini aşmasın */
 #textMessages {
   width: 100% !important;
@@ -113,30 +107,25 @@
   background-color: #2d2d2d;
   cursor: pointer;
 }
+
 /* Scrollbar - WebKit */
 #textMessages::-webkit-scrollbar {
-  width: 0px;
-  background: transparent;
-  transition: width 0.3s;
-}
-#textMessages.scrolling::-webkit-scrollbar {
   width: 4px;
 }
-#textMessages.scrolling::-webkit-scrollbar-track {
+#textMessages::-webkit-scrollbar-track {
   background: #353535;
 }
-#textMessages.scrolling::-webkit-scrollbar-thumb {
+#textMessages::-webkit-scrollbar-thumb {
   background-color: #353535;
   border-radius: 2px;
 }
+
 /* Scrollbar - Firefox */
 #textMessages {
-  scrollbar-width: none;
-}
-#textMessages.scrolling {
   scrollbar-width: thin;
   scrollbar-color: #666 #353535;
 }
+
 /* Text Yazma Kutusu ve Gönder Butonu */
 .text-chat-input-bar {
   position: absolute;
