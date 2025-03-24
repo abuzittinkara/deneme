@@ -116,22 +116,22 @@
 
 /* Scrollbar - WebKit */
 #textMessages::-webkit-scrollbar {
-  width: 4px !important;
-  background: #353535 !important;
+  width: 4px;
+  background: #353535;
   transition: width 0.3s;
 }
 #textMessages::-webkit-scrollbar-track {
-  background: #353535 !important;
+  background: #353535;
 }
 #textMessages::-webkit-scrollbar-thumb {
-  background-color: #353535 !important;
-  border-radius: 2px !important;
+  background-color: #353535;
+  border-radius: 2px;
 }
 
 /* Scrollbar - Firefox */
 #textMessages {
-  scrollbar-width: thin !important;
-  scrollbar-color: #666 #353535 !important;
+  scrollbar-width: thin;
+  scrollbar-color: #666 #353535;
 }
 
 /* Text Yazma Kutusu ve Gönder Butonu */
