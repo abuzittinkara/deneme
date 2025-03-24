@@ -469,6 +469,8 @@ function initSocketEvents() {
           console.log(`Text channel clicked => ${roomObj.name}`);
           selectedChannelTitle.textContent = roomObj.name;
           textChannelContainer.style.display = 'flex';
+          // EK: Flex yönünü "column" olarak ayarla
+          textChannelContainer.style.flexDirection = 'column';
           document.getElementById('channelUsersContainer').style.display = 'none';
           if (!(currentRoom && currentRoomType === 'voice')) {
             hideChannelStatusPanel();
