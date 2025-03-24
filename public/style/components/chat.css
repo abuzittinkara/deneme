@@ -1,3 +1,9 @@
+/* Yeni ek: Text Channel Container için gerekli ayarlar */
+.text-channel-container {
+  min-width: 0;
+  overflow-x: hidden;
+}
+
 /* "textMessages" container’ı hiçbir zaman main-content genişliğini aşmasın */
 #textMessages {
   width: 100% !important;
