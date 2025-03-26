@@ -79,6 +79,12 @@
   align-items: center;
   justify-content: center;
 }
+/* Yeni ek: .text-message.first-message içindeki message-avatar-container'ı dikeyde ortala */
+.text-message.first-message .message-avatar-container {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
 .sender-info {
   display: flex;
   align-items: center;
@@ -148,7 +154,7 @@
   background: #2d2d2d;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;  /* Değiştirildi: center -> flex-start */
+  justify-content: flex-start;
   align-items: stretch;
   box-sizing: border-box;
   padding: 4px 8px; /* Üst/alt = 4px, sağ/sol = 8px */
