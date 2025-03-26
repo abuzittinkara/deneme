@@ -1,5 +1,6 @@
 /* Yeni ek: Text Channel Container için gerekli ayarlar */
 .text-channel-container {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -18,6 +19,7 @@
   white-space: normal !important;
   box-sizing: border-box;
   display: block;
+  padding-bottom: 56px; /* Input bar yüksekliği kadar boşluk ekleyerek son mesajın gizlenmesini engeller */
 }
 
 /* Metin Kanalları (Mesajlar) */
@@ -141,6 +143,9 @@
 
 /* Text Yazma Kutusu ve Gönder Butonu */
 .text-chat-input-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
   width: 100%;
   height: 56px; /* Toplam sabit yükseklik */
   z-index: 50;
@@ -152,7 +157,6 @@
   box-sizing: border-box;
   padding: 4px 8px; /* Üst/alt = 4px, sağ/sol = 8px */
   gap: 2px;        /* Input ile typingIndicator arası */
-  margin-top: auto; /* Input bar'ı her durumda en alta iter */
 }
 .text-chat-input-bar .chat-input-wrapper {
   height: 28px; /* Input yükseklik */
