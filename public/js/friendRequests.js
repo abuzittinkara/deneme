@@ -279,15 +279,15 @@ export function initFriendRequests(socket) {
     }
     // dmPanel'in padding'ini 0 yapıyoruz.
     dmPanel.style.padding = '0';
-
+  
     // dmPanel içeriğini temizle
     dmPanel.innerHTML = '';
-
+  
     // Yeni: dm-panel-header oluşturuluyor. Inline stiller kaldırıldı; stil ayarları CSS üzerinden uygulanacak.
     const dmPanelHeader = document.createElement('div');
     dmPanelHeader.className = 'dm-panel-header';
     dmPanel.appendChild(dmPanelHeader);
-
+  
     // Arama kutucuğu oluşturuluyor
     const searchInput = document.createElement('input');
     searchInput.type = 'text';
@@ -308,7 +308,7 @@ export function initFriendRequests(socket) {
     });
     dmPanelHeader.appendChild(searchInput);
     dmPanel.appendChild(dmPanelHeader);
-
+  
     // Üstte "Arkadaşlar" butonunu ekle ve tıklandığında dmChannelTitle'in içeriğini resetle
     const friendsButton = document.createElement('button');
     friendsButton.innerHTML = '<span class="material-icons dm-group-icon">group</span>Arkadaşlar';
@@ -331,7 +331,7 @@ export function initFriendRequests(socket) {
       }
     });
     dmPanel.appendChild(friendsButton);
-
+  
     // Arkadaş listesini sunucudan alalım
     socket.emit('getAcceptedFriendRequests', {}, (response) => {
       if (response.success && Array.isArray(response.friends)) {
@@ -344,17 +344,16 @@ export function initFriendRequests(socket) {
           response.friends.forEach(friend => {
             const friendItem = document.createElement('div');
             friendItem.className = 'friend-item';
-            // Ek olarak, friend-item içerisine profil fotoğrafı alanı ekleyelim:
+            // Oluşturulan friend-item yapısına profil fotoğrafı ekleyelim.
             const profilePic = document.createElement('div');
             profilePic.className = 'user-profile-pic';
-            // Varsayılan profil fotoğrafı/arka plan rengi CSS üzerinden ayarlanabilir.
-
+            
             const usernameSpan = document.createElement('span');
             usernameSpan.textContent = friend.username;
             
             friendItem.appendChild(profilePic);
             friendItem.appendChild(usernameSpan);
-            
+  
             // friend-item'e tıklandığında seçili durumu ayarlayalım
             friendItem.addEventListener('click', () => {
               removeSelectedStates();
@@ -389,10 +388,7 @@ export function initFriendRequests(socket) {
           });
         }
       } else {
-        const errorDiv = document.createElement('div');
-        errorDiv.textContent = 'Arkadaşlar alınırken hata oluştu.';
-        errorDiv.style.padding = '10px';
-        dmPanel.appendChild(errorDiv);
+        dmPanel.textContent = 'Arkadaşlar alınırken hata oluştu.';
       }
     });
   }

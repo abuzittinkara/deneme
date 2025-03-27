@@ -173,8 +173,11 @@
   align-self: flex-start;
 }
 
-/* EKSTRA: Kanal İçerik Alanı için Genişlik ve Taşma Ayarları */
-.channel-content-area {
-  min-width: 0;
-  overflow-x: hidden;
+/* Right Panel */
+#rightPanel {
+  background: #1e1e1e;
+  width: 225px;
+  padding: 1rem;
+  box-sizing: border-box;
+  overflow-y: auto;
 }
