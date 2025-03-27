@@ -1,4 +1,12 @@
 export function initFriendRequests(socket) {
+  // Tüm seçili öğelerden "selected" sınıfını kaldıran yardımcı fonksiyon (initFriendRequests kapsamı içinde tanımlandı)
+  function removeSelectedStates() {
+    const dmFriendsButtons = document.querySelectorAll('.dm-friends-button.selected');
+    dmFriendsButtons.forEach(btn => btn.classList.remove('selected'));
+    const selectedFriendItems = document.querySelectorAll('.friend-item.selected');
+    selectedFriendItems.forEach(item => item.classList.remove('selected'));
+  }
+
   // "selectedChannelBar" elementini alıyoruz (DM içerik alanının ekleneceği yer)
   const selectedChannelBar = document.getElementById('selectedChannelBar');
   if (!selectedChannelBar) {
@@ -342,5 +350,26 @@ export function initFriendRequests(socket) {
         dmPanel.textContent = 'Arkadaşlar alınırken hata oluştu.';
       }
     });
+  }
+  
+  // Yeni: createUserItem fonksiyonu. Artık CSS'e taşınan stiller kullanılacak.
+  function createUserItem(username, isOnline) {
+    const userItem = document.createElement('div');
+    // friend-item sınıfı ekleyerek dmPanel stil kuralları devreye girsin.
+    userItem.classList.add('user-item', 'friend-item');
+    // İşlevsellik için tıklanabilirlik vb. ekleniyor.
+    userItem.style.cursor = 'pointer';
+    const avatar = document.createElement('img');
+    avatar.classList.add('user-profile-pic');
+    avatar.src = '/images/default-avatar.png';
+    avatar.alt = '';
+    // Boyutlar CSS tarafından ayarlanacak (dm.css içinde .dm-panel .user-item.friend-item .user-profile-pic)
+    const userNameSpan = document.createElement('span');
+    userNameSpan.classList.add('user-name');
+    userNameSpan.textContent = username;
+    userNameSpan.style.marginLeft = '8px';
+    userItem.appendChild(avatar);
+    userItem.appendChild(userNameSpan);
+    return userItem;
   }
 }
