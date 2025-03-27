@@ -190,3 +190,8 @@
   align-items: center;
   justify-content: flex-start;
 }
+
+/* Yeni: user-item hover durumunda border-radius: 5px; */
+.user-item:hover {
+  border-radius: 5px;
+}
