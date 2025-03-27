@@ -226,7 +226,7 @@ export function initFriendRequests(socket) {
             });
           }
         } else {
-          dmContentArea.textContent = 'Arkadaşlar alınırken hata oluştu.';
+          dmPanel.textContent = 'Arkadaşlar alınırken hata oluştu.';
         }
       });
     });
@@ -374,19 +374,32 @@ export function initFriendRequests(socket) {
     const selectedFriendItems = document.querySelectorAll('.friend-item.selected');
     selectedFriendItems.forEach(item => item.classList.remove('selected'));
   }
-}
-
-/* createUserItem */
-function createUserItem(username, isOnline) {
-  const userItem = document.createElement('div');
-  userItem.classList.add('user-item');
-  const profileThumb = document.createElement('div');
-  profileThumb.classList.add('profile-thumb');
-  profileThumb.style.backgroundColor = isOnline ? '#2dbf2d' : '#777';
-  const userNameSpan = document.createElement('span');
-  userNameSpan.classList.add('user-name');
-  userNameSpan.textContent = username;
-  userItem.appendChild(profileThumb);
-  userItem.appendChild(userNameSpan);
-  return userItem;
+  
+  // Yeni: createUserItem fonksiyonunu güncelliyoruz.
+  function createUserItem(username, isOnline) {
+    const userItem = document.createElement('div');
+    userItem.classList.add('user-item');
+    // user-item'in içeriğini yatayda sıralayalım
+    userItem.style.display = 'flex';
+    userItem.style.flexDirection = 'row';
+    userItem.style.alignItems = 'center';
+    userItem.style.justifyContent = 'flex-start';
+    userItem.style.cursor = 'pointer';
+    // Avatar olarak <img> elementi oluşturalım, boyut 35x35
+    const avatar = document.createElement('img');
+    avatar.classList.add('user-profile-pic');
+    avatar.src = '/images/default-avatar.png';
+    avatar.alt = '';
+    avatar.style.width = '35px';
+    avatar.style.height = '35px';
+    // Kullanıcı adını gösteren span
+    const userNameSpan = document.createElement('span');
+    userNameSpan.classList.add('user-name');
+    userNameSpan.textContent = username;
+    // Ek: avatar ile kullanıcı adı arasında biraz boşluk ekleyelim
+    userNameSpan.style.marginLeft = '8px';
+    userItem.appendChild(avatar);
+    userItem.appendChild(userNameSpan);
+    return userItem;
+  }
 }
