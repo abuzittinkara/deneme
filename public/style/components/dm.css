@@ -182,3 +182,11 @@
 .dm-friends-button.selected {
   background: #353535;
 }
+
+/* Yeni kural: user-item içindeki avatar ve kullanıcı adını dikeyde ortala */
+.user-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
