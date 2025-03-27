@@ -55,14 +55,12 @@ export function initFriendRequests(socket) {
     input.type = 'text';
     input.id = 'friendSearchInput';
     input.placeholder = 'Kullanıcı adı girin...';
-    // Inline stiller kaldırıldı; artık "dm-search-input" sınıfı üzerinden stil verilecek.
     input.className = 'dm-search-input';
 
     // "Arkadaşlık İsteği Gönder" butonunu oluşturuluyor
     const sendButton = document.createElement('button');
     sendButton.textContent = 'Arkadaşlık İsteği Gönder';
     sendButton.id = 'sendFriendRequestButton';
-    // Inline stiller kaldırıldı (isterseniz CSS üzerinden stillendirin)
     sendButton.className = 'dm-send-request-btn';
 
     dmContentArea.appendChild(input);
@@ -117,13 +115,11 @@ export function initFriendRequests(socket) {
               // Profil fotoğrafı alanı
               const profilePic = document.createElement('div');
               profilePic.className = 'user-profile-pic';
-              // İsteğe bağlı: varsayılan profil fotoğrafı veya arka plan rengi CSS üzerinden ayarlanabilir.
 
               // Kullanıcı adını gösteren span
               const textSpan = document.createElement('span');
               textSpan.textContent = `${req.from}`;
               
-              // Kapsayıcıya ekleyelim
               li.appendChild(profilePic);
               li.appendChild(textSpan);
 
@@ -137,7 +133,6 @@ export function initFriendRequests(socket) {
                     alert('Arkadaşlık isteği kabul edildi.');
                     li.classList.remove('selected');
                     li.remove();
-                    // Refresh friend list after accepting
                     renderFriendList();
                   } else {
                     alert('İstek kabul edilemedi: ' + resp.message);
@@ -183,7 +178,7 @@ export function initFriendRequests(socket) {
     acceptedFilterButton.addEventListener('click', () => {
       removeSelectedStates();
       
-      dmContentArea.style.display = 'block'; // Görünür yapıyoruz.
+      dmContentArea.style.display = 'block';
       dmContentArea.innerHTML = '';
       socket.emit('getAcceptedFriendRequests', {}, (response) => {
         if (response.success && Array.isArray(response.friends)) {
@@ -192,7 +187,6 @@ export function initFriendRequests(socket) {
           } else {
             response.friends.forEach(friend => {
               const friendItem = createUserItem(friend.username, true);
-              // friend-item'e tıklandığında seçili durumu ayarlayalım
               friendItem.addEventListener('click', () => {
                 removeSelectedStates();
                 friendItem.classList.add('selected');
@@ -232,8 +226,7 @@ export function initFriendRequests(socket) {
     });
   }
   
-  // Yeni ek: dmPanel'in sol tarafında (dmPanel içeriği) arkadaş listesini oluşturmak
-  // Kullanıcı "toggleDMButton"a tıkladığında dmPanel içerisinde arkadaş listesinin otomatik gelmesi sağlanacak.
+  // dmPanel'in sol tarafında (dmPanel içeriği) arkadaş listesini oluşturmak için
   const toggleDMButton = document.getElementById('toggleDMButton');
   if (toggleDMButton) {
     toggleDMButton.addEventListener('click', () => {
@@ -242,7 +235,6 @@ export function initFriendRequests(socket) {
     });
   }
   
-  // Fonksiyon: Varsayılan dmChannelTitle içeriğini döndüren fonksiyon
   function getDefaultDmChannelTitleHtml() {
     return `
       <span class="dm-title-text">Arkadaşlar</span>
@@ -255,30 +247,20 @@ export function initFriendRequests(socket) {
     `;
   }
   
-  // Fonksiyon: dmPanel'e arkadaş listesini render eder
   function renderFriendList() {
     const dmPanel = document.getElementById('dmPanel');
     if (!dmPanel) {
       console.error("dmPanel not found");
       return;
     }
-    // dmPanel'in padding'ini 0 yapıyoruz.
     dmPanel.style.padding = '0';
-  
-    // dmPanel içeriğini temizle
     dmPanel.innerHTML = '';
-  
-    // Yeni: dm-panel-header oluşturuluyor. Inline stiller kaldırıldı; stil ayarları CSS üzerinden uygulanacak.
     const dmPanelHeader = document.createElement('div');
     dmPanelHeader.className = 'dm-panel-header';
     dmPanel.appendChild(dmPanelHeader);
-  
-    // Arama kutucuğu oluşturuluyor
     const searchInput = document.createElement('input');
     searchInput.type = 'text';
-    // Güncellendi: placeholder metni "Bir konuşma bulun veya başlatın..." olarak ayarlandı
     searchInput.placeholder = 'Bir konuşma bulun veya başlatın...';
-    // Inline stiller kaldırıldı; "dm-search-input" sınıfı eklendi.
     searchInput.className = 'dm-search-input';
     searchInput.addEventListener('input', function() {
       const query = searchInput.value.toLowerCase();
@@ -293,8 +275,6 @@ export function initFriendRequests(socket) {
     });
     dmPanelHeader.appendChild(searchInput);
     dmPanel.appendChild(dmPanelHeader);
-  
-    // Üstte "Arkadaşlar" butonunu ekle ve tıklandığında dmChannelTitle'in içeriğini resetle
     const friendsButton = document.createElement('button');
     friendsButton.innerHTML = '<span class="material-icons dm-group-icon">group</span>Arkadaşlar';
     friendsButton.className = 'dm-friends-button';
@@ -316,8 +296,6 @@ export function initFriendRequests(socket) {
       }
     });
     dmPanel.appendChild(friendsButton);
-  
-    // Arkadaş listesini sunucudan alalım
     socket.emit('getAcceptedFriendRequests', {}, (response) => {
       if (response.success && Array.isArray(response.friends)) {
         if (response.friends.length === 0) {
@@ -328,7 +306,6 @@ export function initFriendRequests(socket) {
         } else {
           response.friends.forEach(friend => {
             const friendItem = createUserItem(friend.username, true);
-            // friend-item'e tıklandığında seçili durumu ayarlayalım
             friendItem.addEventListener('click', () => {
               removeSelectedStates();
               friendItem.classList.add('selected');
@@ -365,41 +342,5 @@ export function initFriendRequests(socket) {
         dmPanel.textContent = 'Arkadaşlar alınırken hata oluştu.';
       }
     });
-  }
-  
-  // Yardımcı fonksiyon: Tüm seçili öğelerden "selected" sınıfını kaldırır.
-  function removeSelectedStates() {
-    const dmFriendsButtons = document.querySelectorAll('.dm-friends-button.selected');
-    dmFriendsButtons.forEach(btn => btn.classList.remove('selected'));
-    const selectedFriendItems = document.querySelectorAll('.friend-item.selected');
-    selectedFriendItems.forEach(item => item.classList.remove('selected'));
-  }
-  
-  // Yeni: createUserItem fonksiyonunu güncelliyoruz.
-  function createUserItem(username, isOnline) {
-    const userItem = document.createElement('div');
-    userItem.classList.add('user-item');
-    // user-item'in içeriğini yatayda sıralayalım
-    userItem.style.display = 'flex';
-    userItem.style.flexDirection = 'row';
-    userItem.style.alignItems = 'center';
-    userItem.style.justifyContent = 'flex-start';
-    userItem.style.cursor = 'pointer';
-    // Avatar olarak <img> elementi oluşturalım, boyut 35x35
-    const avatar = document.createElement('img');
-    avatar.classList.add('user-profile-pic');
-    avatar.src = '/images/default-avatar.png';
-    avatar.alt = '';
-    avatar.style.width = '35px';
-    avatar.style.height = '35px';
-    // Kullanıcı adını gösteren span
-    const userNameSpan = document.createElement('span');
-    userNameSpan.classList.add('user-name');
-    userNameSpan.textContent = username;
-    // Ek: avatar ile kullanıcı adı arasında biraz boşluk ekleyelim
-    userNameSpan.style.marginLeft = '8px';
-    userItem.appendChild(avatar);
-    userItem.appendChild(userNameSpan);
-    return userItem;
   }
 }

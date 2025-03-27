@@ -160,22 +160,7 @@
 }
 
 /* Friend Item */
-.friend-item {
-  width: 250px;
-  height: 40px;
-  line-height: 40px;
-  margin: 8px auto;
-  padding: 2px 10px;
-  border-radius: 5px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  color: #aaa;
-}
-.friend-item:hover {
-  background-color: #1e1e1e;
-}
+/* Bu sınıf friendRequests.js tarafından createUserItem fonksiyonunda eklenmektedir. */
 
 /* Seçili Durum */
 .friend-item.selected,
@@ -183,21 +168,22 @@
   background: #353535;
 }
 
-/* Yeni kural: user-item içindeki avatar ve kullanıcı adını yan yana ve dikeyde ortala */
-.user-item {
+/* dmPanel içindeki friend-item (user-item.friend-item) stilleri */
+.dm-panel .user-item.friend-item {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
+  cursor: pointer;
+  margin: 8px 16px; /* üst-alt: 8px, sağ-sol: 16px */
 }
-
-/* Yeni: user-item hover durumunda border-radius: 5px; */
-.user-item:hover {
-  border-radius: 5px;
+.dm-panel .user-item.friend-item:hover {
+  background-color: #3d3d3d;
 }
-
-/* Yeni: right-panel içindeki user-profile-pic için özel boyut */
-.right-panel .user-profile-pic {
+.dm-panel .user-item.friend-item .user-profile-pic {
   width: 35px;
   height: 35px;
+}
+.dm-panel .user-item.friend-item .user-name {
+  margin-left: 8px;
 }
