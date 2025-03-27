@@ -183,10 +183,10 @@
   background: #353535;
 }
 
-/* Yeni kural: user-item içindeki avatar ve kullanıcı adını dikeyde ortala */
+/* Yeni kural: user-item içindeki avatar ve kullanıcı adını yan yana ve dikeyde ortala */
 .user-item {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
 }
