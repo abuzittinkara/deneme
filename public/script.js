@@ -1455,13 +1455,21 @@ function updateUserList(data) {
 function createUserItem(username, isOnline) {
   const userItem = document.createElement('div');
   userItem.classList.add('user-item');
-  const profileThumb = document.createElement('div');
-  profileThumb.classList.add('profile-thumb');
-  profileThumb.style.backgroundColor = isOnline ? '#2dbf2d' : '#777';
+  userItem.style.cursor = 'pointer';
+  userItem.addEventListener('mouseover', () => {
+    userItem.style.backgroundColor = '#3d3d3d';
+  });
+  userItem.addEventListener('mouseout', () => {
+    userItem.style.backgroundColor = '';
+  });
+  const avatar = document.createElement('img');
+  avatar.classList.add('user-profile-pic');
+  avatar.src = '/images/default-avatar.png';
+  avatar.alt = 'User Avatar';
   const userNameSpan = document.createElement('span');
   userNameSpan.classList.add('user-name');
   userNameSpan.textContent = username;
-  userItem.appendChild(profileThumb);
+  userItem.appendChild(avatar);
   userItem.appendChild(userNameSpan);
   return userItem;
 }
