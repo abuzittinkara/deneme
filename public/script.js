@@ -1461,42 +1461,18 @@ function createUserItem(username, isOnline) {
   const userNameSpan = document.createElement('span');
   userNameSpan.classList.add('user-name');
   userNameSpan.textContent = username;
-  const copyIdBtn = document.createElement('button');
-  copyIdBtn.classList.add('copy-id-btn');
-  copyIdBtn.textContent = "ID Kopyala";
-  copyIdBtn.dataset.userid = username;
-  copyIdBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(username)
-      .then(() => alert("Kullanıcı kopyalandı: " + username))
-      .catch(err => {
-        console.error("Kopyalama hatası:", err);
-        alert("Kopyalama başarısız!");
-      });
-  });
   userItem.appendChild(profileThumb);
   userItem.appendChild(userNameSpan);
-  userItem.appendChild(copyIdBtn);
   return userItem;
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-  const tm = document.getElementById('textMessages');
-  let removeScrollingTimeout;
-  if (tm) {
-    tm.addEventListener('scroll', function() {
-      const atBottom = tm.scrollTop + tm.clientHeight >= tm.scrollHeight - 5;
-      if (!atBottom) {
-        clearTimeout(removeScrollingTimeout);
-        tm.classList.add('scrolling');
-      } else {
-        removeScrollingTimeout = setTimeout(() => {
-          const stillAtBottom = tm.scrollTop + tm.clientHeight >= tm.scrollHeight - 5;
-          if (stillAtBottom) {
-            tm.classList.remove('scrolling');
-          }
-        }, 1000);
-      }
-    });
-  }
-});
+/* Text Channel Functions */
+/**************************************
+ * public/js/textChannel.js
+ * Metin (mesaj) kanallarıyla ilgili tüm fonksiyonlar burada toplanmıştır.
+ **************************************/
+// [textChannel.js içeriği ayrı bir dosyada olduğu için burada include edilmiyor]
+/* Typing Indicator Module */
+/**************************************
+ * typingIndicator.js içeriği ayrı bir dosyada olduğu için burada include edilmiyor.
+ **************************************/
