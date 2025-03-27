@@ -176,6 +176,8 @@
   justify-content: flex-start;
   cursor: pointer;
   margin: 8px 16px; /* üst-alt: 8px, sağ-sol: 16px */
+  padding: 4px;
+  border-radius: 5px;
 }
 .dm-panel .user-item.friend-item:hover {
   background-color: #3d3d3d;
