@@ -1465,7 +1465,7 @@ function createUserItem(username, isOnline) {
   const avatar = document.createElement('img');
   avatar.classList.add('user-profile-pic');
   avatar.src = '/images/default-avatar.png';
-  avatar.alt = 'User Avatar';
+  avatar.alt = ''; // "User Avatar" yazısı kaldırıldı.
   const userNameSpan = document.createElement('span');
   userNameSpan.classList.add('user-name');
   userNameSpan.textContent = username;
