@@ -195,3 +195,9 @@
 .user-item:hover {
   border-radius: 5px;
 }
+
+/* Yeni: dm-panel içindeki user-item'lerdeki user-profile-pic boyutunu 35x35 yap */
+.dm-panel .user-item .user-profile-pic {
+  width: 35px;
+  height: 35px;
+}
