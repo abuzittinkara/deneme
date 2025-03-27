@@ -1,5 +1,3 @@
-// public/js/friendRequests.js
-
 export function initFriendRequests(socket) {
   // "selectedChannelBar" elementini alıyoruz (DM içerik alanının ekleneceği yer)
   const selectedChannelBar = document.getElementById('selectedChannelBar');
@@ -192,24 +190,12 @@ export function initFriendRequests(socket) {
           if (response.friends.length === 0) {
             dmContentArea.textContent = 'Hiç arkadaşınız yok.';
           } else {
-            const list = document.createElement('ul');
             response.friends.forEach(friend => {
-              const li = document.createElement('li');
-              li.className = 'friend-item';
-              // Oluşturulan friend-item yapısına profil fotoğrafı ekleyelim.
-              const profilePic = document.createElement('div');
-              profilePic.className = 'user-profile-pic';
-              
-              const usernameSpan = document.createElement('span');
-              usernameSpan.textContent = friend.username;
-              
-              li.appendChild(profilePic);
-              li.appendChild(usernameSpan);
-              
+              const friendItem = createUserItem(friend.username, true);
               // friend-item'e tıklandığında seçili durumu ayarlayalım
-              li.addEventListener('click', () => {
+              friendItem.addEventListener('click', () => {
                 removeSelectedStates();
-                li.classList.add('selected');
+                friendItem.classList.add('selected');
                 const selectedDMBar = document.getElementById('selectedDMBar');
                 if (selectedDMBar) {
                   selectedDMBar.innerHTML = '';
@@ -236,9 +222,8 @@ export function initFriendRequests(socket) {
                   }
                 });
               });
-              list.appendChild(li);
+              dmPanel.appendChild(friendItem);
             });
-            dmContentArea.appendChild(list);
           }
         } else {
           dmContentArea.textContent = 'Arkadaşlar alınırken hata oluştu.';
@@ -342,18 +327,7 @@ export function initFriendRequests(socket) {
           dmPanel.appendChild(noFriends);
         } else {
           response.friends.forEach(friend => {
-            const friendItem = document.createElement('div');
-            friendItem.className = 'friend-item';
-            // Oluşturulan friend-item yapısına profil fotoğrafı ekleyelim.
-            const profilePic = document.createElement('div');
-            profilePic.className = 'user-profile-pic';
-            
-            const usernameSpan = document.createElement('span');
-            usernameSpan.textContent = friend.username;
-            
-            friendItem.appendChild(profilePic);
-            friendItem.appendChild(usernameSpan);
-  
+            const friendItem = createUserItem(friend.username, true);
             // friend-item'e tıklandığında seçili durumu ayarlayalım
             friendItem.addEventListener('click', () => {
               removeSelectedStates();
@@ -400,4 +374,19 @@ export function initFriendRequests(socket) {
     const selectedFriendItems = document.querySelectorAll('.friend-item.selected');
     selectedFriendItems.forEach(item => item.classList.remove('selected'));
   }
+}
+
+/* createUserItem */
+function createUserItem(username, isOnline) {
+  const userItem = document.createElement('div');
+  userItem.classList.add('user-item');
+  const profileThumb = document.createElement('div');
+  profileThumb.classList.add('profile-thumb');
+  profileThumb.style.backgroundColor = isOnline ? '#2dbf2d' : '#777';
+  const userNameSpan = document.createElement('span');
+  userNameSpan.classList.add('user-name');
+  userNameSpan.textContent = username;
+  userItem.appendChild(profileThumb);
+  userItem.appendChild(userNameSpan);
+  return userItem;
 }
