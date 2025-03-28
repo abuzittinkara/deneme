@@ -3,7 +3,7 @@ export function initFriendRequests(socket) {
   function removeSelectedStates() {
     const dmFriendsButtons = document.querySelectorAll('.dm-friends-button.selected');
     dmFriendsButtons.forEach(btn => btn.classList.remove('selected'));
-    const selectedFriendItems = document.querySelectorAll('.friend-item.selected');
+    const selectedFriendItems = document.querySelectorAll('.dm-friend-item.selected');
     selectedFriendItems.forEach(item => item.classList.remove('selected'));
   }
 
@@ -52,7 +52,7 @@ export function initFriendRequests(socket) {
   
   // "Arkadaş ekle" butonuna tıklayınca, dmContentArea içerisine arama kutusu eklenir.
   friendAddButton.addEventListener('click', () => {
-    // Ayrıca dm-friends-button ve friend-item'lerden seçili durum kaldırılıyor.
+    // Ayrıca dm-friends-button ve dm-friend-item'lerden seçili durum kaldırılıyor.
     removeSelectedStates();
     
     dmContentArea.style.display = 'block'; // dmContentArea'nın görünür olduğundan emin oluyoruz.
@@ -272,7 +272,7 @@ export function initFriendRequests(socket) {
     searchInput.className = 'dm-search-input';
     searchInput.addEventListener('input', function() {
       const query = searchInput.value.toLowerCase();
-      const friendItems = dmPanel.querySelectorAll('.friend-item');
+      const friendItems = dmPanel.querySelectorAll('.dm-friend-item');
       friendItems.forEach(item => {
         if(item.textContent.toLowerCase().indexOf(query) > -1) {
           item.style.display = 'block';
@@ -355,15 +355,14 @@ export function initFriendRequests(socket) {
   // Yeni: createUserItem fonksiyonu. Artık CSS'e taşınan stiller kullanılacak.
   function createUserItem(username, isOnline) {
     const userItem = document.createElement('div');
-    // friend-item sınıfı ekleyerek dmPanel stil kuralları devreye girsin.
-    userItem.classList.add('user-item', 'friend-item');
-    // İşlevsellik için tıklanabilirlik vb. ekleniyor.
+    // dm-friend-item sınıfı ekleyerek dmPanel'e özgü stiller uygulanacak.
+    userItem.classList.add('user-item', 'dm-friend-item');
     userItem.style.cursor = 'pointer';
     const avatar = document.createElement('img');
     avatar.classList.add('user-profile-pic');
     avatar.src = '/images/default-avatar.png';
     avatar.alt = '';
-    // Boyutlar CSS tarafından ayarlanacak (dm.css içinde .dm-panel .user-item.friend-item .user-profile-pic)
+    // Boyutlar CSS tarafından ayarlanacak (dm.css içinde .dm-panel .user-item.dm-friend-item .user-profile-pic)
     const userNameSpan = document.createElement('span');
     userNameSpan.classList.add('user-name');
     userNameSpan.textContent = username;

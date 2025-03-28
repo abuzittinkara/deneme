@@ -159,17 +159,8 @@
   color: #fff;
 }
 
-/* Friend Item */
-/* Bu sınıf friendRequests.js tarafından createUserItem fonksiyonunda eklenmektedir. */
-
-/* Seçili Durum */
-.friend-item.selected,
-.dm-friends-button.selected {
-  background: #353535;
-}
-
-/* dmPanel içindeki friend-item (user-item.friend-item) stilleri */
-.dm-panel .user-item.friend-item {
+/* dmPanel içindeki friend-item (user-item.dm-friend-item) stilleri */
+.dm-panel .user-item.dm-friend-item {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -179,13 +170,13 @@
   padding: 4px;
   border-radius: 5px;
 }
-.dm-panel .user-item.friend-item:hover {
+.dm-panel .user-item.dm-friend-item:hover {
   background-color: #3d3d3d;
 }
-.dm-panel .user-item.friend-item .user-profile-pic {
+.dm-panel .user-item.dm-friend-item .user-profile-pic {
   width: 35px;
   height: 35px;
 }
-.dm-panel .user-item.friend-item .user-name {
+.dm-panel .user-item.dm-friend-item .user-name {
   margin-left: 8px;
 }
