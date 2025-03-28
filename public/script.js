@@ -1090,7 +1090,7 @@ function initUIEvents() {
     }
   });
   
-  // DM Panel toggle: Her tıklamada DM modunu aç/kapa.
+  // DM Panel toggle: Her tıklamada DM moduna geçiş veya çıkış yapar.
   toggleDMButton.addEventListener('click', () => {
     console.log("toggleDMButton clicked, current isDMMode:", isDMMode);
     const channelContentArea = document.getElementById('channelContentArea');
@@ -1451,21 +1451,14 @@ function updateUserList(data) {
   }
 }
 
-/* createUserItem */
+/* createUserItem - RightPanel için; inline stiller kaldırıldı, CSS ile düzenlenecek */
 function createUserItem(username, isOnline) {
   const userItem = document.createElement('div');
   userItem.classList.add('user-item');
-  userItem.style.cursor = 'pointer';
-  userItem.addEventListener('mouseover', () => {
-    userItem.style.backgroundColor = '#3d3d3d';
-  });
-  userItem.addEventListener('mouseout', () => {
-    userItem.style.backgroundColor = '';
-  });
   const avatar = document.createElement('img');
   avatar.classList.add('user-profile-pic');
   avatar.src = '/images/default-avatar.png';
-  avatar.alt = ''; // "User Avatar" yazısı kaldırıldı.
+  avatar.alt = '';
   const userNameSpan = document.createElement('span');
   userNameSpan.classList.add('user-name');
   userNameSpan.textContent = username;
@@ -1480,6 +1473,7 @@ function createUserItem(username, isOnline) {
  * Metin (mesaj) kanallarıyla ilgili tüm fonksiyonlar burada toplanmıştır.
  **************************************/
 // [textChannel.js içeriği ayrı bir dosyada olduğu için burada include edilmiyor]
+
 /* Typing Indicator Module */
 /**************************************
  * typingIndicator.js içeriği ayrı bir dosyada olduğu için burada include edilmiyor.
