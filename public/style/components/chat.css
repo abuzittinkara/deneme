@@ -179,6 +179,13 @@
   color: #fff;
   margin: 0;
 }
+.text-chat-input-bar .send-icon {
+  display: none; /* Başlangıçta gizli */
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
 .typing-indicator {
   flex: 0 0 16px;   /* 16px yüksekliğe sabit */
   line-height: 16px;
