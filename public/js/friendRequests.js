@@ -20,13 +20,12 @@ export function initFriendRequests(socket) {
 
   // DM başlık alanı: "dmChannelTitle" elementini alıyoruz
   // (HTML'de style="display: none;" şeklinde gizlenmiş olarak duracak)
-  const dmChannelTitle = document.getElementById('dmChannelTitle');
+  let dmChannelTitle = document.getElementById('dmChannelTitle');
   if (!dmChannelTitle) {
     console.error("dmChannelTitle not found");
     return;
   }
-  // ÖNEMLİ: Burada dmChannelTitle’a .style.display = 'block' atamadık,
-  // çünkü DM tuşuna basılmadığı sürece gözükmesi istenmiyor.
+  // ÖNEMLİ: Burada dmChannelTitle’ın style.display’ini değiştirmiyoruz, çünkü DM modunda görünmesi istenmiyor.
 
   // DM içerik alanı oluşturuluyor, dmChannelTitle'ın altında ayrı bir satırda.
   let dmContentArea = document.getElementById('dmContentArea');
@@ -42,70 +41,59 @@ export function initFriendRequests(socket) {
     dmContentArea.style.boxSizing = 'border-box';
     selectedChannelBar.parentNode.insertBefore(dmContentArea, selectedChannelBar.nextSibling);
   }
-  
-  // "Arkadaş ekle" butonunu dmChannelTitle içinden data-filter="add" ile seçiyoruz.
-  const friendAddButton = dmChannelTitle.querySelector('.dm-filter-item[data-filter="add"]');
-  if (!friendAddButton) {
-    console.error("Friend add button not found");
-    return;
-  }
-  
-  // "Arkadaş ekle" butonuna tıklayınca, dmContentArea içerisine arama kutusu eklenir.
-  friendAddButton.addEventListener('click', () => {
-    // Ayrıca dm-friends-button ve dm-friend-item'lerden seçili durum kaldırılıyor.
+
+  // Event delegation yöntemiyle dmChannelTitle içindeki tüm .dm-filter-item öğelerine tıklama event listener’ı ekliyoruz.
+  dmChannelTitle.addEventListener('click', function(e) {
+    const target = e.target.closest('.dm-filter-item');
+    if (!target) return;
+    const filter = target.getAttribute('data-filter');
     removeSelectedStates();
-    
-    dmContentArea.style.display = 'block'; // dmContentArea'nın görünür olduğundan emin oluyoruz.
-    dmContentArea.innerHTML = '';
 
-    // Arama kutusu (input) oluşturuluyor
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.id = 'friendSearchInput';
-    input.placeholder = 'Kullanıcı adı girin...';
-    input.className = 'dm-search-input';
+    // "Arkadaş ekle" butonu
+    if (filter === "add") {
+      dmContentArea.style.display = 'block';
+      dmContentArea.innerHTML = '';
 
-    // "Arkadaşlık İsteği Gönder" butonunu oluşturuluyor
-    const sendButton = document.createElement('button');
-    sendButton.textContent = 'Arkadaşlık İsteği Gönder';
-    sendButton.id = 'sendFriendRequestButton';
-    sendButton.className = 'dm-send-request-btn';
+      // Arama kutusu (input) oluşturuluyor
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.id = 'friendSearchInput';
+      input.placeholder = 'Kullanıcı adı girin...';
+      input.className = 'dm-search-input';
 
-    dmContentArea.appendChild(input);
-    dmContentArea.appendChild(sendButton);
+      // "Arkadaşlık İsteği Gönder" butonunu oluşturuluyor
+      const sendButton = document.createElement('button');
+      sendButton.textContent = 'Arkadaşlık İsteği Gönder';
+      sendButton.id = 'sendFriendRequestButton';
+      sendButton.className = 'dm-send-request-btn';
 
-    // Arkadaşlık isteğini gönderme fonksiyonu
-    function sendFriendRequest() {
-      const targetUsername = input.value.trim();
-      if (targetUsername === '') return;
-      socket.emit('sendFriendRequest', { to: targetUsername }, (response) => {
-        if (response.success) {
-          alert('Arkadaşlık isteği gönderildi.');
-          input.value = '';
-        } else {
-          alert('İstek gönderilemedi: ' + response.message);
+      dmContentArea.appendChild(input);
+      dmContentArea.appendChild(sendButton);
+
+      // Arkadaşlık isteğini gönderme fonksiyonu
+      function sendFriendRequest() {
+        const targetUsername = input.value.trim();
+        if (targetUsername === '') return;
+        socket.emit('sendFriendRequest', { to: targetUsername }, (response) => {
+          if (response.success) {
+            alert('Arkadaşlık isteği gönderildi.');
+            input.value = '';
+          } else {
+            alert('İstek gönderilemedi: ' + response.message);
+          }
+        });
+      }
+
+      sendButton.addEventListener('click', sendFriendRequest);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          sendFriendRequest();
         }
       });
     }
-
-    sendButton.addEventListener('click', () => {
-      sendFriendRequest();
-    });
-
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        sendFriendRequest();
-      }
-    });
-  });
-  
-  // "Beklemede" (data-filter="sent") butonunun işlevselliği
-  const pendingFilterButton = dmChannelTitle.querySelector('.dm-filter-item[data-filter="sent"]');
-  if (pendingFilterButton) {
-    pendingFilterButton.addEventListener('click', () => {
-      removeSelectedStates();
-      
-      dmContentArea.style.display = 'block'; // Görünür yapıyoruz.
+    // "Beklemede" butonu
+    else if (filter === "sent") {
+      dmContentArea.style.display = 'block';
       dmContentArea.innerHTML = '';
       socket.emit('getPendingFriendRequests', {}, (response) => {
         if (response.success && Array.isArray(response.requests)) {
@@ -127,7 +115,7 @@ export function initFriendRequests(socket) {
               // Kullanıcı adını gösteren span
               const textSpan = document.createElement('span');
               textSpan.textContent = `${req.from}`;
-              
+
               li.appendChild(profilePic);
               li.appendChild(textSpan);
 
@@ -177,15 +165,9 @@ export function initFriendRequests(socket) {
           dmContentArea.textContent = 'İstekler alınırken hata oluştu.';
         }
       });
-    });
-  }
-  
-  // "Hepsi" (data-filter="all") butonunun işlevselliği
-  const acceptedFilterButton = dmChannelTitle.querySelector('.dm-filter-item[data-filter="all"]');
-  if (acceptedFilterButton) {
-    acceptedFilterButton.addEventListener('click', () => {
-      removeSelectedStates();
-      
+    }
+    // "Hepsi" butonu
+    else if (filter === "all") {
       dmContentArea.style.display = 'block';
       dmContentArea.innerHTML = '';
       socket.emit('getAcceptedFriendRequests', {}, (response) => {
@@ -198,6 +180,7 @@ export function initFriendRequests(socket) {
               friendItem.addEventListener('click', () => {
                 removeSelectedStates();
                 friendItem.classList.add('selected');
+                // dmChannelTitle yeniden oluşturuluyor, bu sayede event delegation devrede kalıyor
                 const selectedDMBar = document.getElementById('selectedDMBar');
                 if (selectedDMBar) {
                   selectedDMBar.innerHTML = '';
@@ -207,10 +190,7 @@ export function initFriendRequests(socket) {
                   h2.textContent = friend.username;
                   selectedDMBar.appendChild(h2);
                 }
-                const dmContentArea = document.getElementById('dmContentArea');
-                if (dmContentArea) {
-                  dmContentArea.innerHTML = 'Bu kişiyle DM mesajları yükleniyor...';
-                }
+                dmContentArea.innerHTML = 'Bu kişiyle DM mesajları yükleniyor...';
                 socket.emit('joinDM', { friend: friend.username }, (res) => {
                   if (res.success && res.messages) {
                     dmContentArea.innerHTML = '';
@@ -231,9 +211,9 @@ export function initFriendRequests(socket) {
           dmPanel.textContent = 'Arkadaşlar alınırken hata oluştu.';
         }
       });
-    });
-  }
-  
+    }
+  });
+
   // dmPanel'in sol tarafında (dmPanel içeriği) arkadaş listesini oluşturmak için
   const toggleDMButton = document.getElementById('toggleDMButton');
   if (toggleDMButton) {
@@ -242,7 +222,7 @@ export function initFriendRequests(socket) {
       renderFriendList();
     });
   }
-  
+
   function getDefaultDmChannelTitleHtml() {
     return `
       <span class="dm-title-text">Arkadaşlar</span>
@@ -254,7 +234,7 @@ export function initFriendRequests(socket) {
       <span class="dm-filter-item" data-filter="add">Arkadaş ekle</span>
     `;
   }
-  
+
   function renderFriendList() {
     const dmPanel = document.getElementById('dmPanel');
     if (!dmPanel) {
