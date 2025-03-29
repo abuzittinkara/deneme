@@ -910,6 +910,27 @@ io.on('connection', (socket) => {
     callback({ success: true, requests });
   });
 
+  socket.on('getOutgoingFriendRequests', (data, callback) => {
+    try {
+      const username = users[socket.id]?.username;
+      if (!username) {
+        return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
+      }
+      const outgoing = [];
+      for (const target in friendRequests) {
+        friendRequests[target].forEach(req => {
+          if (req.from === username) {
+            outgoing.push({ to: target, timestamp: req.timestamp });
+          }
+        });
+      }
+      callback({ success: true, requests: outgoing });
+    } catch (err) {
+      console.error("getOutgoingFriendRequests error:", err);
+      callback({ success: false, message: 'Gönderilen istekler alınırken hata oluştu.' });
+    }
+  });
+
   socket.on('acceptFriendRequest', async (data, callback) => {
     try {
       const username = users[socket.id]?.username;
@@ -976,11 +997,34 @@ io.on('connection', (socket) => {
       if (!userDoc) {
         return callback({ success: false, message: 'Kullanıcı bulunamadı.' });
       }
-      const acceptedFriends = (userDoc.friends || []).map(friendDoc => ({ username: friendDoc.username }));
+      const acceptedFriends = (userDoc.friends || []).map(friendDoc => ({
+         username: friendDoc.username,
+         online: onlineUsernames.has(friendDoc.username)
+      }));
       callback({ success: true, friends: acceptedFriends });
     } catch (err) {
       console.error("getAcceptedFriendRequests error:", err);
       callback({ success: false, message: 'Arkadaşlar alınırken hata oluştu.' });
+    }
+  });
+
+  socket.on('getBlockedFriends', async (data, callback) => {
+    try {
+      const username = users[socket.id]?.username;
+      if (!username) {
+        return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
+      }
+      const userDoc = await User.findOne({ username }).populate('blocked');
+      if (!userDoc) {
+        return callback({ success: false, message: 'Kullanıcı bulunamadı.' });
+      }
+      const blockedFriends = (userDoc.blocked || []).map(friendDoc => ({
+         username: friendDoc.username
+      }));
+      callback({ success: true, friends: blockedFriends });
+    } catch (err) {
+      console.error("getBlockedFriends error:", err);
+      callback({ success: false, message: 'Engellenen arkadaşlar alınırken hata oluştu.' });
     }
   });
   // ***************************************************
