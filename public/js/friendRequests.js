@@ -3,8 +3,8 @@ export function initFriendRequests(socket) {
   function removeSelectedStates() {
     const dmFriendsButtons = document.querySelectorAll('.dm-friends-button.selected');
     dmFriendsButtons.forEach(btn => btn.classList.remove('selected'));
-    const selectedFriendItems = document.querySelectorAll('.dm-content-item.selected');
-    selectedFriendItems.forEach(item => item.classList.remove('selected'));
+    const selectedContentItems = document.querySelectorAll('.dm-content-item.selected');
+    selectedContentItems.forEach(item => item.classList.remove('selected'));
   }
 
   // dmChannelTitle elementini alıyoruz (dmChannelTitle, dmContentArea ile birlikte dm modunda 
@@ -15,26 +15,27 @@ export function initFriendRequests(socket) {
     return;
   }
 
-  // dmContentArea: Filtre butonlarına tıklandığında içeriğin yükleneceği alan
-  let dmContentArea = document.getElementById('dmContentArea');
-  if (!dmContentArea) {
-    dmContentArea = document.createElement('div');
-    dmContentArea.id = 'dmContentArea';
-    dmContentArea.style.display = 'block';
-    dmContentArea.style.width = '100%';
-    dmContentArea.style.marginLeft = '0';
-    dmContentArea.style.marginTop = '0';
-    dmContentArea.style.height = 'calc(100% - 50px)'; // Üstteki dmChannelTitle yüksekliği 50px varsayılıyor
-    dmContentArea.style.padding = '0.75rem 1rem';
-    dmContentArea.style.boxSizing = 'border-box';
-    // dmContentArea’nın dmPanel’den bağımsız olması için; dmPanel’deki diğer içerikleri değiştirmeyeceğiz.
-    // selectedDMBar’ın hemen altına ekleyelim.
-    const selectedDMBar = document.getElementById('selectedDMBar');
-    if (selectedDMBar) {
-      selectedDMBar.parentNode.insertBefore(dmContentArea, selectedDMBar.nextSibling);
-    } else {
-      dmChannelTitle.parentNode.insertBefore(dmContentArea, dmChannelTitle.nextSibling);
+  // Eğer dmContentArea hâlihazırda yoksa, oluşturup selectedDMBar'ın hemen altına ekliyoruz.
+  function ensureDmContentArea() {
+    let dmContentArea = document.getElementById('dmContentArea');
+    if (!dmContentArea) {
+      dmContentArea = document.createElement('div');
+      dmContentArea.id = 'dmContentArea';
+      dmContentArea.style.display = 'block';
+      dmContentArea.style.width = '100%';
+      dmContentArea.style.marginLeft = '0';
+      dmContentArea.style.marginTop = '0';
+      dmContentArea.style.height = 'calc(100% - 50px)'; // Üstteki dmChannelTitle yüksekliği 50px varsayılıyor
+      dmContentArea.style.padding = '0.75rem 1rem';
+      dmContentArea.style.boxSizing = 'border-box';
+      const selectedDMBar = document.getElementById('selectedDMBar');
+      if (selectedDMBar) {
+        selectedDMBar.parentNode.insertBefore(dmContentArea, selectedDMBar.nextSibling);
+      } else {
+        dmChannelTitle.parentNode.insertBefore(dmContentArea, dmChannelTitle.nextSibling);
+      }
     }
+    return dmContentArea;
   }
 
   // Yardımcı fonksiyon: dmContentArea'ya eklenmek üzere dm içerik elemanı oluşturur.
@@ -53,6 +54,7 @@ export function initFriendRequests(socket) {
   }
   friendAddButton.addEventListener('click', () => {
     removeSelectedStates();
+    const dmContentArea = ensureDmContentArea();
     dmContentArea.style.display = 'block';
     dmContentArea.innerHTML = '';
 
@@ -84,7 +86,6 @@ export function initFriendRequests(socket) {
     }
 
     sendButton.addEventListener('click', sendFriendRequest);
-
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         sendFriendRequest();
@@ -97,6 +98,7 @@ export function initFriendRequests(socket) {
   if (pendingFilterButton) {
     pendingFilterButton.addEventListener('click', () => {
       removeSelectedStates();
+      const dmContentArea = ensureDmContentArea();
       dmContentArea.style.display = 'block';
       dmContentArea.innerHTML = '';
 
@@ -173,6 +175,7 @@ export function initFriendRequests(socket) {
   if (acceptedFilterButton) {
     acceptedFilterButton.addEventListener('click', () => {
       removeSelectedStates();
+      const dmContentArea = ensureDmContentArea();
       dmContentArea.style.display = 'block';
       dmContentArea.innerHTML = '';
       socket.emit('getAcceptedFriendRequests', {}, (response) => {
@@ -226,6 +229,7 @@ export function initFriendRequests(socket) {
   if (onlineFilterButton) {
     onlineFilterButton.addEventListener('click', () => {
       removeSelectedStates();
+      const dmContentArea = ensureDmContentArea();
       dmContentArea.style.display = 'block';
       dmContentArea.innerHTML = '';
       socket.emit('getAcceptedFriendRequests', {}, (response) => {
@@ -284,6 +288,7 @@ export function initFriendRequests(socket) {
   if (blockedFilterButton) {
     blockedFilterButton.addEventListener('click', () => {
       removeSelectedStates();
+      const dmContentArea = ensureDmContentArea();
       dmContentArea.style.display = 'block';
       dmContentArea.innerHTML = '';
       socket.emit('getBlockedFriends', {}, (response) => {
@@ -396,10 +401,8 @@ export function initFriendRequests(socket) {
         h2.innerHTML = getDefaultDmChannelTitleHtml();
         selectedDMBar.appendChild(h2);
       }
-      const dmContentArea = document.getElementById('dmContentArea');
-      if (dmContentArea) {
-        dmContentArea.innerHTML = '';
-      }
+      const dmContentArea = ensureDmContentArea();
+      dmContentArea.innerHTML = '';
     });
     dmPanel.appendChild(friendsButton);
     socket.emit('getAcceptedFriendRequests', {}, (response) => {
@@ -424,10 +427,8 @@ export function initFriendRequests(socket) {
                 h2.textContent = friend.username;
                 selectedDMBar.appendChild(h2);
               }
-              const dmContentArea = document.getElementById('dmContentArea');
-              if (dmContentArea) {
-                dmContentArea.innerHTML = 'Bu kişiyle DM mesajları yükleniyor...';
-              }
+              const dmContentArea = ensureDmContentArea();
+              dmContentArea.innerHTML = 'Bu kişiyle DM mesajları yükleniyor...';
               socket.emit('joinDM', { friend: friend.username }, (res) => {
                 if (res.success && res.messages) {
                   dmContentArea.innerHTML = '';
