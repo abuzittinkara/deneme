@@ -15,6 +15,7 @@ const User = require('./models/User');
 const Group = require('./models/Group');
 const Channel = require('./models/Channel');
 const Message = require('./models/Message'); // EK: Mesaj modeli
+const DMMessage = require('./models/DMMessage'); // EK: DM Mesaj modeli
 const sfu = require('./sfu'); // Mediasoup SFU fonksiyonları
 
 // Yeni: Text channel ile ilgili socket olaylarını yönetecek modül:
@@ -877,61 +878,234 @@ io.on('connection', (socket) => {
     }
   });
 
-  // --- EK: DM sohbet event handler'ları ---
-  socket.on('joinDM', async (data, callback) => {
-    // data: { friend: friendUsername }
-    const senderUsername = users[socket.id]?.username;
-    if (!senderUsername) {
-      return callback({ success: false, message: 'Kullanıcı bulunamadı.' });
+  // Text channel olayları
+  registerTextChannelEvents(socket, { Channel, Message, User });
+
+  // ***** EK: Arkadaşlık isteği event handler’ları *****
+  socket.on('sendFriendRequest', (data, callback) => {
+    const fromUsername = users[socket.id]?.username;
+    if (!fromUsername) {
+      return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
     }
-    const DMMessage = require('./models/DMMessage');
+    const targetUsername = data.to;
+    if (!targetUsername) {
+      return callback({ success: false, message: 'Hedef kullanıcı adı belirtilmedi.' });
+    }
+    if (!friendRequests[targetUsername]) {
+      friendRequests[targetUsername] = [];
+    }
+    const exists = friendRequests[targetUsername].some(req => req.from === fromUsername);
+    if (exists) {
+      return callback({ success: false, message: 'Zaten arkadaşlık isteği gönderildi.' });
+    }
+    friendRequests[targetUsername].push({ from: fromUsername, timestamp: new Date() });
+    callback({ success: true });
+  });
+
+  socket.on('getPendingFriendRequests', (data, callback) => {
+    const username = users[socket.id]?.username;
+    if (!username) {
+      return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
+    }
+    const requests = friendRequests[username] || [];
+    callback({ success: true, requests });
+  });
+
+  socket.on('getOutgoingFriendRequests', (data, callback) => {
     try {
-      const messages = await DMMessage.find({
-        $or: [
-          { from: senderUsername, to: data.friend },
-          { from: data.friend, to: senderUsername }
-        ]
-      }).sort({ timestamp: 1 }).lean();
-      callback({ success: true, messages });
+      const username = users[socket.id]?.username;
+      if (!username) {
+        return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
+      }
+      const outgoing = [];
+      for (const target in friendRequests) {
+        friendRequests[target].forEach(req => {
+          if (req.from === username) {
+            outgoing.push({ to: target, timestamp: req.timestamp });
+          }
+        });
+      }
+      callback({ success: true, requests: outgoing });
     } catch (err) {
-      console.error("joinDM error:", err);
-      callback({ success: false, message: 'Mesaj geçmişi alınamadı.' });
+      console.error("getOutgoingFriendRequests error:", err);
+      callback({ success: false, message: 'Gönderilen istekler alınırken hata oluştu.' });
     }
   });
 
-  socket.on('dmMessage', (data, callback) => {
+  socket.on('acceptFriendRequest', async (data, callback) => {
+    try {
+      const username = users[socket.id]?.username;
+      if (!username) {
+        return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
+      }
+      const fromUsername = data.from;
+      if (!fromUsername) {
+        return callback({ success: false, message: 'Kimin isteği kabul edileceği belirtilmedi.' });
+      }
+      
+      // Remove pending friend request in memory
+      if (friendRequests[username]) {
+        friendRequests[username] = friendRequests[username].filter(req => req.from !== fromUsername);
+      }
+      
+      // Get both user documents from DB
+      const userDoc = await User.findOne({ username });
+      const friendDoc = await User.findOne({ username: fromUsername });
+      if (!userDoc || !friendDoc) {
+        return callback({ success: false, message: 'Kullanıcılar bulunamadı.' });
+      }
+      
+      // Check if friend already added, if not, add them
+      if (!userDoc.friends.includes(friendDoc._id)) {
+        userDoc.friends.push(friendDoc._id);
+      }
+      if (!friendDoc.friends.includes(userDoc._id)) {
+        friendDoc.friends.push(userDoc._id);
+      }
+      
+      await userDoc.save();
+      await friendDoc.save();
+      
+      callback({ success: true });
+    } catch (err) {
+      console.error("acceptFriendRequest error:", err);
+      callback({ success: false, message: 'Arkadaşlık isteği kabul edilirken hata oluştu.' });
+    }
+  });
+
+  socket.on('rejectFriendRequest', (data, callback) => {
+    const username = users[socket.id]?.username;
+    if (!username) {
+      return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
+    }
+    const fromUsername = data.from;
+    if (!fromUsername) {
+      return callback({ success: false, message: 'Kimin isteği reddedileceği belirtilmedi.' });
+    }
+    if (friendRequests[username]) {
+      friendRequests[username] = friendRequests[username].filter(req => req.from !== fromUsername);
+    }
+    callback({ success: true });
+  });
+
+  socket.on('getAcceptedFriendRequests', async (data, callback) => {
+    try {
+      const username = users[socket.id]?.username;
+      if (!username) {
+        return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
+      }
+      const userDoc = await User.findOne({ username }).populate('friends');
+      if (!userDoc) {
+        return callback({ success: false, message: 'Kullanıcı bulunamadı.' });
+      }
+      const acceptedFriends = (userDoc.friends || []).map(friendDoc => ({
+         username: friendDoc.username,
+         online: onlineUsernames.has(friendDoc.username)
+      }));
+      callback({ success: true, friends: acceptedFriends });
+    } catch (err) {
+      console.error("getAcceptedFriendRequests error:", err);
+      callback({ success: false, message: 'Arkadaşlar alınırken hata oluştu.' });
+    }
+  });
+
+  socket.on('getBlockedFriends', async (data, callback) => {
+    try {
+      const username = users[socket.id]?.username;
+      if (!username) {
+        return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
+      }
+      const userDoc = await User.findOne({ username }).populate('blocked');
+      if (!userDoc) {
+        return callback({ success: false, message: 'Kullanıcı bulunamadı.' });
+      }
+      const blockedFriends = (userDoc.blocked || []).map(friendDoc => ({
+         username: friendDoc.username
+      }));
+      callback({ success: true, friends: blockedFriends });
+    } catch (err) {
+      console.error("getBlockedFriends error:", err);
+      callback({ success: false, message: 'Engellenen arkadaşlar alınırken hata oluştu.' });
+    }
+  });
+
+  // --- EK: DM sohbet event handler'ları ---
+
+  socket.on('joinDM', async (data, callback) => {
+    // data: { friend: friendUsername }
+    const currentUsername = users[socket.id]?.username;
+    if (!currentUsername) {
+      return callback({ success: false, message: 'Kullanıcı bulunamadı.' });
+    }
+    try {
+      const userDoc = await User.findOne({ username: currentUsername });
+      const friendDoc = await User.findOne({ username: data.friend });
+      if (!userDoc || !friendDoc) {
+        return callback({ success: false, message: 'Kullanıcı bulunamadı.' });
+      }
+      // DM geçmişini, hem gönderilen hem alınan mesajları çekiyoruz.
+      const messages = await DMMessage.find({
+        $or: [
+          { sender: userDoc._id, receiver: friendDoc._id },
+          { sender: friendDoc._id, receiver: userDoc._id }
+        ]
+      }).sort({ timestamp: 1 }).lean();
+      // Populate sender for username
+      await DMMessage.populate(messages, { path: 'sender', select: 'username' });
+      const formattedMessages = messages.map(m => ({
+        username: m.sender.username,
+        content: m.content,
+        timestamp: m.timestamp
+      }));
+      callback({ success: true, messages: formattedMessages });
+    } catch (err) {
+      console.error("joinDM error:", err);
+      callback({ success: false, message: 'DM geçmişi alınırken hata oluştu.' });
+    }
+  });
+
+  socket.on('dmMessage', async (data, callback) => {
     // data: { friend: friendUsername, content: messageContent }
     const senderUsername = users[socket.id]?.username;
     if (!senderUsername) {
       return callback({ success: false, message: 'Gönderen kullanıcı bulunamadı.' });
     }
-    // Hedef kullanıcının socket id'sini bulmaya çalışıyoruz (varsa)
-    let targetSocketId = null;
-    for (const id in users) {
-      if (users[id].username === data.friend) {
-        targetSocketId = id;
-        break;
+    try {
+      const senderDoc = await User.findOne({ username: senderUsername });
+      const friendDoc = await User.findOne({ username: data.friend });
+      if (!senderDoc || !friendDoc) {
+        return callback({ success: false, message: 'Kullanıcı bulunamadı.' });
       }
-    }
-    const message = {
-      from: senderUsername,
-      to: data.friend,
-      content: data.content,
-      timestamp: new Date()
-    };
-    const DMMessage = require('./models/DMMessage');
-    new DMMessage(message).save().then(() => {
-      // Eğer hedef çevrimiçi ise ona mesajı gönderiyoruz.
+      const dmMessage = new DMMessage({
+        sender: senderDoc._id,
+        receiver: friendDoc._id,
+        content: data.content
+      });
+      await dmMessage.save();
+      const messageToSend = {
+        username: senderUsername,
+        content: data.content,
+        timestamp: dmMessage.timestamp
+      };
+      // Hedef kullanıcının socket id'sini ara
+      let targetSocketId = null;
+      for (const id in users) {
+        if (users[id].username === data.friend) {
+          targetSocketId = id;
+          break;
+        }
+      }
+      // Eğer hedef çevrimiçi ise mesajı gönder
       if (targetSocketId) {
-        io.to(targetSocketId).emit('newDMMessage', { friend: senderUsername, message });
+        io.to(targetSocketId).emit('newDMMessage', { friend: data.friend, message: messageToSend });
       }
-      // Gönderenin ekranına da mesajı gönderiyoruz.
-      socket.emit('newDMMessage', { friend: data.friend, message });
+      // Gönderen de mesajı görsün
+      socket.emit('newDMMessage', { friend: data.friend, message: messageToSend });
       callback({ success: true });
-    }).catch(err => {
-      console.error("dmMessage save error:", err);
-      callback({ success: false, message: 'Mesaj kaydedilemedi.' });
-    });
+    } catch (err) {
+      console.error("dmMessage error:", err);
+      callback({ success: false, message: 'Mesaj gönderilirken hata oluştu.' });
+    }
   });
   // --- EK: DM sohbet event handler'ları sonu ---
 
