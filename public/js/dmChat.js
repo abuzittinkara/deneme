@@ -4,9 +4,6 @@
 // mesaj geçmişini yükler ve yeni mesajların gönderilmesini sağlar.
 
 export function initDMChat(socket, friendUsername) {
-  // Önceki 'newDMMessage' event listener'ını kaldırıyoruz ki eski sohbetin callback’i karışmasın.
-  socket.off('newDMMessage');
-
   // dmContentArea'yı al veya oluştur
   let dmContentArea = document.getElementById('dmContentArea');
   if (!dmContentArea) {
@@ -103,8 +100,7 @@ export function initDMChat(socket, friendUsername) {
 
   // Sunucudan gelen yeni DM mesajlarını dinle.
   socket.on('newDMMessage', (data) => {
-    // Eğer gelen data'nın friend alanı aktif dm sohbetinde olan friendUsername ile eşleşiyorsa,
-    // mesajı ekrana yansıt.
+    // data.friend ile mevcut DM konuşması eşleşiyorsa mesajı ekle
     if (data.friend === friendUsername && data.message) {
       appendDMMessage(dmMessages, data.message);
       dmMessages.scrollTop = dmMessages.scrollHeight;
