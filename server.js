@@ -1027,7 +1027,42 @@ io.on('connection', (socket) => {
       callback({ success: false, message: 'Engellenen arkadaşlar alınırken hata oluştu.' });
     }
   });
-  // ***************************************************
+
+  // --- EK: DM sohbet event handler'ları ---
+  socket.on('joinDM', (data, callback) => {
+    // data: { friend: friendUsername }
+    // DM geçmişi için (şimdilik boş dizi döndürüyoruz; isterseniz DB'ye kaydedip çekebilirsiniz)
+    callback({ success: true, messages: [] });
+  });
+
+  socket.on('dmMessage', (data, callback) => {
+    // data: { friend: friendUsername, content: messageContent }
+    const senderUsername = users[socket.id]?.username;
+    if (!senderUsername) {
+      return callback({ success: false, message: 'Gönderen kullanıcı bulunamadı.' });
+    }
+    // Hedef kullanıcının socket id'sini bulmak için users objesinde arıyoruz
+    let targetSocketId = null;
+    for (const id in users) {
+      if (users[id].username === data.friend) {
+        targetSocketId = id;
+        break;
+      }
+    }
+    if (!targetSocketId) {
+      return callback({ success: false, message: 'Hedef kullanıcı çevrimdışı.' });
+    }
+    const message = {
+      username: senderUsername,
+      content: data.content,
+      timestamp: new Date()
+    };
+    // Hem hedef kullanıcıya hem de gönderen kendisine mesajı iletelim
+    io.to(targetSocketId).emit('newDMMessage', { friend: data.friend, message });
+    socket.emit('newDMMessage', { friend: data.friend, message });
+    callback({ success: true });
+  });
+  // --- EK: DM sohbet event handler'ları sonu ---
 
   socket.on("disconnect", async () => {
     console.log("disconnect:", socket.id);
