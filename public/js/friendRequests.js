@@ -167,6 +167,7 @@ export function initFriendRequests(socket) {
                 friendItem.className = 'dm-content-item';
                 friendItem.textContent = friend.username;
                 friendItem.addEventListener('click', () => {
+                  removeSelectedStates();
                   friendItem.classList.add('selected');
                   const selectedDMBar = document.getElementById('selectedDMBar');
                   if (selectedDMBar) {
@@ -177,20 +178,10 @@ export function initFriendRequests(socket) {
                     h2.textContent = friend.username;
                     selectedDMBar.appendChild(h2);
                   }
-                  dmContentArea.innerHTML = 'Bu kişiyle DM mesajları yükleniyor...';
-                  socket.emit('joinDM', { friend: friend.username }, (res) => {
-                    if (res.success && res.messages) {
-                      dmContentArea.innerHTML = '';
-                      res.messages.forEach(msg => {
-                        const msgDiv = document.createElement('div');
-                        msgDiv.className = 'dm-content-item';
-                        msgDiv.textContent = `${msg.username}: ${msg.content}`;
-                        dmContentArea.appendChild(msgDiv);
-                      });
-                    } else {
-                      dmContentArea.innerHTML = 'DM mesajları yüklenirken hata oluştu.';
-                    }
-                  });
+                  // Artık aktif DM sohbeti için yeni dmChat modülünü çağırıyoruz:
+                  import('./dmChat.js').then(module => {
+                    module.initDMChat(socket, friend.username);
+                  }).catch(err => console.error(err));
                 });
                 dmContentArea.appendChild(friendItem);
               });
@@ -215,6 +206,7 @@ export function initFriendRequests(socket) {
                   friendItem.className = 'dm-content-item';
                   friendItem.textContent = friend.username;
                   friendItem.addEventListener('click', () => {
+                    removeSelectedStates();
                     friendItem.classList.add('selected');
                     const selectedDMBar = document.getElementById('selectedDMBar');
                     if (selectedDMBar) {
@@ -225,20 +217,9 @@ export function initFriendRequests(socket) {
                       h2.textContent = friend.username;
                       selectedDMBar.appendChild(h2);
                     }
-                    dmContentArea.innerHTML = 'Bu kişiyle DM mesajları yükleniyor...';
-                    socket.emit('joinDM', { friend: friend.username }, (res) => {
-                      if (res.success && res.messages) {
-                        dmContentArea.innerHTML = '';
-                        res.messages.forEach(msg => {
-                          const msgDiv = document.createElement('div');
-                          msgDiv.className = 'dm-content-item';
-                          msgDiv.textContent = `${msg.username}: ${msg.content}`;
-                          dmContentArea.appendChild(msgDiv);
-                        });
-                      } else {
-                        dmContentArea.innerHTML = 'DM mesajları yüklenirken hata oluştu.';
-                      }
-                    });
+                    import('./dmChat.js').then(module => {
+                      module.initDMChat(socket, friend.username);
+                    }).catch(err => console.error(err));
                   });
                   dmContentArea.appendChild(friendItem);
                 });
@@ -260,6 +241,7 @@ export function initFriendRequests(socket) {
                 friendItem.className = 'dm-content-item';
                 friendItem.textContent = friend.username;
                 friendItem.addEventListener('click', () => {
+                  removeSelectedStates();
                   friendItem.classList.add('selected');
                   const selectedDMBar = document.getElementById('selectedDMBar');
                   if (selectedDMBar) {
@@ -270,20 +252,9 @@ export function initFriendRequests(socket) {
                     h2.textContent = friend.username;
                     selectedDMBar.appendChild(h2);
                   }
-                  dmContentArea.innerHTML = 'Bu kişiyle DM mesajları yükleniyor...';
-                  socket.emit('joinDM', { friend: friend.username }, (res) => {
-                    if (res.success && res.messages) {
-                      dmContentArea.innerHTML = '';
-                      res.messages.forEach(msg => {
-                        const msgDiv = document.createElement('div');
-                        msgDiv.className = 'dm-content-item';
-                        msgDiv.textContent = `${msg.username}: ${msg.content}`;
-                        dmContentArea.appendChild(msgDiv);
-                      });
-                    } else {
-                      dmContentArea.innerHTML = 'DM mesajları yüklenirken hata oluştu.';
-                    }
-                  });
+                  import('./dmChat.js').then(module => {
+                    module.initDMChat(socket, friend.username);
+                  }).catch(err => console.error(err));
                 });
                 dmContentArea.appendChild(friendItem);
               });
@@ -386,21 +357,10 @@ export function initFriendRequests(socket) {
                 h2.textContent = friend.username;
                 selectedDMBar.appendChild(h2);
               }
-              const dmContentArea = ensureDmContentArea();
-              dmContentArea.innerHTML = 'Bu kişiyle DM mesajları yükleniyor...';
-              socket.emit('joinDM', { friend: friend.username }, (res) => {
-                if (res.success && res.messages) {
-                  dmContentArea.innerHTML = '';
-                  res.messages.forEach(msg => {
-                    const msgDiv = document.createElement('div');
-                    msgDiv.className = 'dm-content-item';
-                    msgDiv.textContent = `${msg.username}: ${msg.content}`;
-                    dmContentArea.appendChild(msgDiv);
-                  });
-                } else {
-                  dmContentArea.innerHTML = 'DM mesajları yüklenirken hata oluştu.';
-                }
-              });
+              // Artık aktif DM sohbet arayüzü için dmChat modülünü çağırıyoruz.
+              import('./dmChat.js').then(module => {
+                module.initDMChat(socket, friend.username);
+              }).catch(err => console.error(err));
             });
             dmPanel.appendChild(friendItem);
           });
