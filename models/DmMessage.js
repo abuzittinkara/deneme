@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 
-const DmMessageSchema = new mongoose.Schema({
-  from: { type: String, required: true },
-  to: { type: String, required: true },
+const DMMessageSchema = new mongoose.Schema({
+  sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  receiver: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   content: { type: String, required: true },
   timestamp: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model('DmMessage', DmMessageSchema);
+module.exports = mongoose.model('DMMessage', DMMessageSchema);
