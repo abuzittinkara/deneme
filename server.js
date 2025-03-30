@@ -1030,7 +1030,6 @@ io.on('connection', (socket) => {
   });
 
   // --- EK: DM sohbet event handler'ları ---
-
   socket.on('joinDM', async (data, callback) => {
     // data: { friend: friendUsername }
     const currentUsername = users[socket.id]?.username;
@@ -1097,7 +1096,7 @@ io.on('connection', (socket) => {
       }
       // Eğer hedef çevrimiçi ise mesajı gönder
       if (targetSocketId) {
-        io.to(targetSocketId).emit('newDMMessage', { friend: data.friend, message: messageToSend });
+        io.to(targetSocketId).emit('newDMMessage', { friend: senderUsername, message: messageToSend });
       }
       // Gönderen de mesajı görsün
       socket.emit('newDMMessage', { friend: data.friend, message: messageToSend });
