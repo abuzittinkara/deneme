@@ -110,15 +110,29 @@ async function sendGroupsListToUser(socketId) {
   }
 }
 
+// GÜNCELLENMİŞ: getAllChannelsData fonksiyonu, odalardaki kullanıcı bilgilerini global "users" nesnesinden güncelleyerek gönderiyor.
 function getAllChannelsData(groupId) {
   if (!groups[groupId]) return {};
   const channelsObj = {};
   Object.keys(groups[groupId].rooms).forEach(roomId => {
     const rm = groups[groupId].rooms[roomId];
+    const updatedUsers = rm.users.map(u => {
+      if (users[u.id]) {
+        return {
+          id: u.id,
+          username: u.username,
+          micEnabled: users[u.id].micEnabled,
+          selfDeafened: users[u.id].selfDeafened,
+          isScreenSharing: users[u.id].isScreenSharing,
+          screenShareProducerId: users[u.id].screenShareProducerId
+        };
+      }
+      return u;
+    });
     channelsObj[roomId] = {
       name: rm.name,
       type: rm.type,
-      users: rm.users
+      users: updatedUsers
     };
   });
   return channelsObj;
