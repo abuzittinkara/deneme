@@ -303,7 +303,14 @@ async function showScreenShare(producerId) {
     startVolumeAnalysis(audioEl.srcObject, consumer.appData.peerId);
     console.log("Yeni audio consumer oluşturuldu:", consumer.id, "-> konuşan:", consumer.appData.peerId);
   } else if (consumer.kind === "video") {
-    console.log("Video consumer alındı, ekran paylaşım için tıklama ile consume edilecek. Producer:", consumeParams.producerId);
+    const { track } = consumer;
+    const videoEl = document.createElement('video');
+    videoEl.srcObject = new MediaStream([track]);
+    videoEl.autoplay = true;
+    videoEl.controls = true;
+    videoEl.style.width = "100%";
+    channelContentArea.appendChild(videoEl);
+    console.log("Video consumer oluşturuldu:", consumer.id, "-> ekran paylaşımı izleniyor.");
   }
 }
 
@@ -786,7 +793,15 @@ async function consumeProducer(producerId) {
     startVolumeAnalysis(audioEl.srcObject, consumer.appData.peerId);
     console.log("Yeni audio consumer oluşturuldu:", consumer.id, "-> konuşan:", consumer.appData.peerId);
   } else if (consumer.kind === "video") {
-    console.log("Video consumer alındı, ekran paylaşım için tıklama ile consume edilecek. Producer:", consumeParams.producerId);
+    const { track } = consumer;
+    const videoEl = document.createElement('video');
+    videoEl.srcObject = new MediaStream([track]);
+    videoEl.autoplay = true;
+    videoEl.controls = true;
+    videoEl.style.width = "100%";
+    const channelContentArea = document.querySelector('.channel-content-area');
+    channelContentArea.appendChild(videoEl);
+    console.log("Video consumer oluşturuldu:", consumer.id, "-> ekran paylaşımı izleniyor.");
   }
 }
 
@@ -1478,3 +1493,6 @@ function createUserItem(username, isOnline) {
 /**************************************
  * typingIndicator.js içeriği ayrı bir dosyada olduğu için burada include edilmiyor.
  **************************************/
+
+
+
