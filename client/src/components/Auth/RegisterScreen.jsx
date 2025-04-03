@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { SocketContext } from '../../context/SocketContext';
+import { SocketContext } from '../../content/SocketContext';
 import { sendRegister } from '../../services/socketService';
 
 const RegisterScreen = ({ switchToLogin }) => {

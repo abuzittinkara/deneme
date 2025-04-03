@@ -79,7 +79,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-Object(function webpackMissingModule() { var e = new Error("Cannot find module '../../context/SocketContext'"); e.code = 'MODULE_NOT_FOUND'; throw e; }());
+Object(function webpackMissingModule() { var e = new Error("Cannot find module '../../content/SocketContext'"); e.code = 'MODULE_NOT_FOUND'; throw e; }());
 /* harmony import */ var _services_socketService__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../services/socketService */ "./client/src/services/socketService.js");
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -93,7 +93,7 @@ function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 var LoginScreen = function LoginScreen(_ref) {
   var onLoginSuccess = _ref.onLoginSuccess,
     switchToRegister = _ref.switchToRegister;
-  var socket = (0,react__WEBPACK_IMPORTED_MODULE_0__.useContext)(Object(function webpackMissingModule() { var e = new Error("Cannot find module '../../context/SocketContext'"); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
+  var socket = (0,react__WEBPACK_IMPORTED_MODULE_0__.useContext)(Object(function webpackMissingModule() { var e = new Error("Cannot find module '../../content/SocketContext'"); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(''),
     _useState2 = _slicedToArray(_useState, 2),
     username = _useState2[0],
@@ -163,7 +163,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-Object(function webpackMissingModule() { var e = new Error("Cannot find module '../../context/SocketContext'"); e.code = 'MODULE_NOT_FOUND'; throw e; }());
+Object(function webpackMissingModule() { var e = new Error("Cannot find module '../../content/SocketContext'"); e.code = 'MODULE_NOT_FOUND'; throw e; }());
 /* harmony import */ var _services_socketService__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../services/socketService */ "./client/src/services/socketService.js");
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
@@ -182,7 +182,7 @@ function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 
 var RegisterScreen = function RegisterScreen(_ref) {
   var switchToLogin = _ref.switchToLogin;
-  var socket = (0,react__WEBPACK_IMPORTED_MODULE_0__.useContext)(Object(function webpackMissingModule() { var e = new Error("Cannot find module '../../context/SocketContext'"); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
+  var socket = (0,react__WEBPACK_IMPORTED_MODULE_0__.useContext)(Object(function webpackMissingModule() { var e = new Error("Cannot find module '../../content/SocketContext'"); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
       username: '',
       name: '',
@@ -288,7 +288,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-Object(function webpackMissingModule() { var e = new Error("Cannot find module '../../context/SocketContext'"); e.code = 'MODULE_NOT_FOUND'; throw e; }());
+Object(function webpackMissingModule() { var e = new Error("Cannot find module '../../content/SocketContext'"); e.code = 'MODULE_NOT_FOUND'; throw e; }());
 /* harmony import */ var _Indicators_TypingIndicator__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../Indicators/TypingIndicator */ "./client/src/components/Indicators/TypingIndicator.jsx");
 /* harmony import */ var _MessageItem__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./MessageItem */ "./client/src/components/Chat/MessageItem.jsx");
 function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
@@ -307,7 +307,7 @@ function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 
 var ChatWindow = function ChatWindow(_ref) {
   var username = _ref.username;
-  var socket = (0,react__WEBPACK_IMPORTED_MODULE_0__.useContext)(Object(function webpackMissingModule() { var e = new Error("Cannot find module '../../context/SocketContext'"); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
+  var socket = (0,react__WEBPACK_IMPORTED_MODULE_0__.useContext)(Object(function webpackMissingModule() { var e = new Error("Cannot find module '../../content/SocketContext'"); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)([]),
     _useState2 = _slicedToArray(_useState, 2),
     messages = _useState2[0],
@@ -418,7 +418,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-Object(function webpackMissingModule() { var e = new Error("Cannot find module '../../context/SocketContext'"); e.code = 'MODULE_NOT_FOUND'; throw e; }());
+Object(function webpackMissingModule() { var e = new Error("Cannot find module '../../content/SocketContext'"); e.code = 'MODULE_NOT_FOUND'; throw e; }());
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
@@ -430,7 +430,7 @@ function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 var TypingIndicator = function TypingIndicator(_ref) {
   var currentChannel = _ref.currentChannel,
     localUsername = _ref.localUsername;
-  var socket = (0,react__WEBPACK_IMPORTED_MODULE_0__.useContext)(Object(function webpackMissingModule() { var e = new Error("Cannot find module '../../context/SocketContext'"); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
+  var socket = (0,react__WEBPACK_IMPORTED_MODULE_0__.useContext)(Object(function webpackMissingModule() { var e = new Error("Cannot find module '../../content/SocketContext'"); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)(new Set()),
     _useState2 = _slicedToArray(_useState, 2),
     activeTypers = _useState2[0],

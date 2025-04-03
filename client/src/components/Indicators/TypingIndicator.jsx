@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { SocketContext } from '../../context/SocketContext';
+import { SocketContext } from '../../content/SocketContext';
 
 const TypingIndicator = ({ currentChannel, localUsername }) => {
   const socket = useContext(SocketContext);

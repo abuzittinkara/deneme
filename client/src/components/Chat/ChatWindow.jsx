@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { SocketContext } from '../../context/SocketContext';
+import { SocketContext } from '../../content/SocketContext';
 import TypingIndicator from '../Indicators/TypingIndicator';
 import MessageItem from './MessageItem';
 
