@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import LoginScreen from './components/Auth/LoginScreen';
 import RegisterScreen from './components/Auth/RegisterScreen';
 import ChatWindow from './components/Chat/ChatWindow';
-import { SocketContext } from './context/SocketContext';
+import { SocketContext } from './content/SocketContext';
 
 const App = () => {
   const socket = useContext(SocketContext);

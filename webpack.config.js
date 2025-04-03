@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-  mode: 'development', // Üretim için 'production' olarak ayarlayabilirsiniz.
+  mode: 'development', // veya 'production'
   entry: path.resolve(__dirname, 'client', 'src', 'index.js'),
   output: {
     path: path.resolve(__dirname, 'public', 'js'),
