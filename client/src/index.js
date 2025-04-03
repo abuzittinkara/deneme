@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
-import { SocketProvider } from './context/SocketContext';
+import { SocketProvider } from './content/SocketContext';
 
 ReactDOM.render(
   <React.StrictMode>
