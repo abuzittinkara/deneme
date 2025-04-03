@@ -28,7 +28,7 @@ const io = socketIO(server, {
   wsEngine: WebSocket.Server
 });
 
-const uri = process.env.MONGODB_URI || "mongodb+srv://abuzorttin:HWZe7uK5yEAE@cluster0.vdrdy.mongodb.net/myappdb?retryWrites=true&w=majority";
+const uri = process.env.MONGODB_URI;
 
 mongoose.connect(uri)
   .then(async () => {
