@@ -276,23 +276,26 @@ io.on('connection', (socket) => {
   };
 
   // LOGIN
-  socket.on('login', async ({ username, password }, callback) => {
+  socket.on('login', async ({ username, password }) => {
     try {
       if (!username || !password) {
-        return callback({ success: false, message: 'Eksik bilgiler' });
+        socket.emit('loginResult', { success: false, message: 'Eksik bilgiler' });
+        return;
       }
       const user = await User.findOne({ username });
       if (!user) {
-        return callback({ success: false, message: 'Kullanıcı bulunamadı.' });
+        socket.emit('loginResult', { success: false, message: 'Kullanıcı bulunamadı.' });
+        return;
       }
       const pwMatch = await bcrypt.compare(password, user.passwordHash);
       if (!pwMatch) {
-        return callback({ success: false, message: 'Yanlış parola.' });
+        socket.emit('loginResult', { success: false, message: 'Yanlış parola.' });
+        return;
       }
-      callback({ success: true, username: user.username });
+      socket.emit('loginResult', { success: true, username: user.username });
     } catch (err) {
       console.error(err);
-      callback({ success: false, message: 'Giriş hatası.' });
+      socket.emit('loginResult', { success: false, message: 'Giriş hatası.' });
     }
   });
 
