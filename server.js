@@ -260,7 +260,8 @@ function removeUserFromAllGroupsAndRooms(socket) {
   }
 }
 
-app.use(express.static("public"));
+const path = require('path');
+app.use(express.static(path.join(__dirname, 'public')));
 
 io.on('connection', (socket) => {
   console.log('Kullanıcı bağlandı:', socket.id);
