@@ -276,26 +276,31 @@ io.on('connection', (socket) => {
   };
 
   // LOGIN
-  socket.on('login', async ({ username, password }) => {
+  socket.on('login', async ({ username, password }, callback) => {
     try {
       if (!username || !password) {
-        socket.emit('loginResult', { success: false, message: 'Eksik bilgiler' });
+        if (callback) callback({ success: false, message: 'Eksik bilgiler' });
+        else socket.emit('loginResult', { success: false, message: 'Eksik bilgiler' });
         return;
       }
       const user = await User.findOne({ username });
       if (!user) {
-        socket.emit('loginResult', { success: false, message: 'Kullanıcı bulunamadı.' });
+        if (callback) callback({ success: false, message: 'Kullanıcı bulunamadı.' });
+        else socket.emit('loginResult', { success: false, message: 'Kullanıcı bulunamadı.' });
         return;
       }
       const pwMatch = await bcrypt.compare(password, user.passwordHash);
       if (!pwMatch) {
-        socket.emit('loginResult', { success: false, message: 'Yanlış parola.' });
+        if (callback) callback({ success: false, message: 'Yanlış parola.' });
+        else socket.emit('loginResult', { success: false, message: 'Yanlış parola.' });
         return;
       }
-      socket.emit('loginResult', { success: true, username: user.username });
+      if (callback) callback({ success: true, username: user.username });
+      else socket.emit('loginResult', { success: true, username: user.username });
     } catch (err) {
       console.error(err);
-      socket.emit('loginResult', { success: false, message: 'Giriş hatası.' });
+      if (callback) callback({ success: false, message: 'Giriş hatası.' });
+      else socket.emit('loginResult', { success: false, message: 'Giriş hatası.' });
     }
   });
 

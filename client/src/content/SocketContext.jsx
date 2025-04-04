@@ -7,8 +7,14 @@ export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    // Sunucuya websocket bağlantısı kuruluyor
-    const newSocket = io("https://fisqos.com.tr", { transports: ['websocket'] });
+    // Mevcut origin üzerinden socket bağlantısı kuruyoruz.
+    const newSocket = io();
+    newSocket.on('connect_error', (err) => {
+      console.error("Socket connect_error: ", err);
+    });
+    newSocket.on('connect_timeout', () => {
+      console.error("Socket connect_timeout");
+    });
     setSocket(newSocket);
 
     return () => newSocket.close();
