@@ -6,19 +6,17 @@ require('dotenv').config();
 const http = require('http');
 const express = require('express');
 const socketIO = require('socket.io');
-const WebSocket = require('ws'); // ws paketini dahil ettik
+const WebSocket = require('ws');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const { v4: uuidv4 } = require('uuid'); // UUID
+const { v4: uuidv4 } = require('uuid');
 
 const User = require('./models/User');
 const Group = require('./models/Group');
 const Channel = require('./models/Channel');
-const Message = require('./models/Message'); // EK: Mesaj modeli
-const DMMessage = require('./models/DMMessage'); // EK: DM Mesaj modeli
-const sfu = require('./sfu'); // Mediasoup SFU fonksiyonları
-
-// Yeni: Text channel ile ilgili socket olaylarını yönetecek modül:
+const Message = require('./models/Message');
+const DMMessage = require('./models/DMMessage');
+const sfu = require('./sfu');
 const registerTextChannelEvents = require('./modules/textChannel');
 
 const app = express();
@@ -29,32 +27,42 @@ const io = socketIO(server, {
 });
 
 const uri = process.env.MONGODB_URI;
-
 mongoose.connect(uri)
   .then(async () => {
     console.log("MongoDB bağlantısı başarılı!");
-
     await sfu.createWorkers();
     console.log("Mediasoup Workers hazır!");
-
     await loadGroupsFromDB();
     await loadChannelsFromDB();
-
     console.log("Uygulama başlangıç yüklemeleri tamam.");
   })
   .catch(err => {
     console.error("MongoDB bağlantı hatası:", err);
   });
 
-// Bellek içi tablolar
-const users = {};   // socket.id -> { username, currentGroup, currentRoom, micEnabled, selfDeafened, isScreenSharing, screenShareProducerId }
-const groups = {};  // groupId -> { owner, name, users:[], rooms:{} }
+// --- Bellek içi tablolar (aynı kaldı) ---
+const users = {};
+const groups = {};
 const onlineUsernames = new Set();
+let friendRequests = {};
 
-// ***** EK: Arkadaşlık isteği ve arkadaş listesi için in‑memory veri yapıları *****
-let friendRequests = {};  // key: hedef kullanıcı adı, value: [ { from, timestamp }, ... ]
-// Eski in-memory "friends" yapısı kaldırıldı; kabul edilen arkadaşlıklar artık DB üzerinden tutulacak.
-// ************************************************************************************
+// → Friend request'lerin 24 saat sonra otomatik temizlenmesi için TTL mekanizması
+const FRIEND_REQUEST_TTL_MS = 24 * 60 * 60 * 1000;       // 24 saat
+const FRIEND_REQUEST_CLEANUP_INTERVAL_MS = 60 * 60 * 1000; // Her 1 saatte bir
+
+setInterval(() => {
+  const now = Date.now();
+  for (const username in friendRequests) {
+    // Yaşayanları filtrele
+    friendRequests[username] = friendRequests[username]
+      .filter(req => now - new Date(req.timestamp).getTime() < FRIEND_REQUEST_TTL_MS);
+    // Eğer hiç kalmadıysa tüm girişi sil
+    if (friendRequests[username].length === 0) {
+      delete friendRequests[username];
+    }
+  }
+}, FRIEND_REQUEST_CLEANUP_INTERVAL_MS);
+
 
 async function loadGroupsFromDB() {
   try {
@@ -284,29 +292,43 @@ io.on('connection', (socket) => {
     }
   });
 
-  // REGISTER
+  // REGISTER — **GÜNCELLEME BAŞLADI**
   socket.on('register', async (userData) => {
     const { username, name, surname, birthdate, email, phone, password, passwordConfirm } = userData;
-    if (!username || !name || !surname || !birthdate || !email || !phone ||
-        !password || !passwordConfirm) {
+
+    // 1) Zorunlu alan kontrolü
+    if (!username || !name || !surname || !birthdate || !email || !phone || !password || !passwordConfirm) {
       socket.emit('registerResult', { success: false, message: 'Tüm alanları doldurunuz.' });
       return;
     }
+    // 2) Kullanıcı adı küçük harf olmalı
     if (username !== username.toLowerCase()) {
       socket.emit('registerResult', { success: false, message: 'Kullanıcı adı küçük harf olmalı.' });
       return;
     }
+    // 3) Parola eşleşme kontrolü
     if (password !== passwordConfirm) {
       socket.emit('registerResult', { success: false, message: 'Parolalar eşleşmiyor.' });
       return;
     }
+    // 4) Parola karmaşıklık kontrolü
+    //    En az 8 karakter, bir büyük harf, bir küçük harf, bir rakam ve bir özel karakter
+    const complexityRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+    if (!complexityRegex.test(password)) {
+      socket.emit('registerResult', {
+        success: false,
+        message: 'Parola en az 8 karakter, bir büyük harf, bir küçük harf, bir rakam ve bir özel karakter içermeli.'
+      });
+      return;
+    }
+
     try {
-      const existingUser = await User.findOne({ $or: [ { username }, { email } ] });
+      const existingUser = await User.findOne({ $or: [{ username }, { email }] });
       if (existingUser) {
         socket.emit('registerResult', { success: false, message: 'Kullanıcı adı veya e-posta zaten alınmış.' });
         return;
       }
-      const passwordHash = await bcrypt.hash(password, 10);
+      const passwordHash = await bcrypt.hash(password, 12);
       const newUser = new User({
         username,
         passwordHash,

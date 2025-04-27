@@ -20,15 +20,71 @@ function clearScreenShareUI() {
 }
 
 import * as TextChannel from './js/textChannel.js';
-import * as ScreenShare from './js/screenShare.js';  // Yeni ekran paylaşım modülü
+import * as ScreenShare from './js/screenShare.js';
 import { initTypingIndicator } from './js/typingIndicator.js';
-import { initFriendRequests } from './js/friendRequests.js';  // Yeni: friendRequests modülü
+import { initFriendRequests } from './js/friendRequests.js';
 
 let socket = null;
 let device = null;   // mediasoup-client Device
 let deviceIsLoaded = false;
 let sendTransport = null;
 let recvTransport = null;
+
+function attemptRegister() {
+  const usernameVal = regUsernameInput.value.trim();
+  const nameVal     = regNameInput.value.trim();
+  const surnameVal  = regSurnameInput.value.trim();
+  const birthVal    = regBirthdateInput.value.trim();
+  const emailVal    = regEmailInput.value.trim();
+  const phoneVal    = regPhoneInput.value.trim();
+  const passVal     = regPasswordInput.value.trim();
+  const passConfVal = regPasswordConfirmInput.value.trim();
+
+  registerErrorMessage.style.display = 'none';
+  [regUsernameInput, regPasswordInput, regPasswordConfirmInput].forEach(el => el.classList.remove('shake'));
+
+  // 1) Zorunlu alan
+  if (!usernameVal || !nameVal || !surnameVal || !birthVal || !emailVal || !phoneVal || !passVal || !passConfVal) {
+    registerErrorMessage.textContent = 'Lütfen tüm alanları doldurunuz.';
+    registerErrorMessage.style.display = 'block';
+    return;
+  }
+  // 2) Küçük harf kontrolü
+  if (usernameVal !== usernameVal.toLowerCase()) {
+    registerErrorMessage.textContent = 'Kullanıcı adı sadece küçük harf olmalı!';
+    registerErrorMessage.style.display = 'block';
+    regUsernameInput.classList.add('shake');
+    return;
+  }
+  // 3) Parola eşleşme
+  if (passVal !== passConfVal) {
+    registerErrorMessage.textContent = 'Parolalar eşleşmiyor!';
+    registerErrorMessage.style.display = 'block';
+    regPasswordInput.classList.add('shake');
+    regPasswordConfirmInput.classList.add('shake');
+    return;
+  }
+  // 4) Parola karmaşıklık
+  const complexityRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+  if (!complexityRegex.test(passVal)) {
+    registerErrorMessage.textContent = 'Parola en az 8 karakter, büyük/küçük harf, rakam ve özel karakter içermeli.';
+    registerErrorMessage.style.display = 'block';
+    regPasswordInput.classList.add('shake');
+    return;
+  }
+
+  // Her şey tamam, sunucuya kayıt isteği gönder
+  socket.emit('register', {
+    username: usernameVal,
+    name: nameVal,
+    surname: surnameVal,
+    birthdate: birthVal,
+    email: emailVal,
+    phone: phoneVal,
+    password: passVal,
+    passwordConfirm: passConfVal
+  });
+}
 
 // Mikrofon akışı
 let localStream = null;
@@ -590,15 +646,6 @@ function initSocketEvents() {
       });
     });
   });
-  socket.on('audioStateChanged', ({ micEnabled, selfDeafened }) => {
-    if (!users[socket.id]) return;
-    users[socket.id].micEnabled = micEnabled;
-    users[socket.id].selfDeafened = selfDeafened;
-    const gId = users[socket.id].currentGroup;
-    if (gId) {
-      socket.emit('allChannelsData', getAllChannelsData(gId));
-    }
-  });
 }
 
 /* DM Panel toggle işlevi, her tıklamada DM moduna geçiş veya çıkış yapar (initUIEvents içinde tanımlanacak). */
@@ -927,167 +974,14 @@ async function requestMicrophoneAccess() {
   }
 }
 
-/* initUIEvents */
 function initUIEvents() {
+  // Login
   loginButton.addEventListener('click', attemptLogin);
   loginUsernameInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') attemptLogin();
   });
   loginPasswordInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') attemptLogin();
-  });
-  registerButton.addEventListener('click', () => {
-    const userData = {
-      username: regUsernameInput.value.trim(),
-      name: regNameInput.value.trim(),
-      surname: regSurnameInput.value.trim(),
-      birthdate: regBirthdateInput.value.trim(),
-      email: regEmailInput.value.trim(),
-      phone: regPhoneInput.value.trim(),
-      password: regPasswordInput.value.trim(),
-      passwordConfirm: regPasswordConfirmInput.value.trim()
-    };
-    registerErrorMessage.style.display = 'none';
-    regUsernameInput.classList.remove('shake');
-    regPasswordInput.classList.remove('shake');
-    regPasswordConfirmInput.classList.remove('shake');
-    let isError = false;
-    if (!userData.username || !userData.name || !userData.surname ||
-        !userData.birthdate || !userData.email || !userData.phone ||
-        !userData.password || !userData.passwordConfirm) {
-      regUsernameInput.classList.add('shake');
-      regPasswordInput.classList.add('shake');
-      regPasswordConfirmInput.classList.add('shake');
-      registerErrorMessage.style.display = 'block';
-      registerErrorMessage.textContent = "Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin";
-      isError = true;
-    } else if (userData.username !== userData.username.toLowerCase()) {
-      regUsernameInput.classList.add('shake');
-      registerErrorMessage.style.display = 'block';
-      registerErrorMessage.textContent = "Kullanıcı adı sadece küçük harf olmalı!";
-      isError = true;
-    } else if (userData.password !== userData.passwordConfirm) {
-      regPasswordInput.classList.add('shake');
-      regPasswordConfirmInput.classList.add('shake');
-      registerErrorMessage.style.display = 'block';
-      registerErrorMessage.textContent = "Parolalar eşleşmiyor!";
-      isError = true;
-    }
-    if (!isError) {
-      socket.emit('register', userData);
-    }
-  });
-  backToLoginButton.addEventListener('click', () => {
-    registerScreen.style.display = 'none';
-    loginScreen.style.display = 'block';
-  });
-  showRegisterScreen.addEventListener('click', () => {
-    loginScreen.style.display = 'none';
-    registerScreen.style.display = 'block';
-  });
-  showLoginScreen.addEventListener('click', () => {
-    registerScreen.style.display = 'none';
-    loginScreen.style.display = 'block';
-  });
-  createGroupButton.addEventListener('click', () => {
-    document.getElementById('groupModal').style.display = 'flex';
-  });
-  document.getElementById('modalGroupCreateBtn').addEventListener('click', () => {
-    document.getElementById('groupModal').style.display = 'none';
-    document.getElementById('actualGroupCreateModal').style.display = 'flex';
-  });
-  document.getElementById('modalGroupJoinBtn').addEventListener('click', () => {
-    document.getElementById('groupModal').style.display = 'none';
-    document.getElementById('joinGroupModal').style.display = 'flex';
-  });
-  document.getElementById('joinGroupIdBtn').addEventListener('click', () => {
-    const grpIdVal = document.getElementById('joinGroupIdInput').value.trim();
-    if (!grpIdVal) {
-      alert("Grup ID boş olamaz!");
-      return;
-    }
-    socket.emit('joinGroupByID', grpIdVal);
-    document.getElementById('joinGroupModal').style.display = 'none';
-  });
-  document.getElementById('closeJoinGroupModal').addEventListener('click', () => {
-    document.getElementById('joinGroupModal').style.display = 'none';
-  });
-  document.getElementById('closeCreateGroupModal').addEventListener('click', () => {
-    document.getElementById('actualGroupCreateModal').style.display = 'none';
-  });
-  document.getElementById('createChannelBtn').addEventListener('click', (e) => {
-    e.stopPropagation();
-    document.getElementById('groupModal').style.display = 'none';
-    document.getElementById('roomModal').style.display = 'flex';
-  });
-  document.getElementById('modalCreateRoomBtn').addEventListener('click', () => {
-    const rName = document.getElementById('modalRoomName').value.trim();
-    if (!rName) {
-      alert("Oda adı girin!");
-      return;
-    }
-    const channelType = document.querySelector('input[name="channelType"]:checked').value;
-    if (currentRoomType !== "voice") {
-      if (selectedGroup) {
-        currentGroup = selectedGroup;
-      }
-    }
-    const grp = currentGroup || selectedGroup;
-    if (!grp) {
-      alert("Önce bir gruba katılın!");
-      return;
-    }
-    socket.emit('createRoom', { groupId: grp, roomName: rName, channelType: channelType });
-    document.getElementById('roomModal').style.display = 'none';
-  });
-  document.getElementById('modalCloseRoomBtn').addEventListener('click', () => {
-    document.getElementById('roomModal').style.display = 'none';
-  });
-  copyGroupIdBtn.addEventListener('click', () => {
-    groupDropdownMenu.style.display = 'none';
-    const grp = currentGroup || selectedGroup;
-    if (!grp) {
-      alert("Şu an bir grup seçili değil!");
-      return;
-    }
-    navigator.clipboard.writeText(grp)
-      .then(() => alert("Grup ID kopyalandı: " + grp))
-      .catch(err => {
-        console.error("Kopyalama hatası:", err);
-        alert("Kopyalama başarısız!");
-      });
-  });
-  renameGroupBtn.addEventListener('click', () => {
-    groupDropdownMenu.style.display = 'none';
-    const grp = currentGroup || selectedGroup;
-    if (!grp) {
-      alert("Şu an bir grup seçili değil!");
-      return;
-    }
-    const newName = prompt("Yeni grup ismini girin:");
-    if (!newName || !newName.trim()) {
-      alert("Grup ismi boş olamaz!");
-      return;
-    }
-    socket.emit('renameGroup', { groupId: grp, newName: newName.trim() });
-  });
-  deleteGroupBtn.addEventListener('click', () => {
-    groupDropdownMenu.style.display = 'none';
-    const grp = currentGroup || selectedGroup;
-    if (!grp) {
-      alert("Şu an bir grup seçili değil!");
-      return;
-    }
-    const confirmDel = confirm("Bu grubu silmek istediğinize emin misiniz?");
-    if (!confirmDel) return;
-    socket.emit('deleteGroup', grp);
-  });
-  groupDropdownIcon.addEventListener('click', () => {
-    if (groupDropdownMenu.style.display === 'none' || groupDropdownMenu.style.display === '') {
-      groupDropdownMenu.style.display = 'block';
-    } else {
-      groupDropdownMenu.style.display = 'none';
-    }
   });
   
   // DM Panel toggle: Her tıklamada DM moduna geçiş veya çıkış yapar.
@@ -1408,11 +1302,6 @@ function updateCellBars(ping) {
   if (barsActive >= 2) cellBar2.classList.add('active');
   if (barsActive >= 3) cellBar3.classList.add('active');
   if (barsActive >= 4) cellBar4.classList.add('active');
-}
-
-/* getAllChannelsData */
-function getAllChannelsData(gId) {
-  return {};
 }
 
 /* updateUserList */
