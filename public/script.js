@@ -977,6 +977,29 @@ async function requestMicrophoneAccess() {
 function initUIEvents() {
   // Login
   loginButton.addEventListener('click', attemptLogin);
+  loginUsernameInput.addEventListener('keydown', e => e.key==='Enter' && attemptLogin());
+  loginPasswordInput.addEventListener('keydown', e => e.key==='Enter' && attemptLogin());
+
+  // ** Register handler’ı burada ekleyin **
+  registerButton.addEventListener('click', attemptRegister);
+  regPasswordConfirmInput.addEventListener('keydown', e => e.key==='Enter' && attemptRegister());
+
+  // Sayfalar arası geçiş linkleri
+  showRegisterScreen.addEventListener('click', () => {
+    loginScreen.style.display    = 'none';
+    registerScreen.style.display = 'block';
+  });
+  showLoginScreen.addEventListener('click', () => {
+    registerScreen.style.display = 'none';
+    loginScreen.style.display    = 'block';
+  });
+  backToLoginButton.addEventListener('click', () => {
+    registerScreen.style.display = 'none';
+    loginScreen.style.display    = 'block';
+  });
+  
+  // Login
+  loginButton.addEventListener('click', attemptLogin);
   loginUsernameInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') attemptLogin();
   });
