@@ -31,6 +31,8 @@ let sendTransport = null;
 let recvTransport = null;
 
 function attemptRegister() {
+  console.log("🔐 attemptRegister tetiklendi");  // ← Bunu buraya ekleyin
+
   const usernameVal = regUsernameInput.value.trim();
   const nameVal     = regNameInput.value.trim();
   const surnameVal  = regSurnameInput.value.trim();
@@ -982,7 +984,7 @@ function initUIEvents() {
 
   // ** Register handler’ı burada ekleyin **
   registerButton.addEventListener('click', attemptRegister);
-  regPasswordConfirmInput.addEventListener('keydown', e => e.key==='Enter' && attemptRegister());
+  regPasswordConfirmInput.addEventListener('keydown', e => e.key==='Enter' && attemptRegister());  
 
   // Sayfalar arası geçiş linkleri
   showRegisterScreen.addEventListener('click', () => {
@@ -997,7 +999,7 @@ function initUIEvents() {
     registerScreen.style.display = 'none';
     loginScreen.style.display    = 'block';
   });
-  
+
   // Login
   loginButton.addEventListener('click', attemptLogin);
   loginUsernameInput.addEventListener('keydown', (e) => {
