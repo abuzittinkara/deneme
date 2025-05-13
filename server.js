@@ -10,6 +10,14 @@ const WebSocket = require('ws');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
+const helmet = require('helmet');
+const { body, validationResult } = require('express-validator');
+const DOMPurify = require('dompurify');
+const { JSDOM } = require('jsdom');
+const rateLimit = require('express-rate-limit');
+
+const window = new JSDOM('').window;
+const purify = DOMPurify(window);
 
 const User = require('./models/User');
 const Group = require('./models/Group');
@@ -41,6 +49,16 @@ mongoose.connect(uri)
   .catch(err => {
     console.error("MongoDB bağlantı hatası:", err);
   });
+
+// Helmet middleware'i ekle
+app.use(helmet());
+
+// Rate limiting middleware'i ekle
+app.use(rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 dakika
+  max: 60, // 1 dakikada maksimum 60 istek
+  message: "Çok fazla istek gönderdiniz, lütfen daha sonra tekrar deneyin."
+}));
 
 // --- Bellek içi tablolar (aynı kaldı) ---
 const users = {};
@@ -258,12 +276,28 @@ function removeUserFromAllGroupsAndRooms(socket) {
 
 app.use(expressWinston.logger({
   winstonInstance: logger,
-  statusLevels: true // HTTP durum kodlarına göre log seviyesi belirler
+  meta: false, // Ayrıntılı meta bilgilerini kapatır
+  msg: "{{req.method}} {{req.url}} - {{res.statusCode}} ({{res.responseTime}}ms)",
+  colorize: true,
 }));
 app.use(express.static("public"));
 
+// Örnek bir giriş endpoint'i için express-validator entegrasyonu
+app.post('/login', [
+  body('username').isString().isLength({ min: 3, max: 20 }).trim(),
+  body('password').isString().isLength({ min: 6 }),
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { username, password } = req.body;
+  // Mevcut kod...
+});
+
 io.on('connection', (socket) => {
-  logger.info('Yeni kullanıcı bağlandı: %s', socket.id);
+  logger.info(`Yeni bağlantı: ${socket.id}`);
   users[socket.id] = {
     username: null,
     currentGroup: null,
@@ -1378,6 +1412,12 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Socket.IO input sanitizasyonu
+  socket.on('sendMessage', async ({ message }) => {
+    const safeMessage = purify.sanitize(message);
+    // Veritabanına güvenli mesajı kaydet
+  });
+
   socket.on("disconnect", async () => {
     logger.info('Kullanıcı bağlantıyı sonlandırdı: %s, username: %s', socket.id, users[socket.id]?.username);
     const userData = users[socket.id];
@@ -1399,7 +1439,7 @@ app.use(expressWinston.errorLogger({
 
 // Merkezi hata yakalayıcı
 app.use((err, req, res, next) => {
-  logger.error('Unhandled error: %o', err); // Winston ile loglama
+  logger.error(`Unhandled error: ${err.message} - URL: ${req.originalUrl} - Method: ${req.method}`); // Winston ile loglama
   res.status(err.status || 500).json({
     success: false,
     error: err.message || 'Sunucu hatası'
@@ -1407,12 +1447,12 @@ app.use((err, req, res, next) => {
 });
 
 process.on('uncaughtException', (err) => {
-  logger.error('uncaughtException: %o', err);
+  logger.error(`Uncaught Exception: ${err.message}`);
   process.exit(1); // güvenli çıkış yapalım
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  logger.error('unhandledRejection: %o, promise: %o', reason, promise);
+  logger.error(`Unhandled Rejection: ${reason}`);
   process.exit(1); // güvenli çıkış yapalım
 });
 
