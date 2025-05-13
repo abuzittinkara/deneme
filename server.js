@@ -30,6 +30,8 @@ const expressWinston = require('express-winston');
 const logger = require('./utils/logger');
 
 const app = express();
+app.set('trust proxy', 1); // Proxy güvendiğimizi belirt
+
 const server = http.createServer(app);
 
 const io = socketIO(server, {
@@ -50,8 +52,20 @@ mongoose.connect(uri)
     console.error("MongoDB bağlantı hatası:", err);
   });
 
-// Helmet middleware'i ekle
-app.use(helmet());
+// Helmet middleware'i özel CSP ayarları ile güncelle
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "https://cdn.socket.io"], // Socket.IO CDN
+        connectSrc: ["'self'", "wss:", "https://cdn.socket.io"], // Socket.IO bağlantısı için wss:
+        styleSrc: ["'self'", "'unsafe-inline'"], // Gerekirse inline stiller için
+        imgSrc: ["'self'", "data:"], // data: URI'larından resim yüklemeye izin ver
+      },
+    },
+  })
+);
 
 // Rate limiting middleware'i ekle
 app.use(rateLimit({
