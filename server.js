@@ -18,6 +18,8 @@ const Message = require('./models/Message');
 const DMMessage = require('./models/DMMessage');
 const sfu = require('./sfu');
 const registerTextChannelEvents = require('./modules/textChannel');
+const expressWinston = require('express-winston');
+const logger = require('./utils/logger');
 
 const app = express();
 const server = http.createServer(app);
@@ -254,10 +256,14 @@ function removeUserFromAllGroupsAndRooms(socket) {
   }
 }
 
+app.use(expressWinston.logger({
+  winstonInstance: logger,
+  statusLevels: true // HTTP durum kodlarına göre log seviyesi belirler
+}));
 app.use(express.static("public"));
 
 io.on('connection', (socket) => {
-  console.log('Kullanıcı bağlandı:', socket.id);
+  logger.info('Yeni kullanıcı bağlandı: %s', socket.id);
   users[socket.id] = {
     username: null,
     currentGroup: null,
@@ -273,21 +279,25 @@ io.on('connection', (socket) => {
     try {
       if (!username || !password) {
         socket.emit('loginResult', { success: false, message: 'Eksik bilgiler' });
+        logger.warn('Login attempt failed (eksik bilgi): %s', username);
         return;
       }
       const user = await User.findOne({ username });
       if (!user) {
         socket.emit('loginResult', { success: false, message: 'Kullanıcı bulunamadı.' });
+        logger.warn('Login attempt failed (kullanıcı bulunamadı): %s', username);
         return;
       }
       const pwMatch = await bcrypt.compare(password, user.passwordHash);
       if (!pwMatch) {
         socket.emit('loginResult', { success: false, message: 'Yanlış parola.' });
+        logger.warn('Login attempt failed (yanlış parola): %s', username);
         return;
       }
       socket.emit('loginResult', { success: true, username: user.username });
+      logger.info('User logged in: %s', username);
     } catch (err) {
-      console.error(err);
+      logger.error('Login error: %o', err);
       socket.emit('loginResult', { success: false, message: 'Giriş hatası.' });
     }
   });
@@ -296,36 +306,41 @@ io.on('connection', (socket) => {
   socket.on('register', async (userData) => {
     const { username, name, surname, birthdate, email, phone, password, passwordConfirm } = userData;
 
-    // 1) Zorunlu alan kontrolü
-    if (!username || !name || !surname || !birthdate || !email || !phone || !password || !passwordConfirm) {
-      socket.emit('registerResult', { success: false, message: 'Tüm alanları doldurunuz.' });
-      return;
-    }
-    // 2) Kullanıcı adı küçük harf olmalı
-    if (username !== username.toLowerCase()) {
-      socket.emit('registerResult', { success: false, message: 'Kullanıcı adı küçük harf olmalı.' });
-      return;
-    }
-    // 3) Parola eşleşme kontrolü
-    if (password !== passwordConfirm) {
-      socket.emit('registerResult', { success: false, message: 'Parolalar eşleşmiyor.' });
-      return;
-    }
-    // 4) Parola karmaşıklık kontrolü
-    //    En az 8 karakter, bir büyük harf, bir küçük harf, bir rakam ve bir özel karakter
-    const complexityRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
-    if (!complexityRegex.test(password)) {
-      socket.emit('registerResult', {
-        success: false,
-        message: 'Parola en az 8 karakter, bir büyük harf, bir küçük harf, bir rakam ve bir özel karakter içermeli.'
-      });
-      return;
-    }
-
     try {
+      // 1) Zorunlu alan kontrolü
+      if (!username || !name || !surname || !birthdate || !email || !phone || !password || !passwordConfirm) {
+        socket.emit('registerResult', { success: false, message: 'Tüm alanları doldurunuz.' });
+        logger.warn('Register attempt failed (eksik bilgi): %s', username);
+        return;
+      }
+      // 2) Kullanıcı adı küçük harf olmalı
+      if (username !== username.toLowerCase()) {
+        socket.emit('registerResult', { success: false, message: 'Kullanıcı adı küçük harf olmalı.' });
+        logger.warn('Register attempt failed (kullanıcı adı küçük harf değil): %s', username);
+        return;
+      }
+      // 3) Parola eşleşme kontrolü
+      if (password !== passwordConfirm) {
+        socket.emit('registerResult', { success: false, message: 'Parolalar eşleşmiyor.' });
+        logger.warn('Register attempt failed (parolalar eşleşmiyor): %s', username);
+        return;
+      }
+      // 4) Parola karmaşıklık kontrolü
+      //    En az 8 karakter, bir büyük harf, bir küçük harf, bir rakam ve bir özel karakter
+      const complexityRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+      if (!complexityRegex.test(password)) {
+        socket.emit('registerResult', {
+          success: false,
+          message: 'Parola en az 8 karakter, bir büyük harf, bir küçük harf, bir rakam ve bir özel karakter içermeli.'
+        });
+        logger.warn('Register attempt failed (parola karmaşıklığı yetersiz): %s', username);
+        return;
+      }
+
       const existingUser = await User.findOne({ $or: [{ username }, { email }] });
       if (existingUser) {
         socket.emit('registerResult', { success: false, message: 'Kullanıcı adı veya e-posta zaten alınmış.' });
+        logger.warn('Register attempt failed (kullanıcı adı/e-posta alınmış): %s', username);
         return;
       }
       const passwordHash = await bcrypt.hash(password, 12);
@@ -342,8 +357,9 @@ io.on('connection', (socket) => {
       });
       await newUser.save();
       socket.emit('registerResult', { success: true });
+      logger.info('User registered: %s', username);
     } catch (err) {
-      console.error(err);
+      logger.error('Register error: %o', err);
       socket.emit('registerResult', { success: false, message: 'Kayıt hatası.' });
     }
   });
@@ -418,55 +434,74 @@ io.on('connection', (socket) => {
   });
 
   socket.on('createGroup', async (groupName) => {
-    if (!groupName) return;
-    const trimmed = groupName.trim();
-    if (!trimmed) return;
-    const userName = users[socket.id].username || null;
-    if (!userName) {
-      socket.emit('errorMessage', "Kullanıcı adınız tanımlı değil.");
-      return;
-    }
-    const userDoc = await User.findOne({ username: userName });
-    if (!userDoc) return;
-    const groupId = uuidv4();
-    const newGroup = new Group({
-      groupId,
-      name: trimmed,
-      owner: userDoc._id,
-      users: [ userDoc._id ]
-    });
-    await newGroup.save();
-    userDoc.groups.push(newGroup._id);
-    await userDoc.save();
-    groups[groupId] = {
-      owner: userName, 
-      name: trimmed,
-      users: [ { id: socket.id, username: userName } ],
-      rooms: {}
-    };
-    console.log(`Yeni grup: ${trimmed} (ID=${groupId}), owner=${userName}`);
-    await sendGroupsListToUser(socket.id);
-    broadcastGroupUsers(groupId);
-  });
-
-  socket.on('joinGroupByID', async (groupId) => {
     try {
-      if (users[socket.id].currentGroup === groupId) {
+      if (!groupName) {
+        logger.warn('Create group attempt failed (grup adı yok)');
+        return;
+      }
+      const trimmed = groupName.trim();
+      if (!trimmed) {
+        logger.warn('Create group attempt failed (grup adı boş)');
         return;
       }
       const userName = users[socket.id].username || null;
       if (!userName) {
         socket.emit('errorMessage', "Kullanıcı adınız tanımlı değil.");
+        logger.warn('Create group attempt failed (kullanıcı adı tanımsız)');
+        return;
+      }
+      const userDoc = await User.findOne({ username: userName });
+      if (!userDoc) {
+        logger.warn('Create group attempt failed (kullanıcı DB\'de yok): %s', userName);
+        return;
+      }
+      const groupId = uuidv4();
+      const newGroup = new Group({
+        groupId,
+        name: trimmed,
+        owner: userDoc._id,
+        users: [ userDoc._id ]
+      });
+      await newGroup.save();
+      userDoc.groups.push(newGroup._id);
+      await userDoc.save();
+      groups[groupId] = {
+        owner: userName, 
+        name: trimmed,
+        users: [ { id: socket.id, username: userName } ],
+        rooms: {}
+      };
+      logger.info(`Yeni grup: ${trimmed} (ID=${groupId}), owner=${userName}`);
+      await sendGroupsListToUser(socket.id);
+      broadcastGroupUsers(groupId);
+    } catch (err) {
+      logger.error('Create group error: %o', err);
+      socket.emit('errorMessage', 'Grup oluşturulurken bir hata oluştu.');
+    }
+  });
+
+  socket.on('joinGroupByID', async (groupId) => {
+    try {
+      if (users[socket.id].currentGroup === groupId) {
+        logger.info('User %s already in group %s', users[socket.id].username, groupId);
+        return;
+      }
+      const userName = users[socket.id].username || null;
+      if (!userName) {
+        socket.emit('errorMessage', "Kullanıcı adınız tanımlı değil.");
+        logger.warn('Join group by ID failed (kullanıcı adı tanımsız)');
         return;
       }
       const userDoc = await User.findOne({ username: userName });
       if (!userDoc) {
         socket.emit('errorMessage', "Kullanıcı yok (DB).");
+        logger.warn('Join group by ID failed (kullanıcı DB\'de yok): %s', userName);
         return;
       }
       const groupDoc = await Group.findOne({ groupId });
       if (!groupDoc) {
         socket.emit('errorMessage', "Böyle bir grup yok (DB).");
+        logger.warn('Join group by ID failed (grup DB\'de yok): %s', groupId);
         return;
       }
       if (!groupDoc.users.some(u => u.toString() === userDoc._id.toString())) {
@@ -499,13 +534,14 @@ io.on('connection', (socket) => {
       userData.currentGroup = groupId;
       userData.currentRoom = null;
       socket.join(groupId);
-      console.log(`User ${socket.id} => joinGroupByID => ${groupId}`);
+      logger.info(`User ${socket.id} (${userName}) => joinGroupByID => ${groupId}`);
       await sendGroupsListToUser(socket.id);
       sendRoomsListToUser(socket.id, groupId);
       broadcastAllChannelsData(groupId);
       await broadcastGroupUsers(groupId);
     } catch (err) {
-      console.error("joinGroupByID hata:", err);
+      logger.error("joinGroupByID hata: %o", err);
+      socket.emit('errorMessage', 'Gruba katılırken bir hata oluştu.');
     }
   });
 
@@ -542,10 +578,19 @@ io.on('connection', (socket) => {
 
   socket.on('createRoom', async ({ groupId, roomName, channelType }) => {
     try {
-      if (!groups[groupId]) return;
-      if (!roomName) return;
+      if (!groups[groupId]) {
+        logger.warn('Create room failed (grup bellekte yok): %s', groupId);
+        return;
+      }
+      if (!roomName) {
+        logger.warn('Create room failed (oda adı yok)');
+        return;
+      }
       const trimmed = roomName.trim();
-      if (!trimmed) return;
+      if (!trimmed) {
+        logger.warn('Create room failed (oda adı boş)');
+        return;
+      }
       channelType = channelType || 'text';
       const groupDoc = await Group.findOne({ groupId });
       if (!groupDoc) return;
@@ -576,74 +621,88 @@ io.on('connection', (socket) => {
           users: []
         };
       }
-      console.log(`Yeni oda: group=${groupId}, room=${roomId}, name=${trimmed}, type=${channelType}`);
+      logger.info(`Yeni oda: group=${groupId}, room=${roomId}, name=${trimmed}, type=${channelType}`);
       sendRoomsListToUser(socket.id, groupId);
       broadcastRoomsListToGroup(groupId);
       broadcastAllChannelsData(groupId);
     } catch (err) {
-      console.error("createRoom hata:", err);
+      logger.error("createRoom hata: %o", err);
+      socket.emit('errorMessage', 'Oda oluşturulurken bir hata oluştu.');
     }
   });
 
   socket.on('joinRoom', async ({ groupId, roomId }) => {
-    if (!groups[groupId]) return;
-    if (!groups[groupId].rooms[roomId]) return;
-    const userData = users[socket.id];
-    if (!userData.username) {
-      socket.emit('errorMessage', "Kullanıcı adınız tanımsız => Kanala eklenemiyor.");
-      return;
-    }
-    if (userData.currentGroup === groupId && userData.currentRoom === roomId) {
-      return; 
-    }
-    if (userData.isScreenSharing) {
-      socket.emit('screenShareEnded');
-      userData.isScreenSharing = false;
-      userData.screenShareProducerId = null;
-    }
-    if (userData.currentGroup === groupId && userData.currentRoom && groups[groupId].rooms[userData.currentRoom]) {
-      const prevRoom = groups[groupId].rooms[userData.currentRoom];
-      prevRoom.users = prevRoom.users.filter(u => u.id !== socket.id);
-      io.to(`${groupId}::${userData.currentRoom}`).emit('roomUsers', prevRoom.users);
-      socket.leave(`${groupId}::${userData.currentRoom}`);
-      if (prevRoom.producers) {
-        Object.keys(prevRoom.producers).forEach(pid => {
-          const producer = prevRoom.producers[pid];
-          if (producer && producer.appData && producer.appData.peerId === socket.id) {
-            sfu.closeProducer(producer);
-            delete prevRoom.producers[pid];
-          }
-        });
+    try {
+      if (!groups[groupId]) {
+        logger.warn('Join room failed (grup bellekte yok): %s', groupId);
+        return;
       }
-      userData.isScreenSharing = false;
-      userData.screenShareProducerId = null;
-      io.to(`${groupId}::${userData.currentRoom}`).emit('screenShareEnded', { userId: socket.id });
-    } else {
-      removeUserFromAllGroupsAndRooms(socket);
+      if (!groups[groupId].rooms[roomId]) {
+        logger.warn('Join room failed (oda bellekte yok): %s/%s', groupId, roomId);
+        return;
+      }
+      const userData = users[socket.id];
+      if (!userData.username) {
+        socket.emit('errorMessage', "Kullanıcı adınız tanımsız => Kanala eklenemiyor.");
+        logger.warn('Join room failed (kullanıcı adı tanımsız)');
+        return;
+      }
+      if (userData.currentGroup === groupId && userData.currentRoom === roomId) {
+        return; 
+      }
+      if (userData.isScreenSharing) {
+        socket.emit('screenShareEnded');
+        userData.isScreenSharing = false;
+        userData.screenShareProducerId = null;
+      }
+      if (userData.currentGroup === groupId && userData.currentRoom && groups[groupId].rooms[userData.currentRoom]) {
+        const prevRoom = groups[groupId].rooms[userData.currentRoom];
+        prevRoom.users = prevRoom.users.filter(u => u.id !== socket.id);
+        io.to(`${groupId}::${userData.currentRoom}`).emit('roomUsers', prevRoom.users);
+        socket.leave(`${groupId}::${userData.currentRoom}`);
+        if (prevRoom.producers) {
+          Object.keys(prevRoom.producers).forEach(pid => {
+            const producer = prevRoom.producers[pid];
+            if (producer && producer.appData && producer.appData.peerId === socket.id) {
+              sfu.closeProducer(producer);
+              delete prevRoom.producers[pid];
+            }
+          });
+        }
+        userData.isScreenSharing = false;
+        userData.screenShareProducerId = null;
+        io.to(`${groupId}::${userData.currentRoom}`).emit('screenShareEnded', { userId: socket.id });
+      } else {
+        removeUserFromAllGroupsAndRooms(socket);
+      }
+      const rmObj = groups[groupId].rooms[roomId];
+      if (rmObj.type === 'voice' && !rmObj.router) {
+        console.log(`joinRoom => oda ${roomId} için router yok, şimdi oluşturuyoruz...`);
+        const router = await sfu.createRouter(roomId);
+        rmObj.router = router;
+        rmObj.producers = rmObj.producers || {};
+        rmObj.consumers = rmObj.consumers || {};
+        rmObj.transports = rmObj.transports || {};
+      }
+      const userName = userData.username;
+      if (!groups[groupId].users.some(u => u.id === socket.id)) {
+        groups[groupId].users.push({ id: socket.id, username: userName });
+      }
+      rmObj.users.push({ id: socket.id, username: userName });
+      userData.currentGroup = groupId;
+      userData.currentRoom = roomId;
+      users[socket.id].isScreenSharing = false;
+      users[socket.id].screenShareProducerId = null;
+      socket.join(groupId);
+      socket.join(`${groupId}::${roomId}`);
+      logger.info('User %s joined room %s/%s', userName, groupId, roomId);
+      io.to(`${groupId}::${roomId}`).emit('roomUsers', rmObj.users);
+      broadcastAllChannelsData(groupId);
+      socket.emit('joinRoomAck', { groupId, roomId });
+    } catch (err) {
+      logger.error('Join room error: %o', err);
+      socket.emit('errorMessage', 'Odaya katılırken bir hata oluştu.');
     }
-    const rmObj = groups[groupId].rooms[roomId];
-    if (rmObj.type === 'voice' && !rmObj.router) {
-      console.log(`joinRoom => oda ${roomId} için router yok, şimdi oluşturuyoruz...`);
-      const router = await sfu.createRouter(roomId);
-      rmObj.router = router;
-      rmObj.producers = rmObj.producers || {};
-      rmObj.consumers = rmObj.consumers || {};
-      rmObj.transports = rmObj.transports || {};
-    }
-    const userName = userData.username;
-    if (!groups[groupId].users.some(u => u.id === socket.id)) {
-      groups[groupId].users.push({ id: socket.id, username: userName });
-    }
-    rmObj.users.push({ id: socket.id, username: userName });
-    userData.currentGroup = groupId;
-    userData.currentRoom = roomId;
-    users[socket.id].isScreenSharing = false;
-    users[socket.id].screenShareProducerId = null;
-    socket.join(groupId);
-    socket.join(`${groupId}::${roomId}`);
-    io.to(`${groupId}::${roomId}`).emit('roomUsers', rmObj.users);
-    broadcastAllChannelsData(groupId);
-    socket.emit('joinRoomAck', { groupId, roomId });
   });
 
   socket.on('leaveRoom', ({ groupId, roomId }) => {
@@ -687,42 +746,50 @@ io.on('connection', (socket) => {
   socket.on('renameGroup', async (data) => {
     const { groupId, newName } = data;
     const userName = users[socket.id].username;
-    if (!groups[groupId]) return;
-    if (groups[groupId].owner !== userName) {
-      socket.emit('errorMessage', "Bu grubu değiştirme yetkiniz yok.");
-      return;
-    }
     try {
+      if (!groups[groupId]) {
+        logger.warn('Rename group failed (grup bellekte yok): %s', groupId);
+        return;
+      }
+      if (groups[groupId].owner !== userName) {
+        socket.emit('errorMessage', "Bu grubu değiştirme yetkiniz yok.");
+        logger.warn('Rename group failed (yetki yok): %s by %s', groupId, userName);
+        return;
+      }
       const groupDoc = await Group.findOne({ groupId });
       if (!groupDoc) {
         socket.emit('errorMessage', "Grup DB'de yok.");
+        logger.warn('Rename group failed (grup DB\'de yok): %s', groupId);
         return;
       }
       groupDoc.name = newName;
       await groupDoc.save();
       groups[groupId].name = newName;
       io.to(groupId).emit('groupRenamed', { groupId, newName });
-      console.log(`Grup rename => ${groupId}, yeni isim=${newName}`);
+      logger.info(`Grup rename => ${groupId}, yeni isim=${newName}`);
     } catch (err) {
-      console.error("renameGroup hata:", err);
+      logger.error("renameGroup hata: %o", err);
       socket.emit('errorMessage', "Grup ismi değiştirilirken hata oluştu.");
     }
   });
 
   socket.on('deleteGroup', async (grpId) => {
     const userName = users[socket.id].username;
-    if (!groups[grpId]) {
-      socket.emit('errorMessage', "Grup bellekte yok.");
-      return;
-    }
-    if (groups[grpId].owner !== userName) {
-      socket.emit('errorMessage', "Bu grubu silmeye yetkiniz yok.");
-      return;
-    }
     try {
+      if (!groups[grpId]) {
+        socket.emit('errorMessage', "Grup bellekte yok.");
+        logger.warn('Delete group failed (grup bellekte yok): %s', grpId);
+        return;
+      }
+      if (groups[grpId].owner !== userName) {
+        socket.emit('errorMessage', "Bu grubu silmeye yetkiniz yok.");
+        logger.warn('Delete group failed (yetki yok): %s by %s', grpId, userName);
+        return;
+      }
       const groupDoc = await Group.findOne({ groupId: grpId }).populate('users');
       if (!groupDoc) {
         socket.emit('errorMessage', "Grup DB'de bulunamadı.");
+        logger.warn('Delete group failed (grup DB\'de yok): %s', grpId);
         return;
       }
       if (groupDoc.users && groupDoc.users.length > 0) {
@@ -737,10 +804,10 @@ io.on('connection', (socket) => {
       await Group.deleteOne({ _id: groupDoc._id });
       await Channel.deleteMany({ group: groupDoc._id });
       delete groups[grpId];
-      console.log(`Grup silindi => ${grpId}`);
+      logger.info(`Grup silindi => ${grpId}`);
       io.emit('groupDeleted', { groupId: grpId });
     } catch (err) {
-      console.error("deleteGroup hata:", err);
+      logger.error("deleteGroup hata: %o", err);
       socket.emit('errorMessage', "Grup silinirken hata oluştu.");
     }
   });
@@ -748,10 +815,14 @@ io.on('connection', (socket) => {
   socket.on('renameChannel', async (payload) => {
     try {
       const { channelId, newName } = payload;
-      if (!channelId || !newName) return;
+      if (!channelId || !newName) {
+        logger.warn('Rename channel failed (eksik parametre)');
+        return;
+      }
       const chDoc = await Channel.findOne({ channelId });
       if (!chDoc) {
         socket.emit('errorMessage', "Kanal DB'de bulunamadı.");
+        logger.warn('Rename channel failed (kanal DB\'de yok): %s', channelId);
         return;
       }
       chDoc.name = newName;
@@ -759,24 +830,31 @@ io.on('connection', (socket) => {
       const groupDoc = await Group.findById(chDoc.group);
       if (!groupDoc) return;
       const gId = groupDoc.groupId;
-      if (!groups[gId] || !groups[gId].rooms[channelId]) return;
+      if (!groups[gId] || !groups[gId].rooms[channelId]) {
+        logger.warn('Rename channel failed (grup/oda bellekte yok): %s/%s', gId, channelId);
+        return;
+      }
       groups[gId].rooms[channelId].name = newName;
       broadcastRoomsListToGroup(gId);
       broadcastAllRoomsUsers(gId);
       broadcastAllChannelsData(gId);
-      console.log(`Kanal rename => ${channelId} => ${newName}`);
+      logger.info(`Kanal rename => ${channelId} => ${newName}`);
     } catch (err) {
-      console.error("renameChannel hata:", err);
+      logger.error("renameChannel hata: %o", err);
       socket.emit('errorMessage', "Kanal ismi değiştirilirken hata oluştu.");
     }
   });
 
   socket.on('deleteChannel', async (channelId) => {
     try {
-      if (!channelId) return;
+      if (!channelId) {
+        logger.warn('Delete channel failed (kanal ID yok)');
+        return;
+      }
       const chDoc = await Channel.findOne({ channelId });
       if (!chDoc) {
         socket.emit('errorMessage', "Kanal DB'de bulunamadı.");
+        logger.warn('Delete channel failed (kanal DB\'de yok): %s', channelId);
         return;
       }
       await Channel.deleteOne({ _id: chDoc._id });
@@ -789,9 +867,9 @@ io.on('connection', (socket) => {
       broadcastRoomsListToGroup(gId);
       broadcastAllRoomsUsers(gId);
       broadcastAllChannelsData(gId);
-      console.log(`Kanal silindi => ${channelId}`);
+      logger.info(`Kanal silindi => ${channelId}`);
     } catch (err) {
-      console.error("deleteChannel hata:", err);
+      logger.error("deleteChannel hata: %o", err);
       socket.emit('errorMessage', "Kanal silinirken hata oluştu.");
     }
   });
@@ -799,11 +877,13 @@ io.on('connection', (socket) => {
   socket.on('createWebRtcTransport', async ({ groupId, roomId }, callback) => {
     try {
       if (!groups[groupId] || !groups[groupId].rooms[roomId]) {
+        logger.warn('createWebRtcTransport failed (grup/oda bellekte yok): %s/%s', groupId, roomId);
         return callback({ error: "Group/Room bulunamadı" });
       }
       const rmObj = groups[groupId].rooms[roomId];
       const router = rmObj.router;
       if (!router) {
+        logger.warn('createWebRtcTransport failed (router yok): %s/%s', groupId, roomId);
         return callback({ error: "Router tanımsız (room'da yok)" });
       }
       const transport = await sfu.createWebRtcTransport(router);
@@ -817,8 +897,9 @@ io.on('connection', (socket) => {
         dtlsParameters: transport.dtlsParameters,
         routerRtpCapabilities: router.rtpCapabilities
       });
+      logger.info('WebRTC transport created for user %s in room %s/%s', users[socket.id]?.username, groupId, roomId);
     } catch (err) {
-      console.error("createWebRtcTransport error:", err);
+      logger.error("createWebRtcTransport error: %o", err);
       callback({ error: err.message });
     }
   });
@@ -826,13 +907,20 @@ io.on('connection', (socket) => {
   socket.on('connectTransport', async ({ groupId, roomId, transportId, dtlsParameters }, callback) => {
     try {
       const rmObj = groups[groupId]?.rooms[roomId];
-      if (!rmObj) return callback({ error: "Room bulunamadı" });
+      if (!rmObj) {
+        logger.warn('connectTransport failed (oda bellekte yok): %s/%s', groupId, roomId);
+        return callback({ error: "Room bulunamadı" });
+      }
       const transport = rmObj.transports?.[transportId];
-      if (!transport) return callback({ error: "Transport bulunamadı" });
+      if (!transport) {
+        logger.warn('connectTransport failed (transport bellekte yok): %s/%s, transportId: %s', groupId, roomId, transportId);
+        return callback({ error: "Transport bulunamadı" });
+      }
       await sfu.connectTransport(transport, dtlsParameters);
       callback({ connected: true });
+      logger.info('Transport connected for user %s in room %s/%s, transportId: %s', users[socket.id]?.username, groupId, roomId, transportId);
     } catch (err) {
-      console.error("connectTransport error:", err);
+      logger.error("connectTransport error: %o", err);
       callback({ error: err.message });
     }
   });
@@ -840,17 +928,24 @@ io.on('connection', (socket) => {
   socket.on('produce', async ({ groupId, roomId, transportId, kind, rtpParameters }, callback) => {
     try {
       const rmObj = groups[groupId]?.rooms[roomId];
-      if (!rmObj) return callback({ error: "Room bulunamadı" });
+      if (!rmObj) {
+        logger.warn('Produce failed (oda bellekte yok): %s/%s', groupId, roomId);
+        return callback({ error: "Room bulunamadı" });
+      }
       const transport = rmObj.transports?.[transportId];
-      if (!transport) return callback({ error: "Transport bulunamadı" });
+      if (!transport) {
+        logger.warn('Produce failed (transport bellekte yok): %s/%s, transportId: %s', groupId, roomId, transportId);
+        return callback({ error: "Transport bulunamadı" });
+      }
       const producer = await sfu.produce(transport, kind, rtpParameters);
       producer.appData = { peerId: socket.id };
       rmObj.producers = rmObj.producers || {};
       rmObj.producers[producer.id] = producer;
       socket.broadcast.to(`${groupId}::${roomId}`).emit('newProducer', { producerId: producer.id });
       callback({ producerId: producer.id });
+      logger.info('Producer created for user %s in room %s/%s, kind: %s', users[socket.id]?.username, groupId, roomId, kind);
     } catch (err) {
-      console.error("produce error:", err);
+      logger.error("produce error: %o", err);
       callback({ error: err.message });
     }
   });
@@ -858,13 +953,25 @@ io.on('connection', (socket) => {
   socket.on('consume', async ({ groupId, roomId, transportId, producerId }, callback) => {
     try {
       const rmObj = groups[groupId]?.rooms[roomId];
-      if (!rmObj) return callback({ error: "Room bulunamadı" });
+      if (!rmObj) {
+        logger.warn('Consume failed (oda bellekte yok): %s/%s', groupId, roomId);
+        return callback({ error: "Room bulunamadı" });
+      }
       const router = rmObj.router;
-      if (!router) return callback({ error: "Router yok" });
+      if (!router) {
+        logger.warn('Consume failed (router yok): %s/%s', groupId, roomId);
+        return callback({ error: "Router yok" });
+      }
       const transport = rmObj.transports?.[transportId];
-      if (!transport) return callback({ error: "Transport bulunamadı" });
+      if (!transport) {
+        logger.warn('Consume failed (transport bellekte yok): %s/%s, transportId: %s', groupId, roomId, transportId);
+        return callback({ error: "Transport bulunamadı" });
+      }
       const producer = rmObj.producers?.[producerId];
-      if (!producer) return callback({ error: "Producer bulunamadı" });
+      if (!producer) {
+        logger.warn('Consume failed (producer bellekte yok): %s/%s, producerId: %s', groupId, roomId, producerId);
+        return callback({ error: "Producer bulunamadı" });
+      }
       const consumer = await sfu.consume(router, transport, producer);
       consumer.appData = { peerId: producer.appData.peerId };
       rmObj.consumers = rmObj.consumers || {};
@@ -877,8 +984,9 @@ io.on('connection', (socket) => {
         rtpParameters,
         producerPeerId: producer.appData.peerId
       });
+      logger.info('Consumer created for user %s in room %s/%s, consuming producerId: %s', users[socket.id]?.username, groupId, roomId, producerId);
     } catch (err) {
-      console.error("consume error:", err);
+      logger.error("consume error: %o", err);
       callback({ error: err.message });
     }
   });
@@ -906,22 +1014,31 @@ io.on('connection', (socket) => {
   // ***** EK: Arkadaşlık isteği event handler’ları *****
   socket.on('sendFriendRequest', (data, callback) => {
     const fromUsername = users[socket.id]?.username;
-    if (!fromUsername) {
-      return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
+    try {
+      if (!fromUsername) {
+        logger.warn('Send friend request failed (gönderen kullanıcı adı tanımsız)');
+        return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
+      }
+      const targetUsername = data.to;
+      if (!targetUsername) {
+        logger.warn('Send friend request failed (hedef kullanıcı adı yok)');
+        return callback({ success: false, message: 'Hedef kullanıcı adı belirtilmedi.' });
+      }
+      if (!friendRequests[targetUsername]) {
+        friendRequests[targetUsername] = [];
+      }
+      const exists = friendRequests[targetUsername].some(req => req.from === fromUsername);
+      if (exists) {
+        logger.warn('Send friend request failed (istek zaten var): %s -> %s', fromUsername, targetUsername);
+        return callback({ success: false, message: 'Zaten arkadaşlık isteği gönderildi.' });
+      }
+      friendRequests[targetUsername].push({ from: fromUsername, timestamp: new Date() });
+      callback({ success: true });
+      logger.info('Friend request sent: %s -> %s', fromUsername, targetUsername);
+    } catch (err) {
+      logger.error('Send friend request error: %o', err);
+      callback({ success: false, message: 'Arkadaşlık isteği gönderilirken bir hata oluştu.' });
     }
-    const targetUsername = data.to;
-    if (!targetUsername) {
-      return callback({ success: false, message: 'Hedef kullanıcı adı belirtilmedi.' });
-    }
-    if (!friendRequests[targetUsername]) {
-      friendRequests[targetUsername] = [];
-    }
-    const exists = friendRequests[targetUsername].some(req => req.from === fromUsername);
-    if (exists) {
-      return callback({ success: false, message: 'Zaten arkadaşlık isteği gönderildi.' });
-    }
-    friendRequests[targetUsername].push({ from: fromUsername, timestamp: new Date() });
-    callback({ success: true });
   });
 
   socket.on('getPendingFriendRequests', (data, callback) => {
@@ -958,10 +1075,12 @@ io.on('connection', (socket) => {
     try {
       const username = users[socket.id]?.username;
       if (!username) {
+        logger.warn('Accept friend request failed (kullanıcı adı tanımsız)');
         return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
       }
       const fromUsername = data.from;
       if (!fromUsername) {
+        logger.warn('Accept friend request failed (istek gönderen kullanıcı adı yok)');
         return callback({ success: false, message: 'Kimin isteği kabul edileceği belirtilmedi.' });
       }
       
@@ -974,6 +1093,7 @@ io.on('connection', (socket) => {
       const userDoc = await User.findOne({ username });
       const friendDoc = await User.findOne({ username: fromUsername });
       if (!userDoc || !friendDoc) {
+        logger.warn('Accept friend request failed (kullanıcılar DB\'de yok): %s, %s', username, fromUsername);
         return callback({ success: false, message: 'Kullanıcılar bulunamadı.' });
       }
       
@@ -989,149 +1109,277 @@ io.on('connection', (socket) => {
       await friendDoc.save();
       
       callback({ success: true });
+      logger.info('Friend request accepted: %s <- %s', username, fromUsername);
     } catch (err) {
-      console.error("acceptFriendRequest error:", err);
+      logger.error("acceptFriendRequest error: %o", err);
       callback({ success: false, message: 'Arkadaşlık isteği kabul edilirken hata oluştu.' });
     }
   });
 
   socket.on('rejectFriendRequest', (data, callback) => {
     const username = users[socket.id]?.username;
-    if (!username) {
-      return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
+    try {
+      if (!username) {
+        logger.warn('Reject friend request failed (kullanıcı adı tanımsız)');
+        return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
+      }
+      const fromUsername = data.from;
+      if (!fromUsername) {
+        logger.warn('Reject friend request failed (istek gönderen kullanıcı adı yok)');
+        return callback({ success: false, message: 'Kimin isteği reddedileceği belirtilmedi.' });
+      }
+      if (friendRequests[username]) {
+        friendRequests[username] = friendRequests[username].filter(req => req.from !== fromUsername);
+      }
+      callback({ success: true });
+      logger.info('Friend request rejected: %s <- %s', username, fromUsername);
+    } catch (err) {
+      logger.error('Reject friend request error: %o', err);
+      callback({ success: false, message: 'Arkadaşlık isteği reddedilirken bir hata oluştu.' });
     }
-    const fromUsername = data.from;
-    if (!fromUsername) {
-      return callback({ success: false, message: 'Kimin isteği reddedileceği belirtilmedi.' });
-    }
-    if (friendRequests[username]) {
-      friendRequests[username] = friendRequests[username].filter(req => req.from !== fromUsername);
-    }
-    callback({ success: true });
   });
 
-  socket.on('getAcceptedFriendRequests', async (data, callback) => {
+  socket.on('cancelFriendRequest', (data, callback) => {
+    const fromUsername = users[socket.id]?.username;
     try {
-      const username = users[socket.id]?.username;
+      if (!fromUsername) {
+        logger.warn('Cancel friend request failed (gönderen kullanıcı adı tanımsız)');
+        return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
+      }
+      const targetUsername = data.to;
+      if (!targetUsername) {
+        logger.warn('Cancel friend request failed (hedef kullanıcı adı yok)');
+        return callback({ success: false, message: 'Hedef kullanıcı adı belirtilmedi.' });
+      }
+      if (friendRequests[targetUsername]) {
+        friendRequests[targetUsername] = friendRequests[targetUsername].filter(req => req.from !== fromUsername);
+      }
+      callback({ success: true });
+      logger.info('Friend request cancelled: %s -> %s', fromUsername, targetUsername);
+    } catch (err) {
+      logger.error('Cancel friend request error: %o', err);
+      callback({ success: false, message: 'Arkadaşlık isteği iptal edilirken bir hata oluştu.' });
+    }
+  });
+
+  socket.on('removeFriend', async (data, callback) => {
+    const username = users[socket.id]?.username;
+    try {
       if (!username) {
+        logger.warn('Remove friend failed (kullanıcı adı tanımsız)');
+        return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
+      }
+      const friendUsername = data.friendUsername;
+      if (!friendUsername) {
+        logger.warn('Remove friend failed (arkadaş kullanıcı adı yok)');
+        return callback({ success: false, message: 'Arkadaş kullanıcı adı belirtilmedi.' });
+      }
+      const userDoc = await User.findOne({ username });
+      const friendDoc = await User.findOne({ username: friendUsername });
+      if (!userDoc || !friendDoc) {
+        logger.warn('Remove friend failed (kullanıcılar DB\'de yok): %s, %s', username, friendUsername);
+        return callback({ success: false, message: 'Kullanıcılar bulunamadı.' });
+      }
+      userDoc.friends = userDoc.friends.filter(friendId => friendId.toString() !== friendDoc._id.toString());
+      friendDoc.friends = friendDoc.friends.filter(friendId => friendId.toString() !== userDoc._id.toString());
+      await userDoc.save();
+      await friendDoc.save();
+      callback({ success: true });
+      logger.info('Friend removed: %s <-> %s', username, friendUsername);
+    } catch (err) {
+      logger.error('Remove friend error: %o', err);
+      callback({ success: false, message: 'Arkadaş silinirken bir hata oluştu.' });
+    }
+  });
+
+  socket.on('blockUser', async (data, callback) => {
+    const username = users[socket.id]?.username;
+    try {
+      if (!username) {
+        logger.warn('Block user failed (kullanıcı adı tanımsız)');
+        return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
+      }
+      const targetUsername = data.targetUsername;
+      if (!targetUsername) {
+        logger.warn('Block user failed (hedef kullanıcı adı yok)');
+        return callback({ success: false, message: 'Hedef kullanıcı adı belirtilmedi.' });
+      }
+      const userDoc = await User.findOne({ username });
+      const targetDoc = await User.findOne({ username: targetUsername });
+      if (!userDoc || !targetDoc) {
+        logger.warn('Block user failed (kullanıcılar DB\'de yok): %s, %s', username, targetUsername);
+        return callback({ success: false, message: 'Kullanıcılar bulunamadı.' });
+      }
+      if (!userDoc.blockedUsers.includes(targetDoc._id)) {
+        userDoc.blockedUsers.push(targetDoc._id);
+        await userDoc.save();
+      }
+      callback({ success: true });
+      logger.info('User blocked: %s -> %s', username, targetUsername);
+    } catch (err) {
+      logger.error('Block user error: %o', err);
+      callback({ success: false, message: 'Kullanıcı engellenirken bir hata oluştu.' });
+    }
+  });
+
+  socket.on('unblockUser', async (data, callback) => {
+    const username = users[socket.id]?.username;
+    try {
+      if (!username) {
+        logger.warn('Unblock user failed (kullanıcı adı tanımsız)');
+        return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
+      }
+      const targetUsername = data.targetUsername;
+      if (!targetUsername) {
+        logger.warn('Unblock user failed (hedef kullanıcı adı yok)');
+        return callback({ success: false, message: 'Hedef kullanıcı adı belirtilmedi.' });
+      }
+      const userDoc = await User.findOne({ username });
+      const targetDoc = await User.findOne({ username: targetUsername });
+      if (!userDoc || !targetDoc) {
+        logger.warn('Unblock user failed (kullanıcılar DB\'de yok): %s, %s', username, targetUsername);
+        return callback({ success: false, message: 'Kullanıcılar bulunamadı.' });
+      }
+      userDoc.blockedUsers = userDoc.blockedUsers.filter(userId => userId.toString() !== targetDoc._id.toString());
+      await userDoc.save();
+      callback({ success: true });
+      logger.info('User unblocked: %s -> %s', username, targetUsername);
+    } catch (err) {
+      logger.error('Unblock user error: %o', err);
+      callback({ success: false, message: 'Kullanıcı engeli kaldırılırken bir hata oluştu.' });
+    }
+  });
+
+  socket.on('getFriendsList', async (data, callback) => {
+    const username = users[socket.id]?.username;
+    try {
+      if (!username) {
+        logger.warn('Get friends list failed (kullanıcı adı tanımsız)');
         return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
       }
       const userDoc = await User.findOne({ username }).populate('friends');
       if (!userDoc) {
+        logger.warn('Get friends list failed (kullanıcı DB\'de yok): %s', username);
         return callback({ success: false, message: 'Kullanıcı bulunamadı.' });
       }
-      const acceptedFriends = (userDoc.friends || []).map(friendDoc => ({
-         username: friendDoc.username,
-         online: onlineUsernames.has(friendDoc.username)
+      const friends = userDoc.friends.map(friend => ({
+        username: friend.username,
+        isOnline: onlineUsernames.has(friend.username) 
       }));
-      callback({ success: true, friends: acceptedFriends });
+      callback({ success: true, friends });
     } catch (err) {
-      console.error("getAcceptedFriendRequests error:", err);
-      callback({ success: false, message: 'Arkadaşlar alınırken hata oluştu.' });
+      logger.error('Get friends list error: %o', err);
+      callback({ success: false, message: 'Arkadaş listesi alınırken bir hata oluştu.' });
     }
   });
 
-  socket.on('getBlockedFriends', async (data, callback) => {
+  socket.on('getBlockedUsersList', async (data, callback) => {
+    const username = users[socket.id]?.username;
     try {
-      const username = users[socket.id]?.username;
       if (!username) {
+        logger.warn('Get blocked users list failed (kullanıcı adı tanımsız)');
         return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
       }
-      const userDoc = await User.findOne({ username }).populate('blocked');
+      const userDoc = await User.findOne({ username }).populate('blockedUsers');
       if (!userDoc) {
+        logger.warn('Get blocked users list failed (kullanıcı DB\'de yok): %s', username);
         return callback({ success: false, message: 'Kullanıcı bulunamadı.' });
       }
-      const blockedFriends = (userDoc.blocked || []).map(friendDoc => ({
-         username: friendDoc.username
+      const blockedUsers = userDoc.blockedUsers.map(user => ({
+        username: user.username
       }));
-      callback({ success: true, friends: blockedFriends });
+      callback({ success: true, blockedUsers });
     } catch (err) {
-      console.error("getBlockedFriends error:", err);
-      callback({ success: false, message: 'Engellenen arkadaşlar alınırken hata oluştu.' });
+      logger.error('Get blocked users list error: %o', err);
+      callback({ success: false, message: 'Engellenen kullanıcı listesi alınırken bir hata oluştu.' });
     }
   });
 
-  // --- EK: DM sohbet event handler'ları ---
-  socket.on('joinDM', async (data, callback) => {
-    // data: { friend: friendUsername }
-    const currentUsername = users[socket.id]?.username;
-    if (!currentUsername) {
-      return callback({ success: false, message: 'Kullanıcı bulunamadı.' });
-    }
+  socket.on('sendDM', async (data, callback) => {
+    const fromUsername = users[socket.id]?.username;
     try {
-      const userDoc = await User.findOne({ username: currentUsername });
-      const friendDoc = await User.findOne({ username: data.friend });
-      if (!userDoc || !friendDoc) {
-        return callback({ success: false, message: 'Kullanıcı bulunamadı.' });
+      if (!fromUsername) {
+        logger.warn('Send DM failed (gönderen kullanıcı adı tanımsız)');
+        return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
       }
-      // DM geçmişini, hem gönderilen hem alınan mesajları çekiyoruz.
-      const messages = await DMMessage.find({
-        $or: [
-          { sender: userDoc._id, receiver: friendDoc._id },
-          { sender: friendDoc._id, receiver: userDoc._id }
-        ]
-      }).sort({ timestamp: 1 }).lean();
-      // Populate sender for username
-      await DMMessage.populate(messages, { path: 'sender', select: 'username' });
-      const formattedMessages = messages.map(m => ({
-        username: m.sender.username,
-        content: m.content,
-        timestamp: m.timestamp
-      }));
-      callback({ success: true, messages: formattedMessages });
-    } catch (err) {
-      console.error("joinDM error:", err);
-      callback({ success: false, message: 'DM geçmişi alınırken hata oluştu.' });
-    }
-  });
-
-  socket.on('dmMessage', async (data, callback) => {
-    // data: { friend: friendUsername, content: messageContent }
-    const senderUsername = users[socket.id]?.username;
-    if (!senderUsername) {
-      return callback({ success: false, message: 'Gönderen kullanıcı bulunamadı.' });
-    }
-    try {
-      const senderDoc = await User.findOne({ username: senderUsername });
-      const friendDoc = await User.findOne({ username: data.friend });
-      if (!senderDoc || !friendDoc) {
-        return callback({ success: false, message: 'Kullanıcı bulunamadı.' });
+      const { toUsername, content } = data;
+      if (!toUsername || !content) {
+        logger.warn('Send DM failed (eksik parametre): from %s to %s', fromUsername, toUsername);
+        return callback({ success: false, message: 'Eksik parametre.' });
+      }
+      const fromUserDoc = await User.findOne({ username: fromUsername });
+      const toUserDoc = await User.findOne({ username: toUsername });
+      if (!fromUserDoc || !toUserDoc) {
+        logger.warn('Send DM failed (kullanıcılar DB\'de yok): from %s to %s', fromUsername, toUsername);
+        return callback({ success: false, message: 'Kullanıcılar bulunamadı.' });
+      }
+      // Check if sender is blocked by receiver
+      if (toUserDoc.blockedUsers.includes(fromUserDoc._id)) {
+          logger.warn('Send DM failed (gönderen engellenmiş): from %s to %s', fromUsername, toUsername);
+          return callback({ success: false, message: 'Bu kullanıcıya mesaj gönderemezsiniz.' });
       }
       const dmMessage = new DMMessage({
-        sender: senderDoc._id,
-        receiver: friendDoc._id,
-        content: data.content
+        from: fromUserDoc._id,
+        to: toUserDoc._id,
+        content: content
       });
       await dmMessage.save();
-      const messageToSend = {
-        username: senderUsername,
-        content: data.content,
-        timestamp: dmMessage.timestamp
-      };
-      // Hedef kullanıcının socket id'sini ara
-      let targetSocketId = null;
-      for (const id in users) {
-        if (users[id].username === data.friend) {
-          targetSocketId = id;
-          break;
+      // Emit to receiver if online
+      Object.keys(users).forEach(socketId => {
+        if (users[socketId].username === toUsername) {
+          io.to(socketId).emit('receiveDM', {
+            from: fromUsername,
+            content: content,
+            timestamp: dmMessage.timestamp
+          });
         }
-      }
-      // Eğer hedef çevrimiçi ise mesajı gönder
-      if (targetSocketId) {
-        io.to(targetSocketId).emit('newDMMessage', { friend: senderUsername, message: messageToSend });
-      }
-      // Gönderen de mesajı görsün
-      socket.emit('newDMMessage', { friend: data.friend, message: messageToSend });
-      callback({ success: true });
+      });
+      callback({ success: true, timestamp: dmMessage.timestamp });
+      logger.info('DM sent: %s -> %s', fromUsername, toUsername);
     } catch (err) {
-      console.error("dmMessage error:", err);
-      callback({ success: false, message: 'Mesaj gönderilirken hata oluştu.' });
+      logger.error('Send DM error: %o', err);
+      callback({ success: false, message: 'DM gönderilirken bir hata oluştu.' });
     }
   });
-  // --- EK: DM sohbet event handler'ları sonu ---
+
+  socket.on('getDMMessages', async (data, callback) => {
+    const username = users[socket.id]?.username;
+    try {
+      if (!username) {
+        logger.warn('Get DM messages failed (kullanıcı adı tanımsız)');
+        return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
+      }
+      const otherUsername = data.otherUsername;
+      if (!otherUsername) {
+        logger.warn('Get DM messages failed (diğer kullanıcı adı yok): %s', username);
+        return callback({ success: false, message: 'Diğer kullanıcı adı belirtilmedi.' });
+      }
+      const userDoc = await User.findOne({ username });
+      const otherUserDoc = await User.findOne({ username: otherUsername });
+      if (!userDoc || !otherUserDoc) {
+        logger.warn('Get DM messages failed (kullanıcılar DB\'de yok): %s, %s', username, otherUsername);
+        return callback({ success: false, message: 'Kullanıcılar bulunamadı.' });
+      }
+      const messages = await DMMessage.find({
+        $or: [
+          { from: userDoc._id, to: otherUserDoc._id },
+          { from: otherUserDoc._id, to: userDoc._id }
+        ]
+      }).sort({ timestamp: 1 }).populate('from', 'username');
+
+      callback({ success: true, messages: messages.map(m => ({ 
+          from: m.from.username, 
+          content: m.content, 
+          timestamp: m.timestamp 
+      }))});
+    } catch (err) {
+      logger.error('Get DM messages error: %o', err);
+      callback({ success: false, message: 'DM mesajları alınırken bir hata oluştu.' });
+    }
+  });
 
   socket.on("disconnect", async () => {
-    console.log("disconnect:", socket.id);
+    logger.info('Kullanıcı bağlantıyı sonlandırdı: %s, username: %s', socket.id, users[socket.id]?.username);
     const userData = users[socket.id];
     if (userData) {
       const { username } = userData;
@@ -1144,7 +1392,31 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 80;
+// Express hata middleware’i (route'lardan sonra olacak!)
+app.use(expressWinston.errorLogger({
+  winstonInstance: logger
+}));
+
+// Merkezi hata yakalayıcı
+app.use((err, req, res, next) => {
+  logger.error('Unhandled error: %o', err); // Winston ile loglama
+  res.status(err.status || 500).json({
+    success: false,
+    error: err.message || 'Sunucu hatası'
+  });
+});
+
+process.on('uncaughtException', (err) => {
+  logger.error('uncaughtException: %o', err);
+  process.exit(1); // güvenli çıkış yapalım
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('unhandledRejection: %o, promise: %o', reason, promise);
+  process.exit(1); // güvenli çıkış yapalım
+});
+
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Sunucu çalışıyor: http://localhost:${PORT}`);
 });
