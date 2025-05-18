@@ -98,8 +98,6 @@ const webrtcController = require("./controllers/webrtcController");
    }
  }, FRIEND_REQUEST_CLEANUP_INTERVAL_MS);
 
-
-
 app.use(expressWinston.logger({ winstonInstance: logger, meta: false, msg: "{{req.method}} {{req.url}} - {{res.statusCode}} ({{res.responseTime}}ms)", colorize: true }));
  app.use(express.static("public"));
 const context = { User, Group, Channel, Message, DMMessage, users, groups, onlineUsernames, friendRequests, sfu, groupController };
