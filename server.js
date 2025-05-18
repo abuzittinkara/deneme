@@ -62,7 +62,8 @@ const webrtcController = require("./controllers/webrtcController");
          defaultSrc: ["'self'"],
          scriptSrc: ["'self'", "https://cdn.socket.io"], // Socket.IO CDN
          connectSrc: ["'self'", "wss:", "https://cdn.socket.io"], // Socket.IO bağlantısı için wss:
-         styleSrc: ["'self'", "'unsafe-inline'"], // Gerekirse inline stiller için
+         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"], // Harici Google font stillerine izin ver
+         fontSrc: ["'self'", "https://fonts.gstatic.com"], // Google font dosyalarına izin ver
          imgSrc: ["'self'", "data:"], // data: URI'larından resim yüklemeye izin ver
        },
      },
