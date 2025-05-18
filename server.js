@@ -2,6 +2,7 @@
  const express = require('express');
  const socketIO = require('socket.io');
  const WebSocket = require('ws');
+ const http = require('http');
  const mongoose = require('mongoose');
  const bcrypt = require('bcryptjs');
  const { v4: uuidv4 } = require('uuid');
