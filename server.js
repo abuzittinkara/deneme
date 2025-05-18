@@ -136,10 +136,12 @@ io.on("connection", (socket) => {
    process.exit(1); // güvenli çıkış yapalım
  });
  
- process.on('unhandledRejection', (reason, promise) => {
-   logger.error(`Unhandled Rejection: ${reason}`);
-   process.exit(1); // güvenli çıkış yapalım
- });
- 
- 
-EOF
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error(`Unhandled Rejection: ${reason}`);
+  process.exit(1); // güvenli çıkış yapalım
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`Sunucu çalışıyor: http://localhost:${PORT}`);
+});
