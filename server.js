@@ -1,5 +1,6 @@
-  
- const express = require('express');
+require('dotenv').config();
+
+const express = require('express');
  const socketIO = require('socket.io');
  const WebSocket = require('ws');
  const http = require('http');
