@@ -2,6 +2,7 @@
  * sfu.js
  **************************************/
 const mediasoup = require('mediasoup');
+const logger = require('./utils/logger');
 
 /**
  * Bu dizi, CPU çekirdeği sayınız kadar Worker tutacak.
