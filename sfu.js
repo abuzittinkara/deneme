@@ -40,13 +40,13 @@ async function createWorkers() {
     });
 
     worker.on('died', () => {
-      console.error('Mediasoup Worker died, PID=%d', worker.pid);
+      logger.error('Mediasoup Worker died, PID=%d', worker.pid);
       // restart logic vs...
     });
 
     workers.push(worker);
   }
-  console.log(`SFU: ${workers.length} adet Mediasoup Worker oluşturuldu.`);
+  logger.info(`SFU: ${workers.length} adet Mediasoup Worker oluşturuldu.`);
 }
 
 function getNextWorker() {
@@ -179,21 +179,21 @@ async function consume(router, transport, producer) {
 async function closeTransport(transport) {
   if (transport && !transport.closed) {
     await transport.close();
-    console.log(`SFU: transport closed => ID=${transport.id}`);
+    logger.info(`SFU: transport closed => ID=${transport.id}`);
   }
 }
 
 async function closeProducer(producer) {
   if (producer && !producer.closed) {
     await producer.close();
-    console.log(`SFU: producer closed => ID=${producer.id}`);
+    logger.info(`SFU: producer closed => ID=${producer.id}`);
   }
 }
 
 async function closeConsumer(consumer) {
   if (consumer && !consumer.closed) {
     await consumer.close();
-    console.log(`SFU: consumer closed => ID=${consumer.id}`);
+    logger.info(`SFU: consumer closed => ID=${consumer.id}`);
   }
 }
 
