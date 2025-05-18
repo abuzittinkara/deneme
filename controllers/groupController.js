@@ -194,6 +194,13 @@ function register(io, socket, context) {
     broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
   });
 
+  socket.on('browseGroup', (groupId) => {
+    if (!groups[groupId]) return;
+    sendRoomsListToUser(io, socket.id, groups, groupId);
+    broadcastAllChannelsData(io, groups, groupId);
+    broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
+  });
+
   // Diğer handlerlar (joinGroupByID, browseGroup, createRoom, joinRoom, leaveRoom,
   // renameGroup, deleteGroup, renameChannel, deleteChannel) buraya benzer şekilde
   // taşınabilir. Daha kısalık için özetlenmiştir.
