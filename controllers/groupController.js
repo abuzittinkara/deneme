@@ -229,6 +229,15 @@ function register(io, socket, context) {
       const userData = users[socket.id];
       const userName = userData?.username;
       if (!userName) return socket.emit('errorMessage', 'Kullanıcı adınız yok.');
+      // Kullanıcı başka bir odadaysa önce o odadan çıkar
+      if (userData.currentRoom &&
+          (userData.currentRoom !== roomId || userData.currentGroup !== groupId)) {
+        const prevGroupId = userData.currentGroup;
+        const prevRoomId = userData.currentRoom;
+        if (groups[prevGroupId] && groups[prevGroupId].rooms[prevRoomId]) {
+          removeUserFromRoom(io, socket, users, groups, prevGroupId, prevRoomId);
+        }
+      }
       const rmObj = groups[groupId].rooms[roomId];
       if (!rmObj.router) {
         rmObj.router = await sfu.createRouter(roomId);
