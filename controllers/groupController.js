@@ -247,7 +247,6 @@ function register(io, socket, context) {
       io.to(`${groupId}::${roomId}`).emit('roomUsers', rmObj.users);
       broadcastAllChannelsData(io, users, groups, groupId);
       broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
-      broadcastAllChannelsData(io, groups, groupId);
     } catch (err) {
       console.error('joinRoom error:', err);
     }

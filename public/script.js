@@ -445,7 +445,8 @@ function initSocketEvents() {
         grpItem.classList.add('selected');
         selectedGroup = groupObj.id;
         groupTitle.textContent = groupObj.name;
-        socket.emit('browseGroup', groupObj.id);
+        // Join the group so we receive channel updates even when not in a voice channel
+        socket.emit('joinGroup', groupObj.id);
         if (groupObj.owner === username) {
           deleteGroupBtn.style.display = 'block';
           renameGroupBtn.style.display = 'block';
