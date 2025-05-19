@@ -1258,7 +1258,6 @@ function showChannelStatusPanel() {
   });
   startPingInterval();
   updateStatusPanel(0);
-}
   Ping.startPingInterval(socket);
   Ping.updateStatusPanel(0);
 }
