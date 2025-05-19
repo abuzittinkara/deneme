@@ -23,6 +23,8 @@ import * as TextChannel from './js/textChannel.js';
 import * as ScreenShare from './js/screenShare.js';
 import { initTypingIndicator } from './js/typingIndicator.js';
 import { initFriendRequests } from './js/friendRequests.js';
+import * as Ping from './js/ping.js';
+import * as UserList from './js/userList.js';
 
 let socket = null;
 let device = null;   // mediasoup-client Device
@@ -124,8 +126,6 @@ let micWasEnabledBeforeDeaf = false;
 const SPEAKING_THRESHOLD = 0.02;
 const VOLUME_CHECK_INTERVAL = 100;
 let audioAnalyzers = {};
-
-let pingInterval = null;
 
 /* Formatlama fonksiyonları artık TextChannel modülünden sağlanıyor */
 
@@ -395,27 +395,6 @@ function removeScreenShareEndedMessage() {
   }
 }
 
-/* updateStatusPanel */
-function updateStatusPanel(ping) {
-  const rssIcon = document.getElementById('rssIcon');
-  const statusMessage = document.getElementById('statusMessage');
-  const channelGroupInfo = document.getElementById('channelGroupInfo');
-  let color = "#2dbf2d";
-  if (ping >= 80) {
-    color = "#ff0000";
-  } else if (ping >= 60) {
-    color = "#ffcc00";
-  }
-  if (rssIcon) rssIcon.style.color = color;
-  if (statusMessage) statusMessage.style.color = color;
-  if (channelGroupInfo) {
-    const channelName = activeVoiceChannelName || "";
-    const groupName = groupTitle?.textContent || "";
-    channelGroupInfo.textContent = channelName + " / " + groupName;
-    channelGroupInfo.style.color = "#aaa";
-  }
-}
-
 /* initSocketEvents */
 function initSocketEvents() {
   socket.on('connect', () => {
@@ -451,7 +430,7 @@ function initSocketEvents() {
     }
   });
   socket.on('groupUsers', (data) => {
-    updateUserList(data);
+    UserList.updateUserList(data);
   });
   socket.on('groupsList', (groupArray) => {
     groupListDiv.innerHTML = '';
@@ -1171,7 +1150,7 @@ function applyAudioStates() {
 /* hideChannelStatusPanel */
 function hideChannelStatusPanel() {
   channelStatusPanel.style.display = 'none';
-  stopPingInterval();
+  Ping.stopPingInterval();
 }
 
 /* showChannelStatusPanel */
@@ -1280,105 +1259,8 @@ function showChannelStatusPanel() {
   startPingInterval();
   updateStatusPanel(0);
 }
-
-/* startPingInterval */
-function startPingInterval() {
-  if (pingInterval) clearInterval(pingInterval);
-  pingInterval = setInterval(() => {
-    let pingMs = 0;
-    if (socket && socket.io && socket.io.engine && socket.io.engine.lastPingTimestamp) {
-      const now = Date.now();
-      pingMs = now - socket.io.engine.lastPingTimestamp;
-      pingValueSpan.textContent = pingMs + ' ms';
-    } else {
-      pingValueSpan.textContent = '-- ms';
-    }
-    updateStatusPanel(pingMs);
-    updateCellBars(pingMs);
-  }, 1000);
-}
-
-/* stopPingInterval */
-function stopPingInterval() {
-  if (pingInterval) {
-    clearInterval(pingInterval);
-    pingInterval = null;
-  }
-  pingValueSpan.textContent = '-- ms';
-  updateCellBars(0);
-}
-
-/* updateCellBars */
-function updateCellBars(ping) {
-  let barsActive = 0;
-  if (ping >= 1) {
-    if (ping < 80) barsActive = 4;
-    else if (ping < 150) barsActive = 3;
-    else if (ping < 300) barsActive = 2;
-    else barsActive = 1;
-  } else {
-    barsActive = 0;
-  }
-  cellBar1.classList.remove('active');
-  cellBar2.classList.remove('active');
-  cellBar3.classList.remove('active');
-  cellBar4.classList.remove('active');
-  if (barsActive >= 1) cellBar1.classList.add('active');
-  if (barsActive >= 2) cellBar2.classList.add('active');
-  if (barsActive >= 3) cellBar3.classList.add('active');
-  if (barsActive >= 4) cellBar4.classList.add('active');
-}
-
-/* updateUserList */
-function updateUserList(data) {
-  userListDiv.innerHTML = '';
-  const onlineTitle = document.createElement('div');
-  onlineTitle.textContent = 'Çevrimiçi';
-  onlineTitle.style.fontWeight = 'normal';
-  onlineTitle.style.fontSize = '0.85rem';
-  userListDiv.appendChild(onlineTitle);
-  if (data.online && data.online.length > 0) {
-    data.online.forEach(u => {
-      userListDiv.appendChild(createUserItem(u.username, true));
-    });
-  } else {
-    const noneP = document.createElement('p');
-    noneP.textContent = '(Kimse yok)';
-    noneP.style.fontSize = '0.75rem';
-    userListDiv.appendChild(noneP);
-  }
-  const offlineTitle = document.createElement('div');
-  offlineTitle.textContent = 'Çevrimdışı';
-  offlineTitle.style.fontWeight = 'normal';
-  offlineTitle.style.fontSize = '0.85rem';
-  offlineTitle.style.marginTop = '1rem';
-  userListDiv.appendChild(offlineTitle);
-  if (data.offline && data.offline.length > 0) {
-    data.offline.forEach(u => {
-      userListDiv.appendChild(createUserItem(u.username, false));
-    });
-  } else {
-    const noneP2 = document.createElement('p');
-    noneP2.textContent = '(Kimse yok)';
-    noneP2.style.fontSize = '0.75rem';
-    userListDiv.appendChild(noneP2);
-  }
-}
-
-/* createUserItem - RightPanel için; inline stiller kaldırıldı, CSS ile düzenlenecek */
-function createUserItem(username, isOnline) {
-  const userItem = document.createElement('div');
-  userItem.classList.add('user-item');
-  const avatar = document.createElement('img');
-  avatar.classList.add('user-profile-pic');
-  avatar.src = '/images/default-avatar.png';
-  avatar.alt = '';
-  const userNameSpan = document.createElement('span');
-  userNameSpan.classList.add('user-name');
-  userNameSpan.textContent = username;
-  userItem.appendChild(avatar);
-  userItem.appendChild(userNameSpan);
-  return userItem;
+  Ping.startPingInterval(socket);
+  Ping.updateStatusPanel(0);
 }
 
 /* Text Channel Functions */
