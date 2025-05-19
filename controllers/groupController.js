@@ -117,6 +117,7 @@ function removeUserFromRoom(io, socket, users, groups, groupId, roomId) {
   if (users[socket.id]) {
     users[socket.id].currentRoom = null;
   }
+  broadcastAllChannelsData(io, groups, groupId);
 }
 
 
@@ -211,7 +212,7 @@ function register(io, socket, context) {
     broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
   });
 
-    socket.on('joinRoom', async ({ groupId, roomId }) => {
+  socket.on('joinRoom', async ({ groupId, roomId }) => {
     try {
       if (!groups[groupId] || !groups[groupId].rooms[roomId]) return;
       const userData = users[socket.id];
@@ -229,6 +230,7 @@ function register(io, socket, context) {
       socket.join(`${groupId}::${roomId}`);
       socket.emit('joinRoomAck', { groupId, roomId });
       io.to(`${groupId}::${roomId}`).emit('roomUsers', rmObj.users);
+      broadcastAllChannelsData(io, groups, groupId);
     } catch (err) {
       console.error('joinRoom error:', err);
     }
