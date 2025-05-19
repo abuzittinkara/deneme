@@ -1256,8 +1256,6 @@ function showChannelStatusPanel() {
     textChannelContainer.style.display = 'none';
     socket.emit('browseGroup', currentGroup);
   });
-  startPingInterval();
-  updateStatusPanel(0);
   Ping.startPingInterval(socket);
   Ping.updateStatusPanel(0);
 }
