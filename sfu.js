@@ -3,6 +3,7 @@
  **************************************/
 const mediasoup = require('mediasoup');
 const logger = require('./utils/logger');
+const os = require('os');
 
 /**
  * Bu dizi, CPU çekirdeği sayınız kadar Worker tutacak.
@@ -23,8 +24,19 @@ const routers = {};
  * createWorkers() => uygulama başlarken çağrılacak.
  */
 async function createWorkers() {
-  // Sunucunuzda kaç çekirdek varsa (ör. 2 ise 2 worker vb.)
-  const cpuCores = 2;
+  // Sunucunuzda kaç çekirdek varsa ona göre Worker sayısını belirle.
+  // "os.cpus().length" ile dinamik olarak çekirdek sayısı alınır.
+  // Hata durumunda varsayılan olarak 1 değerine dönülür.
+  let cpuCores = 1;
+  try {
+    cpuCores = require('os').cpus().length;
+    if (typeof cpuCores !== 'number' || cpuCores <= 0) {
+      cpuCores = 1;
+    }
+  } catch (err) {
+    logger.warn('CPU core detection failed, defaulting to 1');
+    cpuCores = 1;
+  }
   for (let i = 0; i < cpuCores; i++) {
     const worker = await mediasoup.createWorker({
       rtcMinPort: 10000,

@@ -80,43 +80,53 @@ function broadcastRoomsListToGroup(io, groups, groupId) {
   io.to(groupId).emit('roomsList', roomArray);
 }
 
+function removeUserFromRoom(io, socket, users, groups, groupId, roomId) {
+  const rmObj = groups[groupId]?.rooms[roomId];
+  if (!rmObj) return;
+  const socketId = socket.id;
+  rmObj.users = rmObj.users.filter(u => u.id !== socketId);
+  if (rmObj.producers) {
+    Object.keys(rmObj.producers).forEach(pid => {
+      const producer = rmObj.producers[pid];
+      if (producer && producer.appData && producer.appData.peerId === socketId) {
+        sfu.closeProducer(producer);
+        delete rmObj.producers[pid];
+      }
+    });
+  }
+  if (rmObj.consumers) {
+    Object.keys(rmObj.consumers).forEach(cid => {
+      const consumer = rmObj.consumers[cid];
+      if (consumer && consumer.appData && consumer.appData.peerId === socketId) {
+        sfu.closeConsumer(consumer);
+        delete rmObj.consumers[cid];
+      }
+    });
+  }
+  if (rmObj.transports) {
+    Object.keys(rmObj.transports).forEach(tid => {
+      const tr = rmObj.transports[tid];
+      if (tr && tr.appData && tr.appData.peerId === socketId) {
+        sfu.closeTransport(tr);
+        delete rmObj.transports[tid];
+      }
+    });
+  }
+  socket.leave(`${groupId}::${roomId}`);
+  io.to(`${groupId}::${roomId}`).emit('roomUsers', rmObj.users);
+  if (users[socket.id]) {
+    users[socket.id].currentRoom = null;
+  }
+}
+
+
 function removeUserFromAllGroupsAndRooms(io, socket, users, groups) {
   const socketId = socket.id;
   Object.keys(groups).forEach(gid => {
     const grpObj = groups[gid];
     grpObj.users = grpObj.users.filter(u => u.id !== socketId);
     Object.keys(grpObj.rooms).forEach(roomId => {
-      const rmObj = grpObj.rooms[roomId];
-      rmObj.users = rmObj.users.filter(u => u.id !== socketId);
-      if (rmObj.producers) {
-        Object.keys(rmObj.producers).forEach(pid => {
-          const producer = rmObj.producers[pid];
-          if (producer && producer.appData && producer.appData.peerId === socketId) {
-            sfu.closeProducer(producer);
-            delete rmObj.producers[pid];
-          }
-        });
-      }
-      if (rmObj.consumers) {
-        Object.keys(rmObj.consumers).forEach(cid => {
-          const consumer = rmObj.consumers[cid];
-          if (consumer && consumer.appData && consumer.appData.peerId === socketId) {
-            sfu.closeConsumer(consumer);
-            delete rmObj.consumers[cid];
-          }
-        });
-      }
-      if (rmObj.transports) {
-        Object.keys(rmObj.transports).forEach(tid => {
-          const tr = rmObj.transports[tid];
-          if (tr && tr.appData && tr.appData.peerId === socketId) {
-            sfu.closeTransport(tr);
-            delete rmObj.transports[tid];
-          }
-        });
-      }
-      io.to(`${gid}::${roomId}`).emit('roomUsers', rmObj.users);
-      socket.leave(`${gid}::${roomId}`);
+      removeUserFromRoom(io, socket, users, groups, gid, roomId);
     });
     socket.leave(gid);
   });
@@ -201,6 +211,33 @@ function register(io, socket, context) {
     broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
   });
 
+    socket.on('joinRoom', async ({ groupId, roomId }) => {
+    try {
+      if (!groups[groupId] || !groups[groupId].rooms[roomId]) return;
+      const userData = users[socket.id];
+      const userName = userData?.username;
+      if (!userName) return socket.emit('errorMessage', 'Kullanıcı adınız yok.');
+      const rmObj = groups[groupId].rooms[roomId];
+      if (!rmObj.router) {
+        rmObj.router = await sfu.createRouter(roomId);
+      }
+      if (!rmObj.users.some(u => u.id === socket.id)) {
+        rmObj.users.push({ id: socket.id, username: userName });
+      }
+      userData.currentGroup = groupId;
+      userData.currentRoom = roomId;
+      socket.join(`${groupId}::${roomId}`);
+      socket.emit('joinRoomAck', { groupId, roomId });
+      io.to(`${groupId}::${roomId}`).emit('roomUsers', rmObj.users);
+    } catch (err) {
+      console.error('joinRoom error:', err);
+    }
+  });
+
+  socket.on('leaveRoom', ({ groupId, roomId }) => {
+    if (!groups[groupId] || !groups[groupId].rooms[roomId]) return;
+    removeUserFromRoom(io, socket, users, groups, groupId, roomId);
+  });
   // Diğer handlerlar (joinGroupByID, browseGroup, createRoom, joinRoom, leaveRoom,
   // renameGroup, deleteGroup, renameChannel, deleteChannel) buraya benzer şekilde
   // taşınabilir. Daha kısalık için özetlenmiştir.
