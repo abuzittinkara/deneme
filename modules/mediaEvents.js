@@ -37,7 +37,7 @@ module.exports = function registerMediaEvents(io, socket, { groups, users, sfu, 
     if (userData && userData.currentGroup && userData.currentRoom) {
       socket.to(`${userData.currentGroup}::${userData.currentRoom}`).emit('screenShareEnded', { userId: socket.id });
     }
-
+  });
   socket.on('createWebRtcTransport', async ({ groupId, roomId }, callback) => {
     try {
       if (!groups[groupId] || !groups[groupId].rooms[roomId]) {
@@ -170,4 +170,5 @@ module.exports = function registerMediaEvents(io, socket, { groups, users, sfu, 
       console.error("listProducers error:", err);
       callback([]);
     }
-});
+  });
+};

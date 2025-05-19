@@ -22,7 +22,8 @@ const express = require('express');
  const Message = require('./models/Message');
  const DMMessage = require('./models/DmMessage');
  const sfu = require('./sfu');
- const registerTextChannelEvents = require('./modules/textChannel');
+const registerTextChannelEvents = require('./modules/textChannel');
+const registerMediaEvents = require('./modules/mediaEvents');
  const expressWinston = require('express-winston');
  const logger = require('./utils/logger');
  
@@ -113,7 +114,14 @@ io.on("connection", (socket) => {
   groupController.register(io, socket, context);
   webrtcController(io, socket, context);
   friendController(io, socket, context);
-   registerTextChannelEvents(socket, { Channel, Message, User });
+  registerMediaEvents(io, socket, {
+    groups,
+    users,
+    sfu,
+    broadcastAllChannelsData: groupController.broadcastAllChannelsData.bind(null, io, users, groups),
+    logger
+  });
+  registerTextChannelEvents(socket, { Channel, Message, User });
   socket.on("disconnect", () => { groupController.handleDisconnect(io, socket, context); });
 });
  
