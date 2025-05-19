@@ -42,19 +42,30 @@ async function sendGroupsListToUser(io, socketId, { User, users }) {
   }
 }
 
-function getAllChannelsData(groups, groupId) {
+function getAllChannelsData(groups, users, groupId) {
   if (!groups[groupId]) return {};
   const channelsObj = {};
   Object.keys(groups[groupId].rooms).forEach(roomId => {
     const rm = groups[groupId].rooms[roomId];
-    channelsObj[roomId] = { name: rm.name, type: rm.type, users: rm.users };
+    const userInfos = rm.users.map(u => {
+      const info = users[u.id] || {};
+      return {
+        id: u.id,
+        username: u.username,
+        micEnabled: info.micEnabled,
+        selfDeafened: info.selfDeafened,
+        isScreenSharing: info.isScreenSharing,
+        screenShareProducerId: info.screenShareProducerId
+      };
+    });
+    channelsObj[roomId] = { name: rm.name, type: rm.type, users: userInfos };
   });
   return channelsObj;
 }
 
-function broadcastAllChannelsData(io, groups, groupId) {
+function broadcastAllChannelsData(io, users, groups, groupId) {
   if (!groups[groupId]) return;
-  const channelsObj = getAllChannelsData(groups, groupId);
+  const channelsObj = getAllChannelsData(groups, users, groupId);
   io.to(groupId).emit('allChannelsData', channelsObj);
 }
 
@@ -117,7 +128,7 @@ function removeUserFromRoom(io, socket, users, groups, groupId, roomId) {
   if (users[socket.id]) {
     users[socket.id].currentRoom = null;
   }
-  broadcastAllChannelsData(io, groups, groupId);
+  broadcastAllChannelsData(io, users, groups, groupId);
 }
 
 
@@ -201,14 +212,14 @@ function register(io, socket, context) {
     userData.currentRoom = null;
     socket.join(groupId);
     sendRoomsListToUser(io, socket.id, groups, groupId);
-    broadcastAllChannelsData(io, groups, groupId);
+    broadcastAllChannelsData(io, users, groups, groupId);
     broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
   });
 
   socket.on('browseGroup', (groupId) => {
     if (!groups[groupId]) return;
     sendRoomsListToUser(io, socket.id, groups, groupId);
-    broadcastAllChannelsData(io, groups, groupId);
+    broadcastAllChannelsData(io, users, groups, groupId);
     broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
   });
 
@@ -225,11 +236,17 @@ function register(io, socket, context) {
       if (!rmObj.users.some(u => u.id === socket.id)) {
         rmObj.users.push({ id: socket.id, username: userName });
       }
+      if (!groups[groupId].users.some(u => u.id === socket.id)) {
+        groups[groupId].users.push({ id: socket.id, username: userName });
+      }
       userData.currentGroup = groupId;
       userData.currentRoom = roomId;
+      socket.join(groupId);
       socket.join(`${groupId}::${roomId}`);
       socket.emit('joinRoomAck', { groupId, roomId });
       io.to(`${groupId}::${roomId}`).emit('roomUsers', rmObj.users);
+      broadcastAllChannelsData(io, users, groups, groupId);
+      broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
       broadcastAllChannelsData(io, groups, groupId);
     } catch (err) {
       console.error('joinRoom error:', err);
