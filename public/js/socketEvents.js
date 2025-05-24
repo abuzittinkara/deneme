@@ -163,7 +163,9 @@ export function initSocketEvents(socket) {
     window.currentGroup = groupId;
     window.currentRoom = roomId;
     window.currentRoomType = 'voice';
-    window.showChannelStatusPanel();
+    if (typeof window.showChannelStatusPanel === 'function') {
+      window.showChannelStatusPanel();
+    }
     if (!window.audioPermissionGranted || !window.localStream) {
       requestMicrophoneAccess(socket, window.applyAudioStates, { value: window.hasMic }).finally(() => {
         startSfuFlow(socket, window.currentGroup, window.currentRoom);
