@@ -6,8 +6,10 @@
 /* clearScreenShareUI */
 function clearScreenShareUI() {
   const channelContentArea = document.querySelector('.channel-content-area');
-  if (screenShareVideo && channelContentArea && channelContentArea.contains(screenShareVideo)) {
-    channelContentArea.removeChild(screenShareVideo);
+  if (screenShareVideo) {
+    if (screenShareVideo.parentNode) {
+      screenShareVideo.parentNode.removeChild(screenShareVideo);
+    }
     screenShareVideo = null;
   }
   if (screenShareButton) {
@@ -361,7 +363,14 @@ async function showScreenShare(producerId) {
     startVolumeAnalysis(audioEl.srcObject, consumer.appData.peerId);
     console.log("Yeni audio consumer oluşturuldu:", consumer.id, "-> konuşan:", consumer.appData.peerId);
   } else if (consumer.kind === "video") {
-    console.log("Video consumer alındı, ekran paylaşım için tıklama ile consume edilecek. Producer:", consumeParams.producerId);
+    screenShareVideo = document.createElement('video');
+    screenShareVideo.srcObject = new MediaStream([consumer.track]);
+    screenShareVideo.autoplay = true;
+    removeScreenShareEndedMessage();
+    if (channelContentArea) {
+      channelContentArea.appendChild(screenShareVideo);
+    }
+    console.log("Yeni video consumer oluşturuldu:", consumer.id, "-> yayıncı:", consumer.appData.peerId);
   }
 }
 
