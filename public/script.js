@@ -1,3 +1,4 @@
++29-3
 /**************************************
  * script.js
  * TAMAMEN SFU MANTIĞINA GEÇİLMİŞ VERSİYON
@@ -6,7 +7,13 @@
 /* clearScreenShareUI */
 function clearScreenShareUI() {
   const channelContentArea = document.querySelector('.channel-content-area');
-  if (screenShareVideo) {
+  if (screenShareContainer) {
+    if (screenShareContainer.parentNode) {
+      screenShareContainer.parentNode.removeChild(screenShareContainer);
+    }
+    screenShareContainer = null;
+    screenShareVideo = null;
+  } else if (screenShareVideo) {
     if (screenShareVideo.parentNode) {
       screenShareVideo.parentNode.removeChild(screenShareVideo);
     }
@@ -107,6 +114,7 @@ let remoteAudios = [];
 
 // Global ekran paylaşım video elementi
 let screenShareVideo = null;
+let screenShareContainer = null;
 
 // Kimlik
 let username = null;
@@ -311,6 +319,49 @@ function showChannelContextMenu(e, roomObj) {
   });
 }
 
+/* Yeni fonksiyon: Video için Context Menu */
+function showVideoContextMenu(e) {
+  e.preventDefault();
+  if (!screenShareVideo) return;
+  const existing = document.getElementById('videoContextMenu');
+  if (existing) existing.remove();
+
+  const menu = document.createElement('div');
+  menu.id = 'videoContextMenu';
+  menu.className = 'context-menu';
+  menu.style.position = 'absolute';
+  menu.style.top = e.pageY + 'px';
+  menu.style.left = e.pageX + 'px';
+  menu.style.display = 'flex';
+  menu.style.flexDirection = 'column';
+
+  const peerId = screenShareVideo.dataset.peerId;
+  const audioEl = remoteAudios.find(a => a.dataset.peerId === peerId);
+  if (audioEl) {
+    const volumeItem = document.createElement('div');
+    volumeItem.className = 'context-menu-item';
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.min = '0';
+    slider.max = '1';
+    slider.step = '0.01';
+    slider.value = audioEl.volume;
+    slider.addEventListener('input', () => {
+      audioEl.volume = parseFloat(slider.value);
+    });
+    volumeItem.textContent = 'Ses: ';
+    volumeItem.appendChild(slider);
+    menu.appendChild(volumeItem);
+  }
+
+  document.body.appendChild(menu);
+  document.addEventListener('click', function handler() {
+    const m = document.getElementById('videoContextMenu');
+    if (m) m.remove();
+    document.removeEventListener('click', handler);
+  });
+}
+
 /* Yeni fonksiyon: updateVoiceChannelUI */
 function updateVoiceChannelUI(roomName) {
   selectedChannelTitle.textContent = roomName;
@@ -366,13 +417,70 @@ async function showScreenShare(producerId) {
     screenShareVideo = document.createElement('video');
     screenShareVideo.srcObject = new MediaStream([consumer.track]);
     screenShareVideo.autoplay = true;
+    screenShareVideo.dataset.peerId = consumer.appData.peerId;
+    screenShareContainer = document.createElement('div');
+    screenShareContainer.classList.add('screen-share-container');
+    screenShareContainer.appendChild(screenShareVideo);
+
+    const endIcon = document.createElement('span');
+    endIcon.classList.add('material-icons', 'screen-share-end-icon');
+    endIcon.textContent = 'call_end';
+    endIcon.style.display = 'none';
+    screenShareContainer.appendChild(endIcon);
+
+    screenShareContainer.addEventListener('mouseenter', () => {
+      endIcon.style.display = 'block';
+    });
+    screenShareContainer.addEventListener('mouseleave', () => {
+      endIcon.style.display = 'none';
+    });
+    endIcon.addEventListener('click', () => {
+      consumer.close();
+      delete consumers[consumer.id];
+      for (const cid in consumers) {
+        const c = consumers[cid];
+        if (c.kind === 'audio' && c.appData.peerId === consumer.appData.peerId) {
+          c.close();
+          stopVolumeAnalysis(cid);
+          delete consumers[cid];
+          const idx = remoteAudios.findIndex(a => a.dataset.peerId === c.appData.peerId);
+          if (idx !== -1) {
+            const aEl = remoteAudios[idx];
+            try { aEl.pause(); } catch(e) {}
+            aEl.srcObject = null;
+            remoteAudios.splice(idx,1);
+          }
+        }
+      }
+      if (screenShareContainer.parentNode) {
+        screenShareContainer.parentNode.removeChild(screenShareContainer);
+      }
+      screenShareVideo = null;
+      screenShareContainer = null;
+    });
+
     removeScreenShareEndedMessage();
     if (channelContentArea) {
-      channelContentArea.appendChild(screenShareVideo);
+      screenShareContainer = document.createElement('div');
+      screenShareContainer.classList.add('screen-share-container');
+      screenShareContainer.appendChild(screenShareVideo);
+
+      const fsIcon = document.createElement('span');
+      fsIcon.classList.add('material-icons', 'fullscreen-icon');
+      fsIcon.textContent = 'fullscreen';
+      fsIcon.addEventListener('click', () => {
+        if (screenShareContainer.requestFullscreen) {
+          screenShareContainer.requestFullscreen();
+        }
+      });
+      screenShareContainer.appendChild(fsIcon);
+
+      channelContentArea.appendChild(screenShareContainer);
     }
     console.log("Yeni video consumer oluşturuldu:", consumer.id, "-> yayıncı:", consumer.appData.peerId);
   }
 }
+
 
 /* displayScreenShareEndedMessage */
 function displayScreenShareEndedMessage() {
@@ -580,10 +688,15 @@ function initSocketEvents() {
   });
   socket.on('screenShareEnded', ({ userId }) => {
     const channelContentArea = document.querySelector('.channel-content-area');
-    if (screenShareVideo && channelContentArea && channelContentArea.contains(screenShareVideo)) {
-      channelContentArea.removeChild(screenShareVideo);
+    if (screenShareContainer && channelContentArea && channelContentArea.contains(screenShareContainer)) {
+      channelContentArea.removeChild(screenShareContainer);
+      screenShareContainer = null;
       screenShareVideo = null;
+    } else if (screenShareVideo && channelContentArea && channelContentArea.contains(screenShareVideo)) {
+      channelContentArea.removeChild(screenShareContainer);
     }
+    screenShareVideo = null;
+    screenShareContainer = null;
     displayScreenShareEndedMessage();
   });
   socket.on('allChannelsData', (channelsObj) => {
@@ -1119,6 +1232,10 @@ function initUIEvents() {
     });
   }
 }
+  if(channelContentArea){
+    channelContentArea.addEventListener('contextmenu', showVideoContextMenu);
+  }
+
 
 /* applyAudioStates */
 function applyAudioStates() {
@@ -1236,16 +1353,56 @@ function showChannelStatusPanel() {
           alert("Ekran paylaşımı için transport henüz hazır değil.");
           return;
         }
-        clearScreenShareUI();
-        await ScreenShare.startScreenShare(sendTransport, socket);
-        screenShareBtn.classList.add('active');
-        if(icon) {
-          icon.textContent = "cancel_presentation";
-          icon.style.color = "#fff";
+
+        // Overlay
+        const overlay = document.createElement('div');
+        overlay.id = 'screenShareOverlay';
+        overlay.className = 'modal';
+        overlay.innerHTML = `
+          <div class="modal-content">
+            <h3>Ekran Paylaşımı</h3>
+            <label for="displaySelect">Görüntü:</label>
+            <select id="displaySelect"></select>
+            <label style="display:block;margin-top:10px;">
+              <input type="checkbox" id="shareAudioCheckbox" checked /> Sesi Paylaş
+            </label>
+            <div class="modal-buttons">
+              <button id="shareScreenConfirm" class="btn primary">Share</button>
+              <button id="shareScreenCancel" class="btn">Cancel</button>
+            </div>
+          </div>`;
+        document.body.appendChild(overlay);
+
+        // Populate dropdown using getDisplayMedia to obtain labels
+        try {
+          const tmpStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+          const label = tmpStream.getVideoTracks()[0]?.label || 'Display';
+          tmpStream.getTracks().forEach(t => t.stop());
+          const opt = document.createElement('option');
+          opt.value = 'default';
+          opt.textContent = label;
+          overlay.querySelector('#displaySelect').appendChild(opt);
+        } catch(err) {
+          console.error('Display enumeration failed', err);
         }
-        screenShareBtn.style.borderColor = "#c61884";
-        screenShareBtn.style.color = "#c61884";
-        screenShareBtn.style.backgroundColor = "#c61884";
+
+        overlay.querySelector('#shareScreenCancel').addEventListener('click', () => {
+          clearScreenShareUI();
+        });
+
+        overlay.querySelector('#shareScreenConfirm').addEventListener('click', async () => {
+          const audioEnabled = overlay.querySelector('#shareAudioCheckbox').checked;
+          clearScreenShareUI();
+          await ScreenShare.startScreenShare(sendTransport, socket, { video: true, audio: audioEnabled });
+          screenShareBtn.classList.add('active');
+          if(icon) {
+            icon.textContent = 'cancel_presentation';
+            icon.style.color = '#fff';
+          }
+          screenShareBtn.style.borderColor = '#c61884';
+          screenShareBtn.style.color = '#c61884';
+          screenShareBtn.style.backgroundColor = '#c61884';
+        });
       } catch(error) {
         console.error("Ekran paylaşımı başlatılırken hata:", error);
       }

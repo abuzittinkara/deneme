@@ -5,10 +5,13 @@
  * Kullanım: sendTransport üzerinden yeni producerlar yaratılarak ekran paylaşımı yapılır.
  */
 
-export async function startScreenShare(sendTransport, socket) {
+export async function startScreenShare(sendTransport, socket, options = { video: true, audio: true }) {
   try {
-    // Kullanıcının ekranını paylaşmasını ister (video ve audio alınır)
-    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+    // Kullanıcının ekranını paylaşmasını ister
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: options.video,
+      audio: options.audio
+    });
     // Dönen stream'i global olarak saklıyoruz
     window.screenShareStream = stream;
 
