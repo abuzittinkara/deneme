@@ -670,12 +670,14 @@ function initSocketEvents() {
     currentRoomType = "voice";
     showChannelStatusPanel();
     if (!audioPermissionGranted || !localStream) {
-      requestMicrophoneAccess().then(() => {
-        console.log("Mikrofon izni alındı, SFU akışı başlatılıyor...");
-        startSfuFlow();
-      }).catch(err => {
-        console.error("SFU akışı için mikrofon izni alınamadı:", err);
-      });
+      requestMicrophoneAccess()
+        .catch(err => {
+          console.error("SFU akışı için mikrofon izni alınamadı:", err);
+        })
+        .finally(() => {
+          console.log("SFU akışı başlatılıyor...");
+          startSfuFlow();
+        });
     } else {
       console.log("SFU akışı başlatılıyor...");
       startSfuFlow();
