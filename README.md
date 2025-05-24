@@ -43,6 +43,14 @@ webpack.config.js   Bundles mediasoup-client into `public/libs`
 3. Start the application:
    ```bash
    npm start
-   ```
-
 The server will connect to MongoDB using the URL in `MONGODB_URI` and listen on the port specified by `PORT` (default `3000`).
+
+### Front-end Modules
+
+The client-side code under `public/js` is organized into small ES modules:
+
+- **auth.js** – login and registration helpers
+- **webrtc.js** – creation of mediasoup transports and SFU handling
+- **socketEvents.js** – registration of all Socket.IO events
+- **audioUtils.js** – volume analysis and audio state utilities
+- **uiEvents.js** – sets up DOM event listeners
