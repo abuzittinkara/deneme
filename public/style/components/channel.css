@@ -161,3 +161,13 @@
   cursor: pointer;
   z-index: 5;
 }
+
+.mic-missing {
+  color: #ff0;
+  animation: mic-blink 1s linear infinite;
+}
+
+@keyframes mic-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}

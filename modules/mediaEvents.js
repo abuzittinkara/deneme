@@ -2,10 +2,13 @@
  * modules/mediaEvents.js
  **************************************/
 module.exports = function registerMediaEvents(io, socket, { groups, users, sfu, broadcastAllChannelsData, logger }) {
-  socket.on('audioStateChanged', ({ micEnabled, selfDeafened }) => {
+  socket.on('audioStateChanged', ({ micEnabled, selfDeafened, hasMic }) => {
     if (!users[socket.id]) return;
     users[socket.id].micEnabled = micEnabled;
     users[socket.id].selfDeafened = selfDeafened;
+    if (typeof hasMic !== 'undefined') {
+      users[socket.id].hasMic = hasMic;
+    }
     const gId = users[socket.id].currentGroup;
     if (gId) {
       broadcastAllChannelsData(gId);

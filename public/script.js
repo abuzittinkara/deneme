@@ -131,6 +131,7 @@ let activeVoiceChannelName = "";
 let micEnabled = true;
 let selfDeafened = false;
 let micWasEnabledBeforeDeaf = false;
+let hasMic = true;
 
 // Ses seviyesi analizi
 const SPEAKING_THRESHOLD = 0.02;

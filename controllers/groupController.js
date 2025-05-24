@@ -54,6 +54,7 @@ function getAllChannelsData(groups, users, groupId) {
         username: u.username,
         micEnabled: info.micEnabled,
         selfDeafened: info.selfDeafened,
+        hasMic: info.hasMic,
         isScreenSharing: info.isScreenSharing,
         screenShareProducerId: info.screenShareProducerId
       };

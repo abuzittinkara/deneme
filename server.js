@@ -109,7 +109,7 @@ io.on("connection", (socket) => {
    logger.info(`Yeni bağlantı: ${socket.id}`);
 
 
-  users[socket.id] = { username: null, currentGroup: null, currentRoom: null, micEnabled: true, selfDeafened: false, isScreenSharing: false, screenShareProducerId: null };
+  users[socket.id] = { username: null, currentGroup: null, currentRoom: null, micEnabled: true, selfDeafened: false, isScreenSharing: false, screenShareProducerId: null, hasMic: true };
   authController(io, socket, { User, users, onlineUsernames, groupController });
   groupController.register(io, socket, context);
   webrtcController(io, socket, context);
