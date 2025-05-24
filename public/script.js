@@ -186,7 +186,6 @@ window.addEventListener('DOMContentLoaded', () => {
   toggleDMButton.querySelector('.material-icons').textContent = 'forum';
   
   socket = io("https://fisqos.com.tr", { transports: ['websocket'] });
-  console.log("Socket connected =>", socket.id);
   initSocketEvents(socket);
   initUIEvents(socket, () => attemptLogin(socket, loginUsernameInput, loginPasswordInput, loginErrorMessage), () => attemptRegister(socket, {regUsernameInput, regNameInput, regSurnameInput, regBirthdateInput, regEmailInput, regPhoneInput, regPasswordInput, regPasswordConfirmInput, registerErrorMessage}));
   initTypingIndicator(socket, () => currentTextChannel, () => username);

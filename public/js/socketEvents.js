@@ -21,7 +21,7 @@ export function initSocketEvents(socket) {
     textChannelContainer,
   } = window;
   socket.on('connect', () => {
-    console.log('Socket tekrar bağlandı =>', socket.id);
+    console.log('Socket connected =>', socket.id);
   });
   socket.on('disconnect', () => {
     console.log('Socket disconnect');
