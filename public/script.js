@@ -724,7 +724,12 @@ function initSocketEvents() {
         leftDiv.appendChild(nameSpan);
         const rightDiv = document.createElement('div');
         rightDiv.classList.add('channel-user-right');
-        if (u.micEnabled === false) {
+        if (u.hasMic === false) {
+          const micIcon = document.createElement('span');
+          micIcon.classList.add('material-icons', 'mic-missing');
+          micIcon.textContent = 'mic_off';
+          rightDiv.appendChild(micIcon);
+        } else if (u.micEnabled === false) {
           const micIcon = document.createElement('span');
           micIcon.classList.add('material-icons');
           micIcon.textContent = 'mic_off';
