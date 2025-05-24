@@ -823,29 +823,31 @@ async function createTransportFlow() {
       }
     });
   });
-  if (!localStream) {
-    await requestMicrophoneAccess();
-  }
-  let audioTrack = localStream.getAudioTracks()[0];
-  try {
-    localProducer = await sendTransport.produce({
-      track: audioTrack,
-      stopTracks: false
-    });
-    console.log("Mikrofon producer oluşturuldu:", localProducer.id);
-  } catch (err) {
-    if (err.name === "InvalidStateError") {
-      console.error("Audio track bitti, yeniden mikrofon izni isteniyor...");
-      await requestMicrophoneAccess();
-      audioTrack = localStream.getAudioTracks()[0];
+  if (localStream && localStream.getAudioTracks().length > 0) {
+    let audioTrack = localStream.getAudioTracks()[0];
+    try {
       localProducer = await sendTransport.produce({
         track: audioTrack,
         stopTracks: false
       });
-      console.log("Yeni audio track ile producer oluşturuldu:", localProducer.id);
-    } else {
-      throw err;
+      console.log("Mikrofon producer oluşturuldu:", localProducer.id);
+    } catch (err) {
+      if (err.name === "InvalidStateError") {
+        console.error("Audio track bitti, yeniden mikrofon izni isteniyor...");
+        await requestMicrophoneAccess();
+        audioTrack = localStream.getAudioTracks()[0];
+        localProducer = await sendTransport.produce({
+          track: audioTrack,
+          stopTracks: false
+        });
+        console.log("Yeni audio track ile producer oluşturuldu:", localProducer.id);
+      } else {
+        throw err;
+      }
     }
+  } else {
+    console.warn("Yerel ses akışı bulunamadı, producer oluşturulmayacak.");
+    localProducer = null;
   }
   const recvParams = await createTransport();
   if (recvParams.error) {
