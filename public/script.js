@@ -650,12 +650,14 @@ function initSocketEvents() {
           leaveRoomInternal();
         }
         currentGroup = selectedGroup;
-        requestMicrophoneAccess().then(() => {
-          console.log("Mikrofon izni alındı, voice kanalına katılım isteği gönderiliyor.");
-          joinRoom(currentGroup, roomObj.id, roomObj.name);
-        }).catch(err => {
-          console.error("Mikrofon izni alınamadı:", err);
-        });
+        requestMicrophoneAccess()
+          .catch(err => {
+            console.error("Mikrofon izni alınamadı:", err);
+          })
+          .finally(() => {
+            console.log("Voice kanalına katılım isteği gönderiliyor.");
+            joinRoom(currentGroup, roomObj.id, roomObj.name);
+          });
         roomItem.classList.add('connected');
       });
       roomListDiv.appendChild(roomItem);
