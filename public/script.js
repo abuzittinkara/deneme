@@ -21,13 +21,13 @@ function clearScreenShareUI() {
   }
   if (screenShareButton) {
     screenShareButton.classList.remove('active');
-window.clearScreenShareUI = clearScreenShareUI;
   }
   const overlay = document.getElementById('screenShareOverlay');
   if (overlay && overlay.parentNode) {
     overlay.parentNode.removeChild(overlay);
   }
 }
+window.clearScreenShareUI = clearScreenShareUI;
 
 import * as TextChannel from './js/textChannel.js';
 import * as ScreenShare from './js/screenShare.js';
@@ -447,9 +447,9 @@ function displayScreenShareEndedMessage() {
     messageEl.style.fontSize = '1.2rem';
   }
   const channelContentAreaElem = document.querySelector('.channel-content-area');
-window.displayScreenShareEndedMessage = displayScreenShareEndedMessage;  
   channelContentAreaElem.appendChild(messageEl);
 }
+window.displayScreenShareEndedMessage = displayScreenShareEndedMessage;
 
 /* removeScreenShareEndedMessage */
 function removeScreenShareEndedMessage() {
@@ -459,5 +459,6 @@ window.removeScreenShareEndedMessage = removeScreenShareEndedMessage;
     messageEl.parentNode.removeChild(messageEl);
   }
 }
+window.removeScreenShareEndedMessage = removeScreenShareEndedMessage;
 
 /* DM Panel toggle işlevi, her tıklamada DM moduna geçiş veya çıkış yapar (initUIEvents içinde tanımlanacak). */
