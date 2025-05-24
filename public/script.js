@@ -1282,7 +1282,7 @@ function applyAudioStates() {
   remoteAudios.forEach(audio => {
     audio.muted = selfDeafened;
   });
-  socket.emit('audioStateChanged', { micEnabled, selfDeafened });
+  socket.emit('audioStateChanged', { micEnabled, selfDeafened, hasMic });
 }
 
 /* hideChannelStatusPanel */
