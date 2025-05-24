@@ -159,8 +159,6 @@ window.addEventListener('DOMContentLoaded', () => {
   console.log("Socket connected =>", socket.id);
   initSocketEvents(socket);
   initUIEvents(socket, () => attemptLogin(socket, loginUsernameInput, loginPasswordInput, loginErrorMessage), () => attemptRegister(socket, {regUsernameInput, regNameInput, regSurnameInput, regBirthdateInput, regEmailInput, regPhoneInput, regPasswordInput, regPasswordConfirmInput, registerErrorMessage}));
-  initSocketEvents();
-  initUIEvents();
   initTypingIndicator(socket, () => currentTextChannel, () => username);
   initFriendRequests(socket);
   
