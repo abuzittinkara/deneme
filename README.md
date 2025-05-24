@@ -63,3 +63,9 @@ The schema now expects `from` and `to`. Convert existing documents with:
 ```javascript
 db.dmmessages.updateMany({}, { $rename: { sender: "from", receiver: "to" } })
 ```
+
+If your existing `users` collection contains a `blocked` array field, rename it to `blockedUsers` to match the current schema:
+
+```javascript
+db.users.updateMany({}, { $rename: { blocked: "blockedUsers" } })
+```

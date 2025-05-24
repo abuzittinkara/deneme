@@ -15,7 +15,7 @@ const UserSchema = new mongoose.Schema({
   // Arkadaşlar listesi (kalıcı olarak DB’de saklanacak)
   friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   // Engellenen arkadaşlar listesi
-  blocked: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+  blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
 });
 
 module.exports = mongoose.model('User', UserSchema);
