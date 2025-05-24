@@ -151,7 +151,22 @@ Object.assign(window, {loginScreen, registerScreen, callScreen, loginUsernameInp
 
 Object.assign(window, WebRTC);
 Object.assign(window, {selectedGroup, currentGroup, currentRoom, currentTextChannel, currentRoomType, activeVoiceChannelName, micEnabled, selfDeafened, micWasEnabledBeforeDeaf, hasMic});
-window.applyAudioStates = (opts) => applyAudioStates(opts);
+window.applyAudioStates = (opts) => {
+  if (!opts) {
+    opts = {
+      localProducer: window.localProducer,
+      localStream: window.localStream,
+      socket,
+      micEnabled: window.micEnabled,
+      selfDeafened: window.selfDeafened,
+      micToggleButton,
+      deafenToggleButton,
+      remoteAudios: window.remoteAudios,
+      hasMic: window.hasMic,
+    };
+  }
+  applyAudioStates(opts);
+};
 window.addEventListener('DOMContentLoaded', () => {
   toggleDMButton.querySelector('.material-icons').textContent = 'forum';
   
