@@ -275,6 +275,7 @@ function showChannelContextMenu(e, roomObj) {
     document.removeEventListener('click', handler);
   });
 }
+window.showChannelContextMenu = showChannelContextMenu;
 
 /* Yeni fonksiyon: Video için Context Menu */
 function showVideoContextMenu(e) {
