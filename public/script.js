@@ -1067,6 +1067,7 @@ async function requestMicrophoneAccess() {
     console.log("Mikrofon erişimi verildi:", stream);
     localStream = stream;
     audioPermissionGranted = true;
+    hasMic = true;
     applyAudioStates();
     startVolumeAnalysis(localStream, socket.id);
     remoteAudios.forEach(audioEl => {
@@ -1075,7 +1076,10 @@ async function requestMicrophoneAccess() {
     return stream;
   } catch(err) {
     console.error("Mikrofon izni alınamadı:", err);
-    throw err;
+    audioPermissionGranted = false;
+    hasMic = false;
+    applyAudioStates();
+    return null;
   }
 }
 
