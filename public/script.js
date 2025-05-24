@@ -116,11 +116,26 @@ const userListDiv = document.getElementById('userList');
 const channelStatusPanel = document.getElementById('channelStatusPanel');
 channelStatusPanel.style.height = "100px";
 channelStatusPanel.style.zIndex = "20";
+channelStatusPanel.style.display = 'none';
 const pingValueSpan = document.getElementById('pingValue');
 const cellBar1 = document.getElementById('cellBar1');
 const cellBar2 = document.getElementById('cellBar2');
 const cellBar3 = document.getElementById('cellBar3');
 const cellBar4 = document.getElementById('cellBar4');
+
+function showChannelStatusPanel() {
+  if (channelStatusPanel) {
+    channelStatusPanel.style.display = 'flex';
+  }
+}
+
+function hideChannelStatusPanel() {
+  if (channelStatusPanel) {
+    channelStatusPanel.style.display = 'none';
+  }
+}
+window.showChannelStatusPanel = showChannelStatusPanel;
+window.hideChannelStatusPanel = hideChannelStatusPanel;
 
 // Ayrıl Butonu
 const leaveButton = document.getElementById('leaveButton');

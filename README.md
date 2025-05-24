@@ -54,3 +54,12 @@ The client-side code under `public/js` is organized into small ES modules:
 - **socketEvents.js** – registration of all Socket.IO events
 - **audioUtils.js** – volume analysis and audio state utilities
 - **uiEvents.js** – sets up DOM event listeners
+
+### Migration Note
+
+Older versions stored DM messages with fields named `sender` and `receiver`.
+The schema now expects `from` and `to`. Convert existing documents with:
+
+```javascript
+db.dmmessages.updateMany({}, { $rename: { sender: "from", receiver: "to" } })
+```
