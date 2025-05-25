@@ -191,3 +191,14 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
 }
+
+/* Status Panel Text */
+#statusMessage {
+  font-size: 0.9rem;
+  margin-right: 0.25rem;
+}
+
+#channelGroupInfo {
+  font-size: 0.75rem;
+  margin-right: 0.5rem;
+}

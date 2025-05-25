@@ -125,12 +125,15 @@ function showChannelStatusPanel() {
   if (channelStatusPanel) {
     channelStatusPanel.style.display = 'flex';
   }
+  Ping.updateStatusPanel(0);
+  Ping.startPingInterval(socket);
 }
 
 function hideChannelStatusPanel() {
   if (channelStatusPanel) {
     channelStatusPanel.style.display = 'none';
   }
+  Ping.stopPingInterval();
 }
 window.showChannelStatusPanel = showChannelStatusPanel;
 window.hideChannelStatusPanel = hideChannelStatusPanel;
