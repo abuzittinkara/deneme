@@ -106,6 +106,22 @@
 .leave-btn {
   margin-left: auto;
 }
+
+/* Call and Screen Share Buttons */
+.leave-btn,
+.screenshare-btn {
+  background: none;
+  border: none;
+  color: #ccc;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+.leave-btn { color: #c61884; }
+.leave-btn:hover { background: #c61884; color: #fff; }
+.screenshare-btn.active { color: #c61884; }
 .signal-bars {
   display: flex;
   gap: 2px;
