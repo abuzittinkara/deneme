@@ -9,13 +9,13 @@ function clearScreenShareUI() {
     if (WebRTC.screenShareContainer.parentNode) {
       WebRTC.screenShareContainer.parentNode.removeChild(WebRTC.screenShareContainer);
     }
-    window.screenShareContainer = null;
-    window.screenShareVideo = null;
+    WebRTC.setScreenShareContainer(null);
+    WebRTC.setScreenShareVideo(null);
   } else if (WebRTC.screenShareVideo) {
     if (WebRTC.screenShareVideo.parentNode) {
       WebRTC.screenShareVideo.parentNode.removeChild(WebRTC.screenShareVideo);
     }
-    window.screenShareVideo = null;
+    WebRTC.setScreenShareVideo(null);
   }
   if (screenShareButton) {
     screenShareButton.classList.remove('active');
@@ -168,7 +168,11 @@ window.leaveRoomInternal = WebRTC.leaveRoomInternal;
 ['device','deviceIsLoaded','sendTransport','recvTransport','localStream','audioPermissionGranted','localProducer','consumers','remoteAudios','screenShareVideo','screenShareContainer'].forEach((prop)=>{
   Object.defineProperty(window, prop, {
     get() { return WebRTC[prop]; },
-    set(v) { WebRTC[prop] = v; }
+    set(v) {
+      if (prop === 'screenShareVideo') WebRTC.setScreenShareVideo(v);
+      else if (prop === 'screenShareContainer') WebRTC.setScreenShareContainer(v);
+      else WebRTC[prop] = v;
+    }
   });
 });
 Object.assign(window, {selectedGroup, currentGroup, currentRoom, currentTextChannel, currentRoomType, activeVoiceChannelName, micEnabled, selfDeafened, micWasEnabledBeforeDeaf, hasMic});

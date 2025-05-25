@@ -13,6 +13,14 @@ export let remoteAudios = [];
 export let screenShareVideo = null;
 export let screenShareContainer = null;
 
+export function setScreenShareVideo(value) {
+  screenShareVideo = value;
+}
+
+export function setScreenShareContainer(value) {
+  screenShareContainer = value;
+}
+
 export async function requestMicrophoneAccess(socket, applyAudioStates, hasMicRef) {
   try {
     console.log('Mikrofon izni isteniyor...');
@@ -401,4 +409,4 @@ function removeScreenShareEndedMessage() {
   }
 }
 
-export { createTransport, listProducers };
+export { createTransport, listProducers, setScreenShareVideo, setScreenShareContainer };
