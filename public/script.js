@@ -1,4 +1,3 @@
-+29-3
 /**************************************
  * script.js
  * TAMAMEN SFU MANTIĞINA GEÇİLMİŞ VERSİYON
