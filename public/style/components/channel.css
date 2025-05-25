@@ -100,7 +100,11 @@
 .chan-status-content {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.4rem;
+}
+
+.leave-btn {
+  margin-left: auto;
 }
 .signal-bars {
   display: flex;
