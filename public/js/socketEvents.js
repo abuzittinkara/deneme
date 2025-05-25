@@ -1,5 +1,5 @@
 import * as UserList from './userList.js';
-import { startSfuFlow, consumeProducer, recvTransport, screenShareContainer, screenShareVideo, showScreenShare, audioPermissionGranted, localStream } from './webrtc.js';import { requestMicrophoneAccess } from './webrtc.js';
+import * as WebRTC from './webrtc.js';
 import { startVolumeAnalysis } from './audioUtils.js';
 
 export function initSocketEvents(socket) {
@@ -150,7 +150,7 @@ export function initSocketEvents(socket) {
           window.leaveRoomInternal(socket);
         }
         window.currentGroup = window.selectedGroup;
-        requestMicrophoneAccess(socket, window.applyAudioStates, { value: window.hasMic }).finally(() => {
+        WebRTC.requestMicrophoneAccess(socket, window.applyAudioStates, { value: window.hasMic }).finally(() => {
           window.joinRoom(socket, window.currentGroup, roomObj.id, roomObj.name, selectedChannelTitle, window.showChannelStatusPanel, { value: window.currentRoomType }, { value: window.activeVoiceChannelName });
         });
         roomItem.classList.add('connected');
@@ -165,27 +165,27 @@ export function initSocketEvents(socket) {
     if (typeof window.showChannelStatusPanel === 'function') {
       window.showChannelStatusPanel();
     }
-    if (!audioPermissionGranted || !localStream) {
-      requestMicrophoneAccess(socket, window.applyAudioStates, { value: window.hasMic }).finally(() => {
-        startSfuFlow(socket, window.currentGroup, window.currentRoom);
+    if (!WebRTC.audioPermissionGranted || !WebRTC.localStream) {
+      WebRTC.requestMicrophoneAccess(socket, window.applyAudioStates, { value: window.hasMic }).finally(() => {
+        WebRTC.startSfuFlow(socket, window.currentGroup, window.currentRoom);
       });
     } else {
-      startSfuFlow(socket, window.currentGroup, window.currentRoom);
+      WebRTC.startSfuFlow(socket, window.currentGroup, window.currentRoom);
     }
   });
   socket.on('newProducer', ({ producerId }) => {
-    if (!recvTransport) return;
-    consumeProducer(socket, window.currentGroup, window.currentRoom, producerId);
+    if (!WebRTC.recvTransport) return;
+    WebRTC.consumeProducer(socket, window.currentGroup, window.currentRoom, producerId);
   });
   socket.on('screenShareEnded', ({ userId }) => {
     const channelContentArea = document.querySelector('.channel-content-area');
-    if (screenShareContainer && channelContentArea && channelContentArea.contains(screenShareContainer)) {
-      channelContentArea.removeChild(screenShareContainer);
-    } else if (screenShareVideo && channelContentArea && channelContentArea.contains(screenShareVideo)) {
-      channelContentArea.removeChild(screenShareContainer);
+    if (WebRTC.screenShareContainer && channelContentArea && channelContentArea.contains(WebRTC.screenShareContainer)) {
+      channelContentArea.removeChild(WebRTC.screenShareContainer);
+    } else if (WebRTC.screenShareVideo && channelContentArea && channelContentArea.contains(WebRTC.screenShareVideo)) {
+      channelContentArea.removeChild(WebRTC.screenShareContainer);
     }
-    screenShareVideo = null;
-    screenShareContainer = null;
+    WebRTC.screenShareVideo = null;
+    WebRTC.screenShareContainer = null;
     window.displayScreenShareEndedMessage();
   });
   socket.on('allChannelsData', (channelsObj) => {
@@ -233,7 +233,7 @@ export function initSocketEvents(socket) {
             screenIndicator.style.cursor = 'pointer';
             screenIndicator.addEventListener('click', () => {
               window.clearScreenShareUI();
-              showScreenShare(socket, window.currentGroup, window.currentRoom, u.screenShareProducerId, window.clearScreenShareUI);
+              WebRTC.showScreenShare(socket, window.currentGroup, window.currentRoom, u.screenShareProducerId, window.clearScreenShareUI);
             });
           }
           rightDiv.appendChild(screenIndicator);
