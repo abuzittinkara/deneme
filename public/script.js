@@ -372,8 +372,7 @@ window.displayScreenShareEndedMessage = displayScreenShareEndedMessage;
 /* removeScreenShareEndedMessage */
 function removeScreenShareEndedMessage() {
   const messageEl = document.getElementById('screenShareEndedMessage');
-  if (messageEl && messageEl.parentNode) {
-window.removeScreenShareEndedMessage = removeScreenShareEndedMessage;    
+  if (messageEl && messageEl.parentNode) {   
     messageEl.parentNode.removeChild(messageEl);
   }
 }
