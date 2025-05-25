@@ -140,6 +140,9 @@ export function initSocketEvents(socket) {
           window.currentTextChannel = roomObj.id;
           window.textMessages.dataset.channelId = roomObj.id;
           socket.emit('joinTextChannel', { groupId: window.selectedGroup, roomId: roomObj.id });
+          if (typeof window.removeScreenShareEndedMessage === 'function') {
+            window.removeScreenShareEndedMessage();
+          }
           return;
         }
         window.clearScreenShareUI();
