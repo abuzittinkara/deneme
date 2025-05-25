@@ -51,6 +51,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
   });
 
   toggleDMButton.addEventListener('click', () => {
+    window.removeScreenShareEndedMessage();
     const channelContentArea = document.getElementById('channelContentArea');
     const selectedChannelBar = document.getElementById('selectedChannelBar');
     const selectedDMBar = document.getElementById('selectedDMBar');
