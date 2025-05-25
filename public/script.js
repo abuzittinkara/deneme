@@ -10,13 +10,13 @@ function clearScreenShareUI() {
     if (WebRTC.screenShareContainer.parentNode) {
       WebRTC.screenShareContainer.parentNode.removeChild(WebRTC.screenShareContainer);
     }
-    WebRTC.screenShareContainer = null;
-    WebRTC.screenShareVideo = null;
+    window.screenShareContainer = null;
+    window.screenShareVideo = null;
   } else if (WebRTC.screenShareVideo) {
     if (WebRTC.screenShareVideo.parentNode) {
       WebRTC.screenShareVideo.parentNode.removeChild(WebRTC.screenShareVideo);
     }
-    WebRTC.screenShareVideo = null;
+    window.screenShareVideo = null;
   }
   if (screenShareButton) {
     screenShareButton.classList.remove('active');

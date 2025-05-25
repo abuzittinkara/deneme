@@ -184,8 +184,8 @@ export function initSocketEvents(socket) {
     } else if (WebRTC.screenShareVideo && channelContentArea && channelContentArea.contains(WebRTC.screenShareVideo)) {
       channelContentArea.removeChild(WebRTC.screenShareContainer);
     }
-    WebRTC.screenShareVideo = null;
-    WebRTC.screenShareContainer = null;
+    window.screenShareVideo = null;
+    window.screenShareContainer = null;
     window.displayScreenShareEndedMessage();
   });
   socket.on('allChannelsData', (channelsObj) => {
