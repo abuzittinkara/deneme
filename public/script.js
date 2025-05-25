@@ -24,6 +24,9 @@ function clearScreenShareUI() {
   if (overlay && overlay.parentNode) {
     overlay.parentNode.removeChild(overlay);
   }
+  if (window.removeScreenShareEndedMessage) {
+    window.removeScreenShareEndedMessage();
+  }
 }
 window.clearScreenShareUI = clearScreenShareUI;
 
