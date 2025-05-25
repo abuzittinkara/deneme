@@ -68,6 +68,9 @@ export function initSocketEvents(socket) {
         window.selectedGroup = groupObj.id;
         groupTitle.textContent = groupObj.name;
         socket.emit('joinGroup', groupObj.id);
+        if (typeof window.removeScreenShareEndedMessage === 'function') {
+          window.removeScreenShareEndedMessage();
+        }
         if (groupObj.owner === window.username) {
           deleteGroupBtn.style.display = 'block';
           renameGroupBtn.style.display = 'block';
