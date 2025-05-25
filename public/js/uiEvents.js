@@ -98,17 +98,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
 
   micToggleButton.addEventListener('click', () => {
     window.micEnabled = !window.micEnabled;
-    applyAudioStates({
-      localProducer: window.localProducer,
-      localStream: window.localStream,
-      socket,
-      micEnabled: window.micEnabled,
-      selfDeafened: window.selfDeafened,
-      micToggleButton,
-      deafenToggleButton,
-      remoteAudios: window.remoteAudios,
-      hasMic: window.hasMic,
-    });
+    window.applyAudioStates();
   });
 
   deafenToggleButton.addEventListener('click', () => {
@@ -120,17 +110,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
       window.selfDeafened = false;
       if (window.micWasEnabledBeforeDeaf) window.micEnabled = true;
     }
-    applyAudioStates({
-      localProducer: window.localProducer,
-      localStream: window.localStream,
-      socket,
-      micEnabled: window.micEnabled,
-      selfDeafened: window.selfDeafened,
-      micToggleButton,
-      deafenToggleButton,
-      remoteAudios: window.remoteAudios,
-      hasMic: window.hasMic,
-    });
+    window.applyAudioStates();
   });
 
   settingsButton.addEventListener('click', () => {});

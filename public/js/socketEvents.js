@@ -1,6 +1,5 @@
 import * as UserList from './userList.js';
-import { startSfuFlow, consumeProducer, recvTransport, screenShareContainer, screenShareVideo } from './webrtc.js';
-import { requestMicrophoneAccess } from './webrtc.js';
+import { startSfuFlow, consumeProducer, recvTransport, screenShareContainer, screenShareVideo, showScreenShare, audioPermissionGranted, localStream } from './webrtc.js';import { requestMicrophoneAccess } from './webrtc.js';
 import { startVolumeAnalysis } from './audioUtils.js';
 
 export function initSocketEvents(socket) {
@@ -166,7 +165,7 @@ export function initSocketEvents(socket) {
     if (typeof window.showChannelStatusPanel === 'function') {
       window.showChannelStatusPanel();
     }
-    if (!window.audioPermissionGranted || !window.localStream) {
+    if (!audioPermissionGranted || !localStream) {
       requestMicrophoneAccess(socket, window.applyAudioStates, { value: window.hasMic }).finally(() => {
         startSfuFlow(socket, window.currentGroup, window.currentRoom);
       });
@@ -185,8 +184,8 @@ export function initSocketEvents(socket) {
     } else if (screenShareVideo && channelContentArea && channelContentArea.contains(screenShareVideo)) {
       channelContentArea.removeChild(screenShareContainer);
     }
-    window.screenShareVideo = null;
-    window.screenShareContainer = null;
+    screenShareVideo = null;
+    screenShareContainer = null;
     window.displayScreenShareEndedMessage();
   });
   socket.on('allChannelsData', (channelsObj) => {
@@ -234,7 +233,7 @@ export function initSocketEvents(socket) {
             screenIndicator.style.cursor = 'pointer';
             screenIndicator.addEventListener('click', () => {
               window.clearScreenShareUI();
-              window.showScreenShare(u.screenShareProducerId);
+              showScreenShare(socket, window.currentGroup, window.currentRoom, u.screenShareProducerId, window.clearScreenShareUI);
             });
           }
           rightDiv.appendChild(screenIndicator);

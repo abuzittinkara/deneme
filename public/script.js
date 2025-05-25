@@ -4,20 +4,19 @@
  * TAMAMEN SFU MANTIĞINA GEÇİLMİŞ VERSİYON
  **************************************/
 
-/* clearScreenShareUI */
 function clearScreenShareUI() {
   const channelContentArea = document.querySelector('.channel-content-area');
-  if (screenShareContainer) {
-    if (screenShareContainer.parentNode) {
-      screenShareContainer.parentNode.removeChild(screenShareContainer);
+  if (WebRTC.screenShareContainer) {
+    if (WebRTC.screenShareContainer.parentNode) {
+      WebRTC.screenShareContainer.parentNode.removeChild(WebRTC.screenShareContainer);
     }
-    screenShareContainer = null;
-    screenShareVideo = null;
-  } else if (screenShareVideo) {
-    if (screenShareVideo.parentNode) {
-      screenShareVideo.parentNode.removeChild(screenShareVideo);
+    WebRTC.screenShareContainer = null;
+    WebRTC.screenShareVideo = null;
+  } else if (WebRTC.screenShareVideo) {
+    if (WebRTC.screenShareVideo.parentNode) {
+      WebRTC.screenShareVideo.parentNode.removeChild(WebRTC.screenShareVideo);
     }
-    screenShareVideo = null;
+    WebRTC.screenShareVideo = null;
   }
   if (screenShareButton) {
     screenShareButton.classList.remove('active');
@@ -164,19 +163,25 @@ const dmContentArea = document.getElementById('dmContentArea');
 const dmPanel = document.getElementById('dmPanel');
 Object.assign(window, {loginScreen, registerScreen, callScreen, loginUsernameInput, loginPasswordInput, loginButton, loginErrorMessage, regUsernameInput, regNameInput, regSurnameInput, regBirthdateInput, regEmailInput, regPhoneInput, regPasswordInput, regPasswordConfirmInput, registerButton, backToLoginButton, registerErrorMessage, showRegisterScreen, showLoginScreen, groupListDiv, createGroupButton, roomListDiv, groupTitle, groupDropdownIcon, groupDropdownMenu, copyGroupIdBtn, renameGroupBtn, createChannelBtn, deleteGroupBtn, toggleDMButton, roomPanel, rightPanel, leaveButton, screenShareButton, micToggleButton, deafenToggleButton, settingsButton, textChannelContainer, textMessages, textChatInputBar, textChannelMessageInput, sendTextMessageBtn, selectedChannelTitle, channelContentArea, dmContentArea, dmPanel});
 
-Object.assign(window, WebRTC);
+window.WebRTC = WebRTC;
+['device','deviceIsLoaded','sendTransport','recvTransport','localStream','audioPermissionGranted','localProducer','consumers','remoteAudios','screenShareVideo','screenShareContainer'].forEach((prop)=>{
+  Object.defineProperty(window, prop, {
+    get() { return WebRTC[prop]; },
+    set(v) { WebRTC[prop] = v; }
+  });
+});
 Object.assign(window, {selectedGroup, currentGroup, currentRoom, currentTextChannel, currentRoomType, activeVoiceChannelName, micEnabled, selfDeafened, micWasEnabledBeforeDeaf, hasMic});
 window.applyAudioStates = (opts) => {
   if (!opts) {
     opts = {
-      localProducer: window.localProducer,
-      localStream: window.localStream,
+      localProducer: WebRTC.localProducer,
+      localStream: WebRTC.localStream,
       socket,
       micEnabled: window.micEnabled,
       selfDeafened: window.selfDeafened,
       micToggleButton,
       deafenToggleButton,
-      remoteAudios: window.remoteAudios,
+      remoteAudios: WebRTC.remoteAudios,
       hasMic: window.hasMic,
     };
   }
@@ -280,7 +285,7 @@ window.showChannelContextMenu = showChannelContextMenu;
 /* Yeni fonksiyon: Video için Context Menu */
 function showVideoContextMenu(e) {
   e.preventDefault();
-  if (!screenShareVideo) return;
+  if (!WebRTC.screenShareVideo) return;
   const existing = document.getElementById('videoContextMenu');
   if (existing) existing.remove();
 
@@ -293,8 +298,8 @@ function showVideoContextMenu(e) {
   menu.style.display = 'flex';
   menu.style.flexDirection = 'column';
 
-  const peerId = screenShareVideo.dataset.peerId;
-  const audioEl = remoteAudios.find(a => a.dataset.peerId === peerId);
+  const peerId = WebRTC.screenShareVideo.dataset.peerId;
+  const audioEl = WebRTC.remoteAudios.find(a => a.dataset.peerId === peerId);
   if (audioEl) {
     const volumeItem = document.createElement('div');
     volumeItem.className = 'context-menu-item';
@@ -334,111 +339,8 @@ function updateVoiceChannelUI(roomName) {
 window.updateVoiceChannelUI = updateVoiceChannelUI;
 
 /* showScreenShare */
-async function showScreenShare(producerId) {
-  if (!recvTransport) {
-    console.warn("recvTransport yok");
-    return;
-  }
-  const channelContentArea = document.querySelector('.channel-content-area');
-  clearScreenShareUI();
-  const consumeParams = await new Promise((resolve) => {
-    socket.emit('consume', {
-      groupId: currentGroup,
-      roomId: currentRoom,
-      transportId: recvTransport.id,
-      producerId: producerId
-    }, (res) => {
-      resolve(res);
-    });
-  });
-  if (consumeParams.error) {
-    console.error("consume error:", consumeParams.error);
-    return;
-  }
-  const consumer = await recvTransport.consume({
-    id: consumeParams.id,
-    producerId: consumeParams.producerId,
-    kind: consumeParams.kind,
-    rtpParameters: consumeParams.rtpParameters
-  });
-  consumer.appData = { peerId: consumeParams.producerPeerId };
-  consumers[consumer.id] = consumer;
-  if (consumer.kind === "audio") {
-    const { track } = consumer;
-    const audioEl = document.createElement('audio');
-    audioEl.srcObject = new MediaStream([track]);
-    audioEl.autoplay = true;
-    audioEl.dataset.peerId = consumer.appData.peerId;
-    remoteAudios.push(audioEl);
-    audioEl.play().catch(err => console.error("Ses oynatılamadı:", err));
-    startVolumeAnalysis(audioEl.srcObject, consumer.appData.peerId);
-    console.log("Yeni audio consumer oluşturuldu:", consumer.id, "-> konuşan:", consumer.appData.peerId);
-  } else if (consumer.kind === "video") {
-    screenShareVideo = document.createElement('video');
-    screenShareVideo.srcObject = new MediaStream([consumer.track]);
-    screenShareVideo.autoplay = true;
-    screenShareVideo.dataset.peerId = consumer.appData.peerId;
-    screenShareContainer = document.createElement('div');
-    screenShareContainer.classList.add('screen-share-container');
-    screenShareContainer.appendChild(screenShareVideo);
-
-    const endIcon = document.createElement('span');
-    endIcon.classList.add('material-icons', 'screen-share-end-icon');
-    endIcon.textContent = 'call_end';
-    endIcon.style.display = 'none';
-    screenShareContainer.appendChild(endIcon);
-
-    screenShareContainer.addEventListener('mouseenter', () => {
-      endIcon.style.display = 'block';
-    });
-    screenShareContainer.addEventListener('mouseleave', () => {
-      endIcon.style.display = 'none';
-    });
-    endIcon.addEventListener('click', () => {
-      consumer.close();
-      delete consumers[consumer.id];
-      for (const cid in consumers) {
-        const c = consumers[cid];
-        if (c.kind === 'audio' && c.appData.peerId === consumer.appData.peerId) {
-          c.close();
-          stopVolumeAnalysis(cid);
-          delete consumers[cid];
-          const idx = remoteAudios.findIndex(a => a.dataset.peerId === c.appData.peerId);
-          if (idx !== -1) {
-            const aEl = remoteAudios[idx];
-            try { aEl.pause(); } catch(e) {}
-            aEl.srcObject = null;
-            remoteAudios.splice(idx,1);
-          }
-        }
-      }
-      if (screenShareContainer.parentNode) {
-        screenShareContainer.parentNode.removeChild(screenShareContainer);
-      }
-      screenShareVideo = null;
-      screenShareContainer = null;
-    });
-
-    removeScreenShareEndedMessage();
-    if (channelContentArea) {
-      screenShareContainer = document.createElement('div');
-      screenShareContainer.classList.add('screen-share-container');
-      screenShareContainer.appendChild(screenShareVideo);
-
-      const fsIcon = document.createElement('span');
-      fsIcon.classList.add('material-icons', 'fullscreen-icon');
-      fsIcon.textContent = 'fullscreen';
-      fsIcon.addEventListener('click', () => {
-        if (screenShareContainer.requestFullscreen) {
-          screenShareContainer.requestFullscreen();
-        }
-      });
-      screenShareContainer.appendChild(fsIcon);
-
-      channelContentArea.appendChild(screenShareContainer);
-    }
-    console.log("Yeni video consumer oluşturuldu:", consumer.id, "-> yayıncı:", consumer.appData.peerId);
-  }
+function showScreenShare(producerId) {
+  WebRTC.showScreenShare(socket, currentGroup, currentRoom, producerId, clearScreenShareUI);
 }
 window.showScreenShare = showScreenShare;
 
