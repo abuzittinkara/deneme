@@ -1,6 +1,7 @@
 import * as ScreenShare from './screenShare.js';
 import { applyAudioStates } from './audioUtils.js';
 import { sendTransport } from './webrtc.js';
+import * as Ping from './ping.js';
 
 export function initUIEvents(socket, attemptLogin, attemptRegister) {
   const {
