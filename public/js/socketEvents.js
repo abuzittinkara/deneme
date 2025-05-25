@@ -178,7 +178,7 @@ export function initSocketEvents(socket) {
     if (!WebRTC.recvTransport) return;
     WebRTC.consumeProducer(socket, window.currentGroup, window.currentRoom, producerId);
   });
-  socket.on('screenShareEnded', ({ userId }) => {
+  socket.on('screenShareEnded', ({ userId, username }) => {
     const channelContentArea = document.querySelector('.channel-content-area');
     if (WebRTC.screenShareContainer && channelContentArea && channelContentArea.contains(WebRTC.screenShareContainer)) {
       channelContentArea.removeChild(WebRTC.screenShareContainer);
@@ -187,7 +187,10 @@ export function initSocketEvents(socket) {
     }
     window.screenShareVideo = null;
     window.screenShareContainer = null;
-    window.displayScreenShareEndedMessage();
+    const message = userId === socket.id
+      ? 'Yayınınız sonlandırıldı'
+      : `${username || 'Bir kullanıcı'} adlı kullanıcının yayını sonlandırıldı`;
+    window.displayScreenShareEndedMessage(message);
   });
   socket.on('allChannelsData', (channelsObj) => {
     Object.keys(channelsObj).forEach((roomId) => {

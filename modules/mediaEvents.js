@@ -38,7 +38,10 @@ module.exports = function registerMediaEvents(io, socket, { groups, users, sfu, 
   socket.on('screenShareEnded', () => {
     const userData = users[socket.id];
     if (userData && userData.currentGroup && userData.currentRoom) {
-      socket.to(`${userData.currentGroup}::${userData.currentRoom}`).emit('screenShareEnded', { userId: socket.id });
+      io.to(`${userData.currentGroup}::${userData.currentRoom}`).emit('screenShareEnded', {
+        userId: socket.id,
+        username: userData.username
+      });
     }
   });
   socket.on('createWebRtcTransport', async ({ groupId, roomId }, callback) => {

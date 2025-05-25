@@ -354,13 +354,12 @@ window.showScreenShare = showScreenShare;
 
 
 /* displayScreenShareEndedMessage */
-function displayScreenShareEndedMessage() {
+function displayScreenShareEndedMessage(msg) {
   const channelContentArea = document.querySelector('.channel-content-area');
   let messageEl = document.getElementById('screenShareEndedMessage');
   if (!messageEl) {
     messageEl = document.createElement('div');
     messageEl.id = 'screenShareEndedMessage';
-    messageEl.textContent = 'Bu yayın sonlandırıldı';
     messageEl.style.position = 'absolute';
     messageEl.style.top = '50%';
     messageEl.style.left = '50%';
@@ -371,6 +370,7 @@ function displayScreenShareEndedMessage() {
     messageEl.style.borderRadius = '8px';
     messageEl.style.fontSize = '1.2rem';
   }
+  messageEl.textContent = msg || 'Bu yayın sonlandırıldı';
   const channelContentAreaElem = document.querySelector('.channel-content-area');
   channelContentAreaElem.appendChild(messageEl);
 }
