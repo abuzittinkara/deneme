@@ -409,4 +409,4 @@ function removeScreenShareEndedMessage() {
   }
 }
 
-export { createTransport, listProducers, setScreenShareVideo, setScreenShareContainer };
+export { createTransport, listProducers };
