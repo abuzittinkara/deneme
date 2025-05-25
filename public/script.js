@@ -164,6 +164,8 @@ const dmPanel = document.getElementById('dmPanel');
 Object.assign(window, {loginScreen, registerScreen, callScreen, loginUsernameInput, loginPasswordInput, loginButton, loginErrorMessage, regUsernameInput, regNameInput, regSurnameInput, regBirthdateInput, regEmailInput, regPhoneInput, regPasswordInput, regPasswordConfirmInput, registerButton, backToLoginButton, registerErrorMessage, showRegisterScreen, showLoginScreen, groupListDiv, createGroupButton, roomListDiv, groupTitle, groupDropdownIcon, groupDropdownMenu, copyGroupIdBtn, renameGroupBtn, createChannelBtn, deleteGroupBtn, toggleDMButton, roomPanel, rightPanel, leaveButton, screenShareButton, micToggleButton, deafenToggleButton, settingsButton, textChannelContainer, textMessages, textChatInputBar, textChannelMessageInput, sendTextMessageBtn, selectedChannelTitle, channelContentArea, dmContentArea, dmPanel});
 
 window.WebRTC = WebRTC;
+window.joinRoom = WebRTC.joinRoom;
+window.leaveRoomInternal = WebRTC.leaveRoomInternal;
 ['device','deviceIsLoaded','sendTransport','recvTransport','localStream','audioPermissionGranted','localProducer','consumers','remoteAudios','screenShareVideo','screenShareContainer'].forEach((prop)=>{
   Object.defineProperty(window, prop, {
     get() { return WebRTC[prop]; },
