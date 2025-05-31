@@ -170,6 +170,9 @@ export async function createTransportFlow(socket, currentGroup, currentRoom) {
     await consumeProducer(socket, currentGroup, currentRoom, prod.id);
   }
   console.log('SFU akışı tamamlandı.');
+  if (typeof window.setConnectionStatus === 'function') {
+    window.setConnectionStatus('connected');
+  }
 }
 
 function createTransport(socket, currentGroup, currentRoom) {

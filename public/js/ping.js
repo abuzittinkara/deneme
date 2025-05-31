@@ -22,22 +22,21 @@ function updateCellBars(ping) {
 }
 
 export function updateStatusPanel(ping) {
-  const statusText = document.getElementById('statusText');
   const pingValueSpan = document.getElementById('pingValue');
+  const channelNameEl = document.getElementById('panelChannelName');
+  const groupNameEl = document.getElementById('panelGroupName');
   let color = '#2dbf2d';
   if (ping >= 80) {
     color = '#ff0000';
   } else if (ping >= 60) {
     color = '#ffcc00';
   }
-  if (statusText) statusText.style.color = color;
   if (pingValueSpan) pingValueSpan.style.color = color;
-  if (statusText) {
-    const channelName = window.activeVoiceChannelName || '';
-    const groupTitleEl = document.getElementById('groupTitle');
-    const groupName = groupTitleEl ? groupTitleEl.textContent : '';
-    statusText.textContent = channelName + ' / ' + groupName;
-  }
+  const channelName = window.activeVoiceChannelName || '';
+  const groupTitleEl = document.getElementById('groupTitle');
+  const groupName = groupTitleEl ? groupTitleEl.textContent : '';
+  if (channelNameEl) channelNameEl.textContent = channelName;
+  if (groupNameEl) groupNameEl.textContent = `/ ${groupName}`;
 }
 
 export function startPingInterval(socket) {

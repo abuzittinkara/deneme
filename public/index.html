@@ -96,15 +96,21 @@
           </div>
         </div>
 <div id="channelStatusPanel" class="channel-status-panel" style="display: none;">
-  <div class="status-row">
+  <div class="connection-header">
+    <span class="material-icons status-icon">signal_cellular_alt</span>
+    <span id="connectionStatusText">RTC Bağlanıyor</span>
+  </div>
+  <div class="channel-info-row">
+    <span class="material-icons channel-row-icon">mic</span>
+    <span id="panelChannelName" class="channel-name">Kanal</span>
+    <span id="panelGroupName" class="group-name">/ Grup</span>
     <div id="signalBars" class="signal-bars">
       <div class="cell-bar" id="cellBar1"></div>
       <div class="cell-bar" id="cellBar2"></div>
       <div class="cell-bar" id="cellBar3"></div>
       <div class="cell-bar" id="cellBar4"></div>
     </div>
-    <span id="statusText">Kanala bağlanıldı</span>
-    <span id="pingValue" style="font-size: 0.85rem;">-- ms</span>
+    <span id="pingValue" class="ping-value">-- ms</span>
   </div>
   <div class="button-row">
     <button id="muteButtonLarge" class="panel-btn" title="Mikrofon Aç/Kapa">
@@ -117,9 +123,13 @@
       <span class="material-icons">volume_up</span>
     </button>
   </div>
+  <div class="panel-divider"></div>
   <div class="user-card">
     <div class="user-avatar" id="userCardAvatar"></div>
-    <span id="userCardName" class="user-name">(Kullanıcı)</span>
+    <div class="user-info">
+      <span id="userCardName" class="user-name">(Kullanıcı)</span>
+      <span id="userCardStatus" class="user-status">Çevrimdışı</span>
+    </div>
     <button id="cardMicToggleButton" class="icon-btn" title="Mikrofon Aç/Kapa">
       <span class="material-icons">mic</span>
     </button>

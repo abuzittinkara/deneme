@@ -55,6 +55,8 @@ export function applyAudioStates({
   selfDeafened,
   micToggleButton,
   deafenToggleButton,
+  cardMicToggleButton,
+  cardDeafenToggleButton,
   remoteAudios,
   hasMic,
 }) {
@@ -73,20 +75,28 @@ export function applyAudioStates({
       }
     }
   }
-  if (!micEnabled || selfDeafened) {
-    micToggleButton.innerHTML = `<span class="material-icons">mic_off</span>`;
-    micToggleButton.classList.add('btn-muted');
-  } else {
-    micToggleButton.innerHTML = `<span class="material-icons">mic</span>`;
-    micToggleButton.classList.remove('btn-muted');
-  }
-  if (selfDeafened) {
-    deafenToggleButton.innerHTML = `<span class="material-icons">headset_off</span>`;
-    deafenToggleButton.classList.add('btn-muted');
-  } else {
-    deafenToggleButton.innerHTML = `<span class="material-icons">headset</span>`;
-    deafenToggleButton.classList.remove('btn-muted');
-  }
+  const micButtons = [micToggleButton, cardMicToggleButton];
+  const deafButtons = [deafenToggleButton, cardDeafenToggleButton];
+  micButtons.forEach(btn => {
+    if (!btn) return;
+    if (!micEnabled || selfDeafened) {
+      btn.innerHTML = `<span class="material-icons">mic_off</span>`;
+      btn.classList.add('btn-muted', 'muted');
+    } else {
+      btn.innerHTML = `<span class="material-icons">mic</span>`;
+      btn.classList.remove('btn-muted', 'muted');
+    }
+  });
+  deafButtons.forEach(btn => {
+    if (!btn) return;
+    if (selfDeafened) {
+      btn.innerHTML = `<span class="material-icons">headset_off</span>`;
+      btn.classList.add('btn-muted', 'muted');
+    } else {
+      btn.innerHTML = `<span class="material-icons">headset</span>`;
+      btn.classList.remove('btn-muted', 'muted');
+    }
+  });
   remoteAudios.forEach((audio) => {
     audio.muted = selfDeafened;
   });

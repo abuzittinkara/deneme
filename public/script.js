@@ -121,17 +121,30 @@ const channelStatusPanel = document.getElementById('channelStatusPanel');
 channelStatusPanel.style.height = "100px";
 channelStatusPanel.style.zIndex = "20";
 channelStatusPanel.style.display = 'none';
+const connectionStatusText = document.getElementById('connectionStatusText');
 const pingValueSpan = document.getElementById('pingValue');
 const cellBar1 = document.getElementById('cellBar1');
 const cellBar2 = document.getElementById('cellBar2');
 const cellBar3 = document.getElementById('cellBar3');
 const cellBar4 = document.getElementById('cellBar4');
 
+function setConnectionStatus(state) {
+  if (!connectionStatusText) return;
+  if (state === 'connected') {
+    connectionStatusText.textContent = 'Kanala bağlanıldı';
+    connectionStatusText.style.color = '#2dbf2d';
+  } else {
+    connectionStatusText.textContent = 'RTC Bağlanıyor';
+    connectionStatusText.style.color = '#ffcc00';
+  }
+}
+
 function showChannelStatusPanel() {
   if (window.currentRoomType !== 'voice') return;
   if (channelStatusPanel) {
     channelStatusPanel.style.display = 'flex';
   }
+  setConnectionStatus('connecting');
   Ping.updateStatusPanel(0);
   Ping.startPingInterval(socket);
 }
@@ -144,6 +157,7 @@ function hideChannelStatusPanel() {
 }
 window.showChannelStatusPanel = showChannelStatusPanel;
 window.hideChannelStatusPanel = hideChannelStatusPanel;
+window.setConnectionStatus = setConnectionStatus;
 
 // Ayrıl Butonu
 const leaveButton = document.getElementById('leaveButton');
@@ -201,6 +215,8 @@ window.applyAudioStates = (opts) => {
       selfDeafened: window.selfDeafened,
       micToggleButton,
       deafenToggleButton,
+      cardMicToggleButton,
+      cardDeafenToggleButton,
       remoteAudios: WebRTC.remoteAudios,
       hasMic: window.hasMic,
     };

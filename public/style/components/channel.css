@@ -86,15 +86,15 @@
 .channel-status-panel {
   position: absolute;
   left: 65px;
+  bottom: 57px;
   width: 300px;
-  background: #262626;
-  box-sizing: border-box;
-  height: 45px;
+  background: #1e1e1e;
+  border-radius: 12px;
+  padding: 0.75rem;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 0.5rem;
-  bottom: 57px;
+  gap: 0.6rem;
+  box-sizing: border-box;
   z-index: 10;
 }
 .chan-status-content {
@@ -205,17 +205,17 @@
   position: absolute;
   left: 65px;
   bottom: 57px;
-  width: 320px;
+  width: 300px;
   background: #1e1e1e;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.6);
-  padding: 0.5rem;
+  border-radius: 12px;
+  padding: 0.75rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.6rem;
+  box-sizing: border-box;
   z-index: 10;
 }
-.status-row {
+.connection-header {
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -226,9 +226,28 @@
   justify-content: space-around;
   gap: 0.6rem;
 }
+
+.channel-info-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.95rem;
+}
+.channel-name {
+  font-weight: 600;
+  color: #fff;
+}
+.group-name {
+  color: #777;
+}
+.panel-divider {
+  width: 100%;
+  height: 2px;
+  background: #353535;
+}
 .panel-btn {
-  width: 36px;
-  height: 36px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   border: none;
   background: #333;
@@ -237,14 +256,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
+  transition: background 0.2s ease;
 }
-.panel-btn:hover { background: #444; }
-.panel-btn.active { color: #c61884; }
+.panel-btn:hover {
+  background: #444;
+}
+.panel-btn.active {
+  background: #c61884;
+  color: #fff;
+}
 .user-card {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  background: #141414;
+  padding: 0.5rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
 }
 .user-card .user-avatar {
   width: 32px;
@@ -252,7 +281,12 @@
   border-radius: 50%;
   background: #666;
 }
-.user-card .user-name { color: #aaa; font-size: 0.9rem; }
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+.user-card .user-name { color: #fff; font-size: 0.95rem; font-weight: 500; }
+.user-status { color: #777; font-size: 0.75rem; }
 .icon-btn {
   background: none;
   border: none;
@@ -265,3 +299,4 @@
   height: 22px;
 }
 .icon-btn:hover { color: #fff; }
+.icon-btn.muted { color: #c61884; }

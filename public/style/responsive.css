@@ -14,9 +14,13 @@
     border-radius: 0;
     box-shadow: none;
   }
-  .channel-status-panel .status-row,
+  .channel-status-panel .connection-header,
+  .channel-status-panel .channel-info-row,
   .channel-status-panel .button-row,
   .channel-status-panel .user-card {
     justify-content: center;
+  }
+  .channel-status-panel .button-row {
+    flex-direction: column;
   }
 }
