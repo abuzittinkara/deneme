@@ -1,6 +1,10 @@
 /**************************************
  * modules/textChannel.js
  **************************************/
+const DOMPurify = require('dompurify');
+const { JSDOM } = require('jsdom');
+const purify = DOMPurify(new JSDOM('').window);
+
 module.exports = function registerTextChannelEvents(socket, { Channel, Message, User }) {
   // Kullanıcının bir metin kanalına katılma ve mesaj geçmişini alma
   socket.on('joinTextChannel', async ({ groupId, roomId }) => {
@@ -31,10 +35,11 @@ module.exports = function registerTextChannelEvents(socket, { Channel, Message, 
       if (!userDoc) {
         return;
       }
+      const clean = purify.sanitize(message, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
       const newMsg = new Message({
         channel: channelDoc._id,
         user: userDoc._id,
-        content: message,
+        content: clean,
         timestamp: new Date()
       });
       await newMsg.save();
