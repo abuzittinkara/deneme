@@ -273,7 +273,6 @@
   background: #141414;
   padding: 0.5rem;
   border-radius: 8px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
 }
 .user-card .user-avatar {
   width: 32px;
