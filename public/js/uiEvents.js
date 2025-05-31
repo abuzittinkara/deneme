@@ -25,6 +25,11 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     sendTextMessageBtn,
     textChannelMessageInput,
     screenShareButton,
+    muteButtonLarge,
+    screenShareLargeButton,
+    speakerButton,
+    cardMicToggleButton,
+    cardDeafenToggleButton,
     channelContentArea,
     selectedChannelTitle,
     textChannelContainer,
@@ -149,6 +154,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
       if (window.screenShareProducerVideo) {
         await ScreenShare.stopScreenShare(socket);
         screenShareButton.classList.remove('active');
+        if (screenShareLargeButton) screenShareLargeButton.classList.remove('active');
       } else {
         try {
           if (!sendTransport) {
@@ -158,10 +164,36 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
           window.clearScreenShareUI();
           await ScreenShare.startScreenShare(sendTransport, socket);
           screenShareButton.classList.add('active');
+          if (screenShareLargeButton) screenShareLargeButton.classList.add('active');
         } catch (error) {
           console.error('Ekran paylaşımı başlatılırken hata:', error);
         }
       }
+    });
+  }
+  if (screenShareLargeButton) {
+    screenShareLargeButton.addEventListener('click', () => {
+      if (screenShareButton) screenShareButton.click();
+    });
+  }
+  if (muteButtonLarge) {
+    muteButtonLarge.addEventListener('click', () => {
+      micToggleButton.click();
+    });
+  }
+  if (speakerButton) {
+    speakerButton.addEventListener('click', () => {
+      settingsButton.click();
+    });
+  }
+  if (cardMicToggleButton) {
+    cardMicToggleButton.addEventListener('click', () => {
+      micToggleButton.click();
+    });
+  }
+  if (cardDeafenToggleButton) {
+    cardDeafenToggleButton.addEventListener('click', () => {
+      deafenToggleButton.click();
     });
   }
   if (channelContentArea) {

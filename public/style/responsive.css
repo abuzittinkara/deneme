@@ -7,3 +7,16 @@
   .app-title { font-size:1.2rem; }
   .right-panel { width:200px; }
 }
+@media (max-width: 600px) {
+  .channel-status-panel {
+    left: 0;
+    width: 100%;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .channel-status-panel .status-row,
+  .channel-status-panel .button-row,
+  .channel-status-panel .user-card {
+    justify-content: center;
+  }
+}

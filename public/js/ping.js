@@ -22,23 +22,21 @@ function updateCellBars(ping) {
 }
 
 export function updateStatusPanel(ping) {
-  const rssIcon = document.getElementById('rssIcon');
-  const statusMessage = document.getElementById('statusMessage');
-  const channelGroupInfo = document.getElementById('channelGroupInfo');
+  const statusText = document.getElementById('statusText');
+  const pingValueSpan = document.getElementById('pingValue');
   let color = '#2dbf2d';
   if (ping >= 80) {
     color = '#ff0000';
   } else if (ping >= 60) {
     color = '#ffcc00';
   }
-  if (rssIcon) rssIcon.style.color = color;
-  if (statusMessage) statusMessage.style.color = color;
-  if (channelGroupInfo) {
+  if (statusText) statusText.style.color = color;
+  if (pingValueSpan) pingValueSpan.style.color = color;
+  if (statusText) {
     const channelName = window.activeVoiceChannelName || '';
     const groupTitleEl = document.getElementById('groupTitle');
     const groupName = groupTitleEl ? groupTitleEl.textContent : '';
-    channelGroupInfo.textContent = channelName + ' / ' + groupName;
-    channelGroupInfo.style.color = '#aaa';
+    statusText.textContent = channelName + ' / ' + groupName;
   }
 }
 
