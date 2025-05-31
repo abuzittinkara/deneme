@@ -27,8 +27,6 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     screenShareButton,
     muteButtonLarge,
     screenShareLargeButton,
-    speakerButton,
-    cardMicToggleButton,
     cardDeafenToggleButton,
     channelContentArea,
     selectedChannelTitle,
@@ -196,16 +194,6 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
   if (speakerButton) {
     speakerButton.addEventListener('click', () => {
       settingsButton.click();
-    });
-  }
-  if (cardMicToggleButton) {
-    cardMicToggleButton.addEventListener('click', () => {
-      micToggleButton.click();
-    });
-  }
-  if (cardDeafenToggleButton) {
-    cardDeafenToggleButton.addEventListener('click', () => {
-      deafenToggleButton.click();
     });
   }
   if (channelContentArea) {

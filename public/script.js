@@ -165,8 +165,6 @@ const screenShareButton = document.getElementById('screenShareButton');
 const muteButtonLarge = document.getElementById('muteButtonLarge');
 const screenShareLargeButton = document.getElementById('screenShareLargeButton');
 const speakerButton = document.getElementById('speakerButton');
-const cardMicToggleButton = document.getElementById('cardMicToggleButton');
-const cardDeafenToggleButton = document.getElementById('cardDeafenToggleButton');
 
 // Mikrofon / Kulaklık butonları
 const micToggleButton = document.getElementById('micToggleButton');
@@ -189,7 +187,7 @@ const dmContentArea = document.getElementById('dmContentArea');
 
 // "dmPanel" yine mevcut (display:none); DM paneli, dmChatSearchInput öğesini barındıracak
 const dmPanel = document.getElementById('dmPanel');
-Object.assign(window, {loginScreen, registerScreen, callScreen, loginUsernameInput, loginPasswordInput, loginButton, loginErrorMessage, regUsernameInput, regNameInput, regSurnameInput, regBirthdateInput, regEmailInput, regPhoneInput, regPasswordInput, regPasswordConfirmInput, registerButton, backToLoginButton, registerErrorMessage, showRegisterScreen, showLoginScreen, groupListDiv, createGroupButton, roomListDiv, groupTitle, groupDropdownIcon, groupDropdownMenu, copyGroupIdBtn, renameGroupBtn, createChannelBtn, deleteGroupBtn, toggleDMButton, roomPanel, rightPanel, leaveButton, screenShareButton, micToggleButton, deafenToggleButton, settingsButton, textChannelContainer, textMessages, textChatInputBar, textChannelMessageInput, sendTextMessageBtn, selectedChannelTitle, channelContentArea, dmContentArea, dmPanel, muteButtonLarge, screenShareLargeButton, speakerButton, cardMicToggleButton, cardDeafenToggleButton});
+Object.assign(window, {loginScreen, registerScreen, callScreen, loginUsernameInput, loginPasswordInput, loginButton, loginErrorMessage, regUsernameInput, regNameInput, regSurnameInput, regBirthdateInput, regEmailInput, regPhoneInput, regPasswordInput, regPasswordConfirmInput, registerButton, backToLoginButton, registerErrorMessage, showRegisterScreen, showLoginScreen, groupListDiv, createGroupButton, roomListDiv, groupTitle, groupDropdownIcon, groupDropdownMenu, copyGroupIdBtn, renameGroupBtn, createChannelBtn, deleteGroupBtn, toggleDMButton, roomPanel, rightPanel, leaveButton, screenShareButton, micToggleButton, deafenToggleButton, settingsButton, textChannelContainer, textMessages, textChatInputBar, textChannelMessageInput, sendTextMessageBtn, selectedChannelTitle, channelContentArea, dmContentArea, dmPanel, muteButtonLarge, screenShareLargeButton, speakerButton});
 
 window.WebRTC = WebRTC;
 window.joinRoom = WebRTC.joinRoom;
@@ -215,8 +213,6 @@ window.applyAudioStates = (opts) => {
       selfDeafened: window.selfDeafened,
       micToggleButton,
       deafenToggleButton,
-      cardMicToggleButton,
-      cardDeafenToggleButton,
       remoteAudios: WebRTC.remoteAudios,
       hasMic: window.hasMic,
     };

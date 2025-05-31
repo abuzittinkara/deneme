@@ -54,8 +54,6 @@ export function applyAudioStates({
   micEnabled,
   selfDeafened,
   micToggleButton,
-  deafenToggleButton,
-  cardMicToggleButton,
   cardDeafenToggleButton,
   remoteAudios,
   hasMic,
@@ -75,8 +73,8 @@ export function applyAudioStates({
       }
     }
   }
-  const micButtons = [micToggleButton, cardMicToggleButton];
-  const deafButtons = [deafenToggleButton, cardDeafenToggleButton];
+  const micButtons = [micToggleButton];
+  const deafButtons = [deafenToggleButton];
   micButtons.forEach(btn => {
     if (!btn) return;
     if (!micEnabled || selfDeafened) {
