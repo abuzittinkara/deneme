@@ -25,10 +25,14 @@ export function updateStatusPanel(ping) {
   const pingValueSpan = document.getElementById('pingValue');
   const channelNameEl = document.getElementById('panelChannelName');
   const groupNameEl = document.getElementById('panelGroupName');
+  // Determine color based on ping ranges
+  // < 80ms  -> green
+  // 80-150ms -> yellow
+  // >= 150ms -> red
   let color = '#2dbf2d';
-  if (ping >= 80) {
+  if (ping >= 150) {
     color = '#ff0000';
-  } else if (ping >= 60) {
+  } else if (ping >= 80) {
     color = '#ffcc00';
   }
   if (pingValueSpan) pingValueSpan.style.color = color;
