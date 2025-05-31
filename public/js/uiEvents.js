@@ -86,22 +86,34 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     }
   });
 
-  leaveButton.addEventListener('click', () => {
-    window.clearScreenShareUI();
-    if (!window.currentRoom) return;
-    socket.emit('leaveRoom', { groupId: window.currentGroup, roomId: window.currentRoom });
-    window.leaveRoomInternal(socket);
-    window.hideChannelStatusPanel();
-    window.currentRoom = null;
-    selectedChannelTitle.textContent = 'Kanal Seçilmedi';
-    const container = document.getElementById('channelUsersContainer');
-    if (container) {
-      container.innerHTML = '';
-      container.classList.remove('layout-1-user','layout-2-users','layout-3-users','layout-4-users','layout-n-users');
-    }
-    textChannelContainer.style.display = 'none';
-    socket.emit('browseGroup', window.currentGroup);
-  });
+
+  if (leaveButton) {
+    leaveButton.addEventListener('click', () => {
+      window.clearScreenShareUI();
+      if (!window.currentRoom) return;
+      socket.emit('leaveRoom', {
+        groupId: window.currentGroup,
+        roomId: window.currentRoom,
+      });
+      window.leaveRoomInternal(socket);
+      window.hideChannelStatusPanel();
+      window.currentRoom = null;
+      selectedChannelTitle.textContent = 'Kanal Seçilmedi';
+      const container = document.getElementById('channelUsersContainer');
+      if (container) {
+        container.innerHTML = '';
+        container.classList.remove(
+          'layout-1-user',
+          'layout-2-users',
+          'layout-3-users',
+          'layout-4-users',
+          'layout-n-users',
+        );
+      }
+      textChannelContainer.style.display = 'none';
+      socket.emit('browseGroup', window.currentGroup);
+    });
+  }
 
   micToggleButton.addEventListener('click', () => {
     window.micEnabled = !window.micEnabled;
