@@ -132,10 +132,8 @@ function setConnectionStatus(state) {
   if (!connectionStatusText) return;
   if (state === 'connected') {
     connectionStatusText.textContent = 'Kanala bağlanıldı';
-    connectionStatusText.style.color = '#2dbf2d';
   } else {
     connectionStatusText.textContent = 'RTC Bağlanıyor';
-    connectionStatusText.style.color = '#ffcc00';
   }
 }
 
