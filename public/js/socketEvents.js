@@ -32,7 +32,7 @@ export function initSocketEvents(socket) {
       loginScreen.style.display = 'none';
       callScreen.style.display = 'flex';
       socket.emit('set-username', window.username);
-      document.getElementById('leftUserName').textContent = window.username;
+      document.getElementById('userCardName').textContent = window.username;
       window.applyAudioStates();
     } else {
       loginErrorMessage.textContent = 'Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin';

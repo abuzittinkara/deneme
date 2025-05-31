@@ -54,7 +54,6 @@ export function applyAudioStates({
   micEnabled,
   selfDeafened,
   micToggleButton,
-  cardDeafenToggleButton,
   remoteAudios,
   hasMic,
 }) {
