@@ -118,7 +118,6 @@ const userListDiv = document.getElementById('userList');
 
 // Kanal Durum Paneli
 const channelStatusPanel = document.getElementById('channelStatusPanel');
-channelStatusPanel.style.height = "100px";
 channelStatusPanel.style.zIndex = "20";
 channelStatusPanel.style.display = 'none';
 const connectionStatusText = document.getElementById('connectionStatusText');
