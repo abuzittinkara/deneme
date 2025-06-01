@@ -223,8 +223,10 @@
 }
 .button-row {
   display: flex;
-  justify-content: space-around;
-  gap: 0.6rem;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 260px;
+  margin: 0 auto;
 }
 
 .channel-info-row {
@@ -273,6 +275,30 @@
 .panel-btn.active {
   background: #c61884;
   color: #fff;
+}
+
+/* Override styles for channel action buttons */
+#cameraShareButton,
+#screenShareLargeButton,
+#soundbarButton {
+  width: auto;
+  height: 40px;
+  flex: 1;
+  border-radius: 8px;
+}
+
+#leaveButton {
+  width: auto;
+  height: auto;
+  background: none;
+  border: none;
+  border-radius: 0;
+  color: #444;
+}
+
+#leaveButton:hover {
+  background: none;
+  color: #444;
 }
 .user-card {
   display: flex;
