@@ -3,7 +3,7 @@
   position: relative;
   background: #2d2d2d;
   border: 1px solid #444;
-  border-radius: 8px;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
