@@ -258,7 +258,8 @@ export function leaveRoomInternal(socket) {
     recvTransport = null;
   }
   for (const cid in consumers) {
-    stopVolumeAnalysis(cid);
+    const peerId = consumers[cid].appData.peerId;
+    stopVolumeAnalysis(peerId);
   }
   consumers = {};
   remoteAudios.forEach((a) => {
@@ -346,7 +347,7 @@ export async function showScreenShare(socket, currentGroup, currentRoom, produce
         const c = consumers[cid];
         if (c.kind === 'audio' && c.appData.peerId === consumer.appData.peerId) {
           c.close();
-          stopVolumeAnalysis(cid);
+          stopVolumeAnalysis(c.appData.peerId);
           delete consumers[cid];
           const idx = remoteAudios.findIndex((a) => a.dataset.peerId === c.appData.peerId);
           if (idx !== -1) {
