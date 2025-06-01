@@ -198,6 +198,14 @@
   margin-right: 0.25rem;
 }
 
+.status-connected {
+  color: #2dbf2d;
+}
+
+.status-connecting {
+  color: #ff9900;
+}
+
 #channelGroupInfo {
   font-size: 0.75rem;
   margin-right: 0.5rem;

@@ -129,10 +129,13 @@ const cellBar4 = document.getElementById('cellBar4');
 
 function setConnectionStatus(state) {
   if (!connectionStatusText) return;
+  connectionStatusText.classList.remove('status-connected', 'status-connecting');
   if (state === 'connected') {
     connectionStatusText.textContent = 'Kanala bağlanıldı';
+    connectionStatusText.classList.add('status-connected');
   } else {
     connectionStatusText.textContent = 'RTC Bağlanıyor';
+    connectionStatusText.classList.add('status-connecting');
   }
 }
 
