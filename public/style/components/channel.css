@@ -99,12 +99,14 @@
   z-index: 10;
 }
 .channel-status-panel .user-card {
-  width: 100%;
+  width: 274px;
+  height: 50px;
   margin: 0;
   justify-content: flex-start;
   background: none;
   border: none;
   border-radius: 0;
+  padding: 0;
 }
 .chan-status-content {
   display: flex;
@@ -314,9 +316,11 @@
   align-items: center;
   gap: 0.5rem;
   background: #2d2d2d;
-  padding: 0.5rem;
+  padding: 0;
   border: 1px solid #444;
   border-radius: 8px;
+  width: 274px;
+  height: 50px;
 }
 .user-card .user-avatar {
   width: 40px;
