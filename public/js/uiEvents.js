@@ -94,6 +94,9 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
       window.leaveRoomInternal(socket);
       window.activeVoiceChannelName = '';
       Ping.updateStatusPanel(0);
+      if (typeof window.hideVoiceSections === 'function') {
+        window.hideVoiceSections();
+      }
       selectedChannelTitle.textContent = 'Kanal Seçilmedi';
       const container = document.getElementById('channelUsersContainer');
       if (container) {

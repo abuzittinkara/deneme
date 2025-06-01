@@ -89,7 +89,7 @@
   bottom: 0;
   width: 300px;
   background: #262626;
-  border: 1px solid #444;
+  border: none;
   border-radius: 0;
   padding: 0.75rem;
   display: flex;

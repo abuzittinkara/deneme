@@ -126,6 +126,27 @@ const cellBar1 = document.getElementById('cellBar1');
 const cellBar2 = document.getElementById('cellBar2');
 const cellBar3 = document.getElementById('cellBar3');
 const cellBar4 = document.getElementById('cellBar4');
+const connectionHeader = channelStatusPanel.querySelector('.connection-header');
+const channelInfoRow = channelStatusPanel.querySelector('.channel-info-row');
+const buttonRow = channelStatusPanel.querySelector('.button-row');
+const panelDivider = channelStatusPanel.querySelector('.panel-divider');
+const userCard = channelStatusPanel.querySelector('.user-card');
+
+function showVoiceSections() {
+  if (connectionHeader) connectionHeader.style.display = 'flex';
+  if (channelInfoRow) channelInfoRow.style.display = 'flex';
+  if (buttonRow) buttonRow.style.display = 'flex';
+  if (panelDivider) panelDivider.style.display = 'block';
+  if (userCard) userCard.style.display = 'flex';
+}
+
+function hideVoiceSections() {
+  if (connectionHeader) connectionHeader.style.display = 'none';
+  if (channelInfoRow) channelInfoRow.style.display = 'none';
+  if (buttonRow) buttonRow.style.display = 'none';
+  if (panelDivider) panelDivider.style.display = 'none';
+  if (userCard) userCard.style.display = 'flex';
+}
 
 function setConnectionStatus(state) {
   if (!connectionStatusText) return;
@@ -143,6 +164,7 @@ function showChannelStatusPanel() {
   if (window.currentRoomType !== 'voice') return;
   if (channelStatusPanel) {
     channelStatusPanel.style.display = 'flex';
+    showVoiceSections();
   }
   setConnectionStatus('connecting');
   Ping.updateStatusPanel(0);
@@ -158,6 +180,8 @@ function hideChannelStatusPanel() {
 window.showChannelStatusPanel = showChannelStatusPanel;
 window.hideChannelStatusPanel = hideChannelStatusPanel;
 window.setConnectionStatus = setConnectionStatus;
+window.showVoiceSections = showVoiceSections;
+window.hideVoiceSections = hideVoiceSections;
 
 // Ayrıl Butonu
 const leaveButton = document.getElementById('leaveButton');
