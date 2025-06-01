@@ -86,7 +86,7 @@
 .channel-status-panel {
   position: absolute;
   left: 65px;
-  bottom: 57px;
+  bottom: 0;
   width: 300px;
   background: #262626;
   border: 1px solid #444;
@@ -262,7 +262,8 @@
   height: 1px;
   background: #42454a;
   opacity: 0.4;
-  margin: 12px 0;
+  margin-top: 12px;
+  margin-bottom: 0;
 }
 .panel-btn {
   width: 50px;
