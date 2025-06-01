@@ -32,7 +32,6 @@ const logger = require('./utils/logger');
 const authController = require("./controllers/authController");
 const groupController = require("./controllers/groupController");
 const friendController = require("./controllers/friendController");
-const webrtcController = require("./controllers/webrtcController");
 
 const app = express();
 app.set('trust proxy', 1); // Proxy güvendiğimizi belirt
@@ -108,7 +107,6 @@ io.on("connection", (socket) => {
   users[socket.id] = { username: null, currentGroup: null, currentRoom: null, micEnabled: true, selfDeafened: false, isScreenSharing: false, screenShareProducerId: null, hasMic: true };
   authController(io, socket, { User, users, onlineUsernames, groupController });
   groupController.register(io, socket, context);
-  webrtcController(io, socket, context);
   friendController(io, socket, context);
   registerMediaEvents(io, socket, {
     groups,
