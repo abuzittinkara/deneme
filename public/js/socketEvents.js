@@ -158,7 +158,7 @@ export function initSocketEvents(socket) {
         }
         window.currentGroup = window.selectedGroup;
         WebRTC.requestMicrophoneAccess(socket, window.applyAudioStates, { value: window.hasMic }).finally(() => {
-          window.joinRoom(socket, window.currentGroup, roomObj.id, roomObj.name, selectedChannelTitle, window.showChannelStatusPanel, { value: window.currentRoomType }, { value: window.activeVoiceChannelName });
+          window.joinRoom(socket, window.currentGroup, roomObj.id, roomObj.name, selectedChannelTitle, window.showChannelStatusPanel, { value: window.currentRoomType });
         });
         roomItem.classList.add('connected');
       });

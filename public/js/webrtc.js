@@ -1,5 +1,6 @@
 import * as ScreenShare from "./screenShare.js";
 import { startVolumeAnalysis, stopVolumeAnalysis } from './audioUtils.js';
+import * as Ping from './ping.js';
 
 export let device = null;   // mediasoup-client Device
 export let deviceIsLoaded = false;
@@ -270,10 +271,11 @@ export function leaveRoomInternal(socket) {
   console.log('leaveRoomInternal: SFU transportlar kapatıldı');
 }
 
-export function joinRoom(socket, currentGroup, roomId, roomName, selectedChannelTitle, showChannelStatusPanelRef, currentRoomTypeRef, activeVoiceChannelNameRef) {
+export function joinRoom(socket, currentGroup, roomId, roomName, selectedChannelTitle, showChannelStatusPanelRef, currentRoomTypeRef) {
   socket.emit('joinRoom', { groupId: currentGroup, roomId });
   if (selectedChannelTitle) selectedChannelTitle.textContent = roomName;
-  if (activeVoiceChannelNameRef) activeVoiceChannelNameRef.value = roomName;
+  window.activeVoiceChannelName = roomName;
+  Ping.updateStatusPanel(0);
   if (showChannelStatusPanelRef) showChannelStatusPanelRef();
   if (currentRoomTypeRef) currentRoomTypeRef.value = 'voice';
 }

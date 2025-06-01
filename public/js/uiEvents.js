@@ -92,8 +92,8 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
         roomId: window.currentRoom,
       });
       window.leaveRoomInternal(socket);
-      window.hideChannelStatusPanel();
-      window.currentRoom = null;
+      window.activeVoiceChannelName = '';
+      Ping.updateStatusPanel(0);
       selectedChannelTitle.textContent = 'Kanal Seçilmedi';
       const container = document.getElementById('channelUsersContainer');
       if (container) {
