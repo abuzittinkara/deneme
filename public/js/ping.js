@@ -53,7 +53,7 @@ export function startPingInterval(socket) {
       pingMs = now - socket.io.engine.lastPingTimestamp;
       if (pingValueSpan) pingValueSpan.textContent = pingMs + ' ms';
     } else {
-      if (pingValueSpan) pingValueSpan.textContent = '-- ms';
+      if (pingValueSpan) pingValueSpan.textContent = '';
     }
     updateStatusPanel(pingMs);
     updateCellBars(pingMs);
@@ -66,6 +66,6 @@ export function stopPingInterval() {
     clearInterval(pingInterval);
     pingInterval = null;
   }
-  if (pingValueSpan) pingValueSpan.textContent = '-- ms';
+  if (pingValueSpan) pingValueSpan.textContent = '';
   updateCellBars(0);
 }
