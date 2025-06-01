@@ -54,6 +54,7 @@ export function applyAudioStates({
   micEnabled,
   selfDeafened,
   micToggleButton,
+  deafenToggleButton,
   remoteAudios,
   hasMic,
 }) {
