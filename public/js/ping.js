@@ -39,8 +39,8 @@ export function updateStatusPanel(ping) {
   const channelName = window.activeVoiceChannelName || '';
   const groupTitleEl = document.getElementById('groupTitle');
   const groupName = groupTitleEl ? groupTitleEl.textContent : '';
+  if (groupNameEl) groupNameEl.textContent = groupName;
   if (channelNameEl) channelNameEl.textContent = channelName;
-  if (groupNameEl) groupNameEl.textContent = `/ ${groupName}`;
 }
 
 export function startPingInterval(socket) {

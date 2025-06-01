@@ -234,11 +234,17 @@
   font-size: 0.95rem;
 }
 .channel-name {
-  font-weight: 600;
-  color: #fff;
+  font-weight: 400;
+  color: #ccc;
+  font-size: 0.9rem;
 }
 .group-name {
-  color: #777;
+  color: #ddd;
+  font-weight: 600;
+}
+.name-separator {
+  color: #999;
+  font-weight: 400;
 }
 .panel-divider {
   width: 100%;
