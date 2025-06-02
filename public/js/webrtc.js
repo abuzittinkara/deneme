@@ -236,6 +236,9 @@ export async function consumeProducer(socket, currentGroup, currentRoom, produce
     audioEl.play().catch((err) => console.error('Ses oynatılamadı:', err));
     startVolumeAnalysis(audioEl.srcObject, consumer.appData.peerId);
     console.log('Yeni audio consumer oluşturuldu:', consumer.id, '-> konuşan:', consumer.appData.peerId);
+    if (typeof window.setConnectionStatus === 'function') {
+      window.setConnectionStatus('connected');
+    }
   } else if (consumer.kind === 'video') {
     console.log('Video consumer alındı, ekran paylaşım için tıklama ile consume edilecek. Producer:', consumeParams.producerId);
   }
@@ -391,6 +394,9 @@ export async function showScreenShare(socket, currentGroup, currentRoom, produce
       channelContentArea.appendChild(screenShareContainer);
     }
     console.log('Yeni video consumer oluşturuldu:', consumer.id, '-> yayıncı:', consumer.appData.peerId);
+    if (typeof window.setConnectionStatus === 'function') {
+      window.setConnectionStatus('connected');
+    }
   }
 }
 
