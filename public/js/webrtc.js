@@ -341,6 +341,16 @@ export async function showScreenShare(socket, currentGroup, currentRoom, produce
     screenShareContainer.classList.add('screen-share-container');
     screenShareContainer.appendChild(screenShareVideo);
 
+    const fsIcon = document.createElement('span');
+    fsIcon.classList.add('material-icons', 'fullscreen-icon');
+    fsIcon.textContent = 'fullscreen';
+    fsIcon.addEventListener('click', () => {
+      if (screenShareContainer.requestFullscreen) {
+        screenShareContainer.requestFullscreen();
+      }
+    });
+    screenShareContainer.appendChild(fsIcon);
+
     const endIcon = document.createElement('span');
     endIcon.classList.add('material-icons', 'screen-share-end-icon');
     endIcon.textContent = 'call_end';
