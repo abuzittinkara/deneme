@@ -269,6 +269,13 @@ export function leaveRoomInternal(socket) {
     a.srcObject = null;
   });
   remoteAudios = [];
+  if (typeof window !== 'undefined') {
+    window.currentRoom = null;
+    window.currentRoomType = null;
+    if (window.activeVoiceChannelName !== undefined) {
+      window.activeVoiceChannelName = '';
+    }
+  }
   console.log('leaveRoomInternal: SFU transportlar kapatıldı');
 }
 
