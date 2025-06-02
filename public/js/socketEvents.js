@@ -201,6 +201,9 @@ export function initSocketEvents(socket) {
       : `${username || 'Bir kullanıcı'} adlı kullanıcının yayını sonlandırıldı`;
     window.displayScreenShareEndedMessage(message);
   });
+  socket.on('screenShareWatchers', (watchers) => {
+    window.screenShareWatchers = watchers;
+  });
   socket.on('allChannelsData', (channelsObj) => {
     Object.keys(channelsObj).forEach((roomId) => {
       const cData = channelsObj[roomId];
@@ -219,6 +222,12 @@ export function initSocketEvents(socket) {
         nameSpan.textContent = u.username || '(İsimsiz)';
         leftDiv.appendChild(avatarDiv);
         leftDiv.appendChild(nameSpan);
+        if (socket.id && Array.isArray(window.screenShareWatchers) && window.screenShareWatchers.includes(u.id)) {
+          const visIcon = document.createElement('span');
+          visIcon.classList.add('material-icons', 'visibility-icon');
+          visIcon.textContent = 'visibility';
+          leftDiv.appendChild(visIcon);
+        }
         const rightDiv = document.createElement('div');
         rightDiv.classList.add('channel-user-right');
         if (u.hasMic === false) {

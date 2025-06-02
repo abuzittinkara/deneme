@@ -161,6 +161,10 @@
   font-size: 0.7rem;
   text-transform: uppercase;
 }
+.visibility-icon {
+  font-size: 1rem;
+  color: #c61884;
+}
 
 /* Screen Share Video Container */
 .channel-content-area {
