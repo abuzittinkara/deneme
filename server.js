@@ -8,7 +8,6 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const helmet = require('helmet');
-const { body, validationResult } = require('express-validator');
 const DOMPurify = require('dompurify');
 const { JSDOM } = require('jsdom');
 const rateLimit = require('express-rate-limit');
