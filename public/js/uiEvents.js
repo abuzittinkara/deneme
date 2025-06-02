@@ -165,7 +165,13 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
       if (window.screenShareProducerVideo) {
         await ScreenShare.stopScreenShare(socket);
         screenShareButton.classList.remove('active');
+        const smallIcon = screenShareButton.querySelector('.material-icons');
+        if (smallIcon) smallIcon.textContent = 'desktop_windows';
         if (screenShareLargeButton) screenShareLargeButton.classList.remove('active');
+        if (screenShareLargeButton) {
+          const largeIcon = screenShareLargeButton.querySelector('.material-icons');
+          if (largeIcon) largeIcon.textContent = 'desktop_windows';
+        }
       } else {
         try {
           if (!sendTransport) {
@@ -175,7 +181,13 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
           window.clearScreenShareUI();
           await ScreenShare.startScreenShare(sendTransport, socket);
           screenShareButton.classList.add('active');
+          const smallIcon = screenShareButton.querySelector('.material-icons');
+          if (smallIcon) smallIcon.textContent = 'tv_off';
           if (screenShareLargeButton) screenShareLargeButton.classList.add('active');
+          if (screenShareLargeButton) {
+            const largeIcon = screenShareLargeButton.querySelector('.material-icons');
+            if (largeIcon) largeIcon.textContent = 'tv_off';
+          }
         } catch (error) {
           console.error('Ekran paylaşımı başlatılırken hata:', error);
         }
@@ -187,7 +199,13 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
       if (window.screenShareProducerVideo) {
         await ScreenShare.stopScreenShare(socket);
         screenShareLargeButton.classList.remove('active');
+        const largeIcon = screenShareLargeButton.querySelector('.material-icons');
+        if (largeIcon) largeIcon.textContent = 'desktop_windows';
         if (screenShareButton) screenShareButton.classList.remove('active');
+        if (screenShareButton) {
+          const smallIcon = screenShareButton.querySelector('.material-icons');
+          if (smallIcon) smallIcon.textContent = 'desktop_windows';
+        }
       } else {
         try {
           if (!sendTransport) {
@@ -197,7 +215,13 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
           window.clearScreenShareUI();
           await ScreenShare.startScreenShare(sendTransport, socket);
           screenShareLargeButton.classList.add('active');
+          const largeIcon = screenShareLargeButton.querySelector('.material-icons');
+          if (largeIcon) largeIcon.textContent = 'tv_off';
           if (screenShareButton) screenShareButton.classList.add('active');
+          if (screenShareButton) {
+            const smallIcon = screenShareButton.querySelector('.material-icons');
+            if (smallIcon) smallIcon.textContent = 'tv_off';
+          }
         } catch (error) {
           console.error('Ekran paylaşımı başlatılırken hata:', error);
         }

@@ -19,9 +19,13 @@ function clearScreenShareUI() {
   }
   if (screenShareButton) {
     screenShareButton.classList.remove('active');
+    const smallIcon = screenShareButton.querySelector('.material-icons');
+    if (smallIcon) smallIcon.textContent = 'desktop_windows';
   }
   if (screenShareLargeButton) {
     screenShareLargeButton.classList.remove('active');
+    const largeIcon = screenShareLargeButton.querySelector('.material-icons');
+    if (largeIcon) largeIcon.textContent = 'desktop_windows';
   }
   const overlay = document.getElementById('screenShareOverlay');
   if (overlay && overlay.parentNode) {
