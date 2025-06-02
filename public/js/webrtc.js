@@ -52,6 +52,40 @@ export async function requestMicrophoneAccess(socket, applyAudioStates, hasMicRe
   }
 }
 
+function createScreenShareContainer(videoEl, onEnd) {
+  const container = document.createElement('div');
+  container.classList.add('screen-share-container');
+  container.appendChild(videoEl);
+
+  const fsIcon = document.createElement('span');
+  fsIcon.classList.add('material-icons', 'fullscreen-icon');
+  fsIcon.textContent = 'fullscreen';
+  fsIcon.addEventListener('click', () => {
+    if (container.requestFullscreen) {
+      container.requestFullscreen();
+    }
+  });
+  container.appendChild(fsIcon);
+
+  if (typeof onEnd === 'function') {
+    const endIcon = document.createElement('span');
+    endIcon.classList.add('material-icons', 'screen-share-end-icon');
+    endIcon.textContent = 'call_end';
+    endIcon.style.display = 'none';
+    container.appendChild(endIcon);
+
+    container.addEventListener('mouseenter', () => {
+      endIcon.style.display = 'block';
+    });
+    container.addEventListener('mouseleave', () => {
+      endIcon.style.display = 'none';
+    });
+    endIcon.addEventListener('click', onEnd);
+  }
+
+  return container;
+}
+
 export function startSfuFlow(socket, currentGroup, currentRoom) {
   console.log('startSfuFlow => group:', currentGroup, ' room:', currentRoom);
   if (!device) {
@@ -337,33 +371,8 @@ export async function showScreenShare(socket, currentGroup, currentRoom, produce
     screenShareVideo.srcObject = new MediaStream([consumer.track]);
     screenShareVideo.autoplay = true;
     screenShareVideo.dataset.peerId = consumer.appData.peerId;
-    screenShareContainer = document.createElement('div');
-    screenShareContainer.classList.add('screen-share-container');
-    screenShareContainer.appendChild(screenShareVideo);
 
-    const fsIcon = document.createElement('span');
-    fsIcon.classList.add('material-icons', 'fullscreen-icon');
-    fsIcon.textContent = 'fullscreen';
-    fsIcon.addEventListener('click', () => {
-      if (screenShareContainer.requestFullscreen) {
-        screenShareContainer.requestFullscreen();
-      }
-    });
-    screenShareContainer.appendChild(fsIcon);
-
-    const endIcon = document.createElement('span');
-    endIcon.classList.add('material-icons', 'screen-share-end-icon');
-    endIcon.textContent = 'call_end';
-    endIcon.style.display = 'none';
-    screenShareContainer.appendChild(endIcon);
-
-    screenShareContainer.addEventListener('mouseenter', () => {
-      endIcon.style.display = 'block';
-    });
-    screenShareContainer.addEventListener('mouseleave', () => {
-      endIcon.style.display = 'none';
-    });
-    endIcon.addEventListener('click', () => {
+    const handleEnd = () => {
       consumer.close();
       delete consumers[consumer.id];
       for (const cid in consumers) {
@@ -381,30 +390,18 @@ export async function showScreenShare(socket, currentGroup, currentRoom, produce
           }
         }
       }
-      if (screenShareContainer.parentNode) {
+      if (screenShareContainer && screenShareContainer.parentNode) {
         screenShareContainer.parentNode.removeChild(screenShareContainer);
       }
       socket.emit('stopWatching', { userId: consumer.appData.peerId });
       screenShareVideo = null;
       screenShareContainer = null;
-    });
+   };
 
+    screenShareContainer = createScreenShareContainer(screenShareVideo, handleEnd);
     removeScreenShareEndedMessage();
     if (channelContentArea) {
-      screenShareContainer = document.createElement('div');
-      screenShareContainer.classList.add('screen-share-container');
-      screenShareContainer.appendChild(screenShareVideo);
-
-      const fsIcon = document.createElement('span');
-      fsIcon.classList.add('material-icons', 'fullscreen-icon');
-      fsIcon.textContent = 'fullscreen';
-      fsIcon.addEventListener('click', () => {
-        if (screenShareContainer.requestFullscreen) {
-          screenShareContainer.requestFullscreen();
-        }
-      });
-      screenShareContainer.appendChild(fsIcon);
-
+      
       channelContentArea.appendChild(screenShareContainer);
       socket.emit('startWatching', { userId: consumer.appData.peerId });
     }
