@@ -183,8 +183,25 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     });
   }
   if (screenShareLargeButton) {
-    screenShareLargeButton.addEventListener('click', () => {
-      if (screenShareButton) screenShareButton.click();
+    screenShareLargeButton.addEventListener('click', async () => {
+      if (window.screenShareProducerVideo) {
+        await ScreenShare.stopScreenShare(socket);
+        screenShareLargeButton.classList.remove('active');
+        if (screenShareButton) screenShareButton.classList.remove('active');
+      } else {
+        try {
+          if (!sendTransport) {
+            alert('Ekran paylaşımı için transport henüz hazır değil.');
+            return;
+          }
+          window.clearScreenShareUI();
+          await ScreenShare.startScreenShare(sendTransport, socket);
+          screenShareLargeButton.classList.add('active');
+          if (screenShareButton) screenShareButton.classList.add('active');
+        } catch (error) {
+          console.error('Ekran paylaşımı başlatılırken hata:', error);
+        }
+      }
     });
   }
   if (channelContentArea) {
