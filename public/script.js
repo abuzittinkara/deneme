@@ -249,7 +249,8 @@ window.applyAudioStates = (opts) => {
 window.addEventListener('DOMContentLoaded', () => {
   toggleDMButton.querySelector('.material-icons').textContent = 'forum';
   
-  socket = io("https://fisqos.com.tr", { transports: ['websocket'] });
+  const socketURL = window.SOCKET_URL || window.location.origin;
+  socket = io(socketURL, { transports: ['websocket'] })
   initSocketEvents(socket);
   initUIEvents(socket, () => attemptLogin(socket, loginUsernameInput, loginPasswordInput, loginErrorMessage), () => attemptRegister(socket, {regUsernameInput, regNameInput, regSurnameInput, regBirthdateInput, regEmailInput, regPhoneInput, regPasswordInput, regPasswordConfirmInput, registerErrorMessage}));
   initTypingIndicator(socket, () => currentTextChannel, () => username);

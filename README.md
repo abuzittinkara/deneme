@@ -11,7 +11,9 @@ This project contains the backend and frontend assets for a WebSocket-based chat
   - `PORT` – (optional) server port, defaults to `3000`
   - `ANNOUNCED_IP` – (optional) public IP for mediasoup
   - `TURN_USERNAME` and `TURN_CREDENTIAL` – (optional) credentials for TURN servers
-
+  - `SOCKET_URL` – (optional) base URL for the Socket.IO server. Defaults to
+    `window.location.origin` if omitted.
+    
 ## Folder Structure
 
 ```
