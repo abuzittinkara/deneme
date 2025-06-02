@@ -245,6 +245,9 @@ export async function consumeProducer(socket, currentGroup, currentRoom, produce
 }
 
 export function leaveRoomInternal(socket) {
+  if (screenShareVideo && screenShareVideo.dataset.peerId) {
+    socket.emit('stopWatching', { userId: screenShareVideo.dataset.peerId });
+  }
   if (window.screenShareProducerVideo || window.screenShareStream) {
     ScreenShare.stopScreenShare(socket);
   }
@@ -371,6 +374,7 @@ export async function showScreenShare(socket, currentGroup, currentRoom, produce
       if (screenShareContainer.parentNode) {
         screenShareContainer.parentNode.removeChild(screenShareContainer);
       }
+      socket.emit('stopWatching', { userId: consumer.appData.peerId });
       screenShareVideo = null;
       screenShareContainer = null;
     });
@@ -392,6 +396,7 @@ export async function showScreenShare(socket, currentGroup, currentRoom, produce
       screenShareContainer.appendChild(fsIcon);
 
       channelContentArea.appendChild(screenShareContainer);
+      socket.emit('startWatching', { userId: consumer.appData.peerId });
     }
     console.log('Yeni video consumer oluşturuldu:', consumer.id, '-> yayıncı:', consumer.appData.peerId);
     if (typeof window.setConnectionStatus === 'function') {

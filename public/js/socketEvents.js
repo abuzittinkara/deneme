@@ -191,6 +191,9 @@ export function initSocketEvents(socket) {
     } else if (WebRTC.screenShareVideo && channelContentArea && channelContentArea.contains(WebRTC.screenShareVideo)) {
       channelContentArea.removeChild(WebRTC.screenShareContainer);
     }
+    if (window.screenShareVideo && window.screenShareVideo.dataset.peerId === userId) {
+      socket.emit('stopWatching', { userId });
+    }
     window.screenShareVideo = null;
     window.screenShareContainer = null;
     const message = userId === socket.id
