@@ -197,6 +197,20 @@
   z-index: 5;
 }
 
+.screen-share-end-icon {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #c61884;
+  border-radius: 50%;
+  color: #fff;
+  padding: 6px;
+  cursor: pointer;
+  z-index: 10;
+  display: none;
+}
+
 .mic-missing {
   color: #ff0;
   animation: mic-blink 1s linear infinite;
