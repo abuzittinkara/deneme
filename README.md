@@ -70,5 +70,4 @@ If your existing `users` collection contains a `blocked` array field, rename it 
 ```javascript
 db.users.updateMany({}, { $rename: { blocked: "blockedUsers" } })
 ```
-```
 Happy coding!
