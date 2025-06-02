@@ -92,9 +92,36 @@ function broadcastRoomsListToGroup(io, groups, groupId) {
   io.to(groupId).emit('roomsList', roomArray);
 }
 
+function cleanupWatchingRelations(io, users, userId) {
+  const user = users[userId];
+  if (!user) return;
+  if (user.watching && user.watching.size > 0) {
+    user.watching.forEach(targetId => {
+      if (users[targetId]) {
+        users[targetId].watchers.delete(userId);
+        const names = Array.from(users[targetId].watchers)
+          .map(id => users[id]?.username)
+          .filter(Boolean);
+        io.to(targetId).emit('screenShareWatchers', names);
+      }
+    });
+    user.watching.clear();
+  }
+  if (user.watchers && user.watchers.size > 0) {
+    user.watchers.forEach(viewerId => {
+      if (users[viewerId]) {
+        users[viewerId].watching.delete(userId);
+      }
+    });
+    user.watchers.clear();
+    io.to(userId).emit('screenShareWatchers', []);
+  }
+}
+
 function removeUserFromRoom(io, socket, users, groups, groupId, roomId) {
   const rmObj = groups[groupId]?.rooms[roomId];
   if (!rmObj) return;
+  cleanupWatchingRelations(io, users, socket.id);
   const socketId = socket.id;
   rmObj.users = rmObj.users.filter(u => u.id !== socketId);
   if (rmObj.producers) {
@@ -147,6 +174,7 @@ function removeUserFromAllGroupsAndRooms(io, socket, users, groups) {
     users[socket.id].currentGroup = null;
     users[socket.id].currentRoom = null;
   }
+  cleanupWatchingRelations(io, users, socket.id);
 }
 
 async function broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId) {
@@ -171,6 +199,7 @@ function handleDisconnect(io, socket, context) {
   const username = users[socket.id]?.username;
   if (username) onlineUsernames.delete(username);
   removeUserFromAllGroupsAndRooms(io, socket, users, groups);
+  cleanupWatchingRelations(io, users, socket.id);
   delete users[socket.id];
 }
 

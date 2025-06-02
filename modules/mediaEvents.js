@@ -43,6 +43,35 @@ module.exports = function registerMediaEvents(io, socket, { groups, users, sfu, 
         username: userData.username
       });
     }
+    if (users[socket.id]) {
+      users[socket.id].watchers.forEach(wId => {
+        if (users[wId]) {
+          users[wId].watching.delete(socket.id);
+        }
+      });
+      users[socket.id].watchers.clear();
+      io.to(socket.id).emit('screenShareWatchers', []);
+    }
+  });
+
+  socket.on('startWatching', ({ userId }) => {
+    if (!users[userId] || !users[socket.id]) return;
+    users[userId].watchers.add(socket.id);
+    users[socket.id].watching.add(userId);
+    const names = Array.from(users[userId].watchers)
+      .map(id => users[id]?.username)
+      .filter(Boolean);
+    io.to(userId).emit('screenShareWatchers', names);
+  });
+
+  socket.on('stopWatching', ({ userId }) => {
+    if (!users[userId] || !users[socket.id]) return;
+    users[userId].watchers.delete(socket.id);
+    users[socket.id].watching.delete(userId);
+    const names = Array.from(users[userId].watchers)
+      .map(id => users[id]?.username)
+      .filter(Boolean);
+    io.to(userId).emit('screenShareWatchers', names);
   });
   socket.on('createWebRtcTransport', async ({ groupId, roomId }, callback) => {
     try {

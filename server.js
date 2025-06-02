@@ -104,7 +104,18 @@ const context = { User, Group, Channel, Message, DMMessage, users, groups, onlin
 io.on("connection", (socket) => {
   logger.info(`Yeni bağlantı: ${socket.id}`);
 
-  users[socket.id] = { username: null, currentGroup: null, currentRoom: null, micEnabled: true, selfDeafened: false, isScreenSharing: false, screenShareProducerId: null, hasMic: true };
+  users[socket.id] = {
+    username: null,
+    currentGroup: null,
+    currentRoom: null,
+    micEnabled: true,
+    selfDeafened: false,
+    isScreenSharing: false,
+    screenShareProducerId: null,
+    hasMic: true,
+    watching: new Set(),
+    watchers: new Set()
+  };
   authController(io, socket, { User, users, onlineUsernames, groupController });
   groupController.register(io, socket, context);
   friendController(io, socket, context);
