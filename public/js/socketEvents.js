@@ -3,6 +3,9 @@ import * as WebRTC from './webrtc.js';
 import { startVolumeAnalysis } from './audioUtils.js';
 import * as Ping from './ping.js';
 
+// Holds latest channel data so that we can re-render user lists when needed
+window.latestChannelsData = null;
+
 function refreshVisibilityIcons() {
   const rows = document.querySelectorAll('.channel-user');
   rows.forEach((row) => {
@@ -45,6 +48,80 @@ export function initSocketEvents(socket) {
     selectedChannelTitle,
     textChannelContainer,
   } = window;
+
+  function renderChannelUsers(channelsObj) {
+    if (!channelsObj) return;
+    Object.keys(channelsObj).forEach((roomId) => {
+      const cData = channelsObj[roomId];
+      const channelDiv = document.getElementById(`channel-users-${roomId}`);
+      if (!channelDiv) return;
+      channelDiv.innerHTML = '';
+      cData.users.forEach((u) => {
+        const userRow = document.createElement('div');
+        userRow.classList.add('channel-user');
+        const leftDiv = document.createElement('div');
+        leftDiv.classList.add('channel-user-left');
+        const avatarDiv = document.createElement('div');
+        avatarDiv.classList.add('channel-user-avatar');
+        avatarDiv.id = `avatar-${u.id}`;
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = u.username || '(İsimsiz)';
+        leftDiv.appendChild(avatarDiv);
+        leftDiv.appendChild(nameSpan);
+        if (
+          socket.id &&
+          Array.isArray(window.screenShareWatchers) &&
+          window.screenShareWatchers.includes(u.username)
+        ) {
+          const visIcon = document.createElement('span');
+          visIcon.classList.add('material-icons', 'visibility-icon');
+          visIcon.textContent = 'visibility';
+          leftDiv.appendChild(visIcon);
+        }
+        const rightDiv = document.createElement('div');
+        rightDiv.classList.add('channel-user-right');
+        if (u.hasMic === false) {
+          const micIcon = document.createElement('span');
+          micIcon.classList.add('material-icons', 'mic-missing');
+          micIcon.textContent = 'mic_off';
+          rightDiv.appendChild(micIcon);
+        } else if (u.micEnabled === false) {
+          const micIcon = document.createElement('span');
+          micIcon.classList.add('material-icons');
+          micIcon.textContent = 'mic_off';
+          rightDiv.appendChild(micIcon);
+        }
+        if (u.selfDeafened === true) {
+          const deafIcon = document.createElement('span');
+          deafIcon.classList.add('material-icons');
+          deafIcon.textContent = 'headset_off';
+          rightDiv.appendChild(deafIcon);
+        }
+        if (u.isScreenSharing === true) {
+          const screenIndicator = document.createElement('span');
+          screenIndicator.classList.add('screen-share-indicator');
+          screenIndicator.textContent = 'YAYINDA';
+          if (u.screenShareProducerId) {
+            screenIndicator.style.cursor = 'pointer';
+            screenIndicator.addEventListener('click', () => {
+              window.clearScreenShareUI();
+              WebRTC.showScreenShare(
+                socket,
+                window.currentGroup,
+                window.currentRoom,
+                u.screenShareProducerId,
+                window.clearScreenShareUI,
+              );
+            });
+          }
+          rightDiv.appendChild(screenIndicator);
+        }
+        userRow.appendChild(leftDiv);
+        userRow.appendChild(rightDiv);
+        channelDiv.appendChild(userRow);
+      });
+    });
+  }
   socket.on('connect', () => {
     console.log('Socket connected =>', socket.id);
   });
@@ -228,72 +305,12 @@ export function initSocketEvents(socket) {
   });
   socket.on('screenShareWatchers', (watchers) => {
     window.screenShareWatchers = watchers;
-    refreshVisibilityIcons();
+    if (window.latestChannelsData) {
+      renderChannelUsers(window.latestChannelsData);
+    }
   });
   socket.on('allChannelsData', (channelsObj) => {
-    Object.keys(channelsObj).forEach((roomId) => {
-      const cData = channelsObj[roomId];
-      const channelDiv = document.getElementById(`channel-users-${roomId}`);
-      if (!channelDiv) return;
-      channelDiv.innerHTML = '';
-      cData.users.forEach((u) => {
-        const userRow = document.createElement('div');
-        userRow.classList.add('channel-user');
-        const leftDiv = document.createElement('div');
-        leftDiv.classList.add('channel-user-left');
-        const avatarDiv = document.createElement('div');
-        avatarDiv.classList.add('channel-user-avatar');
-        avatarDiv.id = `avatar-${u.id}`;
-        const nameSpan = document.createElement('span');
-        nameSpan.textContent = u.username || '(İsimsiz)';
-        leftDiv.appendChild(avatarDiv);
-        leftDiv.appendChild(nameSpan);
-        if (
-          socket.id &&
-          Array.isArray(window.screenShareWatchers) &&
-          window.screenShareWatchers.includes(u.username)
-        ) {
-          const visIcon = document.createElement('span');
-          visIcon.classList.add('material-icons', 'visibility-icon');
-          visIcon.textContent = 'visibility';
-          leftDiv.appendChild(visIcon);
-        }
-        const rightDiv = document.createElement('div');
-        rightDiv.classList.add('channel-user-right');
-        if (u.hasMic === false) {
-          const micIcon = document.createElement('span');
-          micIcon.classList.add('material-icons', 'mic-missing');
-          micIcon.textContent = 'mic_off';
-          rightDiv.appendChild(micIcon);
-        } else if (u.micEnabled === false) {
-          const micIcon = document.createElement('span');
-          micIcon.classList.add('material-icons');
-          micIcon.textContent = 'mic_off';
-          rightDiv.appendChild(micIcon);
-        }
-        if (u.selfDeafened === true) {
-          const deafIcon = document.createElement('span');
-          deafIcon.classList.add('material-icons');
-          deafIcon.textContent = 'headset_off';
-          rightDiv.appendChild(deafIcon);
-        }
-        if (u.isScreenSharing === true) {
-          const screenIndicator = document.createElement('span');
-          screenIndicator.classList.add('screen-share-indicator');
-          screenIndicator.textContent = 'YAYINDA';
-          if (u.screenShareProducerId) {
-            screenIndicator.style.cursor = 'pointer';
-            screenIndicator.addEventListener('click', () => {
-              window.clearScreenShareUI();
-              WebRTC.showScreenShare(socket, window.currentGroup, window.currentRoom, u.screenShareProducerId, window.clearScreenShareUI);
-            });
-          }
-          rightDiv.appendChild(screenIndicator);
-        }
-        userRow.appendChild(leftDiv);
-        userRow.appendChild(rightDiv);
-        channelDiv.appendChild(userRow);
-      });
-    });
+    window.latestChannelsData = channelsObj;
+    renderChannelUsers(channelsObj);
   });
 }
