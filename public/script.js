@@ -249,6 +249,9 @@ window.applyAudioStates = (opts) => {
 window.addEventListener('DOMContentLoaded', () => {
   toggleDMButton.querySelector('.material-icons').textContent = 'forum';
   
+  // Hide voice channel sections until a voice channel is joined
+  hideVoiceSections();
+
   const socketURL = window.SOCKET_URL || window.location.origin;
   socket = io(socketURL, { transports: ['websocket'] })
   initSocketEvents(socket);
