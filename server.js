@@ -57,8 +57,8 @@ app.use(
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'", "https://cdn.socket.io"], // Socket.IO CDN
         connectSrc: ["'self'", "wss:", "https://cdn.socket.io"], // Socket.IO bağlantısı için wss:
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"], // Harici Google font stillerine izin ver
-        fontSrc: ["'self'", "https://fonts.gstatic.com"], // Google font dosyalarına izin ver
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
         imgSrc: ["'self'", "data:"], // data: URI'larından resim yüklemeye izin ver
       },
     },
