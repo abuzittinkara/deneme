@@ -186,12 +186,12 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
           await ScreenShare.startScreenShare(sendTransport, socket);
           screenShareButton.classList.add('active');
           const smallIcon = screenShareButton.querySelector('.material-icons');
-          if (smallIcon) smallIcon.textContent = 'mimo_disconnect';
+          if (smallIcon) smallIcon.textContent = 'desktop_access_disabled';
           if (screenShareLargeButton) screenShareLargeButton.classList.add('active');
           if (screenShareLargeButton) {
             const largeIcon = screenShareLargeButton.querySelector('.material-icons');
           if (largeIcon) {
-            largeIcon.textContent = 'mimo_disconnect';
+            largeIcon.textContent = 'desktop_access_disabled';
             largeIcon.classList.remove('material-icons');
             largeIcon.classList.add('material-icons-outlined');
           }
