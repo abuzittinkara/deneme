@@ -170,7 +170,11 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
         if (screenShareLargeButton) screenShareLargeButton.classList.remove('active');
         if (screenShareLargeButton) {
           const largeIcon = screenShareLargeButton.querySelector('.material-icons');
-          if (largeIcon) largeIcon.textContent = 'desktop_windows';
+          if (largeIcon) {
+            largeIcon.textContent = 'desktop_windows';
+            largeIcon.classList.add('material-icons');
+            largeIcon.classList.remove('material-icons-outlined');
+          }
         }
       } else {
         try {
@@ -186,7 +190,11 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
           if (screenShareLargeButton) screenShareLargeButton.classList.add('active');
           if (screenShareLargeButton) {
             const largeIcon = screenShareLargeButton.querySelector('.material-icons');
-          if (largeIcon) largeIcon.textContent = 'stop_screen_share';
+          if (largeIcon) {
+            largeIcon.textContent = 'stop_screen_share';
+            largeIcon.classList.remove('material-icons');
+            largeIcon.classList.add('material-icons-outlined');
+          }
           }
         } catch (error) {
           console.error('Ekran paylaşımı başlatılırken hata:', error);
@@ -200,7 +208,11 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
         await ScreenShare.stopScreenShare(socket);
         screenShareLargeButton.classList.remove('active');
         const largeIcon = screenShareLargeButton.querySelector('.material-icons');
-       if (largeIcon) largeIcon.textContent = 'desktop_windows';
+        if (largeIcon) {
+          largeIcon.textContent = 'desktop_windows';
+          largeIcon.classList.add('material-icons');
+          largeIcon.classList.remove('material-icons-outlined');
+        }
         if (screenShareButton) screenShareButton.classList.remove('active');
         if (screenShareButton) {
           const smallIcon = screenShareButton.querySelector('.material-icons');
@@ -215,8 +227,12 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
           window.clearScreenShareUI();
           await ScreenShare.startScreenShare(sendTransport, socket);
           screenShareLargeButton.classList.add('active');
-          const largeIcon = screenShareLargeButton.querySelector('.material-icons');
-          if (largeIcon) largeIcon.textContent = 'stop_screen_share';
+        const largeIcon = screenShareLargeButton.querySelector('.material-icons');
+        if (largeIcon) {
+          largeIcon.textContent = 'stop_screen_share';
+          largeIcon.classList.remove('material-icons');
+          largeIcon.classList.add('material-icons-outlined');
+        }
           if (screenShareButton) screenShareButton.classList.add('active');
           if (screenShareButton) {
             const smallIcon = screenShareButton.querySelector('.material-icons');
