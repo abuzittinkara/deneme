@@ -34,10 +34,12 @@ webpack.config.js   Bundles mediasoup-client into `public/libs`
 
 ## Setup
 
-1. Install dependencies:
+1. Install dependencies using the setup script:
    ```bash
-   npm install
+   ./setup.sh
    ```
+   This script runs `npm ci --ignore-scripts` to fetch Node packages and is
+   also executed in CI before running the tests.
 2. Build the mediasoup client bundle (creates `public/libs/mediasoup-client.min.js`):
    ```bash
    npx webpack
@@ -47,6 +49,14 @@ webpack.config.js   Bundles mediasoup-client into `public/libs`
  npm start
 ```
 The server will connect to MongoDB using the URL in `MONGODB_URI` and listen on the port specified by `PORT` (default `3000`).
+## Testing
+
+Ensure dependencies are installed first:
+
+```bash
+./setup.sh
+npm test
+```
 
 ### Front-end Modules
 
