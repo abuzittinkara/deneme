@@ -170,7 +170,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
         if (screenShareLargeButton) screenShareLargeButton.classList.remove('active');
         if (screenShareLargeButton) {
           const largeIcon = screenShareLargeButton.querySelector('.material-icons');
-          if (largeIcon) largeIcon.textContent = 'desktop_windows';
+          if (largeIcon) largeIcon.textContent = 'mimo_disconnect';
         }
       } else {
         try {
@@ -200,7 +200,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
         await ScreenShare.stopScreenShare(socket);
         screenShareLargeButton.classList.remove('active');
         const largeIcon = screenShareLargeButton.querySelector('.material-icons');
-        if (largeIcon) largeIcon.textContent = 'desktop_windows';
+        if (largeIcon) largeIcon.textContent = 'mimo_disconnect';
         if (screenShareButton) screenShareButton.classList.remove('active');
         if (screenShareButton) {
           const smallIcon = screenShareButton.querySelector('.material-icons');

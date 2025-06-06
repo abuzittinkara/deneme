@@ -25,7 +25,7 @@ function clearScreenShareUI() {
   if (screenShareLargeButton) {
     screenShareLargeButton.classList.remove('active');
     const largeIcon = screenShareLargeButton.querySelector('.material-icons');
-    if (largeIcon) largeIcon.textContent = 'desktop_windows';
+    if (largeIcon) largeIcon.textContent = 'mimo_disconnect';
   }
   const overlay = document.getElementById('screenShareOverlay');
   if (overlay && overlay.parentNode) {
