@@ -227,16 +227,16 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
           window.clearScreenShareUI();
           await ScreenShare.startScreenShare(sendTransport, socket);
           screenShareLargeButton.classList.add('active');
-        const largeIcon = screenShareLargeButton.querySelector('.material-icons');
-        if (largeIcon) {
-          largeIcon.textContent = 'mimo_disconnect';
-          largeIcon.classList.remove('material-icons');
-          largeIcon.classList.add('material-icons-outlined');
-        }
+          const largeIcon = screenShareLargeButton.querySelector('.material-icons');
+          if (largeIcon) {
+            largeIcon.textContent = 'desktop_access_disabled';
+            largeIcon.classList.remove('material-icons');
+            largeIcon.classList.add('material-icons-outlined');
+          }
           if (screenShareButton) screenShareButton.classList.add('active');
           if (screenShareButton) {
             const smallIcon = screenShareButton.querySelector('.material-icons');
-            if (smallIcon) smallIcon.textContent = 'mimo_disconnect';
+            if (smallIcon) smallIcon.textContent = 'desktop_access_disabled';
           }
         } catch (error) {
           console.error('Ekran paylaşımı başlatılırken hata:', error);
