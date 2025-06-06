@@ -3,6 +3,31 @@ import * as WebRTC from './webrtc.js';
 import { startVolumeAnalysis } from './audioUtils.js';
 import * as Ping from './ping.js';
 
+function refreshVisibilityIcons() {
+  const rows = document.querySelectorAll('.channel-user');
+  rows.forEach((row) => {
+    const leftDiv = row.querySelector('.channel-user-left');
+    if (!leftDiv) return;
+    const nameSpan = leftDiv.querySelector('span');
+    if (!nameSpan) return;
+    const username = nameSpan.textContent;
+    const existing = leftDiv.querySelector('.visibility-icon');
+    if (
+      Array.isArray(window.screenShareWatchers) &&
+      window.screenShareWatchers.includes(username)
+    ) {
+      if (!existing) {
+        const visIcon = document.createElement('span');
+        visIcon.classList.add('material-icons', 'visibility-icon');
+        visIcon.textContent = 'visibility';
+        leftDiv.appendChild(visIcon);
+      }
+    } else if (existing) {
+      existing.remove();
+    }
+  });
+}
+
 export function initSocketEvents(socket) {
   const {
     loginScreen,
@@ -203,6 +228,7 @@ export function initSocketEvents(socket) {
   });
   socket.on('screenShareWatchers', (watchers) => {
     window.screenShareWatchers = watchers;
+    refreshVisibilityIcons();
   });
   socket.on('allChannelsData', (channelsObj) => {
     Object.keys(channelsObj).forEach((roomId) => {
@@ -222,7 +248,11 @@ export function initSocketEvents(socket) {
         nameSpan.textContent = u.username || '(İsimsiz)';
         leftDiv.appendChild(avatarDiv);
         leftDiv.appendChild(nameSpan);
-        if (socket.id && Array.isArray(window.screenShareWatchers) && window.screenShareWatchers.includes(u.id)) {
+        if (
+          socket.id &&
+          Array.isArray(window.screenShareWatchers) &&
+          window.screenShareWatchers.includes(u.username)
+        ) {
           const visIcon = document.createElement('span');
           visIcon.classList.add('material-icons', 'visibility-icon');
           visIcon.textContent = 'visibility';
