@@ -123,7 +123,7 @@ const userListDiv = document.getElementById('userList');
 // Kanal Durum Paneli
 const channelStatusPanel = document.getElementById('channelStatusPanel');
 channelStatusPanel.style.zIndex = "20";
-channelStatusPanel.style.display = 'none';
+channelStatusPanel.style.display = 'flex';
 const connectionStatusText = document.getElementById('connectionStatusText');
 const pingValueSpan = document.getElementById('pingValue');
 const cellBar1 = document.getElementById('cellBar1');

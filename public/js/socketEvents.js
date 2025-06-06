@@ -235,7 +235,7 @@ export function initSocketEvents(socket) {
           textChannelContainer.style.flexDirection = 'column';
           document.getElementById('channelUsersContainer').style.display = 'none';
           if (!(window.currentRoom && window.currentRoomType === 'voice')) {
-            window.hideChannelStatusPanel();
+            window.hideVoiceSections();
             window.currentRoomType = 'text';
           }
           window.textMessages.innerHTML = '';
