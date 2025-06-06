@@ -295,6 +295,43 @@ function register(io, socket, context) {
     if (!groups[groupId] || !groups[groupId].rooms[roomId]) return;
     removeUserFromRoom(io, socket, users, groups, groupId, roomId);
   });
+
+  socket.on('renameChannel', async ({ channelId, newName }) => {
+    try {
+      if (!channelId || !newName) return;
+      const trimmed = newName.trim();
+      const chDoc = await Channel.findOneAndUpdate(
+        { channelId },
+        { name: trimmed },
+        { new: true }
+      ).populate('group');
+      if (!chDoc || !chDoc.group) return;
+      const gid = chDoc.group.groupId;
+      if (groups[gid] && groups[gid].rooms[channelId]) {
+        groups[gid].rooms[channelId].name = trimmed;
+        io.to(gid).emit('channelRenamed', { channelId, newName: trimmed });
+        broadcastRoomsListToGroup(io, groups, gid);
+      }
+    } catch (err) {
+      console.error('renameChannel error:', err);
+    }
+  });
+
+  socket.on('deleteChannel', async channelId => {
+    try {
+      if (!channelId) return;
+      const chDoc = await Channel.findOneAndDelete({ channelId }).populate('group');
+      if (!chDoc || !chDoc.group) return;
+      const gid = chDoc.group.groupId;
+      if (groups[gid]) {
+        delete groups[gid].rooms[channelId];
+        io.to(gid).emit('channelDeleted', { channelId });
+        broadcastRoomsListToGroup(io, groups, gid);
+      }
+    } catch (err) {
+      console.error('deleteChannel error:', err);
+    }
+  });
   // Diğer handlerlar (joinGroupByID, browseGroup, createRoom, joinRoom, leaveRoom,
   // renameGroup, deleteGroup, renameChannel, deleteChannel) buraya benzer şekilde
   // taşınabilir. Daha kısalık için özetlenmiştir.

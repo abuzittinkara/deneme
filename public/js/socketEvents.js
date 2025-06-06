@@ -196,74 +196,98 @@ export function initSocketEvents(socket) {
       groupTitle.textContent = 'Seçili Grup';
     }
   });
+
+  function buildChannelItem(roomObj) {
+    const roomItem = document.createElement('div');
+    roomItem.className = 'channel-item';
+    roomItem.dataset.roomId = roomObj.id;
+    const channelHeader = document.createElement('div');
+    channelHeader.className = 'channel-header';
+    let icon;
+    if (roomObj.type === 'voice') {
+      icon = document.createElement('span');
+      icon.classList.add('material-icons', 'channel-icon');
+      icon.textContent = 'volume_up';
+    } else {
+      icon = document.createElement('span');
+      icon.classList.add('material-icons', 'channel-icon');
+      icon.textContent = 'chat';
+    }
+    const textSpan = document.createElement('span');
+    textSpan.textContent = roomObj.name;
+    channelHeader.appendChild(icon);
+    channelHeader.appendChild(textSpan);
+    const channelUsers = document.createElement('div');
+    channelUsers.className = 'channel-users';
+    channelUsers.id = `channel-users-${roomObj.id}`;
+    roomItem.appendChild(channelHeader);
+    roomItem.appendChild(channelUsers);
+
+    roomItem.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      window.showChannelContextMenu(e, roomObj);
+    });
+
+    roomItem.addEventListener('click', () => {
+      if (roomObj.type === 'text') {
+        selectedChannelTitle.textContent = roomObj.name;
+        textChannelContainer.style.display = 'flex';
+        textChannelContainer.style.flexDirection = 'column';
+        document.getElementById('channelUsersContainer').style.display = 'none';
+        if (!(window.currentRoom && window.currentRoomType === 'voice')) {
+          window.hideVoiceSections();
+          window.currentRoomType = 'text';
+        }
+        window.textMessages.innerHTML = '';
+        window.currentTextChannel = roomObj.id;
+        window.textMessages.dataset.channelId = roomObj.id;
+        socket.emit('joinTextChannel', { groupId: window.selectedGroup, roomId: roomObj.id });
+        if (typeof window.removeScreenShareEndedMessage === 'function') {
+          window.removeScreenShareEndedMessage();
+        }
+        return;
+      }
+      window.clearScreenShareUI();
+      document.getElementById('channelUsersContainer').style.display = 'flex';
+      document.querySelectorAll('.channel-item').forEach((ci) => ci.classList.remove('connected'));
+      if (window.currentRoom === roomObj.id && window.currentGroup === window.selectedGroup) {
+        roomItem.classList.add('connected');
+        window.updateVoiceChannelUI(roomObj.name);
+        return;
+      }
+      if (window.currentRoom && (window.currentRoom !== roomObj.id || window.currentGroup !== window.selectedGroup)) {
+        window.leaveRoomInternal(socket);
+      }
+      window.currentGroup = window.selectedGroup;
+      WebRTC.requestMicrophoneAccess(socket, window.applyAudioStates, { value: window.hasMic }).finally(() => {
+        window.joinRoom(socket, window.currentGroup, roomObj.id, roomObj.name, selectedChannelTitle, window.showChannelStatusPanel, { value: window.currentRoomType });
+      });
+      roomItem.classList.add('connected');
+    });
+
+    return roomItem;
+  }
+
+  socket.on('channelRenamed', ({ channelId, newName }) => {
+    const item = roomListDiv.querySelector(`.channel-item[data-room-id="${channelId}"]`);
+    if (item) {
+      const header = item.querySelector('.channel-header');
+      if (header && header.lastElementChild) {
+        header.lastElementChild.textContent = newName;
+      }
+    }
+  });
+
+  socket.on('channelDeleted', ({ channelId }) => {
+    const item = roomListDiv.querySelector(`.channel-item[data-room-id="${channelId}"]`);
+    if (item) {
+      item.remove();
+    }
+  });
   socket.on('roomsList', (roomsArray) => {
     roomListDiv.innerHTML = '';
     roomsArray.forEach((roomObj) => {
-      const roomItem = document.createElement('div');
-      roomItem.className = 'channel-item';
-      const channelHeader = document.createElement('div');
-      channelHeader.className = 'channel-header';
-      let icon;
-      if (roomObj.type === 'voice') {
-        icon = document.createElement('span');
-        icon.classList.add('material-icons', 'channel-icon');
-        icon.textContent = 'volume_up';
-      } else {
-        icon = document.createElement('span');
-        icon.classList.add('material-icons', 'channel-icon');
-        icon.textContent = 'chat';
-      }
-      const textSpan = document.createElement('span');
-      textSpan.textContent = roomObj.name;
-      channelHeader.appendChild(icon);
-      channelHeader.appendChild(textSpan);
-      const channelUsers = document.createElement('div');
-      channelUsers.className = 'channel-users';
-      channelUsers.id = `channel-users-${roomObj.id}`;
-      roomItem.appendChild(channelHeader);
-      roomItem.appendChild(channelUsers);
-
-      roomItem.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        window.showChannelContextMenu(e, roomObj);
-      });
-
-      roomItem.addEventListener('click', () => {
-        if (roomObj.type === 'text') {
-          selectedChannelTitle.textContent = roomObj.name;
-          textChannelContainer.style.display = 'flex';
-          textChannelContainer.style.flexDirection = 'column';
-          document.getElementById('channelUsersContainer').style.display = 'none';
-          if (!(window.currentRoom && window.currentRoomType === 'voice')) {
-            window.hideVoiceSections();
-            window.currentRoomType = 'text';
-          }
-          window.textMessages.innerHTML = '';
-          window.currentTextChannel = roomObj.id;
-          window.textMessages.dataset.channelId = roomObj.id;
-          socket.emit('joinTextChannel', { groupId: window.selectedGroup, roomId: roomObj.id });
-          if (typeof window.removeScreenShareEndedMessage === 'function') {
-            window.removeScreenShareEndedMessage();
-          }
-          return;
-        }
-        window.clearScreenShareUI();
-        document.getElementById('channelUsersContainer').style.display = 'flex';
-        document.querySelectorAll('.channel-item').forEach((ci) => ci.classList.remove('connected'));
-        if (window.currentRoom === roomObj.id && window.currentGroup === window.selectedGroup) {
-          roomItem.classList.add('connected');
-          window.updateVoiceChannelUI(roomObj.name);
-          return;
-        }
-        if (window.currentRoom && (window.currentRoom !== roomObj.id || window.currentGroup !== window.selectedGroup)) {
-          window.leaveRoomInternal(socket);
-        }
-        window.currentGroup = window.selectedGroup;
-        WebRTC.requestMicrophoneAccess(socket, window.applyAudioStates, { value: window.hasMic }).finally(() => {
-          window.joinRoom(socket, window.currentGroup, roomObj.id, roomObj.name, selectedChannelTitle, window.showChannelStatusPanel, { value: window.currentRoomType });
-        });
-        roomItem.classList.add('connected');
-      });
+      const roomItem = buildChannelItem(roomObj);
       roomListDiv.appendChild(roomItem);
     });
   });
@@ -289,31 +313,3 @@ export function initSocketEvents(socket) {
   socket.on('screenShareEnded', ({ userId, username }) => {
     if (typeof window.clearScreenShareUI === 'function') {
       window.clearScreenShareUI();
-    }
-    const channelContentArea = document.querySelector('.channel-content-area');
-    if (WebRTC.screenShareContainer && channelContentArea && channelContentArea.contains(WebRTC.screenShareContainer)) {
-      channelContentArea.removeChild(WebRTC.screenShareContainer);
-    } else if (WebRTC.screenShareVideo && channelContentArea && channelContentArea.contains(WebRTC.screenShareVideo)) {
-      channelContentArea.removeChild(WebRTC.screenShareContainer);
-    }
-    if (window.screenShareVideo && window.screenShareVideo.dataset.peerId === userId) {
-      socket.emit('stopWatching', { userId });
-    }
-    window.screenShareVideo = null;
-    window.screenShareContainer = null;
-    const message = userId === socket.id
-      ? 'Yayınınız sonlandırıldı'
-      : `${username || 'Bir kullanıcı'} adlı kullanıcının yayını sonlandırıldı`;
-    window.displayScreenShareEndedMessage(message);
-  });
-  socket.on('screenShareWatchers', (watchers) => {
-    window.screenShareWatchers = watchers;
-    if (window.latestChannelsData) {
-      renderChannelUsers(window.latestChannelsData);
-    }
-  });
-  socket.on('allChannelsData', (channelsObj) => {
-    window.latestChannelsData = channelsObj;
-    renderChannelUsers(channelsObj);
-  });
-}

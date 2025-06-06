@@ -68,6 +68,12 @@ The client-side code under `public/js` is organized into small ES modules:
 - **audioUtils.js** – volume analysis and audio state utilities
 - **uiEvents.js** – sets up DOM event listeners
 
+### Channel Management
+
+Right-click a channel name in the rooms list to rename or delete it. Selecting
+"Kanalın İsmini Değiştir" will immediately update the name for all users, while
+"Kanalı Sil" removes the channel from the group.
+
 ### Migration Note
 
 Older versions stored DM messages with fields named `sender` and `receiver`.
