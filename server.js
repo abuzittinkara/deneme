@@ -8,14 +8,9 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const helmet = require('helmet');
-const DOMPurify = require('dompurify');
-const { JSDOM } = require('jsdom');
 const rateLimit = require('express-rate-limit');
 
 const { MONGODB_URI, PORT, rateLimitOptions, helmetCspOptions } = require('./config/appConfig');
-
-const window = new JSDOM('').window;
-const purify = DOMPurify(window);
 
 const User = require('./models/User');
 const Group = require('./models/Group');
