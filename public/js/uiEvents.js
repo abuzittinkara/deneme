@@ -186,7 +186,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
           if (screenShareLargeButton) screenShareLargeButton.classList.add('active');
           if (screenShareLargeButton) {
             const largeIcon = screenShareLargeButton.querySelector('.material-icons');
-           if (largeIcon) largeIcon.textContent = 'mimo_disconnect';
+          if (largeIcon) largeIcon.textContent = 'stop_screen_share';
           }
         } catch (error) {
           console.error('Ekran paylaşımı başlatılırken hata:', error);
@@ -216,7 +216,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
           await ScreenShare.startScreenShare(sendTransport, socket);
           screenShareLargeButton.classList.add('active');
           const largeIcon = screenShareLargeButton.querySelector('.material-icons');
-          if (largeIcon) largeIcon.textContent = 'mimo_disconnect';
+          if (largeIcon) largeIcon.textContent = 'stop_screen_share';
           if (screenShareButton) screenShareButton.classList.add('active');
           if (screenShareButton) {
             const smallIcon = screenShareButton.querySelector('.material-icons');
