@@ -191,7 +191,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
           if (screenShareLargeButton) {
             const largeIcon = screenShareLargeButton.querySelector('.material-icons');
           if (largeIcon) {
-            largeIcon.textContent = 'stop_screen_share';
+            largeIcon.textContent = 'tv_off';
             largeIcon.classList.remove('material-icons');
             largeIcon.classList.add('material-icons-outlined');
           }
@@ -229,7 +229,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
           screenShareLargeButton.classList.add('active');
         const largeIcon = screenShareLargeButton.querySelector('.material-icons');
         if (largeIcon) {
-          largeIcon.textContent = 'stop_screen_share';
+          largeIcon.textContent = 'tv_off';
           largeIcon.classList.remove('material-icons');
           largeIcon.classList.add('material-icons-outlined');
         }
