@@ -66,4 +66,7 @@ export async function stopScreenShare(socket) {
   socket.emit('screenShareStatusChanged', { isScreenSharing: false });
   socket.emit('screenShareEnded');
   console.log("Ekran paylaşımı tamamen durduruldu.");
+  if (typeof window !== 'undefined' && window.clearScreenShareUI) {
+    window.clearScreenShareUI();
+  }
 }

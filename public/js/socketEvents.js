@@ -287,6 +287,9 @@ export function initSocketEvents(socket) {
     WebRTC.consumeProducer(socket, window.currentGroup, window.currentRoom, producerId);
   });
   socket.on('screenShareEnded', ({ userId, username }) => {
+    if (typeof window.clearScreenShareUI === 'function') {
+      window.clearScreenShareUI();
+    }
     const channelContentArea = document.querySelector('.channel-content-area');
     if (WebRTC.screenShareContainer && channelContentArea && channelContentArea.contains(WebRTC.screenShareContainer)) {
       channelContentArea.removeChild(WebRTC.screenShareContainer);
