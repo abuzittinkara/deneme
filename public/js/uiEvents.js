@@ -29,6 +29,8 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     channelContentArea,
     selectedChannelTitle,
     textChannelContainer,
+    groupDropdownIcon,
+    groupDropdownMenu,
   } = window;
 
   loginButton.addEventListener('click', () => attemptLogin());
