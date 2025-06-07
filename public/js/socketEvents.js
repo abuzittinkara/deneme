@@ -313,3 +313,43 @@ export function initSocketEvents(socket) {
   socket.on('screenShareEnded', ({ userId, username }) => {
     if (typeof window.clearScreenShareUI === 'function') {
       window.clearScreenShareUI();
+    }
+    const channelContentArea = document.querySelector('.channel-content-area');
+    if (
+      WebRTC.screenShareContainer &&
+      channelContentArea &&
+      channelContentArea.contains(WebRTC.screenShareContainer)
+    ) {
+      channelContentArea.removeChild(WebRTC.screenShareContainer);
+    } else if (
+      WebRTC.screenShareVideo &&
+      channelContentArea &&
+      channelContentArea.contains(WebRTC.screenShareVideo)
+    ) {
+      channelContentArea.removeChild(WebRTC.screenShareContainer);
+    }
+    if (
+      window.screenShareVideo &&
+      window.screenShareVideo.dataset.peerId === userId
+    ) {
+      socket.emit('stopWatching', { userId });
+    }
+    window.screenShareVideo = null;
+    window.screenShareContainer = null;
+    const message =
+      userId === socket.id
+        ? 'Yayınınız sonlandırıldı'
+        : `${username || 'Bir kullanıcı'} adlı kullanıcının yayını sonlandırıldı`;
+    window.displayScreenShareEndedMessage(message);
+  });
+  socket.on('screenShareWatchers', (watchers) => {
+    window.screenShareWatchers = watchers;
+    if (window.latestChannelsData) {
+      renderChannelUsers(window.latestChannelsData);
+    }
+  });
+  socket.on('allChannelsData', (channelsObj) => {
+    window.latestChannelsData = channelsObj;
+    renderChannelUsers(channelsObj);
+  });
+}
