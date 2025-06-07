@@ -15,6 +15,8 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     showRegisterScreen,
     showLoginScreen,
     backToLoginButton,
+    groupDropdownIcon,
+    groupDropdownMenu,
     toggleDMButton,
     roomPanel,
     rightPanel,
@@ -29,8 +31,6 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     channelContentArea,
     selectedChannelTitle,
     textChannelContainer,
-    groupDropdownIcon,
-    groupDropdownMenu,
   } = window;
 
   loginButton.addEventListener('click', () => attemptLogin());
@@ -51,6 +51,28 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
   backToLoginButton.addEventListener('click', () => {
     registerScreen.style.display = 'none';
     loginScreen.style.display = 'block';
+  });
+
+  if (groupDropdownIcon) {
+    groupDropdownIcon.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (groupDropdownMenu.style.display === 'none' || !groupDropdownMenu.style.display) {
+        groupDropdownMenu.style.display = 'flex';
+      } else {
+        groupDropdownMenu.style.display = 'none';
+      }
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (
+      groupDropdownMenu &&
+      groupDropdownMenu.style.display !== 'none' &&
+      !groupDropdownMenu.contains(e.target) &&
+      e.target !== groupDropdownIcon
+    ) {
+      groupDropdownMenu.style.display = 'none';
+    }
   });
 
   toggleDMButton.addEventListener('click', () => {
