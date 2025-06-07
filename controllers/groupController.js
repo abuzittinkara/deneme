@@ -304,7 +304,10 @@ function register(io, socket, context) {
         { channelId },
         { name: trimmed },
         { new: true }
-      ).populate('group');
+      );
+      if (chDoc && typeof chDoc.populate === 'function') {
+        await chDoc.populate('group');
+      }
       if (!chDoc || !chDoc.group) return;
       const gid = chDoc.group.groupId;
       if (groups[gid] && groups[gid].rooms[channelId]) {
@@ -320,7 +323,10 @@ function register(io, socket, context) {
   socket.on('deleteChannel', async channelId => {
     try {
       if (!channelId) return;
-      const chDoc = await Channel.findOneAndDelete({ channelId }).populate('group');
+      const chDoc = await Channel.findOneAndDelete({ channelId });
+      if (chDoc && typeof chDoc.populate === 'function') {
+        await chDoc.populate('group');
+      }
       if (!chDoc || !chDoc.group) return;
       const gid = chDoc.group.groupId;
       if (groups[gid]) {
