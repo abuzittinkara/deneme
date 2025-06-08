@@ -166,6 +166,9 @@ export function initSocketEvents(socket) {
       grpItem.setAttribute('data-group-id', groupObj.id);
       grpItem.innerText = groupObj.name[0].toUpperCase();
       grpItem.title = groupObj.name + ' (' + groupObj.id + ')';
+      if (groupObj.id === window.selectedGroup) {
+        grpItem.classList.add('selected');
+      }
       grpItem.addEventListener('click', () => {
         document.querySelectorAll('.grp-item').forEach((el) => el.classList.remove('selected'));
         grpItem.classList.add('selected');
