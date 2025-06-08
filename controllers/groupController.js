@@ -4,9 +4,9 @@ const sfu = require('../sfu');
 
 async function loadGroupsFromDB({ Group, groups }) {
   try {
-    const groupDocs = await Group.find({});
+    const groupDocs = await Group.find({}).populate('owner', 'username');
     groupDocs.forEach(g => {
-      groups[g.groupId] = { owner: g.owner, name: g.name, users: [], rooms: {} };
+      groups[g.groupId] = { owner: g.owner.username, name: g.name, users: [], rooms: {} };
     });
     console.log('loadGroupsFromDB tamam, groups:', Object.keys(groups));
   } catch (err) {
@@ -33,9 +33,14 @@ async function sendGroupsListToUser(io, socketId, { User, users }) {
   const userData = users[socketId];
   if (!userData || !userData.username) return;
   try {
-    const userDoc = await User.findOne({ username: userData.username }).populate('groups');
+    const userDoc = await User.findOne({ username: userData.username })
+      .populate({ path: 'groups', populate: { path: 'owner', select: 'username' } });
     if (!userDoc) return;
-    const groupList = userDoc.groups.map(g => ({ id: g.groupId, name: g.name, owner: g.owner }));
+    const groupList = userDoc.groups.map(g => ({
+      id: g.groupId,
+      name: g.name,
+      owner: g.owner.username
+    }));
     io.to(socketId).emit('groupsList', groupList);
   } catch (err) {
     console.error('sendGroupsListToUser hatası:', err);
