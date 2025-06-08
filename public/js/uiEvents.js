@@ -234,6 +234,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
       });
       window.leaveRoomInternal(socket);
       window.activeVoiceChannelName = '';
+      window.activeVoiceGroupName = '';
       Ping.updateStatusPanel(0);
       if (typeof window.hideVoiceSections === 'function') {
         window.hideVoiceSections();

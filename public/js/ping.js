@@ -38,7 +38,7 @@ export function updateStatusPanel(ping) {
   if (pingValueSpan) pingValueSpan.style.color = color;
   const channelName = window.activeVoiceChannelName || '';
   const groupTitleEl = document.getElementById('groupTitle');
-  const groupName = groupTitleEl ? groupTitleEl.textContent : '';
+  const groupName = window.activeVoiceGroupName || (groupTitleEl ? groupTitleEl.textContent : '');
   if (groupNameEl) groupNameEl.textContent = groupName;
   if (channelNameEl) channelNameEl.textContent = channelName;
 }

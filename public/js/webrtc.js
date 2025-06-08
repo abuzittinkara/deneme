@@ -315,14 +315,29 @@ export function leaveRoomInternal(socket) {
     if (window.activeVoiceChannelName !== undefined) {
       window.activeVoiceChannelName = '';
     }
+    if (window.activeVoiceGroupName !== undefined) {
+      window.activeVoiceGroupName = '';
+    }
   }
   console.log('leaveRoomInternal: SFU transportlar kapatıldı');
 }
 
-export function joinRoom(socket, currentGroup, roomId, roomName, selectedChannelTitle, showChannelStatusPanelRef, currentRoomTypeRef) {
+export function joinRoom(
+  socket,
+  currentGroup,
+  roomId,
+  roomName,
+  groupName,
+  selectedChannelTitle,
+  showChannelStatusPanelRef,
+  currentRoomTypeRef,
+) {
   socket.emit('joinRoom', { groupId: currentGroup, roomId });
   if (selectedChannelTitle) selectedChannelTitle.textContent = roomName;
   window.activeVoiceChannelName = roomName;
+    if (typeof groupName === 'string') {
+    window.activeVoiceGroupName = groupName;
+  }
   Ping.updateStatusPanel(0);
   if (showChannelStatusPanelRef) showChannelStatusPanelRef();
   if (currentRoomTypeRef) currentRoomTypeRef.value = 'voice';

@@ -294,9 +294,19 @@ export function initSocketEvents(socket) {
         window.leaveRoomInternal(socket);
       }
       window.currentGroup = window.selectedGroup;
-      WebRTC.requestMicrophoneAccess(socket, window.applyAudioStates, { value: window.hasMic }).finally(() => {
-        window.joinRoom(socket, window.currentGroup, roomObj.id, roomObj.name, selectedChannelTitle, window.showChannelStatusPanel, { value: window.currentRoomType });
-      });
+        WebRTC.requestMicrophoneAccess(socket, window.applyAudioStates, { value: window.hasMic }).finally(() => {
+          const currentGroupName = groupTitle ? groupTitle.textContent : '';
+          window.joinRoom(
+            socket,
+            window.currentGroup,
+            roomObj.id,
+            roomObj.name,
+            currentGroupName,
+            selectedChannelTitle,
+            window.showChannelStatusPanel,
+            { value: window.currentRoomType },
+          );
+        });
       roomItem.classList.add('connected');
     });
 

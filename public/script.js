@@ -62,6 +62,8 @@ let currentRoomType = null;    // "voice" veya "text"
 
 // Yeni: Kullanıcının sesli kanala bağlandığı kanalın adını saklayacak değişken
 let activeVoiceChannelName = "";
+// Yeni: Kullanıcının bağlı olduğu sesli kanalın grubunun adını saklayacak değişken
+let activeVoiceGroupName = "";
 
 // Mikrofon / Kulaklık
 let micEnabled = true;
@@ -323,7 +325,7 @@ window.leaveRoomInternal = WebRTC.leaveRoomInternal;
     }
   });
 });
-Object.assign(window, {selectedGroup, currentGroup, currentRoom, currentTextChannel, currentRoomType, activeVoiceChannelName, micEnabled, selfDeafened, micWasEnabledBeforeDeaf, hasMic});
+Object.assign(window, {selectedGroup, currentGroup, currentRoom, currentTextChannel, currentRoomType, activeVoiceChannelName, activeVoiceGroupName, micEnabled, selfDeafened, micWasEnabledBeforeDeaf, hasMic});
 window.applyAudioStates = (opts) => {
   if (!opts) {
     opts = {
