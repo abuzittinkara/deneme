@@ -113,7 +113,12 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
   
   if (groupSettingsBtn) {
     groupSettingsBtn.addEventListener('click', () => {
-      if (groupSettingsModal) groupSettingsModal.style.display = 'flex';
+      if (
+        groupSettingsModal &&
+        groupSettingsBtn.style.display !== 'none'
+      ) {
+        groupSettingsModal.style.display = 'flex';
+      }
       if (groupDropdownMenu) groupDropdownMenu.style.display = 'none';
     });
   }
