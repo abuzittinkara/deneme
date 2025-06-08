@@ -296,27 +296,27 @@ function register(io, socket, context) {
     removeUserFromRoom(io, socket, users, groups, groupId, roomId);
   });
 
-  socket.on('renameChannel', async ({ channelId, newName }) => {
+  socket.on('createChannel', async ({ groupId, name }) => {
     try {
-      if (!channelId || !newName) return;
-      const trimmed = newName.trim();
-      const chDoc = await Channel.findOneAndUpdate(
-        { channelId },
-        { name: trimmed },
-        { new: true }
-      );
-      if (chDoc && typeof chDoc.populate === 'function') {
-        await chDoc.populate('group');
-      }
-      if (!chDoc || !chDoc.group) return;
-      const gid = chDoc.group.groupId;
-      if (groups[gid] && groups[gid].rooms[channelId]) {
-        groups[gid].rooms[channelId].name = trimmed;
-        io.to(gid).emit('channelRenamed', { channelId, newName: trimmed });
-        broadcastRoomsListToGroup(io, groups, gid);
+      if (!groupId || !name) return;
+      const trimmed = name.trim();
+      const groupDoc = await Group.findOne({ groupId });
+      if (!groupDoc) return;
+      const channelId = uuidv4();
+      const newChannel = new Channel({
+        channelId,
+        name: trimmed,
+        group: groupDoc._id,
+        type: 'text',
+      });
+      await newChannel.save();
+      if (groups[groupId]) {
+        groups[groupId].rooms[channelId] = { name: trimmed, type: 'text', users: [] };
+        io.to(groupId).emit('channelCreated', { id: channelId, name: trimmed, type: 'text' });
+        broadcastRoomsListToGroup(io, groups, groupId);
       }
     } catch (err) {
-      console.error('renameChannel error:', err);
+      console.error('createChannel error:', err);
     }
   });
 

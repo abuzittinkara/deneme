@@ -17,6 +17,8 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     backToLoginButton,
     groupDropdownIcon,
     groupDropdownMenu,
+    copyGroupIdBtn,
+    createChannelBtn,
     toggleDMButton,
     roomPanel,
     rightPanel,
@@ -74,6 +76,24 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
       groupDropdownMenu.style.display = 'none';
     }
   });
+  
+  if (copyGroupIdBtn) {
+    copyGroupIdBtn.addEventListener('click', () => {
+      const gid = window.selectedGroup || window.currentGroup;
+      if (gid) navigator.clipboard.writeText(gid);
+      if (groupDropdownMenu) groupDropdownMenu.style.display = 'none';
+    });
+  }
+
+  if (createChannelBtn) {
+    createChannelBtn.addEventListener('click', () => {
+      const name = prompt('Kanal adı:');
+      if (name && name.trim() !== '') {
+        socket.emit('createChannel', { groupId: window.selectedGroup, name: name.trim() });
+      }
+      if (groupDropdownMenu) groupDropdownMenu.style.display = 'none';
+    });
+  }
 
   toggleDMButton.addEventListener('click', () => {
     window.removeScreenShareEndedMessage();
