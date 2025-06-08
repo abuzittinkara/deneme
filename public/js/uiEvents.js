@@ -119,6 +119,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
       ) {
         groupSettingsModal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
+      }
       if (groupDropdownMenu) groupDropdownMenu.style.display = 'none';
     });
   }
