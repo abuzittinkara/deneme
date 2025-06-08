@@ -215,7 +215,81 @@ const dmContentArea = document.getElementById('dmContentArea');
 
 // "dmPanel" yine mevcut (display:none); DM paneli, dmChatSearchInput öğesini barındıracak
 const dmPanel = document.getElementById('dmPanel');
-Object.assign(window, {loginScreen, registerScreen, callScreen, loginUsernameInput, loginPasswordInput, loginButton, loginErrorMessage, regUsernameInput, regNameInput, regSurnameInput, regBirthdateInput, regEmailInput, regPhoneInput, regPasswordInput, regPasswordConfirmInput, registerButton, backToLoginButton, registerErrorMessage, showRegisterScreen, showLoginScreen, groupListDiv, createGroupButton, roomListDiv, groupTitle, groupDropdownIcon, groupDropdownMenu, copyGroupIdBtn, renameGroupBtn, createChannelBtn, deleteGroupBtn, toggleDMButton, roomPanel, rightPanel, leaveButton, screenShareButton, micToggleButton, deafenToggleButton, settingsButton, textChannelContainer, textMessages, textChatInputBar, textChannelMessageInput, sendTextMessageBtn, selectedChannelTitle, channelContentArea, dmContentArea, dmPanel, cameraShareButton, screenShareLargeButton, soundbarButton});
+// Modal elements for group creation/joining
+const groupModal = document.getElementById('groupModal');
+const modalGroupCreateBtn = document.getElementById('modalGroupCreateBtn');
+const modalGroupJoinBtn = document.getElementById('modalGroupJoinBtn');
+const actualGroupCreateModal = document.getElementById('actualGroupCreateModal');
+const actualGroupName = document.getElementById('actualGroupName');
+const actualGroupNameBtn = document.getElementById('actualGroupNameBtn');
+const closeCreateGroupModal = document.getElementById('closeCreateGroupModal');
+const joinGroupModal = document.getElementById('joinGroupModal');
+const joinGroupIdInput = document.getElementById('joinGroupIdInput');
+const joinGroupIdBtn = document.getElementById('joinGroupIdBtn');
+const closeJoinGroupModal = document.getElementById('closeJoinGroupModal');
+Object.assign(window, {
+  loginScreen,
+  registerScreen,
+  callScreen,
+  loginUsernameInput,
+  loginPasswordInput,
+  loginButton,
+  loginErrorMessage,
+  regUsernameInput,
+  regNameInput,
+  regSurnameInput,
+  regBirthdateInput,
+  regEmailInput,
+  regPhoneInput,
+  regPasswordInput,
+  regPasswordConfirmInput,
+  registerButton,
+  backToLoginButton,
+  registerErrorMessage,
+  showRegisterScreen,
+  showLoginScreen,
+  groupListDiv,
+  createGroupButton,
+  roomListDiv,
+  groupTitle,
+  groupDropdownIcon,
+  groupDropdownMenu,
+  copyGroupIdBtn,
+  renameGroupBtn,
+  createChannelBtn,
+  deleteGroupBtn,
+  toggleDMButton,
+  roomPanel,
+  rightPanel,
+  leaveButton,
+  screenShareButton,
+  micToggleButton,
+  deafenToggleButton,
+  settingsButton,
+  textChannelContainer,
+  textMessages,
+  textChatInputBar,
+  textChannelMessageInput,
+  sendTextMessageBtn,
+  selectedChannelTitle,
+  channelContentArea,
+  dmContentArea,
+  dmPanel,
+  cameraShareButton,
+  screenShareLargeButton,
+  soundbarButton,
+  groupModal,
+  modalGroupCreateBtn,
+  modalGroupJoinBtn,
+  actualGroupCreateModal,
+  actualGroupName,
+  actualGroupNameBtn,
+  closeCreateGroupModal,
+  joinGroupModal,
+  joinGroupIdInput,
+  joinGroupIdBtn,
+  closeJoinGroupModal
+});
 window.WebRTC = WebRTC;
 window.joinRoom = WebRTC.joinRoom;
 window.leaveRoomInternal = WebRTC.leaveRoomInternal;

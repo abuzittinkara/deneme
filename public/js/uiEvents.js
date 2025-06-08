@@ -18,6 +18,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     groupDropdownIcon,
     groupDropdownMenu,
     copyGroupIdBtn,
+    createGroupButton,
     createChannelBtn,
     toggleDMButton,
     roomPanel,
@@ -33,6 +34,17 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     channelContentArea,
     selectedChannelTitle,
     textChannelContainer,
+    groupModal,
+    modalGroupCreateBtn,
+    modalGroupJoinBtn,
+    actualGroupCreateModal,
+    actualGroupName,
+    actualGroupNameBtn,
+    closeCreateGroupModal,
+    joinGroupModal,
+    joinGroupIdInput,
+    joinGroupIdBtn,
+    closeJoinGroupModal,
   } = window;
 
   loginButton.addEventListener('click', () => attemptLogin());
@@ -92,6 +104,60 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
         socket.emit('createChannel', { groupId: window.selectedGroup, name: name.trim() });
       }
       if (groupDropdownMenu) groupDropdownMenu.style.display = 'none';
+    });
+  }
+
+  if (createGroupButton) {
+    createGroupButton.addEventListener('click', () => {
+      if (groupModal) groupModal.style.display = 'flex';
+    });
+  }
+
+  if (modalGroupCreateBtn) {
+    modalGroupCreateBtn.addEventListener('click', () => {
+      if (groupModal) groupModal.style.display = 'none';
+      if (actualGroupCreateModal) actualGroupCreateModal.style.display = 'flex';
+    });
+  }
+
+  if (modalGroupJoinBtn) {
+    modalGroupJoinBtn.addEventListener('click', () => {
+      if (groupModal) groupModal.style.display = 'none';
+      if (joinGroupModal) joinGroupModal.style.display = 'flex';
+    });
+  }
+
+  if (closeCreateGroupModal) {
+    closeCreateGroupModal.addEventListener('click', () => {
+      if (actualGroupCreateModal) actualGroupCreateModal.style.display = 'none';
+    });
+  }
+
+  if (closeJoinGroupModal) {
+    closeJoinGroupModal.addEventListener('click', () => {
+      if (joinGroupModal) joinGroupModal.style.display = 'none';
+    });
+  }
+
+  if (actualGroupNameBtn) {
+    actualGroupNameBtn.addEventListener('click', () => {
+      const name = actualGroupName ? actualGroupName.value.trim() : '';
+      if (name) {
+        socket.emit('createGroup', name);
+        actualGroupName.value = '';
+        if (actualGroupCreateModal) actualGroupCreateModal.style.display = 'none';
+      }
+    });
+  }
+
+  if (joinGroupIdBtn) {
+    joinGroupIdBtn.addEventListener('click', () => {
+      const gid = joinGroupIdInput ? joinGroupIdInput.value.trim() : '';
+      if (gid) {
+        socket.emit('joinGroup', gid);
+        joinGroupIdInput.value = '';
+        if (joinGroupModal) joinGroupModal.style.display = 'none';
+      }
     });
   }
 
