@@ -203,6 +203,42 @@ function handleDisconnect(io, socket, context) {
   delete users[socket.id];
 }
 
+async function handleLeaveGroup(io, socket, context, groupId) {
+  const { users, groups, User, Group, onlineUsernames } = context;
+  if (!groups[groupId]) return;
+  const userData = users[socket.id];
+  if (!userData || !userData.username) return;
+
+  Object.keys(groups[groupId].rooms).forEach(roomId => {
+    if (groups[groupId].rooms[roomId].users.some(u => u.id === socket.id)) {
+      removeUserFromRoom(io, socket, users, groups, groupId, roomId);
+    }
+  });
+
+  groups[groupId].users = groups[groupId].users.filter(u => u.id !== socket.id);
+  socket.leave(groupId);
+  if (userData.currentGroup === groupId) {
+    userData.currentGroup = null;
+    userData.currentRoom = null;
+  }
+
+  try {
+    const userDoc = await User.findOne({ username: userData.username });
+    const groupDoc = await Group.findOne({ groupId });
+    if (userDoc && groupDoc) {
+      userDoc.groups = userDoc.groups.filter(gid => gid.toString() !== groupDoc._id.toString());
+      await userDoc.save();
+      groupDoc.users = groupDoc.users.filter(uid => uid.toString() !== userDoc._id.toString());
+      await groupDoc.save();
+    }
+  } catch (err) {
+    console.error('leaveGroup error:', err);
+  }
+
+  await sendGroupsListToUser(io, socket.id, { User, users });
+  broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
+}
+
 function register(io, socket, context) {
   const { users, groups, User, Group, Channel, onlineUsernames } = context;
 
@@ -251,6 +287,10 @@ function register(io, socket, context) {
     sendRoomsListToUser(io, socket.id, groups, groupId);
     broadcastAllChannelsData(io, users, groups, groupId);
     broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
+  });
+
+  socket.on('leaveGroup', async (groupId) => {
+    await handleLeaveGroup(io, socket, { users, groups, User, Group, onlineUsernames }, groupId);
   });
 
   socket.on('joinRoom', async ({ groupId, roomId }) => {
@@ -320,6 +360,28 @@ function register(io, socket, context) {
     }
   });
 
+  socket.on('renameChannel', async ({ channelId, newName }) => {
+    try {
+      if (!channelId || !newName) return;
+      const chDoc = await Channel.findOneAndUpdate(
+        { channelId },
+        { name: newName.trim() }
+      );
+      if (chDoc && typeof chDoc.populate === 'function') {
+        await chDoc.populate('group');
+      }
+      if (!chDoc || !chDoc.group) return;
+      const gid = chDoc.group.groupId;
+      if (groups[gid] && groups[gid].rooms[channelId]) {
+        groups[gid].rooms[channelId].name = newName.trim();
+        io.to(gid).emit('channelRenamed', { channelId, newName: newName.trim() });
+        broadcastRoomsListToGroup(io, groups, gid);
+      }
+    } catch (err) {
+      console.error('renameChannel error:', err);
+    }
+  });
+
   socket.on('deleteChannel', async channelId => {
     try {
       if (!channelId) return;
@@ -350,6 +412,7 @@ module.exports = {
   sendGroupsListToUser,
   broadcastAllChannelsData,
   broadcastGroupUsers,
+  handleLeaveGroup,
   removeUserFromAllGroupsAndRooms,
   handleDisconnect
 };
