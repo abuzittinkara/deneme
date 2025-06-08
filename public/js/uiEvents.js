@@ -118,7 +118,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
         groupSettingsBtn.style.display !== 'none'
       ) {
         groupSettingsModal.style.display = 'flex';
-      }
+        document.body.style.overflow = 'hidden';
       if (groupDropdownMenu) groupDropdownMenu.style.display = 'none';
     });
   }
@@ -165,6 +165,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     if (closeGroupSettingsModal) {
     closeGroupSettingsModal.addEventListener('click', () => {
       if (groupSettingsModal) groupSettingsModal.style.display = 'none';
+      document.body.style.overflow = '';
     });
   }
 
