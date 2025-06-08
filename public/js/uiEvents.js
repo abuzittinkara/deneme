@@ -20,6 +20,8 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     copyGroupIdBtn,
     createGroupButton,
     createChannelBtn,
+    groupSettingsBtn,
+    leaveGroupBtn,
     toggleDMButton,
     roomPanel,
     rightPanel,
@@ -106,7 +108,22 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
       if (groupDropdownMenu) groupDropdownMenu.style.display = 'none';
     });
   }
+  
+  if (groupSettingsBtn) {
+    groupSettingsBtn.addEventListener('click', () => {
+      const modal = document.getElementById('groupSettingsModal');
+      if (modal) modal.style.display = 'flex';
+      if (groupDropdownMenu) groupDropdownMenu.style.display = 'none';
+    });
+  }
 
+  if (leaveGroupBtn) {
+    leaveGroupBtn.addEventListener('click', () => {
+      if (window.selectedGroup) socket.emit('leaveGroup', window.selectedGroup);
+      if (groupDropdownMenu) groupDropdownMenu.style.display = 'none';
+    });
+  }
+  
   if (createGroupButton) {
     createGroupButton.addEventListener('click', () => {
       if (groupModal) groupModal.style.display = 'flex';

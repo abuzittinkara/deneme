@@ -109,6 +109,8 @@ const copyGroupIdBtn = document.getElementById('copyGroupIdBtn');
 const renameGroupBtn = document.getElementById('renameGroupBtn');
 const createChannelBtn = document.getElementById('createChannelBtn');
 const deleteGroupBtn = document.getElementById('deleteGroupBtn');
+const groupSettingsBtn = document.getElementById('groupSettingsBtn');
+const leaveGroupBtn = document.getElementById('leaveGroupBtn');
 
 // DM panel ve odalar alanı (kanallar paneli)
 const toggleDMButton = document.getElementById('toggleDMButton');
@@ -227,6 +229,12 @@ const joinGroupModal = document.getElementById('joinGroupModal');
 const joinGroupIdInput = document.getElementById('joinGroupIdInput');
 const joinGroupIdBtn = document.getElementById('joinGroupIdBtn');
 const closeJoinGroupModal = document.getElementById('closeJoinGroupModal');
+const roomModal = document.getElementById('roomModal');
+const modalRoomName = document.getElementById('modalRoomName');
+const textChannel = document.getElementById('textChannel');
+const voiceChannel = document.getElementById('voiceChannel');
+const modalCreateRoomBtn = document.getElementById('modalCreateRoomBtn');
+const modalCloseRoomBtn = document.getElementById('modalCloseRoomBtn');
 Object.assign(window, {
   loginScreen,
   registerScreen,
@@ -257,6 +265,8 @@ Object.assign(window, {
   copyGroupIdBtn,
   renameGroupBtn,
   createChannelBtn,
+  groupSettingsBtn,
+  leaveGroupBtn,
   deleteGroupBtn,
   toggleDMButton,
   roomPanel,
@@ -288,7 +298,13 @@ Object.assign(window, {
   joinGroupModal,
   joinGroupIdInput,
   joinGroupIdBtn,
-  closeJoinGroupModal
+  closeJoinGroupModal,
+  roomModal,
+  modalRoomName,
+  textChannel,
+  voiceChannel,
+  modalCreateRoomBtn,
+  modalCloseRoomBtn
 });
 window.WebRTC = WebRTC;
 window.joinRoom = WebRTC.joinRoom;

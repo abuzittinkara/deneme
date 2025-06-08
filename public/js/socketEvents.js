@@ -44,6 +44,8 @@ export function initSocketEvents(socket) {
     groupTitle,
     deleteGroupBtn,
     renameGroupBtn,
+    groupSettingsBtn,
+    leaveGroupBtn,
     roomListDiv,
     selectedChannelTitle,
     textChannelContainer,
@@ -176,9 +178,13 @@ export function initSocketEvents(socket) {
         if (groupObj.owner === window.username) {
           deleteGroupBtn.style.display = 'block';
           renameGroupBtn.style.display = 'block';
+          if (groupSettingsBtn) groupSettingsBtn.style.display = 'block';
+          if (leaveGroupBtn) leaveGroupBtn.style.display = 'none';
         } else {
           deleteGroupBtn.style.display = 'none';
           renameGroupBtn.style.display = 'none';
+          if (groupSettingsBtn) groupSettingsBtn.style.display = 'none';
+          if (leaveGroupBtn) leaveGroupBtn.style.display = 'block';
         }
       });
       groupListDiv.appendChild(grpItem);
