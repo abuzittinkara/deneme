@@ -229,6 +229,8 @@ const joinGroupModal = document.getElementById('joinGroupModal');
 const joinGroupIdInput = document.getElementById('joinGroupIdInput');
 const joinGroupIdBtn = document.getElementById('joinGroupIdBtn');
 const closeJoinGroupModal = document.getElementById('closeJoinGroupModal');
+const groupSettingsModal = document.getElementById('groupSettingsModal');
+const closeGroupSettingsModal = document.getElementById('closeGroupSettingsModal');
 const roomModal = document.getElementById('roomModal');
 const modalRoomName = document.getElementById('modalRoomName');
 const textChannel = document.getElementById('textChannel');
@@ -299,6 +301,8 @@ Object.assign(window, {
   joinGroupIdInput,
   joinGroupIdBtn,
   closeJoinGroupModal,
+  groupSettingsModal,
+  closeGroupSettingsModal,
   roomModal,
   modalRoomName,
   textChannel,

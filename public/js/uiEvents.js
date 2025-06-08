@@ -47,6 +47,8 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     joinGroupIdInput,
     joinGroupIdBtn,
     closeJoinGroupModal,
+    groupSettingsModal,
+    closeGroupSettingsModal,
   } = window;
 
   loginButton.addEventListener('click', () => attemptLogin());
@@ -111,8 +113,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
   
   if (groupSettingsBtn) {
     groupSettingsBtn.addEventListener('click', () => {
-      const modal = document.getElementById('groupSettingsModal');
-      if (modal) modal.style.display = 'flex';
+      if (groupSettingsModal) groupSettingsModal.style.display = 'flex';
       if (groupDropdownMenu) groupDropdownMenu.style.display = 'none';
     });
   }
@@ -123,7 +124,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
       if (groupDropdownMenu) groupDropdownMenu.style.display = 'none';
     });
   }
-  
+
   if (createGroupButton) {
     createGroupButton.addEventListener('click', () => {
       if (groupModal) groupModal.style.display = 'flex';
@@ -153,6 +154,12 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
   if (closeJoinGroupModal) {
     closeJoinGroupModal.addEventListener('click', () => {
       if (joinGroupModal) joinGroupModal.style.display = 'none';
+    });
+  }
+
+    if (closeGroupSettingsModal) {
+    closeGroupSettingsModal.addEventListener('click', () => {
+      if (groupSettingsModal) groupSettingsModal.style.display = 'none';
     });
   }
 
