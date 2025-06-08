@@ -270,21 +270,44 @@ function register(io, socket, context) {
   });
 
   socket.on('joinGroup', async (groupId) => {
-    if (!groups[groupId]) return;
-    if (users[socket.id].currentGroup === groupId) return;
-    removeUserFromAllGroupsAndRooms(io, socket, users, groups);
-    const userData = users[socket.id];
-    const userName = userData.username;
-    if (!userName) return socket.emit('errorMessage', 'Kullanıcı adınız yok.');
-    if (!groups[groupId].users.some(u => u.id === socket.id)) {
-      groups[groupId].users.push({ id: socket.id, username: userName });
+    try {
+      if (!groups[groupId]) return;
+      if (users[socket.id].currentGroup === groupId) return;
+
+      removeUserFromAllGroupsAndRooms(io, socket, users, groups);
+      const userData = users[socket.id];
+      const userName = userData.username;
+      if (!userName) return socket.emit('errorMessage', 'Kullanıcı adınız yok.');
+
+      const [userDoc, groupDoc] = await Promise.all([
+        User.findOne({ username: userName }),
+        Group.findOne({ groupId })
+      ]);
+
+      if (userDoc && groupDoc) {
+        if (!userDoc.groups.some(gid => gid.toString() === groupDoc._id.toString())) {
+          userDoc.groups.push(groupDoc._id);
+          await userDoc.save();
+        }
+        if (!groupDoc.users.some(uid => uid.toString() === userDoc._id.toString())) {
+          groupDoc.users.push(userDoc._id);
+          await groupDoc.save();
+        }
+      }
+
+      if (!groups[groupId].users.some(u => u.id === socket.id)) {
+        groups[groupId].users.push({ id: socket.id, username: userName });
+      }
+      userData.currentGroup = groupId;
+      userData.currentRoom = null;
+      socket.join(groupId);
+      sendRoomsListToUser(io, socket.id, groups, groupId);
+      await sendGroupsListToUser(io, socket.id, { User, users });
+      broadcastAllChannelsData(io, users, groups, groupId);
+      broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
+    } catch (err) {
+      console.error('joinGroup error:', err);
     }
-    userData.currentGroup = groupId;
-    userData.currentRoom = null;
-    socket.join(groupId);
-    sendRoomsListToUser(io, socket.id, groups, groupId);
-    broadcastAllChannelsData(io, users, groups, groupId);
-    broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
   });
 
   socket.on('browseGroup', (groupId) => {
