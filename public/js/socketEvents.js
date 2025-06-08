@@ -189,6 +189,29 @@ export function initSocketEvents(socket) {
       });
       groupListDiv.appendChild(grpItem);
     });
+    if (window.selectedGroup && !groupArray.some((g) => g.id === window.selectedGroup)) {
+      window.selectedGroup = null;
+      window.currentGroup = null;
+      window.currentRoom = null;
+      window.currentTextChannel = null;
+      window.currentRoomType = null;
+      groupTitle.textContent = 'Seçili Grup';
+      selectedChannelTitle.textContent = 'Kanal Seçilmedi';
+      roomListDiv.innerHTML = '';
+      if (typeof window.hideVoiceSections === 'function') window.hideVoiceSections();
+      if (textChannelContainer) textChannelContainer.style.display = 'none';
+      const container = document.getElementById('channelUsersContainer');
+      if (container) {
+        container.innerHTML = '';
+        container.classList.remove(
+          'layout-1-user',
+          'layout-2-users',
+          'layout-3-users',
+          'layout-4-users',
+          'layout-n-users',
+        );
+      }
+    }
   });
   socket.on('groupDeleted', ({ groupId }) => {
     const grpItems = document.querySelectorAll('.grp-item');
