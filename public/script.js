@@ -356,7 +356,7 @@ window.addEventListener('DOMContentLoaded', () => {
   socket = io(socketURL, { transports: ['websocket'] })
   initSocketEvents(socket);
   initUIEvents(socket, () => attemptLogin(socket, loginUsernameInput, loginPasswordInput, loginErrorMessage), () => attemptRegister(socket, {regUsernameInput, regNameInput, regSurnameInput, regBirthdateInput, regEmailInput, regPhoneInput, regPasswordInput, regPasswordConfirmInput, registerErrorMessage}));
-  initTypingIndicator(socket, () => currentTextChannel, () => username);
+  initTypingIndicator(socket, () => window.currentTextChannel, () => window.username);
   initFriendRequests(socket);
   
   const tm = textMessages;
