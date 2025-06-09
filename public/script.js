@@ -56,7 +56,7 @@ let device = null;   // mediasoup-client Device
 let username = null;
 let currentGroup = null;
 let currentRoom = null;
-let selectedGroup = null;
+let selectedGroup = localStorage.getItem('lastGroupId') || null;
 let currentTextChannel = null; // Metin kanalı için seçili kanal id'si
 let currentRoomType = null;    // "voice" veya "text"
 

@@ -173,6 +173,11 @@ export function initSocketEvents(socket) {
         document.querySelectorAll('.grp-item').forEach((el) => el.classList.remove('selected'));
         grpItem.classList.add('selected');
         window.selectedGroup = groupObj.id;
+        try {
+          localStorage.setItem('lastGroupId', groupObj.id);
+        } catch (e) {
+          console.warn('Unable to persist lastGroupId', e);
+        }
         groupTitle.textContent = groupObj.name;
         socket.emit('joinGroup', groupObj.id);
         if (typeof window.removeScreenShareEndedMessage === 'function') {
@@ -198,6 +203,19 @@ export function initSocketEvents(socket) {
       });
       groupListDiv.appendChild(grpItem);
     });
+    const storedGroup = (() => {
+      try {
+        return localStorage.getItem('lastGroupId');
+      } catch (e) {
+        return null;
+      }
+    })();
+    if (storedGroup && storedGroup !== window.selectedGroup) {
+      const el = groupListDiv.querySelector(`.grp-item[data-group-id="${storedGroup}"]`);
+      if (el) {
+        el.click();
+      }
+    }
     if (window.selectedGroup && !groupArray.some((g) => g.id === window.selectedGroup)) {
       window.selectedGroup = null;
       window.currentGroup = null;
@@ -280,6 +298,11 @@ export function initSocketEvents(socket) {
         window.currentTextChannel = roomObj.id;
         window.textMessages.dataset.channelId = roomObj.id;
         socket.emit('joinTextChannel', { groupId: window.selectedGroup, roomId: roomObj.id });
+        try {
+          localStorage.setItem(`lastTextChannel:${window.selectedGroup}`, roomObj.id);
+        } catch (e) {
+          console.warn('Unable to persist last text channel', e);
+        }
         if (typeof window.removeScreenShareEndedMessage === 'function') {
           window.removeScreenShareEndedMessage();
         }
@@ -338,6 +361,26 @@ export function initSocketEvents(socket) {
       const roomItem = buildChannelItem(roomObj);
       roomListDiv.appendChild(roomItem);
     });
+    const storedChannel = (() => {
+      try {
+        return localStorage.getItem(`lastTextChannel:${window.selectedGroup}`);
+      } catch (e) {
+        return null;
+      }
+    })();
+    let targetId = null;
+    if (storedChannel && roomsArray.some((r) => r.id === storedChannel && r.type === 'text')) {
+      targetId = storedChannel;
+    } else {
+      const firstText = roomsArray.find((r) => r.type === 'text');
+      if (firstText) targetId = firstText.id;
+    }
+    if (targetId) {
+      const el = roomListDiv.querySelector(`.channel-item[data-room-id="${targetId}"]`);
+      if (el) {
+        el.click();
+      }
+    }
   });
   socket.on('joinRoomAck', ({ groupId, roomId }) => {
     window.currentGroup = groupId;
