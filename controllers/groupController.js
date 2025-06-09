@@ -247,10 +247,12 @@ async function handleLeaveGroup(io, socket, context, groupId) {
 function register(io, socket, context) {
   const { users, groups, User, Group, Channel, onlineUsernames } = context;
 
-  socket.on('createGroup', async (groupName) => {
+  socket.on('createGroup', async ({ groupName, channelName }) => {
     try {
-      if (!groupName) return;
+      if (!groupName || !channelName) return;
       const trimmed = groupName.trim();
+      const chanTrimmed = channelName.trim();
+      if (!trimmed || !chanTrimmed) return;
       const userName = users[socket.id].username || null;
       if (!userName) return socket.emit('errorMessage', 'Kullanıcı adınız tanımlı değil.');
       const userDoc = await User.findOne({ username: userName });
@@ -261,6 +263,12 @@ function register(io, socket, context) {
       userDoc.groups.push(newGroup._id);
       await userDoc.save();
       groups[groupId] = { owner: userName, name: trimmed, users: [{ id: socket.id, username: userName }], rooms: {} };
+
+      const channelId = uuidv4();
+      const newChannel = new Channel({ channelId, name: chanTrimmed, group: newGroup._id, type: 'text' });
+      await newChannel.save();
+      groups[groupId].rooms[channelId] = { name: chanTrimmed, type: 'text', users: [] };
+
       await sendGroupsListToUser(io, socket.id, { User, users });
       broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
     } catch (err) {

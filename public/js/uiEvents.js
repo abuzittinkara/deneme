@@ -183,8 +183,13 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
   if (actualGroupNameBtn) {
     actualGroupNameBtn.addEventListener('click', () => {
       const name = actualGroupName ? actualGroupName.value.trim() : '';
-      if (name) {
-        socket.emit('createGroup', name);
+      if (!name) return;
+      const channelName = prompt('Metin kanalı adı:', 'general');
+      if (channelName && channelName.trim() !== '') {
+        socket.emit('createGroup', {
+          groupName: name,
+          channelName: channelName.trim()
+        });
         actualGroupName.value = '';
         if (actualGroupCreateModal) actualGroupCreateModal.style.display = 'none';
       }
