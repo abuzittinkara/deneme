@@ -206,7 +206,7 @@ const settingsButton = document.getElementById('settingsButton');
 // Metin Kanalı Elemanları
 const textChannelContainer = document.getElementById('textChannelContainer');
 const textMessages = document.getElementById('textMessages');
-const textChatInputBar = document.getElementById('text-chat-input-bar');
+const textChatInputBar = document.getElementById('textChatInputBar');
 const textChannelMessageInput = document.getElementById('textChannelMessageInput');
 const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
