@@ -60,4 +60,16 @@ module.exports = function registerTextChannelEvents(socket, { Channel, Message, 
       console.error("textMessage error:", err);
     }
   });
+
+  // Kullanıcının yazmaya başladığını diğer kullanıcılara bildir
+  socket.on('typing', ({ username, channel }) => {
+    if (!channel || !username) return;
+    socket.broadcast.to(channel).emit('typing', { username, channel });
+  });
+
+  // Kullanıcının yazmayı bıraktığını diğer kullanıcılara bildir
+  socket.on('stop typing', ({ username, channel }) => {
+    if (!channel || !username) return;
+    socket.broadcast.to(channel).emit('stop typing', { username, channel });
+  });
 };
