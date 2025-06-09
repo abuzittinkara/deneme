@@ -210,7 +210,7 @@ export function initSocketEvents(socket) {
         return null;
       }
     })();
-    if (storedGroup && storedGroup !== window.selectedGroup) {
+    if (storedGroup) {
       const el = groupListDiv.querySelector(`.grp-item[data-group-id="${storedGroup}"]`);
       if (el) {
         el.click();
