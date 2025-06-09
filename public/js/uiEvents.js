@@ -49,6 +49,8 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     closeJoinGroupModal,
     groupSettingsModal,
     closeGroupSettingsModal,
+    userSettingsModal,
+    closeUserSettingsModalBtn,
   } = window;
 
   loginButton.addEventListener('click', () => attemptLogin());
@@ -163,10 +165,18 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     });
   }
 
-    if (closeGroupSettingsModal) {
+  if (closeGroupSettingsModal) {
     closeGroupSettingsModal.addEventListener('click', () => {
       if (groupSettingsModal) groupSettingsModal.style.display = 'none';
       document.body.style.overflow = '';
+    });
+  }
+
+  if (closeUserSettingsModalBtn) {
+    closeUserSettingsModalBtn.addEventListener('click', () => {
+      if (typeof window.closeUserSettingsModal === 'function') {
+        window.closeUserSettingsModal();
+      }
     });
   }
 
@@ -273,7 +283,12 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     window.applyAudioStates();
   });
 
-  settingsButton.addEventListener('click', () => {});
+  settingsButton.addEventListener('click', () => {
+    if (userSettingsModal) {
+      userSettingsModal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+  });
 
   function sendTextMessage() {
     const msg = textChannelMessageInput.value.trim();

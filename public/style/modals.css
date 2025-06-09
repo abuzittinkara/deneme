@@ -37,6 +37,10 @@
   display: none;
 }
 
+#userSettingsModal {
+  display: none;
+}
+
 #groupSettingsModal .modal-content {
   width: 100%;
   height: 100%;
@@ -47,7 +51,24 @@
   overflow-y: auto;
 }
 
+#userSettingsModal .modal-content {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
 #closeGroupSettingsModal {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  cursor: pointer;
+}
+
+#closeUserSettingsModalBtn {
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
