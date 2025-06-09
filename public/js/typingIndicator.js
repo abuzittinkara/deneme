@@ -27,6 +27,7 @@ export function initTypingIndicator(socket, getCurrentTextChannel, getLocalUsern
   if (!typingIndicator) {
     typingIndicator = document.createElement('div');
     typingIndicator.id = 'typingIndicator';
+    typingIndicator.classList.add('typing-indicator');
     // Konumlandırma: inputField'ın parent öğesinin position: relative olduğunu varsayarak absolute konumlandırıyoruz.
     typingIndicator.style.position = 'absolute';
     // inputField'ın hemen altında, 5px boşluk bırakacak şekilde konumlandırıyoruz.
