@@ -402,6 +402,12 @@ function showChannelContextMenu(e, roomObj) {
   menu.style.left = e.pageX + 'px';
   menu.style.display = 'flex';
   menu.style.flexDirection = 'column';
+  let textChannelCount = 0;
+  if (window.latestChannelsData) {
+    textChannelCount = Object.values(window.latestChannelsData)
+      .filter(c => c.type === 'text').length;
+  }
+  
   const menuItems = [
     {
       text: 'Kanal Ayarları',
@@ -418,6 +424,7 @@ function showChannelContextMenu(e, roomObj) {
     },
     {
       text: 'Kanalı Sil',
+      hide: roomObj.type === 'text' && textChannelCount === 1,
       action: () => {
         if(confirm('Bu kanalı silmek istediğinize emin misiniz?')) {
           socket.emit('deleteChannel', roomObj.id);
@@ -426,6 +433,7 @@ function showChannelContextMenu(e, roomObj) {
     }
   ];
   menuItems.forEach(item => {
+    if (item.hide) return;
     const menuItem = document.createElement('div');
     menuItem.className = 'context-menu-item';
     menuItem.textContent = item.text;

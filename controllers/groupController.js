@@ -421,6 +421,26 @@ function register(io, socket, context) {
   socket.on('deleteChannel', async channelId => {
     try {
       if (!channelId) return;
+      
+      // Kanalı silmeden önce belgeyi ve grubunu bul
+      const chDoc = await Channel.findOne({ channelId }).populate('group');
+      if (!chDoc || !chDoc.group) return;
+
+      const gid = chDoc.group.groupId;
+
+      // Gruptaki metin kanalı sayısını kontrol et
+      const textCount = Object.values(groups[gid]?.rooms || {})
+        .filter(r => r.type === 'text').length;
+      if (chDoc.type === 'text' && textCount === 1) {
+        socket.emit('errorMessage', 'Grubun son metin kanalı silinemez.');
+        return;
+      }
+
+      const deleted = await Channel.findOneAndDelete({ channelId });
+      if (deleted && typeof deleted.populate === 'function') {
+        await deleted.populate('group');
+      }
+      
       const chDoc = await Channel.findOneAndDelete({ channelId });
       if (chDoc && typeof chDoc.populate === 'function') {
         await chDoc.populate('group');
