@@ -436,17 +436,7 @@ function register(io, socket, context) {
         return;
       }
 
-      const deleted = await Channel.findOneAndDelete({ channelId });
-      if (deleted && typeof deleted.populate === 'function') {
-        await deleted.populate('group');
-      }
-      
-      const chDoc = await Channel.findOneAndDelete({ channelId });
-      if (chDoc && typeof chDoc.populate === 'function') {
-        await chDoc.populate('group');
-      }
-      if (!chDoc || !chDoc.group) return;
-      const gid = chDoc.group.groupId;
+      await Channel.findOneAndDelete({ channelId });
       if (groups[gid]) {
         delete groups[gid].rooms[channelId];
         io.to(gid).emit('channelDeleted', { channelId });
