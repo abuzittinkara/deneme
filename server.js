@@ -165,12 +165,15 @@ app.use((err, req, res, next) => {
 
 process.on('uncaughtException', (err) => {
   logger.error(`Uncaught Exception: ${err.message}`);
-  process.exit(1); // güvenli çıkış yapalım
+  // optionally perform cleanup or continue running
 });
 
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', (reason) => {
   logger.error(`Unhandled Rejection: ${reason}`);
-  process.exit(1); // güvenli çıkış yapalım
 });
 
-startServer();
+if (process.env.NODE_ENV !== 'test') {
+  startServer();
+}
+
+module.exports = { startServer };
