@@ -14,6 +14,7 @@ const { createAdapter } = require('@socket.io/redis-adapter');
 const store = require('./utils/sharedStore');
 
 const { MONGODB_URI, PORT, rateLimitOptions, helmetCspOptions } = require('./config/appConfig');
+const { connectToDatabase } = require('./config/database');
 
 const User = require('./models/User');
 const Group = require('./models/Group');
@@ -49,18 +50,23 @@ Promise.all([pubClient.connect(), subClient.connect()])
   })
   .catch(err => console.error('Redis adapter connection error:', err));
 
-mongoose.connect(MONGODB_URI)
-  .then(async () => {
-    console.log("MongoDB bağlantısı başarılı!");
+async function startServer() {
+  try {
+    await connectToDatabase();
     await sfu.createWorkers();
     console.log("Mediasoup Workers hazır!");
     await groupController.loadGroupsFromDB({ Group, groups });
     await groupController.loadChannelsFromDB({ Channel, groups });
     console.log("Uygulama başlangıç yüklemeleri tamam.");
-  })
-  .catch(err => {
+
+    server.listen(PORT, () => {
+      console.log(`Sunucu çalışıyor: http://localhost:${PORT}`);
+    });
+  } catch (err) {
     console.error("MongoDB bağlantı hatası:", err);
-  });
+    process.exit(1);
+  }
+}
 
 // Helmet middleware'i özel CSP ayarları ile güncelle
 app.use(
@@ -192,6 +198,4 @@ process.on('unhandledRejection', (reason, promise) => {
   process.exit(1); // güvenli çıkış yapalım
 });
 
-server.listen(PORT, () => {
-  console.log(`Sunucu çalışıyor: http://localhost:${PORT}`);
-});
+startServer();
