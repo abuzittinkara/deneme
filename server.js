@@ -43,11 +43,17 @@ const io = socketIO(server, {
 // Use Redis adapter for Socket.IO
 const pubClient = store.redis.duplicate();
 const subClient = store.redis.duplicate();
-Promise.all([pubClient.connect(), subClient.connect()])
-  .then(() => {
+
+(async () => {
+  try {
+    await store.redis.connect();
+    await pubClient.connect();
+    await subClient.connect();
     io.adapter(createAdapter(pubClient, subClient));
-  })
-  .catch(err => console.error('Redis adapter connection error:', err));
+  } catch (err) {
+    console.error('Redis adapter connection error:', err);
+  }
+})();
 
 async function startServer() {
   try {
