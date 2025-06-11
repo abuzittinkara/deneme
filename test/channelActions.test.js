@@ -79,5 +79,4 @@ test('deleteChannel refuses to remove last text channel', async () => {
   assert.ok(groups.group1.rooms.chan1);
   assert.ok(!io.emitted.find(e=>e.ev==='channelDeleted'));
   assert.ok(errors.length > 0);
-  assert.ok(io.emitted.find(e=>e.ev==='channelDeleted'));
 });
