@@ -30,7 +30,6 @@ const logger = require('./utils/logger');
 const authController = require("./controllers/authController");
 const groupController = require("./controllers/groupController");
 const friendController = require("./controllers/friendController");
-const store = require('./utils/sharedStore');
 
 const app = express();
 app.set('trust proxy', 1); // Proxy güvendiğimizi belirt
