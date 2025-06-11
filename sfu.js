@@ -111,8 +111,8 @@ async function createWebRtcTransport(router) {
     listenIps: [
       {
         ip: '0.0.0.0',
-        // .env'de ANNOUNCED_IP tanımlıysa onu kullan, yoksa 31.57.154.104
-        announcedIp: process.env.ANNOUNCED_IP || '31.57.154.104'
+        // .env'de ANNOUNCED_IP tanımlıysa onu kullan, yoksa 127.0.0.1
+        announcedIp: process.env.ANNOUNCED_IP || '127.0.0.1'
       }
     ],
     enableUdp: true,
