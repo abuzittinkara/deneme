@@ -31,6 +31,8 @@ const authController = require("./controllers/authController");
 const groupController = require("./controllers/groupController");
 const friendController = require("./controllers/friendController");
 
+const disableRedis = !!process.env.DISABLE_REDIS;
+
 const app = express();
 app.set('trust proxy', 1); // Proxy güvendiğimizi belirt
 
@@ -40,20 +42,23 @@ const io = socketIO(server, {
   wsEngine: WebSocket.Server
 });
 
-// Use Redis adapter for Socket.IO
-const pubClient = store.redis.duplicate();
-const subClient = store.redis.duplicate();
+// Use Redis adapter for Socket.IO when not disabled
+let pubClient, subClient;
+if (!disableRedis) {
+  pubClient = store.redis.duplicate();
+  subClient = store.redis.duplicate();
 
-(async () => {
-  try {
-    await store.redis.connect();
-    await pubClient.connect();
-    await subClient.connect();
-    io.adapter(createAdapter(pubClient, subClient));
-  } catch (err) {
-    console.error('Redis adapter connection error:', err);
-  }
-})();
+  (async () => {
+    try {
+      await store.redis.connect();
+      await pubClient.connect();
+      await subClient.connect();
+      io.adapter(createAdapter(pubClient, subClient));
+    } catch (err) {
+      console.error('Redis adapter connection error:', err);
+    }
+  })();
+}
 
 async function startServer() {
   try {
@@ -99,12 +104,12 @@ const onlineUsernames = new Set();
 let friendRequests = {};
 
 (async () => {
-  const groupKeys = await store.redis.keys('group:*');
+  const groupKeys = disableRedis ? [] : await store.redis.keys('group:*');
   for (const key of groupKeys) {
     const gid = key.split(':')[1];
     groups[gid] = await store.getJSON(key) || {};
   }
-  const reqKeys = await store.redis.keys('friendreq:*');
+  const reqKeys = disableRedis ? [] : await store.redis.keys('friendreq:*');
   for (const key of reqKeys) {
     const uname = key.split(':')[1];
     friendRequests[uname] = await store.getJSON(key) || [];

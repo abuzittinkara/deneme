@@ -11,6 +11,7 @@ This project contains the backend and frontend assets for a WebSocket-based chat
   - `MONGODB_URI` – MongoDB connection string
   - `PORT` – (optional) server port, defaults to `3000`
   - `REDIS_URL` – (optional) Redis connection string, defaults to `redis://localhost:6379`
+  - `DISABLE_REDIS` – (optional) set to `true` to use an in-memory store instead of Redis
   - `ANNOUNCED_IP` – (optional) public IP for mediasoup
   - `TURN_USERNAME` and `TURN_CREDENTIAL` – (optional) credentials for TURN servers
   - `SOCKET_URL` – (optional) base URL for the Socket.IO server. Defaults to
@@ -51,8 +52,11 @@ webpack.config.js   Bundles mediasoup-client into `public/libs`
 ```bash
 npm start
 ```
-Ensure a Redis server is running before starting. The server will connect to MongoDB using the URL in `MONGODB_URI` and to Redis via `REDIS_URL`. It listens on the port specified by `PORT` (default `3000`).
-## Testing
+By default the server expects a Redis instance. Set `DISABLE_REDIS=true` to run using the in-memory store. When Redis is enabled, it connects using `REDIS_URL`.
+For example:
+```bash
+DISABLE_REDIS=true npm start
+```
 
 Ensure dependencies are installed first:
 
