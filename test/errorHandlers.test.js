@@ -5,7 +5,7 @@ const logger = require('../utils/logger');
 // Helper to require server without starting timers or the HTTP server
 function loadServer() {
   const originalSetInterval = global.setInterval;
-  global.setInterval = () => {}; // prevent timers
+  global.setInterval = () => ({ unref() {} }); // prevent timers
   delete require.cache[require.resolve('../server')];
   const serverModule = require('../server');
   global.setInterval = originalSetInterval;
