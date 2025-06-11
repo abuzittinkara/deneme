@@ -444,7 +444,10 @@ function register(io, socket, context) {
       if (!channelId) return;
       
       // Kanalı silmeden önce belgeyi ve grubunu bul
-      const chDoc = await Channel.findOne({ channelId }).populate('group');
+      const chDoc = await Channel.findOne({ channelId });
+      if (chDoc && typeof chDoc.populate === 'function') {
+        await chDoc.populate('group');
+      }
       if (!chDoc || !chDoc.group) return;
 
       const gid = chDoc.group.groupId;
