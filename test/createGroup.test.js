@@ -30,6 +30,7 @@ function createContext() {
 
 test('createGroup requires channel name and creates channel', async () => {
   const socket = new EventEmitter();
+  socket.id = 'sock1';
   const io = { to(){ return { emit(){} }; } };
   const ctx = createContext();
   groupController.register(io, socket, { ...ctx, onlineUsernames: new Set(['u1']) });
@@ -46,6 +47,7 @@ test('createGroup requires channel name and creates channel', async () => {
 
 test('createGroup rejects without channel name', async () => {
   const socket = new EventEmitter();
+  socket.id = 'sock1';
   const io = { to(){ return { emit(){} }; } };
   const ctx = createContext();
   groupController.register(io, socket, { ...ctx, onlineUsernames: new Set(['u1']) });
