@@ -61,7 +61,6 @@ test('deleteChannel removes from memory and emits event', async () => {
   const socket = new EventEmitter();
   const io = { emitted: [], to(room) { return { emit:(ev,p)=>io.emitted.push({room,ev,p}) }; } };
   const { users, groups, Channel } = createContextWithTwoChannels();
-  const { users, groups, Channel } = createContext();
   groupController.register(io, socket, { users, groups, User:{}, Group:{}, Channel, onlineUsernames:new Set() });
   const handler = socket.listeners('deleteChannel')[0];
   await handler('chan1');
