@@ -1,6 +1,6 @@
 // Friend request and messaging handlers
 function registerFriendHandlers(io, socket, context) {
-  const { users, onlineUsernames, friendRequests, User, DMMessage } = context;
+  const { users, onlineUsernames, friendRequests, User, DMMessage, store } = context;
 
   socket.on('sendFriendRequest', (data, callback) => {
     const fromUsername = users[socket.id]?.username;
@@ -12,16 +12,20 @@ function registerFriendHandlers(io, socket, context) {
       const exists = friendRequests[targetUsername].some(req => req.from === fromUsername);
       if (exists) return callback({ success: false, message: 'Zaten arkadaşlık isteği gönderildi.' });
       friendRequests[targetUsername].push({ from: fromUsername, timestamp: new Date() });
+      if (store) store.setJSON(store.key('friendreq', targetUsername), friendRequests[targetUsername]);
       callback({ success: true });
     } catch (err) {
       callback({ success: false, message: 'Arkadaşlık isteği gönderilirken bir hata oluştu.' });
     }
   });
 
-  socket.on('getPendingFriendRequests', (data, callback) => {
+  socket.on('getPendingFriendRequests', async (data, callback) => {
     const username = users[socket.id]?.username;
     if (!username) return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
-    const requests = friendRequests[username] || [];
+    let requests = friendRequests[username];
+    if (!requests && store) requests = await store.getJSON(store.key('friendreq', username));
+    requests = requests || [];
+    friendRequests[username] = requests;
     callback({ success: true, requests });
   });
 
@@ -31,7 +35,10 @@ function registerFriendHandlers(io, socket, context) {
       if (!username) return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
       const fromUsername = data.from;
       if (!fromUsername) return callback({ success: false, message: 'Kimin isteği kabul edileceği belirtilmedi.' });
-      if (friendRequests[username]) friendRequests[username] = friendRequests[username].filter(req => req.from !== fromUsername);
+      if (friendRequests[username]) {
+        friendRequests[username] = friendRequests[username].filter(req => req.from !== fromUsername);
+        if (store) store.setJSON(store.key('friendreq', username), friendRequests[username]);
+      }
       const userDoc = await User.findOne({ username });
       const friendDoc = await User.findOne({ username: fromUsername });
       if (!userDoc || !friendDoc) return callback({ success: false, message: 'Kullanıcılar bulunamadı.' });

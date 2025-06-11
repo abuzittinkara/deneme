@@ -1,12 +1,14 @@
 // Group and channel management
 const { v4: uuidv4 } = require('uuid');
 const sfu = require('../sfu');
+const store = require('../utils/sharedStore');
 
 async function loadGroupsFromDB({ Group, groups }) {
   try {
     const groupDocs = await Group.find({}).populate('owner', 'username');
     groupDocs.forEach(g => {
       groups[g.groupId] = { owner: g.owner.username, name: g.name, users: [], rooms: {} };
+      store.setJSON(store.key('group', g.groupId), groups[g.groupId]);
     });
     console.log('loadGroupsFromDB tamam, groups:', Object.keys(groups));
   } catch (err) {
@@ -22,6 +24,7 @@ async function loadChannelsFromDB({ Channel, groups }) {
       const gid = ch.group.groupId;
       if (!groups[gid]) return;
       groups[gid].rooms[ch.channelId] = { name: ch.name, type: ch.type, users: [] };
+      store.setJSON(store.key('group', gid), groups[gid]);
     });
     console.log('loadChannelsFromDB tamam.');
   } catch (err) {
@@ -123,7 +126,7 @@ function cleanupWatchingRelations(io, users, userId) {
   }
 }
 
-function removeUserFromRoom(io, socket, users, groups, groupId, roomId) {
+function removeUserFromRoom(io, socket, users, groups, groupId, roomId, store) {
   const rmObj = groups[groupId]?.rooms[roomId];
   if (!rmObj) return;
   cleanupWatchingRelations(io, users, socket.id);
@@ -162,18 +165,20 @@ function removeUserFromRoom(io, socket, users, groups, groupId, roomId) {
     users[socket.id].currentRoom = null;
   }
   broadcastAllChannelsData(io, users, groups, groupId);
+  if (store) store.setJSON(store.key('group', groupId), groups[groupId]);
 }
 
 
-function removeUserFromAllGroupsAndRooms(io, socket, users, groups) {
+function removeUserFromAllGroupsAndRooms(io, socket, users, groups, store) {
   const socketId = socket.id;
   Object.keys(groups).forEach(gid => {
     const grpObj = groups[gid];
     grpObj.users = grpObj.users.filter(u => u.id !== socketId);
     Object.keys(grpObj.rooms).forEach(roomId => {
-      removeUserFromRoom(io, socket, users, groups, gid, roomId);
+      removeUserFromRoom(io, socket, users, groups, gid, roomId, store);
     });
     socket.leave(gid);
+    if (store) store.setJSON(store.key('group', gid), groups[gid]);
   });
   if (users[socket.id]) {
     users[socket.id].currentGroup = null;
@@ -200,23 +205,27 @@ async function broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId) 
 }
 
 function handleDisconnect(io, socket, context) {
-  const { users, onlineUsernames, groups } = context;
+  const { users, onlineUsernames, groups, store } = context;
   const username = users[socket.id]?.username;
-  if (username) onlineUsernames.delete(username);
-  removeUserFromAllGroupsAndRooms(io, socket, users, groups);
+  if (username) {
+    onlineUsernames.delete(username);
+    if (store) store.removeSetMember('onlineUsers', username);
+  }
+  removeUserFromAllGroupsAndRooms(io, socket, users, groups, store);
   cleanupWatchingRelations(io, users, socket.id);
   delete users[socket.id];
+  if (store) store.del(store.key('session', socket.id));
 }
 
 async function handleLeaveGroup(io, socket, context, groupId) {
-  const { users, groups, User, Group, onlineUsernames } = context;
+  const { users, groups, User, Group, onlineUsernames, store } = context;
   if (!groups[groupId]) return;
   const userData = users[socket.id];
   if (!userData || !userData.username) return;
 
   Object.keys(groups[groupId].rooms).forEach(roomId => {
     if (groups[groupId].rooms[roomId].users.some(u => u.id === socket.id)) {
-      removeUserFromRoom(io, socket, users, groups, groupId, roomId);
+      removeUserFromRoom(io, socket, users, groups, groupId, roomId, store);
     }
   });
 
@@ -225,6 +234,7 @@ async function handleLeaveGroup(io, socket, context, groupId) {
   if (userData.currentGroup === groupId) {
     userData.currentGroup = null;
     userData.currentRoom = null;
+    if (store) store.setJSON(store.key('session', socket.id), userData);
   }
 
   try {
@@ -242,6 +252,7 @@ async function handleLeaveGroup(io, socket, context, groupId) {
 
   await sendGroupsListToUser(io, socket.id, { User, users });
   broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
+  if (store) store.setJSON(store.key('group', groupId), groups[groupId]);
 }
 
 function register(io, socket, context) {
@@ -263,11 +274,17 @@ function register(io, socket, context) {
       userDoc.groups.push(newGroup._id);
       await userDoc.save();
       groups[groupId] = { owner: userName, name: trimmed, users: [{ id: socket.id, username: userName }], rooms: {} };
+      if (context.store) {
+        context.store.setJSON(context.store.key('group', groupId), groups[groupId]);
+      }
 
       const channelId = uuidv4();
       const newChannel = new Channel({ channelId, name: chanTrimmed, group: newGroup._id, type: 'text' });
       await newChannel.save();
       groups[groupId].rooms[channelId] = { name: chanTrimmed, type: 'text', users: [] };
+      if (context.store) {
+        context.store.setJSON(context.store.key('group', groupId), groups[groupId]);
+      }
 
       await sendGroupsListToUser(io, socket.id, { User, users });
       broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
@@ -282,7 +299,7 @@ function register(io, socket, context) {
       if (!groups[groupId]) return;
       if (users[socket.id].currentGroup === groupId) return;
 
-      removeUserFromAllGroupsAndRooms(io, socket, users, groups);
+      removeUserFromAllGroupsAndRooms(io, socket, users, groups, context.store);
       const userData = users[socket.id];
       const userName = userData.username;
       if (!userName) return socket.emit('errorMessage', 'Kullanıcı adınız yok.');
@@ -305,9 +322,11 @@ function register(io, socket, context) {
 
       if (!groups[groupId].users.some(u => u.id === socket.id)) {
         groups[groupId].users.push({ id: socket.id, username: userName });
+        if (context.store) context.store.setJSON(context.store.key('group', groupId), groups[groupId]);
       }
       userData.currentGroup = groupId;
       userData.currentRoom = null;
+      if (context.store) context.store.setJSON(context.store.key('session', socket.id), userData);
       socket.join(groupId);
       sendRoomsListToUser(io, socket.id, groups, groupId);
       await sendGroupsListToUser(io, socket.id, { User, users });
@@ -353,9 +372,11 @@ function register(io, socket, context) {
       }
       if (!groups[groupId].users.some(u => u.id === socket.id)) {
         groups[groupId].users.push({ id: socket.id, username: userName });
+        if (context.store) context.store.setJSON(context.store.key('group', groupId), groups[groupId])
       }
       userData.currentGroup = groupId;
       userData.currentRoom = roomId;
+      if (context.store) context.store.setJSON(context.store.key('session', socket.id), userData);
       socket.join(groupId);
       socket.join(`${groupId}::${roomId}`);
       socket.emit('joinRoomAck', { groupId, roomId });

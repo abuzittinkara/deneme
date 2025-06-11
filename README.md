@@ -6,9 +6,11 @@ This project contains the backend and frontend assets for a WebSocket-based chat
 
 - **Node.js** 18 or later
 - **MongoDB** running instance
+- **Redis** running instance for sharing state
 - `.env` file at the project root defining:
   - `MONGODB_URI` – MongoDB connection string
   - `PORT` – (optional) server port, defaults to `3000`
+  - `REDIS_URL` – (optional) Redis connection string, defaults to `redis://localhost:6379`
   - `ANNOUNCED_IP` – (optional) public IP for mediasoup
   - `TURN_USERNAME` and `TURN_CREDENTIAL` – (optional) credentials for TURN servers
   - `SOCKET_URL` – (optional) base URL for the Socket.IO server. Defaults to
@@ -45,10 +47,10 @@ webpack.config.js   Bundles mediasoup-client into `public/libs`
    npx webpack
    ```
 3. Start the application:
- ```bash
- npm start
+```bash
+npm start
 ```
-The server will connect to MongoDB using the URL in `MONGODB_URI` and listen on the port specified by `PORT` (default `3000`).
+Ensure a Redis server is running before starting. The server will connect to MongoDB using the URL in `MONGODB_URI` and to Redis via `REDIS_URL`. It listens on the port specified by `PORT` (default `3000`).
 ## Testing
 
 Ensure dependencies are installed first:

@@ -9,6 +9,9 @@ const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const { createAdapter } = require('@socket.io/redis-adapter');
+
+const store = require('./utils/sharedStore');
 
 const { MONGODB_URI, PORT, rateLimitOptions, helmetCspOptions } = require('./config/appConfig');
 
@@ -26,6 +29,7 @@ const logger = require('./utils/logger');
 const authController = require("./controllers/authController");
 const groupController = require("./controllers/groupController");
 const friendController = require("./controllers/friendController");
+const store = require('./utils/sharedStore');
 
 const app = express();
 app.set('trust proxy', 1); // Proxy güvendiğimizi belirt
@@ -35,6 +39,15 @@ const server = http.createServer(app);
 const io = socketIO(server, {
   wsEngine: WebSocket.Server
 });
+
+// Use Redis adapter for Socket.IO
+const pubClient = store.redis.duplicate();
+const subClient = store.redis.duplicate();
+Promise.all([pubClient.connect(), subClient.connect()])
+  .then(() => {
+    io.adapter(createAdapter(pubClient, subClient));
+  })
+  .catch(err => console.error('Redis adapter connection error:', err));
 
 mongoose.connect(MONGODB_URI)
   .then(async () => {
@@ -68,11 +81,26 @@ app.use(
 // Rate limiting middleware'i ekle
 app.use(rateLimit(rateLimitOptions));
 
-// --- Bellek içi tablolar (aynı kaldı) ---
+// --- Shared store backed objects --
 const users = {};
 const groups = {};
 const onlineUsernames = new Set();
 let friendRequests = {};
+
+(async () => {
+  const groupKeys = await store.redis.keys('group:*');
+  for (const key of groupKeys) {
+    const gid = key.split(':')[1];
+    groups[gid] = await store.getJSON(key) || {};
+  }
+  const reqKeys = await store.redis.keys('friendreq:*');
+  for (const key of reqKeys) {
+    const uname = key.split(':')[1];
+    friendRequests[uname] = await store.getJSON(key) || [];
+  }
+  const online = await store.getSetMembers('onlineUsers');
+  online.forEach(u => onlineUsernames.add(u));
+})();
 
 // → Friend request'lerin 24 saat sonra otomatik temizlenmesi için TTL mekanizması
 const FRIEND_REQUEST_TTL_MS = 24 * 60 * 60 * 1000;       // 24 saat
@@ -87,13 +115,16 @@ setInterval(() => {
     // Eğer hiç kalmadıysa tüm girişi sil
     if (friendRequests[username].length === 0) {
       delete friendRequests[username];
+      store.del(store.key('friendreq', username));
+    } else {
+      store.setJSON(store.key('friendreq', username), friendRequests[username]);
     }
   }
 }, FRIEND_REQUEST_CLEANUP_INTERVAL_MS);
 
 app.use(expressWinston.logger({ winstonInstance: logger, meta: false, msg: "{{req.method}} {{req.url}} - {{res.statusCode}} ({{res.responseTime}}ms)", colorize: true }));
 app.use(express.static("public"));
-const context = { User, Group, Channel, Message, DMMessage, users, groups, onlineUsernames, friendRequests, sfu, groupController };
+const context = { User, Group, Channel, Message, DMMessage, users, groups, onlineUsernames, friendRequests, sfu, groupController, store };
 
 io.on("connection", (socket) => {
   logger.info(`Yeni bağlantı: ${socket.id}`);
@@ -110,7 +141,19 @@ io.on("connection", (socket) => {
     watching: new Set(),
     watchers: new Set()
   };
-  authController(io, socket, { User, users, onlineUsernames, groupController });
+  store.setJSON(store.key('session', socket.id), {
+    username: null,
+    currentGroup: null,
+    currentRoom: null,
+    micEnabled: true,
+    selfDeafened: false,
+    isScreenSharing: false,
+    screenShareProducerId: null,
+    hasMic: true,
+    watching: [],
+    watchers: []
+  });
+  authController(io, socket, { User, users, onlineUsernames, groupController, store });
   groupController.register(io, socket, context);
   friendController(io, socket, context);
   registerMediaEvents(io, socket, {
@@ -118,7 +161,8 @@ io.on("connection", (socket) => {
     users,
     sfu,
     broadcastAllChannelsData: groupController.broadcastAllChannelsData.bind(null, io, users, groups),
-    logger
+    logger,
+    store
   });
   registerTextChannelEvents(socket, { Channel, Message, User });
   socket.on("disconnect", () => { groupController.handleDisconnect(io, socket, context); });

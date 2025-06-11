@@ -78,6 +78,10 @@ function registerAuthHandlers(io, socket, context) {
       const trimmedName = usernameVal.trim();
       users[socket.id].username = trimmedName;
       onlineUsernames.add(trimmedName);
+      if (context.store) {
+        context.store.setJSON(context.store.key('session', socket.id), users[socket.id]);
+        context.store.addSetMember('onlineUsers', trimmedName);
+      }
       if (groupController && groupController.sendGroupsListToUser) {
         await groupController.sendGroupsListToUser(io, socket.id, { User, users });
       }
