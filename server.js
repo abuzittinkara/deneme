@@ -9,8 +9,6 @@ const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const { createAdapter } = require('@socket.io/redis-adapter');
-
 const store = require('./utils/sharedStore');
 
 const { MONGODB_URI, PORT, rateLimitOptions, helmetCspOptions } = require('./config/appConfig');
@@ -31,8 +29,6 @@ const authController = require("./controllers/authController");
 const groupController = require("./controllers/groupController");
 const friendController = require("./controllers/friendController");
 
-const disableRedis = !!process.env.DISABLE_REDIS;
-
 const app = express();
 app.set('trust proxy', 1); // Proxy güvendiğimizi belirt
 
@@ -42,23 +38,7 @@ const io = socketIO(server, {
   wsEngine: WebSocket.Server
 });
 
-// Use Redis adapter for Socket.IO when not disabled
-let pubClient, subClient;
-if (!disableRedis) {
-  pubClient = store.redis.duplicate();
-  subClient = store.redis.duplicate();
-
-  (async () => {
-    try {
-      await store.redis.connect();
-      await pubClient.connect();
-      await subClient.connect();
-      io.adapter(createAdapter(pubClient, subClient));
-    } catch (err) {
-      console.error('Redis adapter connection error:', err);
-    }
-  })();
-}
+// In-memory Socket.IO instance
 
 async function startServer() {
   try {
@@ -102,21 +82,6 @@ const users = {};
 const groups = {};
 const onlineUsernames = new Set();
 let friendRequests = {};
-
-(async () => {
-  const groupKeys = disableRedis ? [] : await store.redis.keys('group:*');
-  for (const key of groupKeys) {
-    const gid = key.split(':')[1];
-    groups[gid] = await store.getJSON(key) || {};
-  }
-  const reqKeys = disableRedis ? [] : await store.redis.keys('friendreq:*');
-  for (const key of reqKeys) {
-    const uname = key.split(':')[1];
-    friendRequests[uname] = await store.getJSON(key) || [];
-  }
-  const online = await store.getSetMembers('onlineUsers');
-  online.forEach(u => onlineUsernames.add(u));
-})();
 
 // → Friend request'lerin 24 saat sonra otomatik temizlenmesi için TTL mekanizması
 const FRIEND_REQUEST_TTL_MS = 24 * 60 * 60 * 1000;       // 24 saat
