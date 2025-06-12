@@ -12,6 +12,19 @@
   overflow: hidden;
   aspect-ratio: 16 / 9;
 }
+.user-card .user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #666;
+}
+.user-info {
+  display: flex;
+  flex-direction: column;
+  margin-right: auto;
+}
+.user-card .user-name { color: #fff; font-size: 0.95rem; font-weight: 500; }
+.user-status { color: #777; font-size: 0.75rem; }
 
 /* Sesli kanallarda kullanılacak kullanıcı kartlarını içeren konteyner */
 .channel-users-container {
@@ -47,3 +60,4 @@
   color: #5a5a5a;
   padding: 0 10px;
   background: transparent;
+}

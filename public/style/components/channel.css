@@ -336,29 +336,6 @@
   background: none;
   color: #444;
 }
-.user-card {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: #2d2d2d;
-  padding: 0;
-  border: 1px solid #444;
-  border-radius: 8px;
-  aspect-ratio: 16 / 9;
-}
-.user-card .user-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #666;
-}
-.user-info {
-  display: flex;
-  flex-direction: column;
-  margin-right: auto;
-}
-.user-card .user-name { color: #fff; font-size: 0.95rem; font-weight: 500; }
-.user-status { color: #777; font-size: 0.75rem; }
 .icon-btn {
   background: none;
   border: none;
