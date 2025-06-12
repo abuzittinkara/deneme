@@ -313,7 +313,7 @@ export function initSocketEvents(socket) {
       document.querySelectorAll('.channel-item').forEach((ci) => ci.classList.remove('connected'));
       if (window.currentRoom === roomObj.id && window.currentGroup === window.selectedGroup) {
         roomItem.classList.add('connected');
-        window.updateVoiceChannelUI(roomObj.name);
+        window.updateVoiceChannelUI(roomObj.name, true);
         return;
       }
       if (window.currentRoom && (window.currentRoom !== roomObj.id || window.currentGroup !== window.selectedGroup)) {

@@ -498,14 +498,19 @@ function showVideoContextMenu(e) {
 window.showVideoContextMenu = showVideoContextMenu;
 
 /* Yeni fonksiyon: updateVoiceChannelUI */
-function updateVoiceChannelUI(roomName) {
+function updateVoiceChannelUI(roomName, alreadyConnected = false) {
   selectedChannelTitle.textContent = roomName;
   const channelUsersContainer = document.getElementById('channelUsersContainer');
   if (channelUsersContainer) {
     channelUsersContainer.style.display = 'flex';
   }
   textChannelContainer.style.display = 'none';
-  showChannelStatusPanel();
+  if (alreadyConnected) {
+    if (channelStatusPanel) channelStatusPanel.style.display = 'flex';
+    showVoiceSections();
+  } else {
+    showChannelStatusPanel();
+  }
 }
 window.updateVoiceChannelUI = updateVoiceChannelUI;
 
