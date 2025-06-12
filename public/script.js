@@ -17,14 +17,14 @@ function clearScreenShareUI() {
     }
     WebRTC.setScreenShareVideo(null);
   }
-  if (screenShareButton) {
+  if (!window.screenShareProducerVideo && screenShareButton) {
     screenShareButton.classList.remove('active');
     const smallIcon = screenShareButton.querySelector('.material-icons');
     if (smallIcon) smallIcon.textContent = 'desktop_windows';
   }
-  if (screenShareLargeButton) {
+  if (!window.screenShareProducerVideo && screenShareLargeButton) {
     screenShareLargeButton.classList.remove('active');
-    const largeIcon = screenShareLargeButton.querySelector('.material-icons');
+    const largeIcon = screenShareLargeButton.querySelector('.material-icons, .material-icons-outlined');
     if (largeIcon) largeIcon.textContent = 'desktop_windows';
   }
   const overlay = document.getElementById('screenShareOverlay');

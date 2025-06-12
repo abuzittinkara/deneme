@@ -331,7 +331,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
         if (smallIcon) smallIcon.textContent = 'desktop_windows';
         if (screenShareLargeButton) screenShareLargeButton.classList.remove('active');
         if (screenShareLargeButton) {
-          const largeIcon = screenShareLargeButton.querySelector('.material-icons');
+          const largeIcon = screenShareLargeButton.querySelector('.material-icons, .material-icons-outlined');
           if (largeIcon) {
             largeIcon.textContent = 'desktop_windows';
             largeIcon.classList.add('material-icons');
@@ -351,7 +351,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
           if (smallIcon) smallIcon.textContent = 'desktop_access_disabled';
           if (screenShareLargeButton) screenShareLargeButton.classList.add('active');
           if (screenShareLargeButton) {
-            const largeIcon = screenShareLargeButton.querySelector('.material-icons');
+            const largeIcon = screenShareLargeButton.querySelector('.material-icons, .material-icons-outlined');
           if (largeIcon) {
             largeIcon.textContent = 'desktop_access_disabled';
             largeIcon.classList.remove('material-icons');
@@ -369,7 +369,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
       if (window.screenShareProducerVideo) {
         await ScreenShare.stopScreenShare(socket);
         screenShareLargeButton.classList.remove('active');
-        const largeIcon = screenShareLargeButton.querySelector('.material-icons');
+        const largeIcon = screenShareLargeButton.querySelector('.material-icons, .material-icons-outlined');
         if (largeIcon) {
           largeIcon.textContent = 'desktop_windows';
           largeIcon.classList.add('material-icons');
@@ -389,7 +389,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
           window.clearScreenShareUI();
           await ScreenShare.startScreenShare(sendTransport, socket);
           screenShareLargeButton.classList.add('active');
-          const largeIcon = screenShareLargeButton.querySelector('.material-icons');
+          const largeIcon = screenShareLargeButton.querySelector('.material-icons, .material-icons-outlined');
           if (largeIcon) {
             largeIcon.textContent = 'desktop_access_disabled';
             largeIcon.classList.remove('material-icons');
