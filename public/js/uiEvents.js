@@ -258,13 +258,6 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
       const container = document.getElementById('channelUsersContainer');
       if (container) {
         container.innerHTML = '';
-        container.classList.remove(
-          'layout-1-user',
-          'layout-2-users',
-          'layout-3-users',
-          'layout-4-users',
-          'layout-n-users',
-        );
       }
       textChannelContainer.style.display = 'none';
       socket.emit('browseGroup', window.currentGroup);
