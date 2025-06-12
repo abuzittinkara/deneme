@@ -375,6 +375,12 @@ export function initSocketEvents(socket) {
       if (window.currentRoom === roomObj.id && window.currentGroup === window.selectedGroup) {
         roomItem.classList.add('connected');
         window.updateVoiceChannelUI(roomObj.name, true);
+        if (
+          window.latestChannelsData &&
+          window.latestChannelsData[roomObj.id]
+        ) {
+          renderVoiceChannelGrid(window.latestChannelsData[roomObj.id].users);
+        }
         return;
       }
       if (window.currentRoom && (window.currentRoom !== roomObj.id || window.currentGroup !== window.selectedGroup)) {
