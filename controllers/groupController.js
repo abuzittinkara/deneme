@@ -50,7 +50,7 @@ async function sendGroupsListToUser(io, socketId, { User, users }) {
     const groupList = userDoc.groups.map(g => ({
       id: g.groupId,
       name: g.name,
-      owner: g.owner.username
+      owner: g.owner?.username || null
     }));
     io.to(socketId).emit('groupsList', groupList);
   } catch (err) {
