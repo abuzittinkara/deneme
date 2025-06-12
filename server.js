@@ -164,7 +164,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-process.setUncaughtExceptionCaptureCallback((err) => {
+process.on('uncaughtException', (err) => {
   logger.error(`Uncaught Exception: ${err.message}`);
 });
 
