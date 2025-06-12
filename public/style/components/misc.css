@@ -16,70 +16,12 @@
 .channel-users-container {
   flex: 1;
   padding: 1rem;
-  overflow-y: auto;
-  overflow-x: hidden;
-  display: flex;
-  align-content: flex-start;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-.layout-1-user {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  align-items: flex-start;
-  justify-content: flex-start;
-}
-.layout-1-user .user-card {
-  width: 100%;
-  margin: 0;
-  height: auto;
-}
-.layout-2-users {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-auto-rows: 1fr;
+  gap: 0.5rem;
   width: 100%;
-  height: auto;
-}
-.layout-2-users .user-card {
-  width: 100%;
-  height: auto;
-  margin: 0;
-}
-.layout-3-users {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  width: 100%;
-  height: auto;
-}
-.layout-3-users .user-card:nth-child(3) {
-  grid-column: 1 / span 2;
-  width: 100%;
-}
-.layout-4-users {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  width: 100%;
-  height: auto;
-}
-.layout-4-users .user-card {
-  width: 100%;
-  height: auto;
-  margin: 0;
-}
-.layout-n-users {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  width: 100%;
-  height: auto;
-}
-.layout-n-users .user-card {
-  width: 100%;
-  height: auto;
+  height: 100%;
 }
 
 /* Tarih Ayırıcı Stili */
@@ -105,24 +47,3 @@
   color: #5a5a5a;
   padding: 0 10px;
   background: transparent;
-  border-radius: 4px;
-}
-
-/* RightPanel user-item styling */
-#rightPanel .user-item {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  width: 100%;
-}
-#rightPanel .user-profile-pic {
-  width: 30px;
-  height: 30px;
-}
-#rightPanel .user-item:hover {
-  background-color: #3d3d3d;
-  border-radius: 5px;
-}
-#rightPanel .user-name {
-  margin-left: 8px;
-}

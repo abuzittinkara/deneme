@@ -129,21 +129,10 @@ export function initSocketEvents(socket) {
     const container = document.getElementById('channelUsersContainer');
     if (!container) return;
     container.innerHTML = '';
-    container.classList.remove(
-      'layout-1-user',
-      'layout-2-users',
-      'layout-3-users',
-      'layout-4-users',
-      'layout-n-users',
-    );
     if (!Array.isArray(roomUsers)) return;
     const count = roomUsers.length;
-    let layoutClass = 'layout-n-users';
-    if (count === 1) layoutClass = 'layout-1-user';
-    else if (count === 2) layoutClass = 'layout-2-users';
-    else if (count === 3) layoutClass = 'layout-3-users';
-    else if (count === 4) layoutClass = 'layout-4-users';
-    container.classList.add(layoutClass);
+    const cols = Math.ceil(Math.sqrt(count));
+    container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
     roomUsers.forEach((u) => {
       const card = document.createElement('div');
       card.classList.add('user-card');
@@ -303,13 +292,7 @@ export function initSocketEvents(socket) {
       const container = document.getElementById('channelUsersContainer');
       if (container) {
         container.innerHTML = '';
-        container.classList.remove(
-          'layout-1-user',
-          'layout-2-users',
-          'layout-3-users',
-          'layout-4-users',
-          'layout-n-users',
-        );
+        container.style.gridTemplateColumns = '';
       }
     }
   });
@@ -366,13 +349,7 @@ export function initSocketEvents(socket) {
         if (container) {
           container.style.display = 'none';
           container.innerHTML = '';
-          container.classList.remove(
-            'layout-1-user',
-            'layout-2-users',
-            'layout-3-users',
-            'layout-4-users',
-            'layout-n-users',
-          );
+          container.style.gridTemplateColumns = '';
         }
         if (!(window.currentRoom && window.currentRoomType === 'voice')) {
           window.hideVoiceSections();
