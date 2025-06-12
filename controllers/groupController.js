@@ -238,8 +238,12 @@ async function handleLeaveGroup(io, socket, context, groupId) {
   }
 
   try {
-    const userDoc = await User.findOne({ username: userData.username });
+    let userDoc = await User.findOne({ username: userData.username });
     const groupDoc = await Group.findOne({ groupId });
+    if (userDoc && typeof userDoc.populate === 'function' &&
+        (!Array.isArray(userDoc.groups) || !userDoc._id)) {
+      userDoc = await userDoc.populate();
+    }
     if (userDoc && groupDoc) {
       userDoc.groups = userDoc.groups.filter(gid => gid.toString() !== groupDoc._id.toString());
       await userDoc.save();
@@ -266,7 +270,11 @@ function register(io, socket, context) {
       if (!trimmed || !chanTrimmed) return;
       const userName = users[socket.id].username || null;
       if (!userName) return socket.emit('errorMessage', 'Kullanıcı adınız tanımlı değil.');
-      const userDoc = await User.findOne({ username: userName });
+      let userDoc = await User.findOne({ username: userName });
+      if (userDoc && typeof userDoc.populate === 'function' &&
+          (!Array.isArray(userDoc.groups) || !userDoc._id)) {
+        userDoc = await userDoc.populate();
+      }
       if (!userDoc) return;
       const groupId = uuidv4();
       const newGroup = new Group({ groupId, name: trimmed, owner: userDoc._id, users: [userDoc._id] });
@@ -304,10 +312,14 @@ function register(io, socket, context) {
       const userName = userData.username;
       if (!userName) return socket.emit('errorMessage', 'Kullanıcı adınız yok.');
 
-      const [userDoc, groupDoc] = await Promise.all([
+      let [userDoc, groupDoc] = await Promise.all([
         User.findOne({ username: userName }),
         Group.findOne({ groupId })
       ]);
+      if (userDoc && typeof userDoc.populate === 'function' &&
+          (!Array.isArray(userDoc.groups) || !userDoc._id)) {
+        userDoc = await userDoc.populate();
+      }
 
       if (userDoc && groupDoc) {
         if (!userDoc.groups.some(gid => gid.toString() === groupDoc._id.toString())) {
