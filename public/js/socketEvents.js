@@ -131,30 +131,6 @@ export function initSocketEvents(socket) {
     container.innerHTML = '';
     if (!Array.isArray(roomUsers)) return;
 
-    const count = roomUsers.length;
-    const containerWidth = container.clientWidth;
-    const containerHeight = container.clientHeight ||
-      (container.parentElement ? container.parentElement.clientHeight : 0);
-    const style = window.getComputedStyle(container);
-    const gap = parseFloat(style.columnGap || style.gap || 0);
-
-    let bestCols = 1;
-    let bestWidth = 0;
-    for (let cols = 1; cols <= count; cols++) {
-      const rows = Math.ceil(count / cols);
-      const maxWidth = Math.min(
-        (containerWidth - gap * (cols - 1)) / cols,
-        ((containerHeight - gap * (rows - 1)) / rows) * (16 / 9)
-      );
-      if (maxWidth > bestWidth) {
-        bestWidth = maxWidth;
-        bestCols = cols;
-      }
-    }
-
-    const cardHeight = bestWidth * (9 / 16);
-    container.style.gridTemplateColumns = `repeat(${bestCols}, 1fr)`;
-    container.style.gridAutoRows = `${cardHeight}px`;
     roomUsers.forEach((u) => {
       const card = document.createElement('div');
       card.classList.add('user-card');
@@ -315,7 +291,6 @@ export function initSocketEvents(socket) {
       const container = document.getElementById('channelUsersContainer');
       if (container) {
         container.innerHTML = '';
-        container.style.gridTemplateColumns = '';
       }
     }
   });
@@ -372,7 +347,6 @@ export function initSocketEvents(socket) {
         if (container) {
           container.style.display = 'none';
           container.innerHTML = '';
-          container.style.gridTemplateColumns = '';
         }
         if (!(window.currentRoom && window.currentRoomType === 'voice')) {
           window.hideVoiceSections();
