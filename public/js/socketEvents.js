@@ -120,8 +120,81 @@ export function initSocketEvents(socket) {
         }
         userRow.appendChild(leftDiv);
         userRow.appendChild(rightDiv);
-        channelDiv.appendChild(userRow);
+      channelDiv.appendChild(userRow);
       });
+    });
+  }
+
+  function renderVoiceChannelGrid(roomUsers) {
+    const container = document.getElementById('channelUsersContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    container.classList.remove(
+      'layout-1-user',
+      'layout-2-users',
+      'layout-3-users',
+      'layout-4-users',
+      'layout-n-users',
+    );
+    if (!Array.isArray(roomUsers)) return;
+    const count = roomUsers.length;
+    let layoutClass = 'layout-n-users';
+    if (count === 1) layoutClass = 'layout-1-user';
+    else if (count === 2) layoutClass = 'layout-2-users';
+    else if (count === 3) layoutClass = 'layout-3-users';
+    else if (count === 4) layoutClass = 'layout-4-users';
+    container.classList.add(layoutClass);
+    roomUsers.forEach((u) => {
+      const card = document.createElement('div');
+      card.classList.add('user-card');
+      const avatar = document.createElement('img');
+      avatar.classList.add('user-avatar');
+      avatar.src = '/images/default-avatar.png';
+      avatar.alt = '';
+      const nameSpan = document.createElement('span');
+      nameSpan.classList.add('user-name');
+      nameSpan.textContent = u.username || '(İsimsiz)';
+      card.appendChild(avatar);
+      card.appendChild(nameSpan);
+      if (u.hasMic === false) {
+        const micIcon = document.createElement('span');
+        micIcon.classList.add('material-icons', 'mic-missing');
+        micIcon.textContent = 'mic_off';
+        card.appendChild(micIcon);
+      } else if (u.micEnabled === false) {
+        const micIcon = document.createElement('span');
+        micIcon.classList.add('material-icons');
+        micIcon.textContent = 'mic_off';
+        card.appendChild(micIcon);
+      }
+      if (u.selfDeafened === true) {
+        const deafIcon = document.createElement('span');
+        deafIcon.classList.add('material-icons');
+        deafIcon.textContent = 'headset_off';
+        card.appendChild(deafIcon);
+      }
+      if (u.isScreenSharing === true) {
+        const badge = document.createElement('span');
+        badge.classList.add('screen-share-indicator');
+        badge.textContent = 'YAYINDA';
+        card.appendChild(badge);
+        if (u.screenShareProducerId) {
+          const watchBtn = document.createElement('button');
+          watchBtn.textContent = 'Watch Stream';
+          watchBtn.addEventListener('click', () => {
+            window.clearScreenShareUI();
+            WebRTC.showScreenShare(
+              socket,
+              window.currentGroup,
+              window.currentRoom,
+              u.screenShareProducerId,
+              window.clearScreenShareUI,
+            );
+          });
+          card.appendChild(watchBtn);
+        }
+      }
+      container.appendChild(card);
     });
   }
   socket.on('connect', () => {
@@ -289,7 +362,18 @@ export function initSocketEvents(socket) {
         selectedChannelTitle.textContent = roomObj.name;
         textChannelContainer.style.display = 'flex';
         textChannelContainer.style.flexDirection = 'column';
-        document.getElementById('channelUsersContainer').style.display = 'none';
+        const container = document.getElementById('channelUsersContainer');
+        if (container) {
+          container.style.display = 'none';
+          container.innerHTML = '';
+          container.classList.remove(
+            'layout-1-user',
+            'layout-2-users',
+            'layout-3-users',
+            'layout-4-users',
+            'layout-n-users',
+          );
+        }
         if (!(window.currentRoom && window.currentRoomType === 'voice')) {
           window.hideVoiceSections();
           window.currentRoomType = 'text';
@@ -439,8 +523,20 @@ export function initSocketEvents(socket) {
       renderChannelUsers(window.latestChannelsData);
     }
   });
+  socket.on('roomUsers', (roomUsers) => {
+    if (window.currentRoomType === 'voice') {
+      renderVoiceChannelGrid(roomUsers);
+    }
+  });
   socket.on('allChannelsData', (channelsObj) => {
     window.latestChannelsData = channelsObj;
     renderChannelUsers(channelsObj);
+    if (
+      window.currentRoomType === 'voice' &&
+      window.currentRoom &&
+      channelsObj[window.currentRoom]
+    ) {
+      renderVoiceChannelGrid(channelsObj[window.currentRoom].users);
+    }
   });
 }
