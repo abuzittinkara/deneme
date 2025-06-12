@@ -87,7 +87,7 @@ let friendRequests = {};
 const FRIEND_REQUEST_TTL_MS = 24 * 60 * 60 * 1000;       // 24 saat
 const FRIEND_REQUEST_CLEANUP_INTERVAL_MS = 60 * 60 * 1000; // Her 1 saatte bir
 
-setInterval(() => {
+const friendRequestCleanupTimer = setInterval(() => {
   const now = Date.now();
   for (const username in friendRequests) {
     // Yaşayanları filtrele
@@ -102,6 +102,7 @@ setInterval(() => {
     }
   }
 }, FRIEND_REQUEST_CLEANUP_INTERVAL_MS);
+friendRequestCleanupTimer.unref();
 
 app.use(expressWinston.logger({ winstonInstance: logger, meta: false, msg: "{{req.method}} {{req.url}} - {{res.statusCode}} ({{res.responseTime}}ms)", colorize: true }));
 app.use(express.static("public"));
