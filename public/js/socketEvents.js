@@ -133,6 +133,8 @@ export function initSocketEvents(socket) {
     const count = roomUsers.length;
     const cols = Math.ceil(Math.sqrt(count));
     container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    const cardHeight = (container.offsetWidth / cols) * (9 / 16);
+    container.style.gridAutoRows = `${cardHeight}px`;
     roomUsers.forEach((u) => {
       const card = document.createElement('div');
       card.classList.add('user-card');
