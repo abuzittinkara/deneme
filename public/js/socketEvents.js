@@ -208,6 +208,7 @@ export function initSocketEvents(socket) {
       container.appendChild(card);
     });
   }
+  window.renderVoiceChannelGrid = renderVoiceChannelGrid;
   socket.on('connect', () => {
     console.log('Socket connected =>', socket.id);
   });

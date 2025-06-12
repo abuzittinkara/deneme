@@ -319,6 +319,18 @@ Object.assign(window, {
 window.WebRTC = WebRTC;
 window.joinRoom = WebRTC.joinRoom;
 window.leaveRoomInternal = WebRTC.leaveRoomInternal;
+const _leaveRoomInternal = window.leaveRoomInternal;
+window.leaveRoomInternal = function (...args) {
+  if (window.channelAreaResizeObserver) {
+    window.channelAreaResizeObserver.disconnect();
+    window.channelAreaResizeObserver = null;
+  }
+  if (window.channelAreaResizeHandler) {
+    window.removeEventListener('resize', window.channelAreaResizeHandler);
+    window.channelAreaResizeHandler = null;
+  }
+  return _leaveRoomInternal.apply(this, args);
+};
 ['device','deviceIsLoaded','sendTransport','recvTransport','localStream','audioPermissionGranted','localProducer','consumers','remoteAudios','screenShareVideo','screenShareContainer'].forEach((prop)=>{
   Object.defineProperty(window, prop, {
     get() { return WebRTC[prop]; },
@@ -358,7 +370,29 @@ window.addEventListener('DOMContentLoaded', () => {
   initUIEvents(socket, () => attemptLogin(socket, loginUsernameInput, loginPasswordInput, loginErrorMessage), () => attemptRegister(socket, {regUsernameInput, regNameInput, regSurnameInput, regBirthdateInput, regEmailInput, regPhoneInput, regPasswordInput, regPasswordConfirmInput, registerErrorMessage}));
   initTypingIndicator(socket, () => window.currentTextChannel, () => window.username);
   initFriendRequests(socket);
-  
+
+  const area = document.getElementById('channelContentArea');
+  const resizeCb = () => {
+    if (
+      window.currentRoomType === 'voice' &&
+      window.latestChannelsData &&
+      window.latestChannelsData[window.currentRoom]
+    ) {
+      window.renderVoiceChannelGrid(
+        window.latestChannelsData[window.currentRoom].users
+      );
+    }
+  };
+  if (area) {
+    if ('ResizeObserver' in window) {
+      window.channelAreaResizeObserver = new ResizeObserver(resizeCb);
+      window.channelAreaResizeObserver.observe(area);
+    } else {
+      window.channelAreaResizeHandler = resizeCb;
+      window.addEventListener('resize', window.channelAreaResizeHandler);
+    }
+  }  
+
   const tm = textMessages;
   let removeScrollingTimeout;
   if (tm) {
