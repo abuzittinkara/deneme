@@ -43,16 +43,16 @@ async function startServer() {
   try {
     await connectToDatabase();
     await sfu.createWorkers();
-    console.log("Mediasoup Workers hazır!");
+    logger.info("Mediasoup Workers hazır!");
     await groupController.loadGroupsFromDB({ Group, groups });
     await groupController.loadChannelsFromDB({ Channel, groups });
-    console.log("Uygulama başlangıç yüklemeleri tamam.");
+    logger.info("Uygulama başlangıç yüklemeleri tamam.");
 
     server.listen(PORT, () => {
-      console.log(`Sunucu çalışıyor: http://localhost:${PORT}`);
+      logger.info(`Sunucu çalışıyor: http://localhost:${PORT}`);
     });
   } catch (err) {
-    console.error("MongoDB bağlantı hatası:", err);
+    logger.error("MongoDB bağlantı hatası:", err);
     process.exit(1);
   }
 }
