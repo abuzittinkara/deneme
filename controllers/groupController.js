@@ -3,6 +3,14 @@ const { v4: uuidv4 } = require('uuid');
 const sfu = require('../sfu');
 const store = require('../utils/sharedStore');
 
+async function ensureUserDoc(doc) {
+  if (doc && typeof doc.populate === 'function' &&
+      (!Array.isArray(doc.groups) || !doc._id)) {
+    doc = await doc.populate();
+  }
+  return doc;
+}
+
 async function loadGroupsFromDB({ Group, groups }) {
   try {
     const groupDocs = await Group.find({}).populate('owner', 'username');
@@ -240,10 +248,7 @@ async function handleLeaveGroup(io, socket, context, groupId) {
   try {
     let userDoc = await User.findOne({ username: userData.username });
     const groupDoc = await Group.findOne({ groupId });
-    if (userDoc && typeof userDoc.populate === 'function' &&
-        (!Array.isArray(userDoc.groups) || !userDoc._id)) {
-      userDoc = await userDoc.populate();
-    }
+    userDoc = await ensureUserDoc(userDoc);
     if (userDoc && groupDoc) {
       userDoc.groups = userDoc.groups.filter(gid => gid.toString() !== groupDoc._id.toString());
       await userDoc.save();
@@ -271,10 +276,7 @@ function register(io, socket, context) {
       const userName = users[socket.id].username || null;
       if (!userName) return socket.emit('errorMessage', 'Kullanıcı adınız tanımlı değil.');
       let userDoc = await User.findOne({ username: userName });
-      if (userDoc && typeof userDoc.populate === 'function' &&
-          (!Array.isArray(userDoc.groups) || !userDoc._id)) {
-        userDoc = await userDoc.populate();
-      }
+      userDoc = await ensureUserDoc(userDoc);
       if (!userDoc) return;
       const groupId = uuidv4();
       const newGroup = new Group({ groupId, name: trimmed, owner: userDoc._id, users: [userDoc._id] });
@@ -316,10 +318,7 @@ function register(io, socket, context) {
         User.findOne({ username: userName }),
         Group.findOne({ groupId })
       ]);
-      if (userDoc && typeof userDoc.populate === 'function' &&
-          (!Array.isArray(userDoc.groups) || !userDoc._id)) {
-        userDoc = await userDoc.populate();
-      }
+      userDoc = await ensureUserDoc(userDoc);
 
       if (userDoc && groupDoc) {
         if (!userDoc.groups.some(gid => gid.toString() === groupDoc._id.toString())) {
