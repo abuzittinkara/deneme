@@ -502,7 +502,7 @@ function updateVoiceChannelUI(roomName, alreadyConnected = false) {
   selectedChannelTitle.textContent = roomName;
   const channelUsersContainer = document.getElementById('channelUsersContainer');
   if (channelUsersContainer) {
-    channelUsersContainer.style.display = 'flex';
+    channelUsersContainer.style.display = 'grid';
   }
   textChannelContainer.style.display = 'none';
   if (alreadyConnected) {

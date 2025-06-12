@@ -392,7 +392,7 @@ export function initSocketEvents(socket) {
         return;
       }
       window.clearScreenShareUI();
-      document.getElementById('channelUsersContainer').style.display = 'flex';
+      document.getElementById('channelUsersContainer').style.display = 'grid';
       document.querySelectorAll('.channel-item').forEach((ci) => ci.classList.remove('connected'));
       if (window.currentRoom === roomObj.id && window.currentGroup === window.selectedGroup) {
         roomItem.classList.add('connected');
