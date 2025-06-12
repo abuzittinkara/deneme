@@ -466,7 +466,13 @@ function register(io, socket, context) {
       // Gruptaki metin kanalı sayısını kontrol et
       const textCount = Object.values(groups[gid]?.rooms || {})
         .filter(r => r.type === 'text').length;
-      if (chDoc.type === 'text' && textCount === 1) {
+
+      let resolvedType = chDoc.type;
+      if (!resolvedType) {
+        resolvedType = groups[gid]?.rooms?.[channelId]?.type;
+      }
+
+      if (resolvedType === 'text' && textCount === 1) {
         socket.emit('errorMessage', 'Grubun son metin kanalı silinemez.');
         return;
       }
