@@ -422,6 +422,9 @@ export async function showScreenShare(socket, currentGroup, currentRoom, produce
           window.latestChannelsData[window.currentRoom].users,
         );
       }
+      if (typeof window.clearScreenShareUI === 'function') {
+        window.clearScreenShareUI();
+      }
    };
 
     screenShareContainer = createScreenShareContainer(screenShareVideo, handleEnd);
