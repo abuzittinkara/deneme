@@ -331,6 +331,35 @@ export function initSocketEvents(socket) {
     });
   }
   window.renderVoiceChannelGrid = renderVoiceChannelGrid;
+
+  const channelArea = document.getElementById('channelContentArea');
+  const resizeCb = () => {
+    if (
+      window.currentRoomType === 'voice' &&
+      window.latestChannelsData &&
+      window.currentRoom &&
+      window.latestChannelsData[window.currentRoom]
+    ) {
+      renderVoiceChannelGrid(
+        window.latestChannelsData[window.currentRoom].users,
+      );
+    }
+  };
+  if (channelArea) {
+    if ('ResizeObserver' in window) {
+      if (window.channelAreaResizeObserver) {
+        window.channelAreaResizeObserver.disconnect();
+      }
+      window.channelAreaResizeObserver = new ResizeObserver(resizeCb);
+      window.channelAreaResizeObserver.observe(channelArea);
+    } else {
+      if (window.channelAreaResizeHandler) {
+        window.removeEventListener('resize', window.channelAreaResizeHandler);
+      }
+      window.channelAreaResizeHandler = resizeCb;
+      window.addEventListener('resize', window.channelAreaResizeHandler);
+    }
+  }
   socket.on('connect', () => {
     console.log('Socket connected =>', socket.id);
   });
