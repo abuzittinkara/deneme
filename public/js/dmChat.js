@@ -3,13 +3,17 @@
 // Grup metin kanallarındaki sohbet işlevselliğine benzer şekilde, DM sohbet ekranı oluşturur,
 // mesaj geçmişini yükler ve yeni mesajların gönderilmesini sağlar.
 
+import { renderTextMessages, appendNewMessage, insertDateSeparator, isDifferentDay } from './textChannel.js';
+
 export function initDMChat(socket, friendUsername) {
   // dmContentArea'yı al veya oluştur
   let dmContentArea = document.getElementById('dmContentArea');
   if (!dmContentArea) {
     dmContentArea = document.createElement('div');
     dmContentArea.id = 'dmContentArea';
-    dmContentArea.style.display = 'block';
+    dmContentArea.style.display = 'flex';
+    dmContentArea.style.flexDirection = 'column';
+    dmContentArea.style.justifyContent = 'space-between';
     dmContentArea.style.width = '100%';
     dmContentArea.style.marginLeft = '0';
     dmContentArea.style.marginTop = '0';
@@ -28,37 +32,51 @@ export function initDMChat(socket, friendUsername) {
   // DM mesajlarını görüntüleyecek alanı oluşturuyoruz
   const dmMessages = document.createElement('div');
   dmMessages.id = 'dmMessages';
-  dmMessages.style.height = 'calc(100% - 60px)'; // Input alanı için yer bırakıyoruz
+  dmMessages.dataset.channelId = `dm-${friendUsername}`;
+  dmMessages.style.flex = '1';
   dmMessages.style.overflowY = 'auto';
   dmMessages.style.padding = '0.5rem';
   dmContentArea.appendChild(dmMessages);
 
-  // DM mesaj gönderme alanı (input + gönder butonu)
-  const inputContainer = document.createElement('div');
-  inputContainer.id = 'dmInputContainer';
-  inputContainer.style.display = 'flex';
-  inputContainer.style.alignItems = 'center';
-  inputContainer.style.marginTop = '10px';
+  // DM mesaj gönderme alanı (textChatInputBar)
+  const textChatInputBar = document.createElement('div');
+  textChatInputBar.id = 'dmTextChatInputBar';
+  textChatInputBar.className = 'text-chat-input-bar';
+  const chatInputWrapper = document.createElement('div');
+  chatInputWrapper.className = 'chat-input-wrapper';
   const dmInput = document.createElement('input');
   dmInput.type = 'text';
   dmInput.id = 'dmMessageInput';
-  dmInput.placeholder = 'Mesaj yazın...';
-  dmInput.style.flex = '1';
-  dmInput.style.padding = '0.5rem';
-  const sendButton = document.createElement('button');
+  dmInput.className = 'chat-input';
+  dmInput.placeholder = 'Bir mesaj yazın...';
+  const sendButton = document.createElement('span');
   sendButton.id = 'dmSendButton';
-  sendButton.textContent = 'Gönder';
-  inputContainer.appendChild(dmInput);
-  inputContainer.appendChild(sendButton);
-  dmContentArea.appendChild(inputContainer);
+  sendButton.className = 'material-icons send-icon';
+  sendButton.textContent = 'send';
+  chatInputWrapper.appendChild(dmInput);
+  chatInputWrapper.appendChild(sendButton);
+  textChatInputBar.appendChild(chatInputWrapper);
+  dmContentArea.appendChild(textChatInputBar);
 
-  // Fonksiyon: Gelen bir DM mesajını ekler
-  function appendDMMessage(container, msg) {
-    const msgDiv = document.createElement('div');
-    msgDiv.className = 'dm-message';
-    msgDiv.style.marginBottom = '8px';
-    msgDiv.textContent = `${msg.username}: ${msg.content}`;
-    container.appendChild(msgDiv);
+  // Mesajı tarih ayıracı kontrolüyle ekler
+  function addDMMessage(msg) {
+    let lastElement = dmMessages.lastElementChild;
+    let lastTimestamp = null;
+    if (lastElement && lastElement.classList.contains('date-separator')) {
+      lastTimestamp = lastElement.getAttribute('data-timestamp');
+    } else {
+      let lastMsgElem = dmMessages.lastElementChild;
+      while (lastMsgElem && lastMsgElem.classList.contains('date-separator')) {
+        lastMsgElem = lastMsgElem.previousElementSibling;
+      }
+      if (lastMsgElem) {
+        lastTimestamp = lastMsgElem.getAttribute('data-timestamp');
+      }
+    }
+    if (!lastTimestamp || isDifferentDay(lastTimestamp, msg.timestamp)) {
+      insertDateSeparator(dmMessages, msg.timestamp);
+    }
+    appendNewMessage(msg, dmMessages);
   }
 
   // DM odasına katıl ve mesaj geçmişini iste
@@ -67,10 +85,12 @@ export function initDMChat(socket, friendUsername) {
       socket.emit('getDMMessages', { friend: friendUsername }, (msgRes) => {
         if (msgRes.success && msgRes.messages) {
           dmMessages.innerHTML = '';
-          msgRes.messages.forEach((msg) => {
-            appendDMMessage(dmMessages, msg);
-          });
-          dmMessages.scrollTop = dmMessages.scrollHeight;
+          const formatted = msgRes.messages.map(m => ({
+            content: m.content,
+            timestamp: m.timestamp,
+            user: { username: m.username }
+          }));
+          renderTextMessages(formatted, dmMessages);
         } else {
           dmMessages.innerHTML = 'DM mesajları yüklenirken hata oluştu.';
         }
@@ -84,13 +104,10 @@ export function initDMChat(socket, friendUsername) {
   function sendDM() {
     const content = dmInput.value.trim();
     if (!content) return;
-    // dmMessage event'i ile mesajı gönderiyoruz.
-    socket.emit('dmMessage', { friend: friendUsername, content: content }, (ack) => {
+    socket.emit('dmMessage', { friend: friendUsername, content }, (ack) => {
       if (ack && ack.success) {
-        // Kendi mesajımızı hemen ekleyelim.
-        appendDMMessage(dmMessages, { username: 'Sen', content: content });
         dmInput.value = '';
-        dmMessages.scrollTop = dmMessages.scrollHeight;
+        sendButton.style.display = 'none';
       } else {
         alert('Mesaj gönderilemedi.');
       }
@@ -98,18 +115,24 @@ export function initDMChat(socket, friendUsername) {
   }
 
   sendButton.addEventListener('click', sendDM);
+  dmInput.addEventListener('input', () => {
+    if (dmInput.value.trim() !== '') {
+      sendButton.style.display = 'block';
+    } else {
+      sendButton.style.display = 'none';
+    }
+  });
   dmInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
+      e.preventDefault();
       sendDM();
     }
   });
 
   // Sunucudan gelen yeni DM mesajlarını dinle.
   socket.on('newDMMessage', (data) => {
-    // data.friend ile mevcut DM konuşması eşleşiyorsa mesajı ekle
     if (data.friend === friendUsername && data.message) {
-      appendDMMessage(dmMessages, data.message);
-      dmMessages.scrollTop = dmMessages.scrollHeight;
+      addDMMessage(data.message);
     }
   });
 }
