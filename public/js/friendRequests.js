@@ -157,7 +157,7 @@ export function initFriendRequests(socket) {
         });
       } else if (filter === 'all') {
         // Hepsi: Kabul edilmiş arkadaşları listele.
-        socket.emit('getAcceptedFriendRequests', {}, (response) => {
+        socket.emit('getFriendsList', {}, (response) => {
           if (response.success && Array.isArray(response.friends)) {
             if (response.friends.length === 0) {
               dmContentArea.appendChild(createDmContentItem('Hiç arkadaşınız yok.'));
@@ -192,7 +192,7 @@ export function initFriendRequests(socket) {
         });
       } else if (filter === 'online') {
         // Çevrimiçi arkadaşları listele.
-        socket.emit('getAcceptedFriendRequests', {}, (response) => {
+        socket.emit('getFriendsList', {}, (response) => {
           if (response.success && Array.isArray(response.friends)) {
             if (response.friends.length === 0) {
               dmContentArea.appendChild(createDmContentItem('Hiç arkadaşınız yok.'));
@@ -335,7 +335,7 @@ export function initFriendRequests(socket) {
       dmContentArea.innerHTML = '';
     });
     dmPanel.appendChild(friendsButton);
-    socket.emit('getAcceptedFriendRequests', {}, (response) => {
+    socket.emit('getFriendsList', {}, (response) => {
       if (response.success && Array.isArray(response.friends)) {
         if (response.friends.length === 0) {
           const noFriends = document.createElement('div');
