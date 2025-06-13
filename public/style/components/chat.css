@@ -1,5 +1,6 @@
 /* Yeni ek: Text Channel Container için gerekli ayarlar */
-.text-channel-container {
+.text-channel-container,
+#dmContentArea {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -9,7 +10,8 @@
 }
 
 /* "textMessages" container’ı hiçbir zaman main-content genişliğini aşmasın */
-#textMessages {
+#textMessages,
+#dmMessages {
   flex: 1;
   width: 100% !important;
   max-width: 100% !important;
@@ -127,21 +129,25 @@
 }
 
 /* Scrollbar - WebKit */
-#textMessages::-webkit-scrollbar {
+#textMessages::-webkit-scrollbar,
+#dmMessages::-webkit-scrollbar {
   width: 4px;
   background: #353535;
   transition: width 0.3s;
 }
-#textMessages::-webkit-scrollbar-track {
+#textMessages::-webkit-scrollbar-track,
+#dmMessages::-webkit-scrollbar-track {
   background: #353535;
 }
-#textMessages::-webkit-scrollbar-thumb {
+#textMessages::-webkit-scrollbar-thumb,
+#dmMessages::-webkit-scrollbar-thumb {
   background-color: #353535;
   border-radius: 2px;
 }
 
 /* Scrollbar - Firefox */
-#textMessages {
+#textMessages,
+#dmMessages {
   scrollbar-width: thin;
   scrollbar-color: #666 #353535;
 }

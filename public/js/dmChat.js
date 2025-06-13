@@ -11,15 +11,7 @@ export function initDMChat(socket, friendUsername) {
   if (!dmContentArea) {
     dmContentArea = document.createElement('div');
     dmContentArea.id = 'dmContentArea';
-    dmContentArea.style.display = 'flex';
-    dmContentArea.style.flexDirection = 'column';
-    dmContentArea.style.justifyContent = 'space-between';
-    dmContentArea.style.width = '100%';
-    dmContentArea.style.marginLeft = '0';
-    dmContentArea.style.marginTop = '0';
-    dmContentArea.style.height = 'calc(100% - 50px)'; // Üstteki dmChannelTitle yüksekliği 50px varsayılıyor
-    dmContentArea.style.padding = '0.75rem 1rem';
-    dmContentArea.style.boxSizing = 'border-box';
+    dmContentArea.className = 'text-channel-container';
     const selectedDMBar = document.getElementById('selectedDMBar');
     if (selectedDMBar) {
       selectedDMBar.parentNode.insertBefore(dmContentArea, selectedDMBar.nextSibling);
@@ -33,9 +25,6 @@ export function initDMChat(socket, friendUsername) {
   const dmMessages = document.createElement('div');
   dmMessages.id = 'dmMessages';
   dmMessages.dataset.channelId = `dm-${friendUsername}`;
-  dmMessages.style.flex = '1';
-  dmMessages.style.overflowY = 'auto';
-  dmMessages.style.padding = '0.5rem';
   dmContentArea.appendChild(dmMessages);
 
   // DM mesaj gönderme alanı (textChatInputBar)
