@@ -131,6 +131,15 @@ export function initSocketEvents(socket) {
     container.innerHTML = '';
     if (!Array.isArray(roomUsers)) return;
 
+    const userCount = roomUsers.length || 0;
+    let columns;
+    if (userCount <= 2) {
+      columns = userCount || 1;
+    } else {
+      columns = Math.ceil(userCount / 2);
+    }
+    container.style.setProperty('--user-grid-columns', columns);
+    
     roomUsers.forEach((u) => {
       const card = document.createElement('div');
       card.classList.add('user-card');
