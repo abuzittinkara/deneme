@@ -427,10 +427,20 @@ export async function showScreenShare(socket, currentGroup, currentRoom, produce
     screenShareContainer = createScreenShareContainer(screenShareVideo, handleEnd);
     removeScreenShareEndedMessage();
     socket.emit('startWatching', { userId: consumer.appData.peerId });
-    if (
-      window.latestChannelsData &&
-      window.currentRoom
-    ) {
+
+    const usersContainer = document.getElementById('channelUsersContainer');
+    if (usersContainer) {
+      const broadcasterCard = usersContainer.querySelector(
+        `.user-card[data-user-id="${consumer.appData.peerId}"]`
+      );
+      if (broadcasterCard) {
+        usersContainer.classList.add('broadcast-mode');
+        broadcasterCard.classList.add('broadcast-card');
+        broadcasterCard.appendChild(screenShareContainer);
+      }
+    }
+
+    if (window.latestChannelsData && window.currentRoom) {
       window.renderVoiceChannelGrid(
         window.latestChannelsData[window.currentRoom].users
       );
