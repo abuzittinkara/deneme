@@ -132,12 +132,11 @@ export function initSocketEvents(socket) {
     if (isBroadcast) {
       card.classList.add('broadcast-card');
     }
-    let infoWrapper = card;
+    const infoWrapper = document.createElement('div');
+    infoWrapper.classList.add('user-card-info');
+    card.appendChild(infoWrapper);
     if (u.isScreenSharing === true) {
       card.classList.add('stream-available');
-      infoWrapper = document.createElement('div');
-      infoWrapper.classList.add('user-card-info');
-      card.appendChild(infoWrapper);
     }
     
     const avatar = document.createElement('img');
