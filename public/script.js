@@ -34,6 +34,21 @@ function clearScreenShareUI() {
   if (window.removeScreenShareEndedMessage) {
     window.removeScreenShareEndedMessage();
   }
+  const container = document.getElementById('channelUsersContainer');
+  if (container) {
+    container.classList.remove('broadcast-mode');
+  }
+  window.broadcastingUserId = null;
+  if (
+    window.latestChannelsData &&
+    window.currentRoom &&
+    typeof window.renderVoiceChannelGrid === 'function' &&
+    window.latestChannelsData[window.currentRoom]
+  ) {
+    window.renderVoiceChannelGrid(
+      window.latestChannelsData[window.currentRoom].users,
+    );
+  }
 }
 window.clearScreenShareUI = clearScreenShareUI;
 

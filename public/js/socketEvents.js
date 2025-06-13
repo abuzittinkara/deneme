@@ -125,12 +125,95 @@ export function initSocketEvents(socket) {
     });
   }
 
+  function createUserCard(u, isBroadcast = false) {
+    const card = document.createElement('div');
+    card.classList.add('user-card');
+    if (isBroadcast) card.classList.add('broadcast-card');
+    const avatar = document.createElement('img');
+    avatar.classList.add('user-avatar');
+    avatar.src = '/images/default-avatar.png';
+    avatar.alt = '';
+    const nameSpan = document.createElement('span');
+    nameSpan.classList.add('user-name');
+    nameSpan.textContent = u.username || '(İsimsiz)';
+    card.appendChild(avatar);
+    card.appendChild(nameSpan);
+    if (u.hasMic === false) {
+      const micIcon = document.createElement('span');
+      micIcon.classList.add('material-icons', 'mic-missing');
+      micIcon.textContent = 'mic_off';
+      card.appendChild(micIcon);
+    } else if (u.micEnabled === false) {
+      const micIcon = document.createElement('span');
+      micIcon.classList.add('material-icons');
+      micIcon.textContent = 'mic_off';
+      card.appendChild(micIcon);
+    }
+    if (u.selfDeafened === true) {
+      const deafIcon = document.createElement('span');
+      deafIcon.classList.add('material-icons');
+      deafIcon.textContent = 'headset_off';
+      card.appendChild(deafIcon);
+    }
+    if (u.isScreenSharing === true) {
+      const badge = document.createElement('span');
+      badge.classList.add('screen-share-indicator');
+      badge.textContent = 'YAYINDA';
+      card.appendChild(badge);
+      if (u.screenShareProducerId) {
+        const watchBtn = document.createElement('button');
+        watchBtn.textContent = 'Watch Stream';
+        watchBtn.addEventListener('click', () => {
+          window.clearScreenShareUI();
+          WebRTC.showScreenShare(
+            socket,
+            window.currentGroup,
+            window.currentRoom,
+            u.screenShareProducerId,
+            window.clearScreenShareUI,
+          );
+        });
+        card.appendChild(watchBtn);
+      }
+    }
+    return card;
+  }
+
+  function renderBroadcastView(roomUsers, broadcastingUserId) {
+    const container = document.getElementById('channelUsersContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    container.classList.add('broadcast-mode');
+
+    const broadcaster = roomUsers.find((u) => u.id === broadcastingUserId);
+    const others = roomUsers.filter((u) => u.id !== broadcastingUserId);
+
+    if (broadcaster) {
+      const broadcastCard = createUserCard(broadcaster, true);
+      container.appendChild(broadcastCard);
+    }
+
+    const row = document.createElement('div');
+    row.classList.add('viewer-row');
+    others.forEach((u) => {
+      row.appendChild(createUserCard(u));
+    });
+    container.appendChild(row);
+  }
+
   function renderVoiceChannelGrid(roomUsers) {
     const container = document.getElementById('channelUsersContainer');
     if (!container) return;
     container.innerHTML = '';
     if (!Array.isArray(roomUsers)) return;
 
+    if (window.screenShareVideo && window.broadcastingUserId) {
+      renderBroadcastView(roomUsers, window.broadcastingUserId);
+      return;
+    }
+
+    container.classList.remove('broadcast-mode');
+    
     const userCount = roomUsers.length || 0;
     if (userCount === 0) return;
 

@@ -386,6 +386,7 @@ export async function showScreenShare(socket, currentGroup, currentRoom, produce
     screenShareVideo.srcObject = new MediaStream([consumer.track]);
     screenShareVideo.autoplay = true;
     screenShareVideo.dataset.peerId = consumer.appData.peerId;
+    window.broadcastingUserId = consumer.appData.peerId;
 
     const handleEnd = () => {
       consumer.close();
@@ -411,14 +412,34 @@ export async function showScreenShare(socket, currentGroup, currentRoom, produce
       socket.emit('stopWatching', { userId: consumer.appData.peerId });
       screenShareVideo = null;
       screenShareContainer = null;
+      window.broadcastingUserId = null;
+      if (
+        window.latestChannelsData &&
+        window.currentRoom &&
+        typeof window.renderVoiceChannelGrid === 'function' &&
+        window.latestChannelsData[window.currentRoom]
+      ) {
+        window.renderVoiceChannelGrid(
+          window.latestChannelsData[window.currentRoom].users,
+        );
+      }
    };
 
     screenShareContainer = createScreenShareContainer(screenShareVideo, handleEnd);
     removeScreenShareEndedMessage();
     if (channelContentArea) {
-      
       channelContentArea.appendChild(screenShareContainer);
       socket.emit('startWatching', { userId: consumer.appData.peerId });
+    }
+    if (
+      window.latestChannelsData &&
+      window.currentRoom &&
+      typeof window.renderVoiceChannelGrid === 'function' &&
+      window.latestChannelsData[window.currentRoom]
+    ) {
+      window.renderVoiceChannelGrid(
+        window.latestChannelsData[window.currentRoom].users,
+      );
     }
     console.log('Yeni video consumer oluşturuldu:', consumer.id, '-> yayıncı:', consumer.appData.peerId);
     if (typeof window.setConnectionStatus === 'function') {

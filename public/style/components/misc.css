@@ -43,6 +43,23 @@
   box-sizing: border-box;
 }
 
+.channel-users-container.broadcast-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.broadcast-card {
+  width: 100%;
+  aspect-ratio: 16/9;
+}
+
+.viewer-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 /* Tarih Ayırıcı Stili */
 .date-separator {
   display: flex;
