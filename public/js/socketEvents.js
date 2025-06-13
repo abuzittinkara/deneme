@@ -291,8 +291,7 @@ export function initSocketEvents(socket) {
       const offset = Math.floor((columns - count) / 2);
       for (let i = 0; i < count; i++) {
         const u = roomUsers[index++];
-        const card = document.createElement('div');
-        card.classList.add('user-card');
+        const card = createUserCard(u);
         card.style.gridRow = rowIdx + 1;
         if (count === 1) {
           if (userCount > 1) {
@@ -304,54 +303,6 @@ export function initSocketEvents(socket) {
           }
         } else {
           card.style.gridColumn = offset + i + 1;
-        }
-        const avatar = document.createElement('img');
-        avatar.classList.add('user-avatar');
-        avatar.src = '/images/default-avatar.png';
-        avatar.alt = '';
-        const nameSpan = document.createElement('span');
-        nameSpan.classList.add('user-name');
-        nameSpan.textContent = u.username || '(İsimsiz)';
-        card.appendChild(avatar);
-        card.appendChild(nameSpan);
-        if (u.hasMic === false) {
-          const micIcon = document.createElement('span');
-          micIcon.classList.add('material-icons', 'mic-missing');
-          micIcon.textContent = 'mic_off';
-          card.appendChild(micIcon);
-        } else if (u.micEnabled === false) {
-          const micIcon = document.createElement('span');
-          micIcon.classList.add('material-icons');
-          micIcon.textContent = 'mic_off';
-          card.appendChild(micIcon);
-        }
-        if (u.selfDeafened === true) {
-          const deafIcon = document.createElement('span');
-          deafIcon.classList.add('material-icons');
-          deafIcon.textContent = 'headset_off';
-          card.appendChild(deafIcon);
-        }
-        if (u.isScreenSharing === true) {
-          const badge = document.createElement('span');
-          badge.classList.add('screen-share-indicator');
-          badge.textContent = 'YAYINDA';
-          card.appendChild(badge);
-          if (u.screenShareProducerId) {
-            const watchBtn = document.createElement('button');
-            watchBtn.classList.add('watch-stream-btn', 'btn', 'primary');
-            watchBtn.textContent = 'Watch Stream';
-            watchBtn.addEventListener('click', () => {
-              window.clearScreenShareUI();
-              WebRTC.showScreenShare(
-                socket,
-                window.currentGroup,
-                window.currentRoom,
-                u.screenShareProducerId,
-                window.clearScreenShareUI,
-              );
-            });
-            card.appendChild(watchBtn);
-          }
         }
         container.appendChild(card);
       }
