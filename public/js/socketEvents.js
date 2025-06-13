@@ -188,6 +188,11 @@ export function initSocketEvents(socket) {
     if (!container) return;
     container.innerHTML = '';
     container.classList.add('broadcast-mode');
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+    container.style.justifyContent = 'space-between';
+    container.style.gridTemplateColumns = '';
+    container.style.gridAutoRows = '';
 
     const broadcaster = roomUsers.find((u) => u.id === broadcastingUserId);
     const others = roomUsers.filter((u) => u.id !== broadcastingUserId);

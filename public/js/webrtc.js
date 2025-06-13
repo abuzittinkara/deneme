@@ -435,6 +435,11 @@ export async function showScreenShare(socket, currentGroup, currentRoom, produce
       );
       if (broadcasterCard) {
         usersContainer.classList.add('broadcast-mode');
+        usersContainer.style.display = 'flex';
+        usersContainer.style.flexDirection = 'column';
+        usersContainer.style.justifyContent = 'space-between';
+        usersContainer.style.gridTemplateColumns = '';
+        usersContainer.style.gridAutoRows = '';
         broadcasterCard.classList.add('broadcast-card');
         broadcasterCard.appendChild(screenShareContainer);
       }

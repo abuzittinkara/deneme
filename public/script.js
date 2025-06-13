@@ -37,6 +37,9 @@ function clearScreenShareUI() {
   const container = document.getElementById('channelUsersContainer');
   if (container) {
     container.classList.remove('broadcast-mode');
+    container.style.display = 'grid';
+    container.style.flexDirection = '';
+    container.style.justifyContent = '';
   }
   window.broadcastingUserId = null;
   if (
