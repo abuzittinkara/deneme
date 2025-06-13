@@ -47,6 +47,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  justify-content: space-between;
 }
 
 .broadcast-card {
@@ -68,12 +69,14 @@
 .viewer-row {
   display: flex;
   gap: 0.5rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  justify-content: center;
 }
 
 .viewer-row .user-card {
-  flex: 1 1 120px;
+  flex: 1 1 auto;
   width: auto;
+  aspect-ratio: 16/9;
 }
 
 /* Tarih Ayırıcı Stili */
