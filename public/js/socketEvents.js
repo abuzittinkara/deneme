@@ -192,7 +192,7 @@ export function initSocketEvents(socket) {
     if (broadcaster) {
       const broadcastCard = createUserCard(broadcaster, true);
       container.appendChild(broadcastCard);
-      
+
       if (
         window.screenShareContainer &&
         window.broadcastingUserId === broadcastingUserId
@@ -588,7 +588,7 @@ export function initSocketEvents(socket) {
       channelContentArea &&
       channelContentArea.contains(WebRTC.screenShareVideo)
     ) {
-      channelContentArea.removeChild(WebRTC.screenShareContainer);
+      channelContentArea.removeChild(WebRTC.screenShareVideo);
     }
     if (
       window.screenShareVideo &&
