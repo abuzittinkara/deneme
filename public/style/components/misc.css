@@ -67,6 +67,11 @@
   flex-wrap: wrap;
 }
 
+.viewer-row .user-card {
+  flex: 1 1 120px;
+  width: auto;
+}
+
 /* Tarih Ayırıcı Stili */
 .date-separator {
   display: flex;
