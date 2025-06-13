@@ -54,6 +54,10 @@
   aspect-ratio: 16/9;
 }
 
+.broadcast-card > :not(.screen-share-container):not(video) {
+  display: none;
+}
+
 .broadcast-card .screen-share-container,
 .broadcast-card video {
   width: 100%;
