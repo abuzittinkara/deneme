@@ -171,7 +171,13 @@ export function initSocketEvents(socket) {
       badge.classList.add('screen-share-indicator');
       badge.textContent = 'YAYINDA';
       card.appendChild(badge);
-      if (u.screenShareProducerId) {
+      if (
+        u.screenShareProducerId &&
+        !(
+          window.screenShareVideo &&
+          window.broadcastingUserId === u.id
+        )
+      ) {
         const watchBtn = document.createElement('button');
         watchBtn.classList.add('watch-stream-btn', 'btn', 'primary');
         watchBtn.textContent = 'Watch Stream';
