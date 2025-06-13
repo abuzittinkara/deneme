@@ -230,68 +230,93 @@ export function initSocketEvents(socket) {
 
     const cw = container.clientWidth;
     const ch = container.clientHeight;
-    let columns = Math.max(1, Math.ceil(Math.sqrt(userCount)));
-    let rows = Math.ceil(userCount / columns);
-    let cardHeight = (cw / columns) * 9 / 16;
-    while (cardHeight * rows > ch && columns < userCount) {
-      columns += 1;
-      rows = Math.ceil(userCount / columns);
-      cardHeight = (cw / columns) * 9 / 16;
+
+    function computeLayout(count, hint) {
+      if (count === 3) return { rows: [2, 1], columns: 2 };
+      let cols = Math.min(4, Math.max(1, hint));
+      let rowsNeeded = Math.ceil(count / cols);
+      if (count % cols === 1 && rowsNeeded > 1 && cols < 4) {
+        cols += 1;
+        rowsNeeded = Math.ceil(count / cols);
+      }
+      const base = Math.floor(count / rowsNeeded);
+      let extra = count - base * rowsNeeded;
+      const rows = new Array(rowsNeeded).fill(base);
+      for (let i = 0; i < extra; i++) rows[i] += 1;
+      const maxCol = Math.max(...rows);
+      return { rows, columns: maxCol };
     }
+
+    let hint = Math.ceil(Math.sqrt(userCount));
+    let layout = computeLayout(userCount, hint);
+    let cardHeight = (cw / layout.columns) * 9 / 16;
+    while (cardHeight * layout.rows.length > ch && hint < userCount) {
+      hint += 1;
+      layout = computeLayout(userCount, hint);
+      cardHeight = (cw / layout.columns) * 9 / 16;
+    }
+    const { rows, columns } = layout;
     container.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
     container.style.gridAutoRows = `${cardHeight}px`;
-    
-    roomUsers.forEach((u) => {
-      const card = document.createElement('div');
-      card.classList.add('user-card');
-      const avatar = document.createElement('img');
-      avatar.classList.add('user-avatar');
-      avatar.src = '/images/default-avatar.png';
-      avatar.alt = '';
-      const nameSpan = document.createElement('span');
-      nameSpan.classList.add('user-name');
-      nameSpan.textContent = u.username || '(İsimsiz)';
-      card.appendChild(avatar);
-      card.appendChild(nameSpan);
-      if (u.hasMic === false) {
-        const micIcon = document.createElement('span');
-        micIcon.classList.add('material-icons', 'mic-missing');
-        micIcon.textContent = 'mic_off';
-        card.appendChild(micIcon);
-      } else if (u.micEnabled === false) {
-        const micIcon = document.createElement('span');
-        micIcon.classList.add('material-icons');
-        micIcon.textContent = 'mic_off';
-        card.appendChild(micIcon);
-      }
-      if (u.selfDeafened === true) {
-        const deafIcon = document.createElement('span');
-        deafIcon.classList.add('material-icons');
-        deafIcon.textContent = 'headset_off';
-        card.appendChild(deafIcon);
-      }
-      if (u.isScreenSharing === true) {
-        const badge = document.createElement('span');
-        badge.classList.add('screen-share-indicator');
-        badge.textContent = 'YAYINDA';
-        card.appendChild(badge);
-        if (u.screenShareProducerId) {
-          const watchBtn = document.createElement('button');
-          watchBtn.textContent = 'Watch Stream';
-          watchBtn.addEventListener('click', () => {
-            window.clearScreenShareUI();
-            WebRTC.showScreenShare(
-              socket,
-              window.currentGroup,
-              window.currentRoom,
-              u.screenShareProducerId,
-              window.clearScreenShareUI,
-            );
-          });
-          card.appendChild(watchBtn);
+
+    let index = 0;
+    rows.forEach((count, rowIdx) => {
+      const offset = Math.floor((columns - count) / 2);
+      for (let i = 0; i < count; i++) {
+        const u = roomUsers[index++];
+        const card = document.createElement('div');
+        card.classList.add('user-card');
+        card.style.gridRow = rowIdx + 1;
+        card.style.gridColumn = offset + i + 1;
+        const avatar = document.createElement('img');
+        avatar.classList.add('user-avatar');
+        avatar.src = '/images/default-avatar.png';
+        avatar.alt = '';
+        const nameSpan = document.createElement('span');
+        nameSpan.classList.add('user-name');
+        nameSpan.textContent = u.username || '(İsimsiz)';
+        card.appendChild(avatar);
+        card.appendChild(nameSpan);
+        if (u.hasMic === false) {
+          const micIcon = document.createElement('span');
+          micIcon.classList.add('material-icons', 'mic-missing');
+          micIcon.textContent = 'mic_off';
+          card.appendChild(micIcon);
+        } else if (u.micEnabled === false) {
+          const micIcon = document.createElement('span');
+          micIcon.classList.add('material-icons');
+          micIcon.textContent = 'mic_off';
+          card.appendChild(micIcon);
         }
+        if (u.selfDeafened === true) {
+          const deafIcon = document.createElement('span');
+          deafIcon.classList.add('material-icons');
+          deafIcon.textContent = 'headset_off';
+          card.appendChild(deafIcon);
+        }
+        if (u.isScreenSharing === true) {
+          const badge = document.createElement('span');
+          badge.classList.add('screen-share-indicator');
+          badge.textContent = 'YAYINDA';
+          card.appendChild(badge);
+          if (u.screenShareProducerId) {
+            const watchBtn = document.createElement('button');
+            watchBtn.textContent = 'Watch Stream';
+            watchBtn.addEventListener('click', () => {
+              window.clearScreenShareUI();
+              WebRTC.showScreenShare(
+                socket,
+                window.currentGroup,
+                window.currentRoom,
+                u.screenShareProducerId,
+                window.clearScreenShareUI,
+              );
+            });
+            card.appendChild(watchBtn);
+          }
+        }
+        container.appendChild(card);
       }
-      container.appendChild(card);
     });
   }
   window.renderVoiceChannelGrid = renderVoiceChannelGrid;
