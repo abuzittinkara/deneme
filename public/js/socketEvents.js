@@ -132,13 +132,20 @@ export function initSocketEvents(socket) {
     if (!Array.isArray(roomUsers)) return;
 
     const userCount = roomUsers.length || 0;
-    let columns;
-    if (userCount <= 2) {
-      columns = userCount || 1;
-    } else {
-      columns = Math.ceil(userCount / 2);
+    if (userCount === 0) return;
+
+    const cw = container.clientWidth;
+    const ch = container.clientHeight;
+    let columns = Math.max(1, Math.ceil(Math.sqrt(userCount)));
+    let rows = Math.ceil(userCount / columns);
+    let cardHeight = (cw / columns) * 9 / 16;
+    while (cardHeight * rows > ch && columns < userCount) {
+      columns += 1;
+      rows = Math.ceil(userCount / columns);
+      cardHeight = (cw / columns) * 9 / 16;
     }
-    container.style.setProperty('--user-grid-columns', columns);
+    container.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+    container.style.gridAutoRows = `${cardHeight}px`;
     
     roomUsers.forEach((u) => {
       const card = document.createElement('div');
