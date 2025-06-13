@@ -233,9 +233,16 @@ export function initSocketEvents(socket) {
     const userCount = roomUsers.length || 0;
     if (userCount === 0) return;
 
-    const cw = container.clientWidth;
-    const ch = container.clientHeight;
-    const gap = parseFloat(window.getComputedStyle(container).gap) || 0;
+    const compStyles = window.getComputedStyle(container);
+    const gap = parseFloat(compStyles.gap) || 0;
+    const paddingX =
+      (parseFloat(compStyles.paddingLeft) || 0) +
+      (parseFloat(compStyles.paddingRight) || 0);
+    const paddingY =
+      (parseFloat(compStyles.paddingTop) || 0) +
+      (parseFloat(compStyles.paddingBottom) || 0);
+    const cw = container.clientWidth - paddingX;
+    const ch = container.clientHeight - paddingY;
 
     function computeLayout(count, hint) {
       if (count === 3) return { rows: [2, 1], columns: 2 };
