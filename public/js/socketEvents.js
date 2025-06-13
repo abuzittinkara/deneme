@@ -133,6 +133,14 @@ export function initSocketEvents(socket) {
       card.classList.add('broadcast-card');
       return card;
     }
+    let infoWrapper = card;
+    if (u.isScreenSharing === true) {
+      card.classList.add('stream-available');
+      infoWrapper = document.createElement('div');
+      infoWrapper.classList.add('user-card-info');
+      card.appendChild(infoWrapper);
+    }
+    
     const avatar = document.createElement('img');
     avatar.classList.add('user-avatar');
     avatar.src = '/images/default-avatar.png';
@@ -140,24 +148,24 @@ export function initSocketEvents(socket) {
     const nameSpan = document.createElement('span');
     nameSpan.classList.add('user-name');
     nameSpan.textContent = u.username || '(İsimsiz)';
-    card.appendChild(avatar);
-    card.appendChild(nameSpan);
+    infoWrapper.appendChild(avatar);
+    infoWrapper.appendChild(nameSpan);
     if (u.hasMic === false) {
       const micIcon = document.createElement('span');
       micIcon.classList.add('material-icons', 'mic-missing');
       micIcon.textContent = 'mic_off';
-      card.appendChild(micIcon);
+      infoWrapper.appendChild(micIcon);
     } else if (u.micEnabled === false) {
       const micIcon = document.createElement('span');
       micIcon.classList.add('material-icons');
       micIcon.textContent = 'mic_off';
-      card.appendChild(micIcon);
+      infoWrapper.appendChild(micIcon);
     }
     if (u.selfDeafened === true) {
       const deafIcon = document.createElement('span');
       deafIcon.classList.add('material-icons');
       deafIcon.textContent = 'headset_off';
-      card.appendChild(deafIcon);
+      infoWrapper.appendChild(deafIcon);
     }
     if (u.isScreenSharing === true) {
       const badge = document.createElement('span');
@@ -166,6 +174,7 @@ export function initSocketEvents(socket) {
       card.appendChild(badge);
       if (u.screenShareProducerId) {
         const watchBtn = document.createElement('button');
+        watchBtn.classList.add('watch-stream-btn');
         watchBtn.textContent = 'Watch Stream';
         watchBtn.addEventListener('click', () => {
           window.clearScreenShareUI();

@@ -13,6 +13,29 @@
   box-sizing: border-box;
   aspect-ratio: 16 / 9;
 }
+.user-card-info {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.user-card.stream-available .user-card-info {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  font-size: 0.8rem;
+}
+.user-card.stream-available .watch-stream-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.user-card.stream-available .screen-share-indicator {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  font-size: 0.65rem;
+}
 .user-card .user-avatar {
   width: 40px;
   height: 40px;
