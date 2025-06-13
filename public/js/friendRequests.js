@@ -7,6 +7,13 @@ export function initFriendRequests(socket) {
     selectedContentItems.forEach(item => item.classList.remove('selected'));
   }
 
+  socket.on('friendListUpdated', () => {
+    const dmPanel = document.getElementById('dmPanel');
+    if (window.isDMMode && dmPanel && dmPanel.style.display !== 'none') {
+      renderFriendList();
+    }
+  });
+
   // dmChannelTitle elementini alıyoruz (dmChannelTitle, dmContentArea ile birlikte dm modunda 
   // üst kısımda yer alacak; dmPanel ise sabit DM listesi ve arama kutusunu barındıracak)
   const dmChannelTitle = document.getElementById('dmChannelTitle');

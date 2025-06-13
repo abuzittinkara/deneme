@@ -47,8 +47,57 @@ function registerFriendHandlers(io, socket, context) {
       await userDoc.save();
       await friendDoc.save();
       callback({ success: true });
+      // Notify both users that their friend list changed
+      Object.keys(users).forEach(socketId => {
+        const u = users[socketId].username;
+        if (u === username || u === fromUsername) {
+          io.to(socketId).emit('friendListUpdated');
+        }
+      });
     } catch (err) {
       callback({ success: false, message: 'Arkadaşlık isteği kabul edilirken hata oluştu.' });
+    }
+  });
+
+  socket.on('removeFriend', async (data, callback) => {
+    const username = users[socket.id]?.username;
+    try {
+      if (!username) return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
+      const friendUsername = data.friendUsername;
+      if (!friendUsername) return callback({ success: false, message: 'Arkadaş kullanıcı adı belirtilmedi.' });
+      const userDoc = await User.findOne({ username });
+      const friendDoc = await User.findOne({ username: friendUsername });
+      if (!userDoc || !friendDoc) return callback({ success: false, message: 'Kullanıcılar bulunamadı.' });
+      userDoc.friends = userDoc.friends.filter(id => id.toString() !== friendDoc._id.toString());
+      friendDoc.friends = friendDoc.friends.filter(id => id.toString() !== userDoc._id.toString());
+      await userDoc.save();
+      await friendDoc.save();
+      callback({ success: true });
+      // Inform both users about updated friend list
+      Object.keys(users).forEach(socketId => {
+        const u = users[socketId].username;
+        if (u === username || u === friendUsername) {
+          io.to(socketId).emit('friendListUpdated');
+        }
+      });
+    } catch (err) {
+      callback({ success: false, message: 'Arkadaş silinirken bir hata oluştu.' });
+    }
+  });
+
+  socket.on('getFriendsList', async (data, callback) => {
+    const username = users[socket.id]?.username;
+    try {
+      if (!username) return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
+      const userDoc = await User.findOne({ username }).populate('friends');
+      if (!userDoc) return callback({ success: false, message: 'Kullanıcı bulunamadı.' });
+      const friends = userDoc.friends.map(fr => ({
+        username: fr.username,
+        online: onlineUsernames.has(fr.username)
+      }));
+      callback({ success: true, friends });
+    } catch (err) {
+      callback({ success: false, message: 'Arkadaş listesi alınırken bir hata oluştu.' });
     }
   });
 
