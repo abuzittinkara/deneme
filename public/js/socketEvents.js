@@ -275,7 +275,13 @@ export function initSocketEvents(socket) {
         card.classList.add('user-card');
         card.style.gridRow = rowIdx + 1;
         if (count === 1) {
-          card.style.gridColumn = `1 / span ${columns}`;
+          if (userCount > 1) {
+            card.style.gridColumn = `1 / span ${columns}`;
+            card.style.width = `${colWidth}px`;
+            card.style.justifySelf = 'center';
+          } else {
+            card.style.gridColumn = '1';
+          }
         } else {
           card.style.gridColumn = offset + i + 1;
         }
