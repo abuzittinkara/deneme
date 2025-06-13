@@ -61,14 +61,20 @@ export function initDMChat(socket, friendUsername) {
     container.appendChild(msgDiv);
   }
 
-  // DM geçmişini yükle: joinDM event'i ile sunucudan geçmiş mesajları alıyoruz.
+  // DM odasına katıl ve mesaj geçmişini iste
   socket.emit('joinDM', { friend: friendUsername }, (res) => {
-    if (res.success && res.messages) {
-      dmMessages.innerHTML = '';
-      res.messages.forEach(msg => {
-        appendDMMessage(dmMessages, msg);
+    if (res && res.success) {
+      socket.emit('getDMMessages', { friend: friendUsername }, (msgRes) => {
+        if (msgRes.success && msgRes.messages) {
+          dmMessages.innerHTML = '';
+          msgRes.messages.forEach((msg) => {
+            appendDMMessage(dmMessages, msg);
+          });
+          dmMessages.scrollTop = dmMessages.scrollHeight;
+        } else {
+          dmMessages.innerHTML = 'DM mesajları yüklenirken hata oluştu.';
+        }
       });
-      dmMessages.scrollTop = dmMessages.scrollHeight;
     } else {
       dmMessages.innerHTML = 'DM mesajları yüklenirken hata oluştu.';
     }

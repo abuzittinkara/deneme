@@ -21,6 +21,7 @@ const DMMessage = require('./models/DmMessage');
 const sfu = require('./sfu');
 const registerTextChannelEvents = require('./modules/textChannel');
 const registerMediaEvents = require('./modules/mediaEvents');
+const registerDMChatEvents = require('./modules/dmChat');
 const expressWinston = require('express-winston');
 const logger = require('./utils/logger');
 
@@ -146,6 +147,7 @@ io.on("connection", (socket) => {
     store
   });
   registerTextChannelEvents(socket, { Channel, Message, User });
+  registerDMChatEvents(socket, { io, User, DMMessage, users, logger });
   socket.on("disconnect", () => { groupController.handleDisconnect(io, socket, context); });
 });
 
