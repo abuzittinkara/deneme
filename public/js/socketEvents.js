@@ -174,7 +174,7 @@ export function initSocketEvents(socket) {
       card.appendChild(badge);
       if (u.screenShareProducerId) {
         const watchBtn = document.createElement('button');
-        watchBtn.classList.add('watch-stream-btn');
+        watchBtn.classList.add('watch-stream-btn', 'btn', 'primary');
         watchBtn.textContent = 'Watch Stream';
         watchBtn.addEventListener('click', () => {
           window.clearScreenShareUI();
@@ -339,6 +339,7 @@ export function initSocketEvents(socket) {
           card.appendChild(badge);
           if (u.screenShareProducerId) {
             const watchBtn = document.createElement('button');
+            watchBtn.classList.add('watch-stream-btn', 'btn', 'primary');
             watchBtn.textContent = 'Watch Stream';
             watchBtn.addEventListener('click', () => {
               window.clearScreenShareUI();
