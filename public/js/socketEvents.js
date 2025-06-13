@@ -129,7 +129,10 @@ export function initSocketEvents(socket) {
     const card = document.createElement('div');
     card.classList.add('user-card');
     card.dataset.userId = u.id;
-    if (isBroadcast) card.classList.add('broadcast-card');
+    if (isBroadcast) {
+      card.classList.add('broadcast-card');
+      return card;
+    }
     const avatar = document.createElement('img');
     avatar.classList.add('user-avatar');
     avatar.src = '/images/default-avatar.png';
