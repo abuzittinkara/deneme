@@ -230,6 +230,7 @@ export function initSocketEvents(socket) {
 
     const cw = container.clientWidth;
     const ch = container.clientHeight;
+    const gap = parseFloat(window.getComputedStyle(container).gap) || 0;
 
     function computeLayout(count, hint) {
       if (count === 3) return { rows: [2, 1], columns: 2 };
@@ -249,15 +250,21 @@ export function initSocketEvents(socket) {
 
     let hint = Math.ceil(Math.sqrt(userCount));
     let layout = computeLayout(userCount, hint);
-    let cardHeight = (cw / layout.columns) * 9 / 16;
-    while (cardHeight * layout.rows.length > ch && hint < userCount) {
+    let colWidth = (cw - gap * (layout.columns - 1)) / layout.columns;
+    let cardHeight = (colWidth) * 9 / 16;
+    while (
+      cardHeight * layout.rows.length + gap * (layout.rows.length - 1) > ch &&
+      hint < userCount
+    ) {
       hint += 1;
       layout = computeLayout(userCount, hint);
-      cardHeight = (cw / layout.columns) * 9 / 16;
+      colWidth = (cw - gap * (layout.columns - 1)) / layout.columns;
+      cardHeight = colWidth * 9 / 16;
     }
     const { rows, columns } = layout;
-    container.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+    container.style.gridTemplateColumns = `repeat(${columns}, ${colWidth}px)`;
     container.style.gridAutoRows = `${cardHeight}px`;
+    container.style.justifyContent = 'center';
 
     let index = 0;
     rows.forEach((count, rowIdx) => {
@@ -267,7 +274,11 @@ export function initSocketEvents(socket) {
         const card = document.createElement('div');
         card.classList.add('user-card');
         card.style.gridRow = rowIdx + 1;
-        card.style.gridColumn = offset + i + 1;
+        if (count === 1) {
+          card.style.gridColumn = `1 / span ${columns}`;
+        } else {
+          card.style.gridColumn = offset + i + 1;
+        }
         const avatar = document.createElement('img');
         avatar.classList.add('user-avatar');
         avatar.src = '/images/default-avatar.png';
