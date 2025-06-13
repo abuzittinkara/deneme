@@ -131,7 +131,6 @@ export function initSocketEvents(socket) {
     card.dataset.userId = u.id;
     if (isBroadcast) {
       card.classList.add('broadcast-card');
-      return card;
     }
     let infoWrapper = card;
     if (u.isScreenSharing === true) {
