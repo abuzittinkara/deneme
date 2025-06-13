@@ -18,31 +18,37 @@
   align-items: center;
   gap: 0.25rem;
 }
-.user-card.stream-available .user-card-info {
+.user-card.stream-available .user-card-info,
+.broadcast-card .user-card-info {
   position: absolute;
   bottom: 4px;
   left: 4px;
   font-size: 0.8rem;
 }
-.user-card.stream-available .watch-stream-btn {
+.user-card.stream-available .watch-stream-btn,
+.broadcast-card .watch-stream-btn {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 1;
 }
-.user-card.stream-available .screen-share-indicator {
+.user-card.stream-available .screen-share-indicator,
+.broadcast-card .screen-share-indicator {
   position: absolute;
   bottom: 4px;
   right: 4px;
   font-size: 0.65rem;
 }
-.user-card.stream-available .user-avatar {
+.user-card.stream-available .user-avatar,
+.broadcast-card .user-avatar {
   width: 24px;
   height: 24px;
 }
 .user-card.stream-available .user-name,
-.user-card.stream-available .material-icons {
+.broadcast-card .user-name,
+.user-card.stream-available .material-icons,
+.broadcast-card .material-icons {
   font-size: 0.8rem;
 }
 .user-card .user-avatar {
@@ -88,9 +94,6 @@
   flex-shrink: 0;
 }
 
-.broadcast-card > :not(.screen-share-container):not(video) {
-  display: none;
-}
 
 .broadcast-card .screen-share-container,
 .broadcast-card video {
