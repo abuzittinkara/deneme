@@ -128,6 +128,7 @@ export function initSocketEvents(socket) {
   function createUserCard(u, isBroadcast = false) {
     const card = document.createElement('div');
     card.classList.add('user-card');
+    card.dataset.userId = u.id;
     if (isBroadcast) card.classList.add('broadcast-card');
     const avatar = document.createElement('img');
     avatar.classList.add('user-avatar');
@@ -191,6 +192,13 @@ export function initSocketEvents(socket) {
     if (broadcaster) {
       const broadcastCard = createUserCard(broadcaster, true);
       container.appendChild(broadcastCard);
+      
+      if (
+        window.screenShareContainer &&
+        window.broadcastingUserId === broadcastingUserId
+      ) {
+        broadcastCard.appendChild(window.screenShareContainer);
+      }
     }
 
     const row = document.createElement('div');
@@ -213,7 +221,7 @@ export function initSocketEvents(socket) {
     }
 
     container.classList.remove('broadcast-mode');
-    
+
     const userCount = roomUsers.length || 0;
     if (userCount === 0) return;
 

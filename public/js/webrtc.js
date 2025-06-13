@@ -348,7 +348,6 @@ export async function showScreenShare(socket, currentGroup, currentRoom, produce
     console.warn('recvTransport yok');
     return;
   }
-  const channelContentArea = document.querySelector('.channel-content-area');
   clearScreenShareUI();
   const consumeParams = await new Promise((resolve) => {
     socket.emit('consume', {
@@ -427,20 +426,16 @@ export async function showScreenShare(socket, currentGroup, currentRoom, produce
 
     screenShareContainer = createScreenShareContainer(screenShareVideo, handleEnd);
     removeScreenShareEndedMessage();
-    if (channelContentArea) {
-      channelContentArea.appendChild(screenShareContainer);
-      socket.emit('startWatching', { userId: consumer.appData.peerId });
-    }
+    socket.emit('startWatching', { userId: consumer.appData.peerId });
     if (
       window.latestChannelsData &&
-      window.currentRoom &&
-      typeof window.renderVoiceChannelGrid === 'function' &&
-      window.latestChannelsData[window.currentRoom]
+      window.currentRoom
     ) {
       window.renderVoiceChannelGrid(
-        window.latestChannelsData[window.currentRoom].users,
+        window.latestChannelsData[window.currentRoom].users
       );
     }
+    
     console.log('Yeni video consumer oluşturuldu:', consumer.id, '-> yayıncı:', consumer.appData.peerId);
     if (typeof window.setConnectionStatus === 'function') {
       window.setConnectionStatus('connected');

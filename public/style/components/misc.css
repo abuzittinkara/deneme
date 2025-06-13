@@ -54,6 +54,13 @@
   aspect-ratio: 16/9;
 }
 
+.broadcast-card .screen-share-container,
+.broadcast-card video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .viewer-row {
   display: flex;
   gap: 0.5rem;
