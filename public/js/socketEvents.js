@@ -677,4 +677,9 @@ export function initSocketEvents(socket) {
       renderVoiceChannelGrid(channelsObj[window.currentRoom].users);
     }
   });
+  socket.on('forceLogout', () => {
+    callScreen.style.display = 'none';
+    loginScreen.style.display = 'block';
+    window.username = null;
+  })
 }

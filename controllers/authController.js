@@ -76,6 +76,19 @@ function registerAuthHandlers(io, socket, context) {
   socket.on('set-username', async (usernameVal) => {
     if (usernameVal && typeof usernameVal === 'string') {
       const trimmedName = usernameVal.trim();
+
+      if (context.userSessions) {
+        const existing = context.userSessions[trimmedName];
+        if (existing && existing !== socket.id) {
+          const existingSocket = io.sockets.sockets.get(existing);
+          if (existingSocket) {
+            existingSocket.emit('forceLogout');
+            existingSocket.disconnect(true);
+          }
+        }
+        context.userSessions[trimmedName] = socket.id;
+      }
+      
       users[socket.id].username = trimmedName;
       onlineUsernames.add(trimmedName);
       if (context.store) {

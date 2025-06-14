@@ -81,6 +81,7 @@ app.use(rateLimit(rateLimitOptions));
 const users = {};
 const groups = {};
 const onlineUsernames = new Set();
+const userSessions = {};
 let friendRequests = {};
 
 // → Friend request'lerin 24 saat sonra otomatik temizlenmesi için TTL mekanizması
@@ -106,7 +107,7 @@ friendRequestCleanupTimer.unref();
 
 app.use(expressWinston.logger({ winstonInstance: logger, meta: false, msg: "{{req.method}} {{req.url}} - {{res.statusCode}} ({{res.responseTime}}ms)", colorize: true }));
 app.use(express.static("public"));
-const context = { User, Group, Channel, Message, DMMessage, users, groups, onlineUsernames, friendRequests, sfu, groupController, store };
+const context = { User, Group, Channel, Message, DMMessage, users, groups, onlineUsernames, userSessions, friendRequests, sfu, groupController, store };
 
 io.on("connection", (socket) => {
   logger.info(`Yeni bağlantı: ${socket.id}`);
@@ -135,7 +136,7 @@ io.on("connection", (socket) => {
     watching: [],
     watchers: []
   });
-  authController(io, socket, { User, users, onlineUsernames, groupController, store });
+  authController(io, socket, { User, users, onlineUsernames, groupController, store, userSessions });
   groupController.register(io, socket, context);
   friendController(io, socket, context);
   registerMediaEvents(io, socket, {

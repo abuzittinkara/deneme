@@ -213,10 +213,13 @@ async function broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId) 
 }
 
 function handleDisconnect(io, socket, context) {
-  const { users, onlineUsernames, groups, store } = context;
+  const { users, onlineUsernames, groups, store, userSessions } = context;
   const username = users[socket.id]?.username;
   if (username) {
     onlineUsernames.delete(username);
+    if (userSessions && userSessions[username] === socket.id) {
+      delete userSessions[username];
+    }
     if (store) store.removeSetMember('onlineUsers', username);
   }
   removeUserFromAllGroupsAndRooms(io, socket, users, groups, store);
