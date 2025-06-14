@@ -175,7 +175,7 @@
 }
 .text-chat-input-bar .chat-input {
   flex: 1;
-  height: 32px; /* Yükseklik 32px olarak ayarlandı */
+  height: 45px; /* Yükseklik 45px olarak ayarlandı */
   box-sizing: border-box;
   padding: 0 0.5rem;
   padding-right: 40px;
@@ -187,7 +187,7 @@
 }
 #dmMessageInput {
   flex: 1;
-  height: 32px;
+  height: 45px;
   box-sizing: border-box;
   padding: 0 0.5rem;
   padding-right: 40px;
