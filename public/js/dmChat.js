@@ -27,24 +27,43 @@ export function initDMChat(socket, friendUsername) {
   dmMessages.dataset.channelId = `dm-${friendUsername}`;
   dmContentArea.appendChild(dmMessages);
 
-  // DM mesaj gönderme alanı (textChatInputBar)
-  const textChatInputBar = document.createElement('div');
-  textChatInputBar.id = 'dmTextChatInputBar';
-  textChatInputBar.className = 'text-chat-input-bar';
-  const chatInputWrapper = document.createElement('div');
-  chatInputWrapper.className = 'chat-input-wrapper';
-  const dmInput = document.createElement('input');
-  dmInput.type = 'text';
-  dmInput.id = 'dmMessageInput';
-  dmInput.className = 'chat-input';
-  dmInput.placeholder = 'Bir mesaj yazın...';
-  const sendButton = document.createElement('span');
-  sendButton.id = 'dmSendButton';
-  sendButton.className = 'material-icons send-icon';
-  sendButton.textContent = 'send';
-  chatInputWrapper.appendChild(dmInput);
-  chatInputWrapper.appendChild(sendButton);
-  textChatInputBar.appendChild(chatInputWrapper);
+  // DM mesaj girişi için mevcut textChatInputBar yapısını klonla
+  const baseInputBar = document.getElementById('textChatInputBar');
+  let textChatInputBar;
+  let dmInput;
+  let sendButton;
+  if (baseInputBar) {
+    textChatInputBar = baseInputBar.cloneNode(true);
+    textChatInputBar.id = 'dmTextChatInputBar';
+    dmInput = textChatInputBar.querySelector('#textChannelMessageInput');
+    if (dmInput) {
+      dmInput.id = 'dmMessageInput';
+    }
+    sendButton = textChatInputBar.querySelector('#sendTextMessageBtn');
+    if (sendButton) {
+      sendButton.id = 'dmSendButton';
+    }
+  } else {
+    // Fallback: yapıyı manuel olarak oluştur
+    textChatInputBar = document.createElement('div');
+    textChatInputBar.id = 'dmTextChatInputBar';
+    textChatInputBar.className = 'text-chat-input-bar';
+    const chatInputWrapper = document.createElement('div');
+    chatInputWrapper.className = 'chat-input-wrapper';
+    dmInput = document.createElement('input');
+    dmInput.type = 'text';
+    dmInput.id = 'dmMessageInput';
+    dmInput.className = 'chat-input';
+    dmInput.placeholder = 'Bir mesaj yazın...';
+    sendButton = document.createElement('span');
+    sendButton.id = 'dmSendButton';
+    sendButton.className = 'material-icons send-icon';
+    sendButton.textContent = 'send';
+    chatInputWrapper.appendChild(dmInput);
+    chatInputWrapper.appendChild(sendButton);
+    textChatInputBar.appendChild(chatInputWrapper);
+  }
+
   dmContentArea.appendChild(textChatInputBar);
 
   // Mesajı tarih ayıracı kontrolüyle ekler
