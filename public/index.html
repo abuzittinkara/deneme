@@ -270,10 +270,20 @@
               <li data-section="notifications">Bildirimler</li>
               <li data-section="connections">Bağlantılar</li>
               <li data-section="advanced">Gelişmiş</li>
-              <li data-section="logout">Çıkış Yap</li>
+              <li data-section="logout" class="logout-item">Çıkış Yap</li>
             </ul>
           </aside>
           <div class="settings-content"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Modal: Logout Confirmation -->
+    <div id="logoutConfirmModal" class="modal">
+      <div class="modal-content">
+        <h2>Are you sure you want to log out?</h2>
+        <div class="modal-buttons">
+          <button id="confirmLogoutBtn" class="btn primary">Yes</button>
+          <button id="cancelLogoutBtn" class="btn secondary">No</button>
         </div>
       </div>
     </div>

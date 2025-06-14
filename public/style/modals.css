@@ -41,6 +41,10 @@
   display: none;
 }
 
+#logoutConfirmModal {
+  display: none;
+}
+
 #groupSettingsModal .modal-content {
   width: 100%;
   height: 100%;
