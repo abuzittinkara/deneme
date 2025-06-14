@@ -43,6 +43,8 @@ export function initDMChat(socket, friendUsername) {
     sendButton = textChatInputBar.querySelector('#sendTextMessageBtn');
     if (sendButton) {
       sendButton.id = 'dmSendButton';
+      sendButton.classList.remove('material-icons');
+      sendButton.innerHTML = '<span class="material-symbols-outlined">send</span>';
     }
   } else {
     // Fallback: yapıyı manuel olarak oluştur
@@ -58,8 +60,8 @@ export function initDMChat(socket, friendUsername) {
     dmInput.placeholder = 'Bir mesaj yazın...';
     sendButton = document.createElement('span');
     sendButton.id = 'dmSendButton';
-    sendButton.className = 'material-icons send-icon';
-    sendButton.textContent = 'send';
+    sendButton.className = 'send-icon';
+    sendButton.innerHTML = '<span class="material-symbols-outlined">send</span>';
     chatInputWrapper.appendChild(dmInput);
     chatInputWrapper.appendChild(sendButton);
     textChatInputBar.appendChild(chatInputWrapper);
