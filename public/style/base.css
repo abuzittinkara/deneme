@@ -16,6 +16,10 @@ body {
   font-size: 20px !important;
   color: #ccc;
 }
+.material-symbols-outlined {
+  font-size: 20px !important;
+  color: #ccc;
+}
 
 /* Ekran kapsayıcı */
 .screen-container {
