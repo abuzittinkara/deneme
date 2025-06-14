@@ -1,0 +1,41 @@
+#userSettingsModal .settings-wrapper {
+  display: flex;
+  height: 100%;
+}
+
+#userSettingsModal .settings-sidebar {
+  width: 220px;
+  background: #1e1e1e;
+  padding: 1rem;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+#userSettingsModal .settings-search {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+#userSettingsModal .settings-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+#userSettingsModal .settings-menu li {
+  padding: 0.6rem 0.5rem;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+#userSettingsModal .settings-menu li.active {
+  background: #444;
+}
+
+#userSettingsModal .settings-content {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}

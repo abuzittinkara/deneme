@@ -252,7 +252,29 @@
     <div id="userSettingsModal" class="modal">
       <div class="modal-content">
         <span id="closeUserSettingsModalBtn" class="material-icons">close</span>
-        <h2>Kullanıcı Ayarları</h2>
+        <div class="settings-wrapper">
+          <aside class="settings-sidebar">
+            <input
+              type="text"
+              id="userSettingsSearch"
+              class="input-text settings-search"
+              placeholder="Ara..."
+            />
+            <ul class="settings-menu">
+              <li class="active" data-section="account">Hesabım</li>
+              <li data-section="profile">Profil</li>
+              <li data-section="privacy">Veri ve Gizlilik</li>
+              <li data-section="devices">Cihazlar</li>
+              <li data-section="audio">Ses ve Görüntü</li>
+              <li data-section="appearance">Görünüm</li>
+              <li data-section="notifications">Bildirimler</li>
+              <li data-section="connections">Bağlantılar</li>
+              <li data-section="advanced">Gelişmiş</li>
+              <li data-section="logout">Çıkış Yap</li>
+            </ul>
+          </aside>
+          <div class="settings-content"></div>
+        </div>
       </div>
     </div>
     <!-- Modal: Oda Oluşturma -->

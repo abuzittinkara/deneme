@@ -174,8 +174,8 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
 
   if (closeUserSettingsModalBtn) {
     closeUserSettingsModalBtn.addEventListener('click', () => {
-      if (typeof window.closeUserSettingsModal === 'function') {
-        window.closeUserSettingsModal();
+      if (typeof window.closeUserSettings === 'function') {
+        window.closeUserSettings();
       }
     });
   }
@@ -282,9 +282,8 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
   });
 
   settingsButton.addEventListener('click', () => {
-    if (userSettingsModal) {
-      userSettingsModal.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
+    if (typeof window.openUserSettings === 'function') {
+      window.openUserSettings();
     }
   });
 

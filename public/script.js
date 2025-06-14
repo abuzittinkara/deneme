@@ -66,6 +66,7 @@ import { initUIEvents } from "./js/uiEvents.js";
 import { initSocketEvents } from "./js/socketEvents.js";
 import * as WebRTC from "./js/webrtc.js";
 import { applyAudioStates } from "./js/audioUtils.js";
+import { initUserSettings, openUserSettings, closeUserSettings } from "./js/userSettings.js";
 
 let socket = null;
 let device = null;   // mediasoup-client Device
@@ -388,6 +389,7 @@ window.addEventListener('DOMContentLoaded', () => {
   initUIEvents(socket, () => attemptLogin(socket, loginUsernameInput, loginPasswordInput, loginErrorMessage), () => attemptRegister(socket, {regUsernameInput, regNameInput, regSurnameInput, regBirthdateInput, regEmailInput, regPhoneInput, regPasswordInput, regPasswordConfirmInput, registerErrorMessage}));
   initTypingIndicator(socket, () => window.currentTextChannel, () => window.username);
   initFriendRequests(socket);
+  initUserSettings();
 
   const area = document.getElementById('channelContentArea');
   const resizeCb = () => {
@@ -607,10 +609,5 @@ window.removeScreenShareEndedMessage = removeScreenShareEndedMessage;
 
 /* DM Panel toggle işlevi, her tıklamada DM moduna geçiş veya çıkış yapar (initUIEvents içinde tanımlanacak). */
 
-function closeUserSettingsModal() {
-  if (userSettingsModal) {
-    userSettingsModal.style.display = 'none';
-    document.body.style.overflow = '';
-  }
-}
-window.closeUserSettingsModal = closeUserSettingsModal;
+window.openUserSettings = openUserSettings;
+window.closeUserSettings = closeUserSettings;
