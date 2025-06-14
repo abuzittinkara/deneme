@@ -35,6 +35,7 @@ export function initDMChat(socket, friendUsername) {
   if (baseInputBar) {
     textChatInputBar = baseInputBar.cloneNode(true);
     textChatInputBar.id = 'dmTextChatInputBar';
+    textChatInputBar.classList.add('text-chat-input-bar');
     dmInput = textChatInputBar.querySelector('#textChannelMessageInput');
     if (dmInput) {
       dmInput.id = 'dmMessageInput';

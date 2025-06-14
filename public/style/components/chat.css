@@ -185,6 +185,18 @@
   color: #fff;
   margin: 0;
 }
+#dmMessageInput {
+  flex: 1;
+  height: 32px;
+  box-sizing: border-box;
+  padding: 0 0.5rem;
+  padding-right: 40px;
+  background: #444;
+  border: 1px solid #666;
+  border-radius: 6px;
+  color: #fff;
+  margin: 0;
+}
 .text-chat-input-bar .send-icon {
   display: none; /* Başlangıçta gizli */
   position: absolute;
