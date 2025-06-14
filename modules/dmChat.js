@@ -1,6 +1,10 @@
 /**************************************
  * modules/dmChat.js
  **************************************/
+const DOMPurify = require('dompurify');
+const { JSDOM } = require('jsdom');
+const purify = DOMPurify(new JSDOM('').window);
+
 module.exports = function registerDMChatEvents(socket, { io, User, DMMessage, users, logger }) {
   function getRoomName(u1, u2) {
     return `dm::${[u1, u2].sort().join('::')}`;
@@ -70,15 +74,16 @@ module.exports = function registerDMChatEvents(socket, { io, User, DMMessage, us
         logger.warn('dmMessage failed (blocked): from %s to %s', fromUsername, friend);
         return callback({ success: false, message: 'Bu kullanıcıya mesaj gönderemezsiniz.' });
       }
+      const clean = purify.sanitize(content, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
       const dmMessage = new DMMessage({
         from: fromUserDoc._id,
         to: toUserDoc._id,
-        content
+        content: clean
       });
       await dmMessage.save();
       const messageObj = {
         username: fromUsername,
-        content,
+        content: clean,
         timestamp: dmMessage.timestamp
       };
       socket.emit('newDMMessage', { friend, message: messageObj });

@@ -106,3 +106,42 @@ test('dm messages persist and history retrieval works', async () => {
   assert.strictEqual(history.messages[0].content, 'Hello Bob');
   assert.strictEqual(history.messages[1].content, 'Hi Alice');
 });
+
+test('dm messages are sanitized', async () => {
+  const { users, User, DMMessage, logger } = createContext();
+  const socket1 = new EventEmitter();
+  socket1.id = 's1';
+  socket1.join = () => {};
+  const socket2 = new EventEmitter();
+  socket2.id = 's2';
+  socket2.join = () => {};
+
+  const io = {
+    emitted: [],
+    to(id) {
+      return {
+        emit: (ev, p) => {
+          io.emitted.push({ id, ev, p });
+          if (id === 's1') socket1.emit(ev, p);
+          if (id === 's2') socket2.emit(ev, p);
+        }
+      };
+    }
+  };
+
+  registerDMChatEvents(socket1, { io, User, DMMessage, users, logger });
+  registerDMChatEvents(socket2, { io, User, DMMessage, users, logger });
+
+  const dm1 = socket1.listeners('dmMessage')[0];
+
+  let selfPayload;
+  let friendPayload;
+  socket1.on('newDMMessage', p => { selfPayload = p; });
+  socket2.on('newDMMessage', p => { friendPayload = p; });
+
+  await new Promise(res => dm1({ friend: 'bob', content: '<i>Hello</i>' }, res));
+
+  assert.strictEqual(DMMessage.messages[0].content, 'Hello');
+  assert.strictEqual(selfPayload.message.content, 'Hello');
+  assert.strictEqual(friendPayload.message.content, 'Hello');
+});
