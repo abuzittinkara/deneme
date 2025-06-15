@@ -176,6 +176,7 @@
 .dm-panel .user-item.dm-friend-item .user-profile-pic {
   width: 35px;
   height: 35px;
+  border-radius: 45%;
 }
 .dm-panel .user-item.dm-friend-item .user-name {
   margin-left: 8px;

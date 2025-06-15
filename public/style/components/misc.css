@@ -51,7 +51,7 @@
 .user-card .user-avatar {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+  border-radius: 45%;
   background: #666;
 }
 .user-info {
