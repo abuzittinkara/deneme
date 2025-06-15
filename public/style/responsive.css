@@ -23,3 +23,9 @@
     flex-direction: column;
   }
 }
+
+@media (max-width: 600px) {
+  #userSettingsPage .sidebar-region-scroller {
+    display: none;
+  }
+}

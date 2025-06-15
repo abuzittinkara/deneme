@@ -5,7 +5,13 @@
   height: 100vh;
   background: var(--background-secondary, #2d2d2d);
   align-items: flex-start;
-  justify-content: center;
+  justify-content: flex-start;
+}
+
+#userSettingsPage .sidebar-region-scroller {
+  flex: 0 1 200px;
+  height: 100vh;
+  min-width: 0;
 }
 
 #userSettingsPage .settings-sidebar {
