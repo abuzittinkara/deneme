@@ -395,6 +395,10 @@ function initAccountSection() {
     saveAvatarBtn.addEventListener('click', () => {
       if (!avatarCropper) return;
       const canvas = avatarCropper.getCroppedCanvas({ width: 256, height: 256 });
+      if (!canvas) {
+        console.error('Failed to crop avatar: canvas is null');
+        return;
+      }
       const dataUrl = canvas.toDataURL('image/png');
       const img = document.getElementById('avatarImage');
       if (img) img.src = dataUrl;
