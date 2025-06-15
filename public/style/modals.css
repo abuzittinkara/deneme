@@ -39,6 +39,7 @@
 #editUsernameModal,
 #editEmailModal,
 #editPhoneModal,
+#avatarUploadModal,
 #removeAvatarModal {
   display: none;
 }
@@ -87,4 +88,12 @@ body.blurred .screen-container,
 body.blurred #userSettingsPage {
   filter: blur(2px);
   opacity: 0.6;
+}
+
+/* Avatar upload specific styles */
+#avatarCropContainer {
+  width: 250px;
+  height: 250px;
+  margin: 1rem auto 0;
+  overflow: hidden;
 }

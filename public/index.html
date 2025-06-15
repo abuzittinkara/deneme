@@ -350,6 +350,19 @@
         </div>
       </div>
     </div>
+    <!-- Modal: Avatar Yükle -->
+    <div id="avatarUploadModal" class="modal">
+      <div class="modal-content">
+        <span id="closeAvatarUploadModal" class="material-icons">close</span>
+        <h2>Avatarı Yükle</h2>
+        <input type="file" id="avatarFileInput" accept="image/*" />
+        <div id="avatarCropContainer" style="margin-top:1rem;"></div>
+        <div class="modal-buttons">
+          <button id="saveAvatarBtn" class="btn primary">Kaydet</button>
+          <button class="btn secondary" onclick="closeModal('avatarUploadModal')">İptal</button>
+        </div>
+      </div>
+    </div>
     <!-- Modal: Avatarı Kaldır -->
     <div id="removeAvatarModal" class="modal">
       <div class="modal-content">
@@ -367,6 +380,7 @@
     <!-- Önce Socket.IO, sonra Mediasoup Client, en son script.js -->
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
     <script src="libs/mediasoup-client.min.js"></script>
+    <script src="https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.js"></script>
     <!-- script.js dosyasını modül olarak yüklemek için type="module" eklenmiştir -->
     <script type="module" src="script.js"></script>
   </body>
