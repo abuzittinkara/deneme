@@ -203,6 +203,8 @@
   color: #fff;
   border: none;
   cursor: pointer;
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 #userSettingsPage .remove-link {
