@@ -74,56 +74,25 @@ function showToast(msg) {
   setTimeout(() => { t.style.display = 'none'; }, 2000);
 }
 
-function setupEditableRow(rowId) {
-  const row = document.getElementById(rowId);
-  if (!row) return;
-  const editBtn = row.querySelector('.edit-btn');
-  if (!editBtn) return;
-  editBtn.addEventListener('click', () => {
-    const label = row.dataset.label || '';
-    const field = row.dataset.field || '';
-    const valEl = row.querySelector('.info-value');
-    const oldVal = valEl ? valEl.textContent : '';
-    row.innerHTML = `
-      <div style="flex:1;">
-        <div class="info-label">${label}</div>
-        <input type="text" class="input-text inline-input" value="${oldVal}" />
-        <div class="error-tooltip" style="display:none;"></div>
-      </div>
-      <div>
-        <button class="btn small-btn save-btn" disabled>Kaydet</button>
-        <button class="cancel-btn">İptal</button>
-      </div>`;
-    const input = row.querySelector('input');
-    const save = row.querySelector('.save-btn');
-    const cancel = row.querySelector('.cancel-btn');
-    const tooltip = row.querySelector('.error-tooltip');
-    function reset() {
-      row.innerHTML = `
-        <div>
-          <div class="info-label">${label}</div>
-          <div class="info-value">${oldVal}</div>
-        </div>
-        <button class="edit-btn">Düzenle</button>`;
-      setupEditableRow(rowId);
-    }
-    cancel.addEventListener('click', reset);
-    function validate(value) {
-      const trimmed = value.trim();
-      if (trimmed === oldVal) { save.disabled = true; return false; }
-      if (!trimmed || trimmed.length > 32) return false;
-      if (field === 'email' && !/^\S+@\S+\.\S+$/.test(trimmed)) return false;
-      if (field === 'phone' && !/^\d+$/.test(trimmed)) return false;
-      return true;
-    }
-    input.addEventListener('input', () => {
-      tooltip.style.display = 'none';
-      input.style.borderColor = '';
-      save.disabled = !validate(input.value);
-    });
-    save.addEventListener('click', async () => {
+
+function openEditUsernameModal() {
+  const modal = document.getElementById('editUsernameModal');
+  if (!modal) return;
+  const input = modal.querySelector('input');
+  const save = modal.querySelector('.save-btn');
+  const closeBtn = modal.querySelector('.close-modal');
+  function close() {
+    closeModal('editUsernameModal');
+    document.removeEventListener('keydown', esc);
+  }
+  function esc(e) { if (e.key === 'Escape') close(); }
+  if (closeBtn) closeBtn.addEventListener('click', close, { once: true });
+  document.addEventListener('keydown', esc);
+  if (save) {
+    save.addEventListener('click', async function handler() {
       if (save.disabled) return;
       const v = input.value.trim();
+      if (!v) return;
       save.disabled = true;
       const orig = save.innerHTML;
       save.innerHTML = '<span class="spinner"></span>';
@@ -132,33 +101,114 @@ function setupEditableRow(rowId) {
         const resp = await fetch(`/api/user/me?username=${encodeURIComponent(uname)}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ field, value: v })
+          body: JSON.stringify({ field: 'username', value: v })
         });
         if (!resp.ok) throw new Error('failed');
-        row.innerHTML = `
-          <div>
-            <div class="info-label">${label}</div>
-            <div class="info-value">${v}</div>
-          </div>
-          <button class="edit-btn">Düzenle</button>`;
-        if (field === 'displayName') {
-          const heading = document.getElementById('displayNameHeading');
-          if (heading) heading.textContent = v;
-        } else if (field === 'username') {
-          try { localStorage.setItem('username', v); } catch(e) {}
-        }
+        const rowVal = document.querySelector('#userHandleRow .info-value');
+        if (rowVal) rowVal.textContent = v;
+        try { localStorage.setItem('username', v); } catch (e) {}
         if (typeof showToast === 'function') showToast('Changes saved');
-        setupEditableRow(rowId);
+        close();
       } catch (err) {
-        tooltip.textContent = 'Kaydedilemedi';
-        tooltip.style.display = 'block';
-        input.style.borderColor = 'var(--accent-danger)';
-        save.disabled = false;
+        // ignore
       } finally {
         save.innerHTML = orig;
+        save.disabled = false;
+        save.removeEventListener('click', handler);
       }
-    });
-  });
+    }, { once: true });
+  }
+  openModal('editUsernameModal');
+}
+
+function openEditEmailModal() {
+  const modal = document.getElementById('editEmailModal');
+  if (!modal) return;
+  const input = modal.querySelector('input');
+  const save = modal.querySelector('.save-btn');
+  const closeBtn = modal.querySelector('.close-modal');
+  function close() {
+    closeModal('editEmailModal');
+    document.removeEventListener('keydown', esc);
+  }
+  function esc(e) { if (e.key === 'Escape') close(); }
+  if (closeBtn) closeBtn.addEventListener('click', close, { once: true });
+  document.addEventListener('keydown', esc);
+  if (save) {
+    save.addEventListener('click', async function handler() {
+      if (save.disabled) return;
+      const v = input.value.trim();
+      if (!v) return;
+      save.disabled = true;
+      const orig = save.innerHTML;
+      save.innerHTML = '<span class="spinner"></span>';
+      try {
+        const uname = localStorage.getItem('username');
+        const resp = await fetch(`/api/user/me?username=${encodeURIComponent(uname)}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ field: 'email', value: v })
+        });
+        if (!resp.ok) throw new Error('failed');
+        const rowVal = document.querySelector('#emailRow .info-value');
+        if (rowVal) rowVal.textContent = v;
+        if (typeof showToast === 'function') showToast('Changes saved');
+        close();
+      } catch (err) {
+        // ignore
+      } finally {
+        save.innerHTML = orig;
+        save.disabled = false;
+        save.removeEventListener('click', handler);
+      }
+    }, { once: true });
+  }
+  openModal('editEmailModal');
+}
+
+function openEditPhoneModal() {
+  const modal = document.getElementById('editPhoneModal');
+  if (!modal) return;
+  const input = modal.querySelector('input');
+  const save = modal.querySelector('.save-btn');
+  const closeBtn = modal.querySelector('.close-modal');
+  function close() {
+    closeModal('editPhoneModal');
+    document.removeEventListener('keydown', esc);
+  }
+  function esc(e) { if (e.key === 'Escape') close(); }
+  if (closeBtn) closeBtn.addEventListener('click', close, { once: true });
+  document.addEventListener('keydown', esc);
+  if (save) {
+    save.addEventListener('click', async function handler() {
+      if (save.disabled) return;
+      const v = input.value.trim();
+      if (!v) return;
+      save.disabled = true;
+      const orig = save.innerHTML;
+      save.innerHTML = '<span class="spinner"></span>';
+      try {
+        const uname = localStorage.getItem('username');
+        const resp = await fetch(`/api/user/me?username=${encodeURIComponent(uname)}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ field: 'phone', value: v })
+        });
+        if (!resp.ok) throw new Error('failed');
+        const rowVal = document.querySelector('#phoneRow .info-value');
+        if (rowVal) rowVal.textContent = v;
+        if (typeof showToast === 'function') showToast('Changes saved');
+        close();
+      } catch (err) {
+        // ignore
+      } finally {
+        save.innerHTML = orig;
+        save.disabled = false;
+        save.removeEventListener('click', handler);
+      }
+    }, { once: true });
+  }
+  openModal('editPhoneModal');
 }
 
 let avatarCropper = null;
@@ -183,15 +233,16 @@ function initAccountSection() {
       })
       .catch(() => {});
   }
-  setupEditableRow('displayNameRow');
-  setupEditableRow('userHandleRow');
+ // editing handled via separate modals now
   const editEmailBtn = document.getElementById('editEmailBtn');
   const editPhoneBtn = document.getElementById('editPhoneBtn');
+  const editUsernameBtn = document.getElementById('editUserHandleBtn');
   const removePhoneLink = document.getElementById('removePhoneLink');
   const avatar = document.getElementById('profile-avatar');
 
-  if (editEmailBtn) editEmailBtn.addEventListener('click', () => openModal('editEmailModal'));
-  if (editPhoneBtn) editPhoneBtn.addEventListener('click', () => openModal('editPhoneModal'));
+  if (editUsernameBtn) editUsernameBtn.addEventListener('click', openEditUsernameModal);
+  if (editEmailBtn) editEmailBtn.addEventListener('click', openEditEmailModal);
+  if (editPhoneBtn) editPhoneBtn.addEventListener('click', openEditPhoneModal);
   if (removePhoneLink) removePhoneLink.addEventListener('click', () => openModal('removePhoneConfirmModal'));
   if (avatar) avatar.addEventListener('click', () => openModal('avatarUploadModal'));
 
@@ -236,10 +287,6 @@ function initAccountSection() {
     });
   }
 
-  const closeEmail = document.getElementById('closeEditEmailModal');
-  if (closeEmail) closeEmail.addEventListener('click', () => closeModal('editEmailModal'));
-  const closePhone = document.getElementById('closeEditPhoneModal');
-  if (closePhone) closePhone.addEventListener('click', () => closeModal('editPhoneModal'));
   const cancelRemovePhone = document.getElementById('cancelRemovePhoneBtn');
   const confirmRemovePhone = document.getElementById('confirmRemovePhoneBtn');
   const closeRemovePhone = document.getElementById('closeRemovePhoneConfirmModal');
