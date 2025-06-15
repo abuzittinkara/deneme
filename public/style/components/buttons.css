@@ -9,18 +9,19 @@
   transition: background 0.3s ease;
 }
 .btn.primary {
-  background: #c61884;
+  background: #7289da;
   color: #fff;
 }
 .btn.primary:hover {
-  background: #a3156f;
+  background: #5b6eae;
 }
 .btn.secondary {
-  background: #444;
-  color: #fff;
+  background: transparent;
+  color: #ddd;
+  border: 1px solid #72767d;
 }
 .btn.secondary:hover {
-  background: #666;
+  background: rgba(255,255,255,0.1);
 }
 .btn.small-btn {
   padding: 0.5rem 0.75rem;

@@ -58,12 +58,18 @@ function loadSection(title) {
 
 function openModal(id) {
   const m = document.getElementById(id);
-  if (m) m.style.display = 'flex';
+  if (m) {
+    m.style.display = 'flex';
+    m.classList.add('active');
+  }
 }
 
 function closeModal(id) {
   const m = document.getElementById(id);
-  if (m) m.style.display = 'none';
+  if (m) {
+    m.style.display = 'none';
+    m.classList.remove('active');
+  }
 }
 
 function showToast(msg) {

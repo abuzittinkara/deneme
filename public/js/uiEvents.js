@@ -122,6 +122,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
         groupSettingsBtn.style.display !== 'none'
       ) {
         groupSettingsModal.style.display = 'flex';
+        groupSettingsModal.classList.add('active');
         document.body.style.overflow = 'hidden';
       }
       if (groupDropdownMenu) groupDropdownMenu.style.display = 'none';
@@ -137,39 +138,63 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
 
   if (createGroupButton) {
     createGroupButton.addEventListener('click', () => {
-      if (groupModal) groupModal.style.display = 'flex';
+      if (groupModal) {
+        groupModal.style.display = 'flex';
+        groupModal.classList.add('active');
+      }
     });
   }
 
   if (modalGroupCreateBtn) {
     modalGroupCreateBtn.addEventListener('click', () => {
-      if (groupModal) groupModal.style.display = 'none';
-      if (actualGroupCreateModal) actualGroupCreateModal.style.display = 'flex';
+      if (groupModal) {
+        groupModal.style.display = 'none';
+        groupModal.classList.remove('active');
+      }
+      if (actualGroupCreateModal) {
+        actualGroupCreateModal.style.display = 'flex';
+        actualGroupCreateModal.classList.add('active');
+      }
     });
   }
 
   if (modalGroupJoinBtn) {
     modalGroupJoinBtn.addEventListener('click', () => {
-      if (groupModal) groupModal.style.display = 'none';
-      if (joinGroupModal) joinGroupModal.style.display = 'flex';
+      if (groupModal) {
+        groupModal.style.display = 'none';
+        groupModal.classList.remove('active');
+      }
+      if (joinGroupModal) {
+        joinGroupModal.style.display = 'flex';
+        joinGroupModal.classList.add('active');
+      }
     });
   }
 
   if (closeCreateGroupModal) {
     closeCreateGroupModal.addEventListener('click', () => {
-      if (actualGroupCreateModal) actualGroupCreateModal.style.display = 'none';
+      if (actualGroupCreateModal) {
+        actualGroupCreateModal.style.display = 'none';
+        actualGroupCreateModal.classList.remove('active');
+      }
     });
   }
 
   if (closeJoinGroupModal) {
     closeJoinGroupModal.addEventListener('click', () => {
-      if (joinGroupModal) joinGroupModal.style.display = 'none';
+      if (joinGroupModal) {
+        joinGroupModal.style.display = 'none';
+        joinGroupModal.classList.remove('active');
+      }
     });
   }
 
   if (closeGroupSettingsModal) {
     closeGroupSettingsModal.addEventListener('click', () => {
-      if (groupSettingsModal) groupSettingsModal.style.display = 'none';
+      if (groupSettingsModal) {
+        groupSettingsModal.style.display = 'none';
+        groupSettingsModal.classList.remove('active');
+      }
       document.body.style.overflow = '';
     });
   }
