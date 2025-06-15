@@ -308,6 +308,57 @@
         </div>
       </div>
     </div>
+    <!-- Modal: Kullanıcı Adı Düzenle -->
+    <div id="editUsernameModal" class="modal">
+      <div class="modal-content">
+        <span class="material-icons close-modal">close</span>
+        <h2>Kullanıcı Adı Düzenle</h2>
+        <p>Yeni kullanıcı adınızı girin.</p>
+        <input type="text" id="editUsernameInput" class="input-text" placeholder="Kullanıcı Adı" />
+        <div class="modal-buttons">
+          <button class="btn primary save-btn">Gönder</button>
+          <button class="btn secondary cancel-btn">İptal</button>
+        </div>
+      </div>
+    </div>
+    <!-- Modal: E-Posta Düzenle -->
+    <div id="editEmailModal" class="modal">
+      <div class="modal-content">
+        <span class="material-icons close-modal">close</span>
+        <h2>E-Posta Düzenle</h2>
+        <p>Yeni e-posta adresinizi girin.</p>
+        <input type="email" id="editEmailInput" class="input-text" placeholder="E-Posta" />
+        <div class="modal-buttons">
+          <button class="btn primary save-btn">Gönder</button>
+          <button class="btn secondary cancel-btn">İptal</button>
+        </div>
+      </div>
+    </div>
+    <!-- Modal: Telefon Düzenle -->
+    <div id="editPhoneModal" class="modal">
+      <div class="modal-content">
+        <span class="material-icons close-modal">close</span>
+        <h2>Telefon Numarası Düzenle</h2>
+        <p>Yeni telefon numaranızı girin.</p>
+        <input type="tel" id="editPhoneInput" class="input-text" placeholder="Telefon Numarası" />
+        <div class="modal-buttons">
+          <button class="btn primary save-btn">Gönder</button>
+          <button class="btn secondary cancel-btn">İptal</button>
+        </div>
+      </div>
+    </div>
+    <!-- Modal: Avatarı Kaldır -->
+    <div id="removeAvatarModal" class="modal">
+      <div class="modal-content">
+        <span class="material-icons close-modal">close</span>
+        <h2>Avatarı Kaldır</h2>
+        <p>Profil fotoğrafınızı kaldırmak istediğinize emin misiniz?</p>
+        <div class="modal-buttons">
+          <button class="btn primary">Kaldır</button>
+          <button class="btn secondary cancel-btn">İptal</button>
+        </div>
+      </div>
+    </div>
     <div id="toast" class="toast" style="display:none;"></div>
     
     <!-- Önce Socket.IO, sonra Mediasoup Client, en son script.js -->

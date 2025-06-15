@@ -30,7 +30,11 @@
 #groupModal,
 #roomModal,
 #actualGroupCreateModal,
-#joinGroupModal {
+#joinGroupModal,
+#editUsernameModal,
+#editEmailModal,
+#editPhoneModal,
+#removeAvatarModal {
   display: none;
 }
 
