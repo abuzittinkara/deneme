@@ -15,7 +15,7 @@
   box-sizing: border-box;
   overflow-y: auto;
   margin-right: 1rem;
-  height: 100%;
+  flex: 1;
 }
 
 #userSettingsPage .settings-search {
