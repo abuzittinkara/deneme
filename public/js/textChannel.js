@@ -67,6 +67,7 @@ function renderFullMessage(msg, sender, time, msgClass) {
     <div class="message-item">
       <div class="message-header">
         <div class="message-avatar-container">
+          <img class="message-avatar" data-username="${sender}" src="/images/default-avatar.png" alt="">
           <img class="message-avatar" src="/images/default-avatar.png" alt="">
         </div>
         <div class="sender-info">
@@ -138,6 +139,10 @@ function renderTextMessages(messages, container) {
     msgDiv.className = `text-message ${msgClass}`;
     msgDiv.setAttribute('data-timestamp', new Date(msg.timestamp).toISOString());
     msgDiv.setAttribute('data-sender', sender);
+    window.loadAvatar(sender).then(av => {
+      const img = msgDiv.querySelector('.message-avatar');
+      if (img) img.src = av;
+    });
     msgDiv.innerHTML = msgHTML;
     container.appendChild(msgDiv);
     
@@ -192,6 +197,10 @@ function appendNewMessage(msg, container) {
   msgDiv.className = `text-message ${newMsgClass}`;
   msgDiv.setAttribute('data-timestamp', new Date(msg.timestamp).toISOString());
   msgDiv.setAttribute('data-sender', sender);
+  window.loadAvatar(sender).then(av => {
+    const img = msgDiv.querySelector('.message-avatar');
+    if (img) img.src = av;
+  });
   msgDiv.innerHTML = msgHTML;
   container.appendChild(msgDiv);
   container.scrollTop = container.scrollHeight;
@@ -228,6 +237,12 @@ function initTextChannelEvents(socket, container) {
       }
       appendNewMessage(msg, container);
     }
+  });
+  socket.on('avatarUpdated', ({ username, avatar }) => {
+    window.userAvatars[username] = avatar;
+    container.querySelectorAll(`[data-username="${username}"]`).forEach(img => {
+      img.src = avatar || '/images/default-avatar.png';
+    });
   });
 }
 

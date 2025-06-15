@@ -150,6 +150,34 @@ app.patch('/api/user/me', async (req, res) => {
     res.status(500).json({ error: 'server error' });
   }
 });
+
+app.get('/api/user/avatar', async (req, res) => {
+  const username = req.query.username;
+  if (!username) return res.status(400).json({ error: 'missing username' });
+  try {
+    const user = await User.findOne({ username });
+    if (!user) return res.status(404).json({ error: 'not found' });
+    res.json({ avatar: user.avatar || null });
+  } catch (err) {
+    res.status(500).json({ error: 'server error' });
+  }
+});
+
+app.post('/api/user/avatar', async (req, res) => {
+  const username = req.query.username;
+  const { avatar } = req.body || {};
+  if (!username || !avatar) return res.status(400).json({ error: 'missing params' });
+  try {
+    const user = await User.findOne({ username });
+    if (!user) return res.status(404).json({ error: 'not found' });
+    user.avatar = avatar;
+    await user.save();
+    io.emit('avatarUpdated', { username, avatar });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'server error' });
+  }
+});
 const context = { User, Group, Channel, Message, DMMessage, users, groups, onlineUsernames, userSessions, friendRequests, sfu, groupController, store };
 
 io.on("connection", (socket) => {

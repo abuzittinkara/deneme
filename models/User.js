@@ -9,6 +9,7 @@ const UserSchema = new mongoose.Schema({
   birthdate: { type: Date },
   email: { type: String },
   phone: { type: String },
+  avatar: { type: String },
 
   // Bu kullanıcının üyesi olduğu Gruplar (MongoDB ObjectId listesi)
   groups: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Group' }],

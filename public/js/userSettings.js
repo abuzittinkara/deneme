@@ -350,6 +350,10 @@ function initAccountSection() {
         setVal('phoneRow', data.phone);
       })
       .catch(() => {});
+    window.loadAvatar(uname).then(av => {
+      const img = document.getElementById('avatarImage');
+      if (img) img.src = av;
+    })
   }
  // editing handled via separate modals now
   const editEmailBtn = document.getElementById('editEmailBtn');
@@ -402,7 +406,14 @@ function initAccountSection() {
       const dataUrl = canvas.toDataURL('image/png');
       const img = document.getElementById('avatarImage');
       if (img) img.src = dataUrl;
-      // TODO: upload avatar to server
+      const uname = localStorage.getItem('username');
+      fetch(`/api/user/avatar?username=${encodeURIComponent(uname)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatar: dataUrl })
+      }).then(() => {
+        try { localStorage.setItem('avatar', dataUrl); } catch (e) {}
+      }).catch(() => {});
       avatarCropper.destroy();
       avatarCropper = null;
       closeModal('avatarUploadModal');

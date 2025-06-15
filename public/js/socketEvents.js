@@ -51,6 +51,10 @@ export function initSocketEvents(socket) {
     textChannelContainer,
   } = window;
 
+  if (UserList.initAvatarUpdates) {
+    UserList.initAvatarUpdates(socket);
+  }
+
   function renderChannelUsers(channelsObj) {
     if (!channelsObj) return;
     Object.keys(channelsObj).forEach((roomId) => {
@@ -66,6 +70,10 @@ export function initSocketEvents(socket) {
         const avatarDiv = document.createElement('div');
         avatarDiv.classList.add('channel-user-avatar');
         avatarDiv.id = `avatar-${u.id}`;
+        avatarDiv.dataset.username = u.username;
+        window.loadAvatar(u.username).then(av => {
+          avatarDiv.style.backgroundImage = `url(${av})`;
+        });
         const nameSpan = document.createElement('span');
         nameSpan.textContent = u.username || '(İsimsiz)';
         leftDiv.appendChild(avatarDiv);
@@ -141,8 +149,10 @@ export function initSocketEvents(socket) {
     
     const avatar = document.createElement('img');
     avatar.classList.add('user-avatar');
+    avatar.dataset.username = u.username;
     avatar.src = '/images/default-avatar.png';
     avatar.alt = '';
+    window.loadAvatar(u.username).then(av => { avatar.src = av; });
     const nameSpan = document.createElement('span');
     nameSpan.classList.add('user-name');
     nameSpan.textContent = u.username || '(İsimsiz)';
@@ -360,6 +370,10 @@ export function initSocketEvents(socket) {
       socket.emit('set-username', window.username);
       document.getElementById('userCardName').textContent = window.username;
       window.applyAudioStates();
+      window.loadAvatar(window.username).then(av => {
+        const el = document.getElementById('userCardAvatar');
+        if (el) el.style.backgroundImage = `url(${av})`;
+      });
     } else {
       loginErrorMessage.textContent = 'Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin';
       loginErrorMessage.style.display = 'block';
@@ -679,6 +693,16 @@ export function initSocketEvents(socket) {
     ) {
       renderVoiceChannelGrid(channelsObj[window.currentRoom].users);
     }
+  });
+  socket.on('avatarUpdated', ({ username, avatar }) => {
+    window.userAvatars[username] = avatar;
+    document.querySelectorAll(`[data-username="${username}"]`).forEach(el => {
+      if (el.tagName === 'IMG') {
+        el.src = avatar || '/images/default-avatar.png';
+      } else {
+        el.style.backgroundImage = `url(${avatar || '/images/default-avatar.png'})`;
+      }
+    });
   });
   socket.on('forceLogout', () => {
     callScreen.style.display = 'none';

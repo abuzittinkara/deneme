@@ -3,7 +3,9 @@ export function createUserItem(username, isOnline) {
   userItem.classList.add('user-item');
   const avatar = document.createElement('img');
   avatar.classList.add('user-profile-pic');
+  avatar.dataset.username = username;
   avatar.src = '/images/default-avatar.png';
+  window.loadAvatar(username).then(av => { avatar.src = av; });
   avatar.alt = '';
   const userNameSpan = document.createElement('span');
   userNameSpan.classList.add('user-name');
@@ -11,6 +13,15 @@ export function createUserItem(username, isOnline) {
   userItem.appendChild(avatar);
   userItem.appendChild(userNameSpan);
   return userItem;
+}
+
+export function initAvatarUpdates(socket) {
+  socket.on('avatarUpdated', ({ username, avatar }) => {
+    window.userAvatars[username] = avatar;
+    document.querySelectorAll(`[data-username="${username}"]`).forEach(img => {
+      img.src = avatar || '/images/default-avatar.png';
+    });
+  });
 }
 
 export function updateUserList(data) {

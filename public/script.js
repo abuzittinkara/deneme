@@ -90,6 +90,24 @@ let selfDeafened = false;
 let micWasEnabledBeforeDeaf = false;
 let hasMic = true;
 
+window.userAvatars = {};
+window.loadAvatar = async function(username) {
+  if (!username) return null;
+  if (window.userAvatars[username]) return window.userAvatars[username];
+  try {
+    const resp = await fetch(`/api/user/avatar?username=${encodeURIComponent(username)}`);
+    if (resp.ok) {
+      const data = await resp.json();
+      window.userAvatars[username] = data.avatar || '/images/default-avatar.png';
+    } else {
+      window.userAvatars[username] = '/images/default-avatar.png';
+    }
+  } catch (e) {
+    window.userAvatars[username] = '/images/default-avatar.png';
+  }
+  return window.userAvatars[username];
+};
+
 /* Formatlama fonksiyonları artık TextChannel modülünden sağlanıyor */
 
 const loginScreen = document.getElementById('loginScreen');
@@ -407,6 +425,10 @@ window.addEventListener('DOMContentLoaded', () => {
     socket.emit('set-username', storedUser);
     document.getElementById('userCardName').textContent = storedUser;
     window.applyAudioStates();
+    window.loadAvatar(storedUser).then(av => {
+      const el = document.getElementById('userCardAvatar');
+      if (el) el.style.backgroundImage = `url(${av})`;
+    });
   }
 
   const area = document.getElementById('channelContentArea');
