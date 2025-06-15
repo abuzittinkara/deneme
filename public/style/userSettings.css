@@ -9,13 +9,14 @@
 }
 
 #userSettingsPage .settings-sidebar {
-  width: 220px;
+  width: 275px;
+  height: 100vh;
   background: #1e1e1e;
   padding: 1rem;
   box-sizing: border-box;
   overflow-y: auto;
   margin-right: 1rem;
-  flex: 1;
+  flex: none;
   display: flex;
   flex-direction: column;
 }
