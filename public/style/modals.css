@@ -39,6 +39,7 @@
 
 #userSettingsModal {
   display: none;
+  background: #2d2d2d;
 }
 
 #logoutConfirmModal {
@@ -56,12 +57,12 @@
 }
 
 #userSettingsModal .modal-content {
-  width: 90%;
-  max-width: 900px;
-  height: 90%;
+  width: 100%;
+  max-width: none;
+  height: 100%;
   border-radius: 0;
   box-shadow: none;
-  margin: auto;
+  margin: 0;
   padding: 2rem;
   overflow-y: auto;
 }
