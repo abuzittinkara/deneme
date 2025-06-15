@@ -391,6 +391,22 @@ window.addEventListener('DOMContentLoaded', () => {
   initFriendRequests(socket);
   initUserSettings();
 
+  const storedUser = (() => {
+    try {
+      return localStorage.getItem('username');
+    } catch (e) {
+      return null;
+    }
+  })();
+  if (storedUser) {
+    window.username = storedUser;
+    loginScreen.style.display = 'none';
+    callScreen.style.display = 'flex';
+    socket.emit('set-username', storedUser);
+    document.getElementById('userCardName').textContent = storedUser;
+    window.applyAudioStates();
+  }
+
   const area = document.getElementById('channelContentArea');
   const resizeCb = () => {
     if (

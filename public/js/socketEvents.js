@@ -352,6 +352,9 @@ export function initSocketEvents(socket) {
   socket.on('loginResult', (data) => {
     if (data.success) {
       window.username = data.username;
+      try {
+        localStorage.setItem('username', data.username);
+      } catch (e) {}
       loginScreen.style.display = 'none';
       callScreen.style.display = 'flex';
       socket.emit('set-username', window.username);

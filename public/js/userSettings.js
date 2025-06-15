@@ -33,6 +33,9 @@ export function initUserSettings() {
     confirmBtn.addEventListener('click', () => {
       if (logoutModal) logoutModal.style.display = 'none';
       closeUserSettings();
+      try {
+        localStorage.removeItem('username');
+      } catch (e) {}
       window.location.reload();
     });
   }
