@@ -15,7 +15,8 @@ const helmetCspOptions = {
     defaultSrc: ["'self'"],
     scriptSrc: ["'self'", 'https://cdn.socket.io', 'https://unpkg.com'],
     connectSrc: ["'self'", 'wss:', 'https://cdn.socket.io', 'blob:'],
-    styleSrc: ["'self'", "'unsafe-inline'", 'https://unpkg.com'],
+    styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://unpkg.com'],
+    fontSrc: ["'self'", 'https://fonts.gstatic.com'],
     imgSrc: ["'self'", 'data:', 'blob:']
   }
 };

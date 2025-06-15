@@ -63,16 +63,7 @@ async function startServer() {
 // Helmet middleware'i özel CSP ayarları ile güncelle
 app.use(
   helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "https://cdn.socket.io", "https://unpkg.com"], // Socket.IO CDN and Cropper.js
-        connectSrc: ["'self'", "wss:", "https://cdn.socket.io", "blob:"] , // Socket.IO bağlantısı için wss:
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        imgSrc: ["'self'", "data:", "blob:"], // data: URI'larından resim yüklemeye izin ver
-      },
-    },
+    contentSecurityPolicy: helmetCspOptions
   })
 );
 
