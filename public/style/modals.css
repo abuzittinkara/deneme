@@ -56,11 +56,12 @@
 }
 
 #userSettingsModal .modal-content {
-  width: 100%;
-  height: 100%;
+  width: 90%;
+  max-width: 900px;
+  height: 90%;
   border-radius: 0;
   box-shadow: none;
-  margin: 0;
+  margin: auto;
   padding: 2rem;
   overflow-y: auto;
 }

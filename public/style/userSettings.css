@@ -1,12 +1,13 @@
 #userSettingsModal .settings-wrapper {
   display: grid;
-  grid-template-columns: 1fr 220px auto;
+  grid-template-columns: 220px minmax(0, 1fr);
   column-gap: 1rem;
   height: 100%;
+  margin: 0 auto;
 }
 
 #userSettingsModal .settings-sidebar {
-  grid-column: 2;
+  grid-column: 1;
   width: 220px;
   background: #1e1e1e;
   padding: 1rem;
@@ -47,7 +48,7 @@
 }
 
 #userSettingsModal .settings-content {
-  grid-column: 3;
+  grid-column: 2;
   padding: 1rem;
   overflow-y: auto;
 }
