@@ -14,11 +14,12 @@
 .modal-content {
   background: #2d2d2d;
   padding: 2rem;
-  border-radius: 8px;
+  border-radius: 12px;
   min-width: 300px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.3);
   color: #fff;
   text-align: center;
+  position: relative;
 }
 .modal-buttons {
   display: flex;
@@ -59,6 +60,13 @@
 }
 
 #closeUserSettingsPageBtn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  cursor: pointer;
+}
+
+.close-modal {
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
