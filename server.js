@@ -32,6 +32,8 @@ const friendController = require("./controllers/friendController");
 const app = express();
 app.set('trust proxy', 1); // Proxy güvendiğimizi belirt
 
+app.use(express.json());
+
 const server = http.createServer(app);
 
 const io = socketIO(server, {
@@ -107,6 +109,42 @@ friendRequestCleanupTimer.unref();
 
 app.use(expressWinston.logger({ winstonInstance: logger, meta: false, msg: "{{req.method}} {{req.url}} - {{res.statusCode}} ({{res.responseTime}}ms)", colorize: true }));
 app.use(express.static("public"));
+
+// Basit kullanıcı API'si
+app.get('/api/user/me', async (req, res) => {
+  const username = req.query.username;
+  if (!username) return res.status(400).json({ error: 'missing username' });
+  try {
+    const user = await User.findOne({ username });
+    if (!user) return res.status(404).json({ error: 'not found' });
+    res.json({
+      displayName: user.name || '',
+      username: user.username,
+      email: user.email || '',
+      phone: user.phone || ''
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'server error' });
+  }
+});
+
+app.patch('/api/user/me', async (req, res) => {
+  const username = req.query.username;
+  const { field, value } = req.body || {};
+  if (!username || !field) return res.status(400).json({ error: 'missing params' });
+  const allowed = ['displayName', 'username', 'email', 'phone'];
+  if (!allowed.includes(field)) return res.status(400).json({ error: 'invalid field' });
+  try {
+    const user = await User.findOne({ username });
+    if (!user) return res.status(404).json({ error: 'not found' });
+    if (field === 'displayName') user.name = value;
+    else user[field] = value;
+    await user.save();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'server error' });
+  }
+});
 const context = { User, Group, Channel, Message, DMMessage, users, groups, onlineUsernames, userSessions, friendRequests, sfu, groupController, store };
 
 io.on("connection", (socket) => {

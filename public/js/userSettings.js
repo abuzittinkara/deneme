@@ -18,28 +18,28 @@ function loadSection(title) {
         <button class="edit-profile-btn">Kullanıcı Profilini Düzenle</button>
       </div>
       <div class="info-card">
-        <div class="info-row" id="displayNameRow" data-label="Görünen Ad">
+        <div class="info-row" id="displayNameRow" data-label="Görünen Ad" data-field="displayName">
           <div>
             <div class="info-label">Görünen Ad</div>
             <div class="info-value">Kullanıcının Görünen Adı</div>
           </div>
           <button class="edit-btn" id="editDisplayNameBtn">Düzenle</button>
         </div>
-        <div class="info-row" id="userHandleRow" data-label="Kullanıcı adı">
+        <div class="info-row" id="userHandleRow" data-label="Kullanıcı adı" data-field="username">
           <div>
             <div class="info-label">Kullanıcı adı</div>
             <div class="info-value">Kullanıcının Kullanıcı Adı</div>
           </div>
           <button class="edit-btn" id="editUserHandleBtn">Düzenle</button>
         </div>
-        <div class="info-row" id="emailRow" data-label="E-Posta">
+        <div class="info-row" id="emailRow" data-label="E-Posta" data-field="email">
           <div>
             <div class="info-label">E-Posta</div>
             <div class="info-value">**********@gmail.com</div>
           </div>
           <button class="edit-btn" id="editEmailBtn">Düzenle</button>
         </div>
-        <div class="info-row" id="phoneRow" data-label="Telefon Numarası">
+        <div class="info-row" id="phoneRow" data-label="Telefon Numarası" data-field="phone">
           <div>
             <div class="info-label">Telefon Numarası</div>
             <div class="info-value">+90 5** *** ** **</div>
@@ -64,6 +64,14 @@ function closeModal(id) {
   if (m) m.style.display = 'none';
 }
 
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 2000);
+}
+
 function setupEditableRow(rowId) {
   const row = document.getElementById(rowId);
   if (!row) return;
@@ -71,17 +79,18 @@ function setupEditableRow(rowId) {
   if (!editBtn) return;
   editBtn.addEventListener('click', () => {
     const label = row.dataset.label || '';
+    const field = row.dataset.field || '';
     const valEl = row.querySelector('.info-value');
     const oldVal = valEl ? valEl.textContent : '';
     row.innerHTML = `
-      <div>
+      <div style="flex:1;">
         <div class="info-label">${label}</div>
-        <input type="text" class="input-text" value="${oldVal}" />
+        <input type="text" class="input-text inline-input" value="${oldVal}" />
         <div class="error-tooltip" style="display:none;"></div>
       </div>
       <div>
-        <button class="btn primary small-btn save-btn">Kaydet</button>
-        <button class="btn secondary small-btn cancel-btn">İptal</button>
+        <button class="btn small-btn save-btn" disabled>Kaydet</button>
+        <button class="cancel-btn">İptal</button>
       </div>`;
     const input = row.querySelector('input');
     const save = row.querySelector('.save-btn');
@@ -97,21 +106,55 @@ function setupEditableRow(rowId) {
       setupEditableRow(rowId);
     }
     cancel.addEventListener('click', reset);
-    save.addEventListener('click', () => {
-      const v = input.value;
-      if (!v.trim() || v.length > 32 || v !== v.trim()) {
-        tooltip.textContent = 'Geçersiz değer';
+    function validate(value) {
+      const trimmed = value.trim();
+      if (trimmed === oldVal) { save.disabled = true; return false; }
+      if (!trimmed || trimmed.length > 32) return false;
+      if (field === 'email' && !/^\S+@\S+\.\S+$/.test(trimmed)) return false;
+      if (field === 'phone' && !/^\d+$/.test(trimmed)) return false;
+      return true;
+    }
+    input.addEventListener('input', () => {
+      tooltip.style.display = 'none';
+      input.style.borderColor = '';
+      save.disabled = !validate(input.value);
+    });
+    save.addEventListener('click', async () => {
+      if (save.disabled) return;
+      const v = input.value.trim();
+      save.disabled = true;
+      const orig = save.innerHTML;
+      save.innerHTML = '<span class="spinner"></span>';
+      try {
+        const uname = localStorage.getItem('username');
+        const resp = await fetch(`/api/user/me?username=${encodeURIComponent(uname)}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ field, value: v })
+        });
+        if (!resp.ok) throw new Error('failed');
+        row.innerHTML = `
+          <div>
+            <div class="info-label">${label}</div>
+            <div class="info-value">${v}</div>
+          </div>
+          <button class="edit-btn">Düzenle</button>`;
+        if (field === 'displayName') {
+          const heading = document.getElementById('displayNameHeading');
+          if (heading) heading.textContent = v;
+        } else if (field === 'username') {
+          try { localStorage.setItem('username', v); } catch(e) {}
+        }
+        if (typeof showToast === 'function') showToast('Changes saved');
+        setupEditableRow(rowId);
+      } catch (err) {
+        tooltip.textContent = 'Kaydedilemedi';
         tooltip.style.display = 'block';
-        return;
+        input.style.borderColor = 'var(--accent-danger)';
+        save.disabled = false;
+      } finally {
+        save.innerHTML = orig;
       }
-      // TODO: send update request
-      row.innerHTML = `
-        <div>
-          <div class="info-label">${label}</div>
-          <div class="info-value">${v.trim()}</div>
-        </div>
-        <button class="edit-btn">Düzenle</button>`;
-      setupEditableRow(rowId);
     });
   });
 }
@@ -119,6 +162,25 @@ function setupEditableRow(rowId) {
 let avatarCropper = null;
 
 function initAccountSection() {
+  const uname = (() => { try { return localStorage.getItem('username'); } catch (e) { return null; } })();
+  if (uname) {
+    fetch(`/api/user/me?username=${encodeURIComponent(uname)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) return;
+        const hd = document.getElementById('displayNameHeading');
+        if (hd) hd.textContent = data.displayName || '';
+        const setVal = (id, val) => {
+          const el = document.querySelector(`#${id} .info-value`);
+          if (el) el.textContent = val || '—';
+        };
+        setVal('displayNameRow', data.displayName);
+        setVal('userHandleRow', data.username);
+        setVal('emailRow', data.email);
+        setVal('phoneRow', data.phone);
+      })
+      .catch(() => {});
+  }
   setupEditableRow('displayNameRow');
   setupEditableRow('userHandleRow');
   const editEmailBtn = document.getElementById('editEmailBtn');
