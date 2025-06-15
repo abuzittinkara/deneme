@@ -137,8 +137,22 @@ app.patch('/api/user/me', async (req, res) => {
   try {
     const user = await User.findOne({ username });
     if (!user) return res.status(404).json({ error: 'not found' });
-    if (field === 'displayName') user.name = value;
-    else user[field] = value;
+    if (field === 'username') {
+      const newName = String(value || '').trim();
+      const valid = /^[a-z0-9_]+$/.test(newName) && newName === newName.toLowerCase();
+      if (!valid) {
+        return res.status(400).json({ error: 'invalid_username', message: 'Username format is invalid' });
+      }
+      const existing = await User.findOne({ username: newName });
+      if (existing) {
+        return res.status(409).json({ error: 'username_taken', message: 'Username already taken' });
+      }
+      user.username = newName;
+    } else if (field === 'displayName') {
+      user.name = value;
+    } else {
+      user[field] = value;
+    }
     await user.save();
     res.json({ success: true });
   } catch (err) {

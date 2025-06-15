@@ -174,7 +174,9 @@ function openEditUsernameModal() {
         });
         if (!resp.ok) {
           const data = await resp.json().catch(() => ({}));
-          setError(data.error || 'Sunucu hatası');
+          if (data.error === 'invalid_username') setError('Geçersiz kullanıcı adı');
+          else if (data.error === 'username_taken') setError('Bu kullanıcı adı kullanımda');
+          else setError(data.error || 'Sunucu hatası');
           return;
         }
         const rowVal = document.querySelector('#userHandleRow .info-value');
