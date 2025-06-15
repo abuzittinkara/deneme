@@ -99,6 +99,7 @@ const callScreen = document.getElementById('callScreen');
 // Login
 const loginUsernameInput = document.getElementById('loginUsernameInput');
 const loginPasswordInput = document.getElementById('loginPasswordInput');
+const loginForm = document.getElementById('loginForm');
 const loginButton = document.getElementById('loginButton');
 const loginErrorMessage = document.getElementById('loginErrorMessage');
 
@@ -266,6 +267,7 @@ Object.assign(window, {
   callScreen,
   loginUsernameInput,
   loginPasswordInput,
+  loginForm,
   loginButton,
   loginErrorMessage,
   regUsernameInput,

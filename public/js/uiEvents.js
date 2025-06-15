@@ -6,6 +6,7 @@ import * as Ping from './ping.js';
 export function initUIEvents(socket, attemptLogin, attemptRegister) {
   const {
     loginButton,
+    loginForm,
     loginUsernameInput,
     loginPasswordInput,
     registerButton,
@@ -53,9 +54,10 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     closeUserSettingsModalBtn,
   } = window;
 
-  loginButton.addEventListener('click', () => attemptLogin());
-  loginUsernameInput.addEventListener('keydown', (e) => e.key === 'Enter' && attemptLogin());
-  loginPasswordInput.addEventListener('keydown', (e) => e.key === 'Enter' && attemptLogin());
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    attemptLogin();
+  });
 
   registerButton.addEventListener('click', () => attemptRegister());
   regPasswordConfirmInput.addEventListener('keydown', (e) => e.key === 'Enter' && attemptRegister());
