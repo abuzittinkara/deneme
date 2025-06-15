@@ -9,7 +9,7 @@
 }
 
 #userSettingsPage .sidebar-region-scroller {
-  flex: 0 1 200px;
+  flex: 0 1 clamp(50px, 15vw, 200px);
   height: 100vh;
   min-width: 0;
 }
