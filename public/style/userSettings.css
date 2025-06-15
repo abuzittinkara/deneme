@@ -186,12 +186,12 @@
 }
 
 #userSettingsPage .info-label {
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #ccc;
 }
 
 #userSettingsPage .info-value {
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: var(--text-normal);
 }
 
@@ -209,7 +209,7 @@
 
 #userSettingsPage .remove-link {
   color: #c61884;
-  font-size: 0.75rem;
+  font-size: 1rem;
   margin-right: 8px;
   cursor: pointer;
 }
@@ -221,7 +221,7 @@
 
 .error-tooltip {
   color: #f44;
-  font-size: 0.75rem;
+  font-size: 1rem;
   margin-top: 4px;
 }
 
