@@ -65,3 +65,130 @@
   overflow-y: auto;
   flex: 1;
 }
+
+/* Hesabım sayfa düzeni */
+#userSettingsPage .account-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-normal);
+}
+
+#userSettingsPage .account-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+#userSettingsPage .account-tab {
+  background: none;
+  border: none;
+  color: var(--text-normal);
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  border-radius: 4px;
+}
+#userSettingsPage .account-tab.active {
+  background: #444;
+}
+
+#userSettingsPage .cover-strip {
+  background: var(--accent-danger);
+  height: 110px;
+  width: 100%;
+}
+
+#userSettingsPage .profile-block {
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  margin-top: -18px;
+}
+
+#userSettingsPage .profile-avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 45%;
+  background: #666;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+#userSettingsPage .display-name {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-normal);
+  margin: 0;
+}
+
+#userSettingsPage .edit-profile-btn {
+  margin-left: auto;
+  height: 26px;
+  border-radius: 6px;
+  background: #5865f2;
+  color: #fff;
+  padding: 0 12px;
+  border: none;
+  cursor: pointer;
+}
+
+#userSettingsPage .edit-profile-btn:hover,
+#userSettingsPage .edit-btn:hover,
+#userSettingsPage .account-tab:hover {
+  filter: brightness(1.08);
+}
+
+#userSettingsPage .info-card {
+  background: var(--background-tertiary);
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-top: 24px;
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+}
+
+#userSettingsPage .info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+#userSettingsPage .info-row:last-child {
+  margin-bottom: 0;
+}
+
+#userSettingsPage .info-label {
+  font-size: 0.75rem;
+  color: #ccc;
+}
+
+#userSettingsPage .info-value {
+  font-size: 0.9rem;
+  color: var(--text-normal);
+}
+
+#userSettingsPage .edit-btn {
+  height: 24px;
+  min-width: 72px;
+  border-radius: 6px;
+  background: #444;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+#userSettingsPage .remove-link {
+  color: #c61884;
+  font-size: 0.75rem;
+  margin-top: 4px;
+  cursor: pointer;
+}
+
+@media (max-width: 839px) {
+  #userSettingsPage .info-card {
+    max-width: 100%;
+  }
+}

@@ -1,4 +1,9 @@
 /* Genel Ayarlar */
+:root {
+  --accent-danger: #d40045;
+  --background-tertiary: #353535;
+  --text-normal: #aaa;
+}
 body {
   margin: 0;
   padding: 0;
