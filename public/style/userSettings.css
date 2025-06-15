@@ -225,23 +225,6 @@
   margin-top: 4px;
 }
 
-#userSettingsPage .inline-input {
-  width: 100%;
-  margin: 0;
-}
-
-#userSettingsPage .save-btn {
-  background: #5865F2;
-  color: #fff;
-}
-
-#userSettingsPage .cancel-btn {
-  background: none;
-  border: none;
-  color: #5865F2;
-  cursor: pointer;
-}
-
 @media (max-width: 839px) {
   #userSettingsPage .info-card {
     max-width: 100%;

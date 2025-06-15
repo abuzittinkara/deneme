@@ -132,7 +132,7 @@ function openEditUsernameModal() {
   const modal = document.getElementById('editUsernameModal');
   if (!modal) return;
   const input = modal.querySelector('input');
-  const save = modal.querySelector('.save-btn');
+ const save = modal.querySelector('.modal-buttons .btn.primary');
   const closeBtn = modal.querySelector('.close-modal');
   function close() {
     closeModal('editUsernameModal');
@@ -178,7 +178,7 @@ function openEditEmailModal() {
   const modal = document.getElementById('editEmailModal');
   if (!modal) return;
   const input = modal.querySelector('input');
-  const save = modal.querySelector('.save-btn');
+  const save = modal.querySelector('.modal-buttons .btn.primary');
   const closeBtn = modal.querySelector('.close-modal');
   function close() {
     closeModal('editEmailModal');
@@ -223,7 +223,7 @@ function openEditPhoneModal() {
   const modal = document.getElementById('editPhoneModal');
   if (!modal) return;
   const input = modal.querySelector('input');
-  const save = modal.querySelector('.save-btn');
+  const save = modal.querySelector('.modal-buttons .btn.primary');
   const closeBtn = modal.querySelector('.close-modal');
   function close() {
     closeModal('editPhoneModal');
