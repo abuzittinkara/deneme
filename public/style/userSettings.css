@@ -36,7 +36,7 @@
 }
 
 #userSettingsModal .settings-menu li.logout-item {
-  margin-top: auto;
+  margin-top: 1rem;
   color: #c61884;
 }
 #userSettingsModal .settings-menu li.logout-item:hover {
