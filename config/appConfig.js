@@ -13,9 +13,9 @@ const rateLimitOptions = {
 const helmetCspOptions = {
   directives: {
     defaultSrc: ["'self'"],
-    scriptSrc: ["'self'", 'https://cdn.socket.io'],
+    scriptSrc: ["'self'", 'https://cdn.socket.io', 'https://unpkg.com'],
     connectSrc: ["'self'", 'wss:', 'https://cdn.socket.io'],
-    styleSrc: ["'self'", "'unsafe-inline'"],
+    styleSrc: ["'self'", "'unsafe-inline'", 'https://unpkg.com'],
     imgSrc: ["'self'", 'data:']
   }
 };

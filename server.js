@@ -66,9 +66,9 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "https://cdn.socket.io"], // Socket.IO CDN
+        scriptSrc: ["'self'", "https://cdn.socket.io", "https://unpkg.com"], // Socket.IO CDN and Cropper.js
         connectSrc: ["'self'", "wss:", "https://cdn.socket.io"], // Socket.IO bağlantısı için wss:
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com"],
         fontSrc: ["'self'", "https://fonts.gstatic.com"],
         imgSrc: ["'self'", "data:"], // data: URI'larından resim yüklemeye izin ver
       },
