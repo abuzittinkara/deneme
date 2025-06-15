@@ -32,7 +32,8 @@ const friendController = require("./controllers/friendController");
 const app = express();
 app.set('trust proxy', 1); // Proxy güvendiğimizi belirt
 
-app.use(express.json());
+// Allow JSON bodies up to 1MB so avatar uploads don't trigger 413 errors
+app.use(express.json({ limit: '1mb' }));
 
 const server = http.createServer(app);
 
