@@ -372,11 +372,13 @@ function initAccountSection() {
   const avatarInput = document.getElementById('avatarFileInput');
   const saveAvatarBtn = document.getElementById('saveAvatarBtn');
   const cropContainer = document.getElementById('avatarCropContainer');
+  const cancelAvatarUploadBtn = document.getElementById('cancelAvatarUploadBtn');
 
   if (closeAvatar) closeAvatar.addEventListener('click', () => {
     if (avatarCropper) { avatarCropper.destroy(); avatarCropper = null; }
     closeModal('avatarUploadModal');
   });
+  if (cancelAvatarUploadBtn) cancelAvatarUploadBtn.addEventListener('click', () => closeModal('avatarUploadModal'));
 
   if (avatarInput) {
     avatarInput.addEventListener('change', () => {
