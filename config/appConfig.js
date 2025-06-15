@@ -14,9 +14,9 @@ const helmetCspOptions = {
   directives: {
     defaultSrc: ["'self'"],
     scriptSrc: ["'self'", 'https://cdn.socket.io', 'https://unpkg.com'],
-    connectSrc: ["'self'", 'wss:', 'https://cdn.socket.io'],
+    connectSrc: ["'self'", 'wss:', 'https://cdn.socket.io', 'blob:'],
     styleSrc: ["'self'", "'unsafe-inline'", 'https://unpkg.com'],
-    imgSrc: ["'self'", 'data:']
+    imgSrc: ["'self'", 'data:', 'blob:']
   }
 };
 
