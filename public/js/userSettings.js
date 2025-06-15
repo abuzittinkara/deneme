@@ -43,9 +43,11 @@ function loadSection(title) {
           <div>
             <div class="info-label">Telefon Numarası</div>
             <div class="info-value">+90 5** *** ** **</div>
-            <div class="remove-link" id="removePhoneLink">Kaldır</div>
           </div>
-          <button class="edit-btn" id="editPhoneBtn">Düzenle</button>
+          <div class="info-actions">
+            <div class="remove-link" id="removePhoneLink">Kaldır</div>
+            <button class="edit-btn" id="editPhoneBtn">Düzenle</button>
+          </div>
         </div>
       </div>`;
     initAccountSection();

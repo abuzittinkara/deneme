@@ -210,8 +210,13 @@
 #userSettingsPage .remove-link {
   color: #c61884;
   font-size: 0.75rem;
-  margin-top: 4px;
+  margin-right: 8px;
   cursor: pointer;
+}
+
+#userSettingsPage .info-actions {
+  display: flex;
+  align-items: center;
 }
 
 .error-tooltip {
