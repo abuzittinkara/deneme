@@ -81,3 +81,10 @@
   right: 0.5rem;
   cursor: pointer;
 }
+
+/* When account modals are open, blur the underlying UI */
+body.blurred .screen-container,
+body.blurred #userSettingsPage {
+  filter: blur(2px);
+  opacity: 0.6;
+}

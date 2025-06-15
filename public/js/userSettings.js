@@ -56,11 +56,47 @@ function loadSection(title) {
   }
 }
 
+const accountModals = [
+  'editUsernameModal',
+  'editEmailModal',
+  'editPhoneModal',
+  'removePhoneConfirmModal',
+  'avatarUploadModal',
+  'removeAvatarModal'
+];
+
+function trapFocus(modal) {
+  const selector =
+    'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+  const focusable = Array.from(modal.querySelectorAll(selector));
+  if (!focusable.length) return () => {};
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  function handle(e) {
+    if (e.key === 'Tab') {
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  }
+  modal.addEventListener('keydown', handle);
+  setTimeout(() => first.focus(), 0);
+  return () => modal.removeEventListener('keydown', handle);
+}
+
 function openModal(id) {
   const m = document.getElementById(id);
   if (m) {
     m.style.display = 'flex';
     m.classList.add('active');
+    if (accountModals.includes(id)) document.body.classList.add('blurred');
+    m._untrap = trapFocus(m);
   }
 }
 
@@ -69,6 +105,17 @@ function closeModal(id) {
   if (m) {
     m.style.display = 'none';
     m.classList.remove('active');
+    if (typeof m._untrap === 'function') {
+      m._untrap();
+      m._untrap = null;
+    }
+    if (accountModals.includes(id)) {
+      const stillOpen = accountModals.some(mid => {
+        const el = document.getElementById(mid);
+        return el && el.classList.contains('active');
+      });
+      if (!stillOpen) document.body.classList.remove('blurred');
+    }
   }
 }
 
