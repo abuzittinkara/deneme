@@ -50,8 +50,8 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     closeJoinGroupModal,
     groupSettingsModal,
     closeGroupSettingsModal,
-    userSettingsModal,
-    closeUserSettingsModalBtn,
+    userSettingsPage,
+    closeUserSettingsPageBtn,
   } = window;
 
   loginForm.addEventListener('submit', (e) => {
@@ -174,8 +174,9 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     });
   }
 
-  if (closeUserSettingsModalBtn) {
-    closeUserSettingsModalBtn.addEventListener('click', () => {
+
+  if (closeUserSettingsPageBtn) {
+    closeUserSettingsPageBtn.addEventListener('click', () => {
       if (typeof window.closeUserSettings === 'function') {
         window.closeUserSettings();
       }

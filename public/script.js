@@ -253,8 +253,8 @@ const joinGroupIdBtn = document.getElementById('joinGroupIdBtn');
 const closeJoinGroupModal = document.getElementById('closeJoinGroupModal');
 const groupSettingsModal = document.getElementById('groupSettingsModal');
 const closeGroupSettingsModal = document.getElementById('closeGroupSettingsModal');
-const userSettingsModal = document.getElementById('userSettingsModal');
-const closeUserSettingsModalBtn = document.getElementById('closeUserSettingsModalBtn');
+const userSettingsPage = document.getElementById('userSettingsPage');
+const closeUserSettingsPageBtn = document.getElementById('closeUserSettingsPageBtn');
 const roomModal = document.getElementById('roomModal');
 const modalRoomName = document.getElementById('modalRoomName');
 const textChannel = document.getElementById('textChannel');
@@ -328,8 +328,8 @@ Object.assign(window, {
   closeJoinGroupModal,
   groupSettingsModal,
   closeGroupSettingsModal,
-  userSettingsModal,
-  closeUserSettingsModalBtn,
+  userSettingsPage,
+  closeUserSettingsPageBtn,
   roomModal,
   modalRoomName,
   textChannel,

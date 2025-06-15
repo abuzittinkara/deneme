@@ -37,28 +37,12 @@
   display: none;
 }
 
-#userSettingsModal {
-  display: none;
-  background: #2d2d2d;
-}
-
 #logoutConfirmModal {
   display: none;
 }
 
 #groupSettingsModal .modal-content {
   width: 100%;
-  height: 100%;
-  border-radius: 0;
-  box-shadow: none;
-  margin: 0;
-  padding: 2rem;
-  overflow-y: auto;
-}
-
-#userSettingsModal .modal-content {
-  width: 100%;
-  max-width: none;
   height: 100%;
   border-radius: 0;
   box-shadow: none;
@@ -74,7 +58,7 @@
   cursor: pointer;
 }
 
-#closeUserSettingsModalBtn {
+#closeUserSettingsPageBtn {
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;

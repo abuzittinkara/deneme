@@ -250,12 +250,11 @@
         <h2>Grup Ayarları</h2>
       </div>
     </div>
-    <!-- Modal: Kullanıcı Ayarları -->
-    <div id="userSettingsModal" class="modal">
-      <div class="modal-content">
-        <span id="closeUserSettingsModalBtn" class="material-icons">close</span>
-        <div class="settings-wrapper">
-          <aside class="settings-sidebar">
+    <!-- Kullanıcı Ayarları Sayfası -->
+    <div id="userSettingsPage" style="display: none;">
+      <span id="closeUserSettingsPageBtn" class="material-icons">close</span>
+      <div class="settings-main-container">
+        <aside class="settings-sidebar">
             <input
               type="text"
               id="userSettingsSearch"
@@ -274,9 +273,8 @@
               <li data-section="advanced">Gelişmiş</li>
               <li data-section="logout" class="logout-item">Çıkış Yap</li>
             </ul>
-          </aside>
-          <div class="settings-content"></div>
-        </div>
+        </aside>
+        <div class="settings-content"></div>
       </div>
     </div>
     <!-- Modal: Logout Confirmation -->

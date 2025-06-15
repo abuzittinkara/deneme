@@ -1,26 +1,28 @@
-#userSettingsModal .settings-wrapper {
-  display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
-  column-gap: 1rem;
-  height: 100%;
-  margin: 0 auto;
+#userSettingsPage .settings-main-container {
+  display: flex;
+  flex-direction: row;
+  width: 100vw;
+  height: 100vh;
+  background: var(--background-secondary, #2d2d2d);
+  align-items: flex-start;
+  justify-content: center;
 }
 
-#userSettingsModal .settings-sidebar {
-  grid-column: 1;
+#userSettingsPage .settings-sidebar {
   width: 220px;
   background: #1e1e1e;
   padding: 1rem;
   box-sizing: border-box;
   overflow-y: auto;
+  margin-right: 1rem;
 }
 
-#userSettingsModal .settings-search {
+#userSettingsPage .settings-search {
   width: 100%;
   margin-bottom: 1rem;
 }
 
-#userSettingsModal .settings-menu {
+#userSettingsPage .settings-menu {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -29,26 +31,27 @@
   height: 100%;
 }
 
-#userSettingsModal .settings-menu li {
+#userSettingsPage .settings-menu li {
   padding: 0.6rem 0.5rem;
   cursor: pointer;
   border-radius: 4px;
 }
 
-#userSettingsModal .settings-menu li.active {
+#userSettingsPage .settings-menu li.active {
   background: #444;
 }
 
-#userSettingsModal .settings-menu li.logout-item {
+#userSettingsPage .settings-menu li.logout-item {
   margin-top: 1rem;
   color: #c61884;
 }
-#userSettingsModal .settings-menu li.logout-item:hover {
+
+#userSettingsPage .settings-menu li.logout-item:hover {
   background: #444;
 }
 
-#userSettingsModal .settings-content {
-  grid-column: 2;
+#userSettingsPage .settings-content {
   padding: 1rem;
   overflow-y: auto;
+  flex: 1;
 }

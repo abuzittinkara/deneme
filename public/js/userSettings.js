@@ -1,14 +1,14 @@
-let previousOverflow = '';
++16-12
 
 function loadSection(title) {
-  const content = document.querySelector('#userSettingsModal .settings-content');
+  const content = document.querySelector('#userSettingsPage .settings-content');
   if (content) {
     content.innerHTML = `<h2>${title}</h2>`;
   }
 }
 
 export function initUserSettings() {
-  const modal = document.getElementById('userSettingsModal');
+  const modal = document.getElementById('userSettingsPage');
   if (!modal) return;
 
   const menuItems = modal.querySelectorAll('.settings-menu li');
@@ -48,18 +48,23 @@ export function initUserSettings() {
 }
 
 export function openUserSettings() {
-  const modal = document.getElementById('userSettingsModal');
-  if (modal) {
-    previousOverflow = document.body.style.overflow;
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
+  const page = document.getElementById('userSettingsPage');
+  const callScreen = document.getElementById('callScreen');
+  if (page) {
+    page.style.display = 'block';
+  }
+  if (callScreen) {
+    callScreen.style.display = 'none';
   }
 }
 
 export function closeUserSettings() {
-  const modal = document.getElementById('userSettingsModal');
-  if (modal) {
-    modal.style.display = 'none';
-    document.body.style.overflow = previousOverflow;
+  const page = document.getElementById('userSettingsPage');
+  const callScreen = document.getElementById('callScreen');
+  if (page) {
+    page.style.display = 'none';
+  }
+  if (callScreen) {
+    callScreen.style.display = 'flex';
   }
 }
