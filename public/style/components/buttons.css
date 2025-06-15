@@ -9,11 +9,11 @@
   transition: background 0.3s ease;
 }
 .btn.primary {
-  background: #7289da;
+  background: #c61884;
   color: #fff;
 }
 .btn.primary:hover {
-  background: #5b6eae;
+  background: #a3156f;
 }
 .btn.secondary {
   background: transparent;

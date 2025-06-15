@@ -132,20 +132,36 @@ function openEditUsernameModal() {
   const modal = document.getElementById('editUsernameModal');
   if (!modal) return;
   const input = modal.querySelector('input');
- const save = modal.querySelector('.modal-buttons .btn.primary');
+  const save = modal.querySelector('.modal-buttons .btn.primary');
+  const cancelBtn = modal.querySelector('.modal-buttons .btn.secondary');
+  const error = modal.querySelector('.modal-error');
   const closeBtn = modal.querySelector('.close-modal');
+  function setError(msg) { if (error) { error.textContent = msg; error.style.display = 'block'; } }
+  function clearError() { if (error) { error.textContent = ''; error.style.display = 'none'; } }
   function close() {
     closeModal('editUsernameModal');
     document.removeEventListener('keydown', esc);
+    if (input) input.removeEventListener('input', onInput);
   }
   function esc(e) { if (e.key === 'Escape') close(); }
   if (closeBtn) closeBtn.addEventListener('click', close, { once: true });
+  if (cancelBtn) cancelBtn.addEventListener('click', close, { once: true });
   document.addEventListener('keydown', esc);
+  function onInput() {
+    clearError();
+    if (save) save.disabled = input.value.trim() === '';
+  }
+  if (input) {
+    input.addEventListener('input', onInput);
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && save && !save.disabled) save.click();
+    });
+  }
   if (save) {
     save.addEventListener('click', async function handler() {
       if (save.disabled) return;
       const v = input.value.trim();
-      if (!v) return;
+      if (!v) { setError('Bu alan boş bırakılamaz'); return; }
       save.disabled = true;
       const orig = save.innerHTML;
       save.innerHTML = '<span class="spinner"></span>';
@@ -156,20 +172,25 @@ function openEditUsernameModal() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ field: 'username', value: v })
         });
-        if (!resp.ok) throw new Error('failed');
+        if (!resp.ok) {
+          const data = await resp.json().catch(() => ({}));
+          setError(data.error || 'Sunucu hatası');
+          return;
+        }
         const rowVal = document.querySelector('#userHandleRow .info-value');
         if (rowVal) rowVal.textContent = v;
         try { localStorage.setItem('username', v); } catch (e) {}
         if (typeof showToast === 'function') showToast('Changes saved');
         close();
       } catch (err) {
-        // ignore
+        setError('Sunucu hatası');
       } finally {
         save.innerHTML = orig;
         save.disabled = false;
         save.removeEventListener('click', handler);
       }
     }, { once: true });
+    save.disabled = input.value.trim() === '';
   }
   openModal('editUsernameModal');
 }
@@ -179,19 +200,35 @@ function openEditEmailModal() {
   if (!modal) return;
   const input = modal.querySelector('input');
   const save = modal.querySelector('.modal-buttons .btn.primary');
+  const cancelBtn = modal.querySelector('.modal-buttons .btn.secondary');
+  const error = modal.querySelector('.modal-error');
   const closeBtn = modal.querySelector('.close-modal');
+  function setError(msg) { if (error) { error.textContent = msg; error.style.display = 'block'; } }
+  function clearError() { if (error) { error.textContent = ''; error.style.display = 'none'; } }
   function close() {
     closeModal('editEmailModal');
     document.removeEventListener('keydown', esc);
+    if (input) input.removeEventListener('input', onInput);
   }
   function esc(e) { if (e.key === 'Escape') close(); }
   if (closeBtn) closeBtn.addEventListener('click', close, { once: true });
+  if (cancelBtn) cancelBtn.addEventListener('click', close, { once: true });
   document.addEventListener('keydown', esc);
+  function onInput() {
+    clearError();
+    if (save) save.disabled = input.value.trim() === '';
+  }
+  if (input) {
+    input.addEventListener('input', onInput);
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && save && !save.disabled) save.click();
+    });
+  }
   if (save) {
     save.addEventListener('click', async function handler() {
       if (save.disabled) return;
       const v = input.value.trim();
-      if (!v) return;
+      if (!v) { setError('Bu alan boş bırakılamaz'); return; }
       save.disabled = true;
       const orig = save.innerHTML;
       save.innerHTML = '<span class="spinner"></span>';
@@ -202,19 +239,24 @@ function openEditEmailModal() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ field: 'email', value: v })
         });
-        if (!resp.ok) throw new Error('failed');
+        if (!resp.ok) {
+          const data = await resp.json().catch(() => ({}));
+          setError(data.error || 'Sunucu hatası');
+          return;
+        }
         const rowVal = document.querySelector('#emailRow .info-value');
         if (rowVal) rowVal.textContent = v;
         if (typeof showToast === 'function') showToast('Changes saved');
         close();
       } catch (err) {
-        // ignore
+        setError('Sunucu hatası');
       } finally {
         save.innerHTML = orig;
         save.disabled = false;
         save.removeEventListener('click', handler);
       }
     }, { once: true });
+    save.disabled = input.value.trim() === '';
   }
   openModal('editEmailModal');
 }
@@ -224,19 +266,35 @@ function openEditPhoneModal() {
   if (!modal) return;
   const input = modal.querySelector('input');
   const save = modal.querySelector('.modal-buttons .btn.primary');
+  const cancelBtn = modal.querySelector('.modal-buttons .btn.secondary');
+  const error = modal.querySelector('.modal-error');
   const closeBtn = modal.querySelector('.close-modal');
+  function setError(msg) { if (error) { error.textContent = msg; error.style.display = 'block'; } }
+  function clearError() { if (error) { error.textContent = ''; error.style.display = 'none'; } }
   function close() {
     closeModal('editPhoneModal');
     document.removeEventListener('keydown', esc);
+    if (input) input.removeEventListener('input', onInput);
   }
   function esc(e) { if (e.key === 'Escape') close(); }
   if (closeBtn) closeBtn.addEventListener('click', close, { once: true });
+  if (cancelBtn) cancelBtn.addEventListener('click', close, { once: true });
   document.addEventListener('keydown', esc);
+  function onInput() {
+    clearError();
+    if (save) save.disabled = input.value.trim() === '';
+  }
+  if (input) {
+    input.addEventListener('input', onInput);
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && save && !save.disabled) save.click();
+    });
+  }
   if (save) {
     save.addEventListener('click', async function handler() {
       if (save.disabled) return;
       const v = input.value.trim();
-      if (!v) return;
+      if (!v) { setError('Bu alan boş bırakılamaz'); return; }
       save.disabled = true;
       const orig = save.innerHTML;
       save.innerHTML = '<span class="spinner"></span>';
@@ -247,19 +305,24 @@ function openEditPhoneModal() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ field: 'phone', value: v })
         });
-        if (!resp.ok) throw new Error('failed');
+        if (!resp.ok) {
+          const data = await resp.json().catch(() => ({}));
+          setError(data.error || 'Sunucu hatası');
+          return;
+        }
         const rowVal = document.querySelector('#phoneRow .info-value');
         if (rowVal) rowVal.textContent = v;
         if (typeof showToast === 'function') showToast('Changes saved');
         close();
       } catch (err) {
-        // ignore
+        setError('Sunucu hatası');
       } finally {
         save.innerHTML = orig;
         save.disabled = false;
         save.removeEventListener('click', handler);
       }
     }, { once: true });
+    save.disabled = input.value.trim() === '';
   }
   openModal('editPhoneModal');
 }
