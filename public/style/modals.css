@@ -14,7 +14,7 @@
 
 .modal.active {
   backdrop-filter: blur(2px);
-  opacity: 0.85;
+  opacity: 1;
 }
 .modal-content {
   background: #2d2d2d;
