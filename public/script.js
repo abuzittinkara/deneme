@@ -427,7 +427,10 @@ window.addEventListener('DOMContentLoaded', () => {
     window.applyAudioStates();
     window.loadAvatar(storedUser).then(av => {
       const el = document.getElementById('userCardAvatar');
-      if (el) el.style.backgroundImage = `url(${av})`;
+      if (el) {
+        el.style.backgroundImage = `url(${av})`;
+        el.dataset.username = storedUser;
+      }
     });
   }
 

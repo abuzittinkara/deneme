@@ -422,7 +422,10 @@ export function initSocketEvents(socket) {
       window.applyAudioStates();
       window.loadAvatar(window.username).then(av => {
         const el = document.getElementById('userCardAvatar');
-        if (el) el.style.backgroundImage = `url(${av})`;
+         if (el) {
+          el.style.backgroundImage = `url(${av})`;
+          el.dataset.username = window.username;
+        }
       });
     } else {
       loginErrorMessage.textContent = 'Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin';
