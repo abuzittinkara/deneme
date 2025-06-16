@@ -8,6 +8,12 @@
   justify-content: flex-start;
 }
 
+#userSettingsPage .settings-filler {
+  grid-column: 1;            /* occupy the first column */
+  background: #1e1e1e;
+  height: 100vh;
+}
+
 .settings-panel {
   grid-column: 2 / span 2;
   display: flex;
