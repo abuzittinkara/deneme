@@ -68,7 +68,6 @@ function renderFullMessage(msg, sender, time, msgClass) {
       <div class="message-header">
         <div class="message-avatar-container">
           <img class="message-avatar" data-username="${sender}" src="/images/default-avatar.png" alt="">
-          <img class="message-avatar" src="/images/default-avatar.png" alt="">
         </div>
         <div class="sender-info">
           <span class="sender-name">${sender}</span>
