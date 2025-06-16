@@ -255,15 +255,15 @@
     <!-- Kullanıcı Ayarları Sayfası -->
     <div id="userSettingsPage" style="display: none;">
       <span id="closeUserSettingsPageBtn" class="material-icons">close</span>
-      <div class="settings-main-container">
-        <div class="sidebar-region-scroller"></div>
-        <aside class="settings-sidebar">
-            <input
-              type="text"
-              id="userSettingsSearch"
-              class="input-text settings-search"
-              placeholder="Ara..."
-            />
+        <div class="settings-main-container">
+          <div class="settings-panel">
+            <aside class="settings-sidebar">
+              <input
+                type="text"
+                id="userSettingsSearch"
+                class="input-text settings-search"
+                placeholder="Ara..."
+              />
             <ul class="settings-menu">
               <li class="active" data-section="account">Hesabım</li>
               <li data-section="profile">Profil</li>
@@ -276,9 +276,10 @@
               <li data-section="advanced">Gelişmiş</li>
               <li data-section="logout" class="logout-item">Çıkış Yap</li>
             </ul>
-        </aside>
-        <div class="settings-content"></div>
-      </div>
+            </aside>
+            <div class="settings-content"></div>
+          </div>
+        </div>
     </div>
     <!-- Modal: Logout Confirmation -->
     <div id="logoutConfirmModal" class="modal">
