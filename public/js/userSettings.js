@@ -8,23 +8,24 @@ function loadSection(title) {
         <button class="account-tab active">Güvenlik</button>
         <button class="account-tab">Durum</button>
       </div>
-      <div class="cover-strip"></div>
-      <div class="profile-block">
-        <div class="profile-avatar" id="profile-avatar">
-          <img id="avatarImage" src="/images/default-avatar.png" alt="" />
-          <div class="avatar-overlay"><span class="material-symbols-outlined">edit</span></div>
-        </div>
-        <h1 class="display-name" id="displayNameHeading">Gösterim Adı</h1>
-        <button class="edit-profile-btn">Kullanıcı Profilini Düzenle</button>
-      </div>
-      <div class="info-card">
-        <div class="info-row" id="displayNameRow" data-label="Görünen Ad" data-field="displayName">
-          <div>
-            <div class="info-label">Görünen Ad</div>
-            <div class="info-value">Kullanıcının Görünen Adı</div>
+      <div class="account-card">
+        <div class="cover-strip"></div>
+        <div class="profile-block">
+          <div class="profile-avatar" id="profile-avatar">
+            <img id="avatarImage" src="/images/default-avatar.png" alt="" />
+            <div class="avatar-overlay"><span class="material-symbols-outlined">edit</span></div>
           </div>
-          <button class="edit-btn" id="editDisplayNameBtn">Düzenle</button>
+          <h1 class="display-name" id="displayNameHeading">Gösterim Adı</h1>
+          <button class="edit-profile-btn">Kullanıcı Profilini Düzenle</button>
         </div>
+        <div class="info-card">
+          <div class="info-row" id="displayNameRow" data-label="Görünen Ad" data-field="displayName">
+            <div>
+              <div class="info-label">Görünen Ad</div>
+              <div class="info-value">Kullanıcının Görünen Adı</div>
+            </div>
+            <button class="edit-btn" id="editDisplayNameBtn">Düzenle</button>
+          </div>
         <div class="info-row" id="userHandleRow" data-label="Kullanıcı adı" data-field="username">
           <div>
             <div class="info-label">Kullanıcı adı</div>
@@ -49,6 +50,7 @@ function loadSection(title) {
             <button class="edit-btn" id="editPhoneBtn">Düzenle</button>
           </div>
         </div>
+      </div>
       </div>`;
     initAccountSection();
   } else {

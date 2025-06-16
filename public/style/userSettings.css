@@ -93,6 +93,12 @@
   background: #444;
 }
 
+#userSettingsPage .account-card {
+  border-radius: 12px;
+  background: #1e1e1e;
+  overflow: hidden;
+}
+
 #userSettingsPage .cover-strip {
   background: var(--accent-danger);
   height: 110px;
