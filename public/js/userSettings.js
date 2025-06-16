@@ -445,34 +445,51 @@ export function initUserSettings() {
   const confirmBtn = document.getElementById('confirmLogoutBtn');
   const cancelBtn = document.getElementById('cancelLogoutBtn');
 
-  menuItems.forEach((item) => {
-    item.addEventListener('click', () => {
-      if (item === logoutItem) {
-        if (logoutModal) logoutModal.style.display = 'flex';
-        return;
-      }
-      menuItems.forEach((el) => el.classList.remove('active'));
-      item.classList.add('active');
-      loadSection(item.textContent.trim());
-    });
-  });
-
-  if (confirmBtn) {
-    confirmBtn.addEventListener('click', () => {
-      if (logoutModal) logoutModal.style.display = 'none';
-      closeUserSettings();
-      try {
-        localStorage.removeItem('username');
-      } catch (e) {}
-      window.location.reload();
-    });
+  const lastTab = (() => { try { return localStorage.getItem('lastSettingsTab'); } catch (e) { return null; } })();
+  let activeItem = lastTab ? modal.querySelector(`.settings-menu li[data-section="${lastTab}"]`) : null;
+  if (!activeItem) {
+    activeItem = modal.querySelector('.settings-menu li[data-section="account"]');
+  }
+  if (activeItem) {
+    menuItems.forEach(el => el.classList.remove('active'));
+    activeItem.classList.add('active');
+    loadSection(activeItem.textContent.trim());
   }
 
-  if (cancelBtn) {
-    cancelBtn.addEventListener('click', () => {
-      if (logoutModal) logoutModal.style.display = 'none';
+  if (!modal.dataset.initialized) {
+    menuItems.forEach((item) => {
+      item.addEventListener('click', () => {
+        if (item === logoutItem) {
+          if (logoutModal) logoutModal.style.display = 'flex';
+          return;
+        }
+        menuItems.forEach((el) => el.classList.remove('active'));
+        item.classList.add('active');
+        loadSection(item.textContent.trim());
+        try { localStorage.setItem('lastSettingsTab', item.dataset.section || item.textContent.trim()); } catch (e) {}
+      });
     });
+
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', () => {
+        if (logoutModal) logoutModal.style.display = 'none';
+        closeUserSettings();
+        try {
+          localStorage.removeItem('username');
+        } catch (e) {}
+        window.location.reload();
+      });
+    }
+
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', () => {
+        if (logoutModal) logoutModal.style.display = 'none';
+      });
+    }
+
+    modal.dataset.initialized = 'true';
   }
+
 }
 
 export function openUserSettings() {
@@ -480,6 +497,7 @@ export function openUserSettings() {
   const callScreen = document.getElementById('callScreen');
   if (page) {
     page.style.display = 'block';
+    initUserSettings();
   }
   if (callScreen) {
     callScreen.style.display = 'none';
