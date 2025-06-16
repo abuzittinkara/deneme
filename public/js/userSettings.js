@@ -435,6 +435,19 @@ function initAccountSection() {
     // TODO: remove phone on server
     closeModal('removePhoneConfirmModal');
   });
+  const editProfileBtn = document.querySelector('.edit-profile-btn');
+  if (editProfileBtn) {
+    const modal = document.getElementById('userSettingsPage');
+    const profileItem = modal ? modal.querySelector('.settings-menu li[data-section="profile"]') : null;
+    const menuItems = modal ? modal.querySelectorAll('.settings-menu li') : [];
+    editProfileBtn.addEventListener('click', () => {
+      if (!profileItem) return;
+      menuItems.forEach(el => el.classList.remove('active'));
+      profileItem.classList.add('active');
+      loadSection(profileItem.textContent.trim());
+      try { localStorage.setItem('lastSettingsTab', profileItem.dataset.section || profileItem.textContent.trim()); } catch (e) {}
+    });
+  }
 }
 
 export function initUserSettings() {
