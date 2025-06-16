@@ -6,6 +6,51 @@ import * as Ping from './ping.js';
 // Holds latest channel data so that we can re-render user lists when needed
 window.latestChannelsData = null;
 
+// --- Drag and Drop Helpers ---
+let dragPreviewEl = null;
+function showDragPreview(username) {
+  dragPreviewEl = document.createElement('div');
+  dragPreviewEl.classList.add('drag-preview');
+  const avatar = document.createElement('div');
+  avatar.classList.add('drag-preview-avatar');
+  avatar.dataset.username = username;
+  avatar.style.backgroundImage = 'url(/images/default-avatar.png)';
+  window.loadAvatar(username).then(av => { avatar.style.backgroundImage = `url(${av})`; });
+  const name = document.createElement('span');
+  name.textContent = username;
+  dragPreviewEl.appendChild(avatar);
+  dragPreviewEl.appendChild(name);
+  document.body.appendChild(dragPreviewEl);
+}
+
+function updateDragPreview(x, y) {
+  if (dragPreviewEl) {
+    dragPreviewEl.style.left = `${x + 10}px`;
+    dragPreviewEl.style.top = `${y + 10}px`;
+  }
+}
+
+function hideDragPreview() {
+  if (dragPreviewEl) {
+    dragPreviewEl.remove();
+    dragPreviewEl = null;
+  }
+}
+
+function attachUserDragHandlers(el, userId, username) {
+  el.setAttribute('draggable', 'true');
+  el.addEventListener('dragstart', (e) => {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', userId);
+    showDragPreview(username);
+  });
+  el.addEventListener('dragend', hideDragPreview);
+}
+
+document.addEventListener('dragover', (e) => {
+  updateDragPreview(e.clientX, e.clientY);
+});
+
 function refreshVisibilityIcons() {
   const rows = document.querySelectorAll('.channel-user');
   rows.forEach((row) => {
@@ -67,6 +112,8 @@ export function initSocketEvents(socket) {
         userRow.classList.add('channel-user');
         const leftDiv = document.createElement('div');
         leftDiv.classList.add('channel-user-left');
+        leftDiv.dataset.userId = u.id;
+        leftDiv.dataset.username = u.username;
         const avatarDiv = document.createElement('div');
         avatarDiv.classList.add('channel-user-avatar');
         avatarDiv.id = `avatar-${u.id}`;
@@ -128,6 +175,7 @@ export function initSocketEvents(socket) {
         }
         userRow.appendChild(leftDiv);
         userRow.appendChild(rightDiv);
+        attachUserDragHandlers(leftDiv, u.id, u.username);
       channelDiv.appendChild(userRow);
       });
     });
@@ -137,6 +185,7 @@ export function initSocketEvents(socket) {
     const card = document.createElement('div');
     card.classList.add('user-card');
     card.dataset.userId = u.id;
+    card.dataset.username = u.username;
     if (isBroadcast) {
       card.classList.add('broadcast-card');
     }
@@ -203,6 +252,7 @@ export function initSocketEvents(socket) {
         card.appendChild(watchBtn);
       }
     }
+    attachUserDragHandlers(card, u.id, u.username);
     return card;
   }
 
@@ -486,6 +536,22 @@ export function initSocketEvents(socket) {
     const roomItem = document.createElement('div');
     roomItem.className = 'channel-item';
     roomItem.dataset.roomId = roomObj.id;
+    if (roomObj.type === 'voice') {
+      roomItem.classList.add('voice-channel-item');
+      roomItem.addEventListener('dragover', (e) => e.preventDefault());
+      roomItem.addEventListener('drop', (e) => {
+        e.preventDefault();
+        hideDragPreview();
+        const userId = e.dataTransfer.getData('text/plain');
+        if (userId) {
+          socket.emit('moveUser', {
+            userId,
+            groupId: window.selectedGroup,
+            roomId: roomObj.id,
+          });
+        }
+      });
+    }
     const channelHeader = document.createElement('div');
     channelHeader.className = 'channel-header';
     let icon;

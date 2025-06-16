@@ -402,6 +402,49 @@ function register(io, socket, context) {
     }
   });
 
+  socket.on('moveUser', async ({ userId, groupId, roomId }) => {
+    try {
+      const targetSocket = io.sockets.sockets.get(userId);
+      if (!targetSocket) return;
+      if (!groups[groupId] || !groups[groupId].rooms[roomId]) return;
+      const userData = users[userId];
+      const userName = userData?.username;
+      if (!userName) return;
+      if (
+        userData.currentRoom &&
+        (userData.currentRoom !== roomId || userData.currentGroup !== groupId)
+      ) {
+        const prevGroupId = userData.currentGroup;
+        const prevRoomId = userData.currentRoom;
+        if (groups[prevGroupId] && groups[prevGroupId].rooms[prevRoomId]) {
+          removeUserFromRoom(io, targetSocket, users, groups, prevGroupId, prevRoomId, context.store);
+        }
+      }
+      const rmObj = groups[groupId].rooms[roomId];
+      if (!rmObj.router) {
+        rmObj.router = await sfu.createRouter(roomId);
+      }
+      if (!rmObj.users.some(u => u.id === userId)) {
+        rmObj.users.push({ id: userId, username: userName });
+      }
+      if (!groups[groupId].users.some(u => u.id === userId)) {
+        groups[groupId].users.push({ id: userId, username: userName });
+        if (context.store) context.store.setJSON(context.store.key('group', groupId), groups[groupId]);
+      }
+      userData.currentGroup = groupId;
+      userData.currentRoom = roomId;
+      if (context.store) context.store.setJSON(context.store.key('session', userId), userData);
+      targetSocket.join(groupId);
+      targetSocket.join(`${groupId}::${roomId}`);
+      io.to(userId).emit('joinRoomAck', { groupId, roomId });
+      io.to(`${groupId}::${roomId}`).emit('roomUsers', rmObj.users);
+      broadcastAllChannelsData(io, users, groups, groupId);
+      broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
+    } catch (err) {
+      console.error('moveUser error:', err);
+    }
+  });
+  
   socket.on('leaveRoom', ({ groupId, roomId }) => {
     if (!groups[groupId] || !groups[groupId].rooms[roomId]) return;
     removeUserFromRoom(io, socket, users, groups, groupId, roomId);
