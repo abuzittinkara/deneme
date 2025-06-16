@@ -1,3 +1,5 @@
+import { showProfilePopout } from './profilePopout.js';
+
 export function createUserItem(username, isOnline) {
   const userItem = document.createElement('div');
   userItem.classList.add('user-item');
@@ -12,6 +14,12 @@ export function createUserItem(username, isOnline) {
   userNameSpan.textContent = username;
   userItem.appendChild(avatar);
   userItem.appendChild(userNameSpan);
+  function handler(e) {
+    e.stopPropagation();
+    showProfilePopout(username, e);
+  }
+  avatar.addEventListener('click', handler);
+  userNameSpan.addEventListener('click', handler);
   return userItem;
 }
 

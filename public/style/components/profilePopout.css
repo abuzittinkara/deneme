@@ -1,0 +1,78 @@
+.profile-popout {
+  position: absolute;
+  width: 300px;
+  background: #2f2f2f;
+  color: #fff;
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+  font-size: 0.9rem;
+  z-index: 1000;
+}
+.popout-banner {
+  height: 80px;
+  background: #c61884;
+  position: relative;
+}
+.popout-banner:hover::after {
+  content: 'Edit Banner';
+  position: absolute;
+  bottom: 4px;
+  right: 8px;
+  background: rgba(0,0,0,0.4);
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  border-radius: 3px;
+}
+.popout-avatar-wrap {
+  position: absolute;
+  top: 40px;
+  left: 16px;
+}
+.popout-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 45%;
+  object-fit: cover;
+  border: 4px solid #2f2f2f;
+}
+.status-dot {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #4caf50;
+  border: 3px solid #2f2f2f;
+}
+.popout-display-name {
+  margin-left: 16px;
+  margin-top: 50px;
+  font-weight: bold;
+}
+.popout-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 8px 16px;
+}
+.popout-badges .badge {
+  background: #444;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+.profile-cta-btn {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 12px 16px 16px;
+  padding: 6px 0;
+  background: #444;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.profile-cta-btn:hover {
+  background: #555;
+}

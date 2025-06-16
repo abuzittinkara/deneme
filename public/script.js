@@ -67,6 +67,7 @@ import { initSocketEvents } from "./js/socketEvents.js";
 import * as WebRTC from "./js/webrtc.js";
 import { applyAudioStates } from "./js/audioUtils.js";
 import { initUserSettings, openUserSettings, closeUserSettings } from "./js/userSettings.js";
+import { showProfilePopout, initProfilePopout } from "./js/profilePopout.js";
 
 let socket = null;
 let device = null;   // mediasoup-client Device
@@ -406,6 +407,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const socketURL = window.SOCKET_URL || window.location.origin;
   socket = io(socketURL, { transports: ['websocket'] })
   initSocketEvents(socket);
+  initProfilePopout(socket);
   initUIEvents(socket, () => attemptLogin(socket, loginUsernameInput, loginPasswordInput, loginErrorMessage), () => attemptRegister(socket, {regUsernameInput, regNameInput, regSurnameInput, regBirthdateInput, regEmailInput, regPhoneInput, regPasswordInput, regPasswordConfirmInput, registerErrorMessage}));
   initTypingIndicator(socket, () => window.currentTextChannel, () => window.username);
   initFriendRequests(socket);

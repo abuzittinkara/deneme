@@ -4,6 +4,7 @@
 // mesaj geçmişini yükler ve yeni mesajların gönderilmesini sağlar.
 
 import { renderTextMessages, appendNewMessage, insertDateSeparator, isDifferentDay } from './textChannel.js';
+import { showProfilePopout } from './profilePopout.js';
 
 export function initDMChat(socket, friendUsername) {
   // dmContentArea'yı al veya oluştur
@@ -27,6 +28,17 @@ export function initDMChat(socket, friendUsername) {
   dmMessages.dataset.channelId = `dm-${friendUsername}`;
   dmContentArea.appendChild(dmMessages);
 
+  dmMessages.addEventListener('click', (e) => {
+    const avatar = e.target.closest('.message-avatar');
+    const nameEl = e.target.closest('.sender-name');
+    if (avatar) {
+      const uname = avatar.dataset.username;
+      if (uname) showProfilePopout(uname, e);
+    } else if (nameEl) {
+      showProfilePopout(nameEl.textContent.trim(), e);
+    }
+  });
+  
   // DM mesaj girişi için mevcut textChatInputBar yapısını klonla
   const baseInputBar = document.getElementById('textChatInputBar');
   let textChatInputBar;

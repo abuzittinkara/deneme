@@ -1,7 +1,8 @@
 /**************************************
  * public/js/textChannel.js
  * Metin (mesaj) kanallarıyla ilgili tüm fonksiyonlar burada toplanmıştır.
- **************************************/
+**************************************/
+import { showProfilePopout } from './profilePopout.js';
 
 // Global olarak her kanal için son mesaj bilgisini saklayan obje (append işlemleri için kullanılır)
 let lastMessageInfo = {};
@@ -242,6 +243,16 @@ function initTextChannelEvents(socket, container) {
     container.querySelectorAll(`[data-username="${username}"]`).forEach(img => {
       img.src = avatar || '/images/default-avatar.png';
     });
+  });
+  container.addEventListener('click', (e) => {
+    const avatar = e.target.closest('.message-avatar');
+    const nameEl = e.target.closest('.sender-name');
+    if (avatar) {
+      const uname = avatar.dataset.username;
+      if (uname) showProfilePopout(uname, e);
+    } else if (nameEl) {
+      showProfilePopout(nameEl.textContent.trim(), e);
+    }
   });
 }
 
