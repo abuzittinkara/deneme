@@ -1,3 +1,4 @@
++1-1
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -6,7 +7,7 @@ const PORT = process.env.PORT || 3000;
 
 const rateLimitOptions = {
   windowMs: 1 * 60 * 1000,
-  max: 60,
+  max: 240,
   message: 'Çok fazla istek gönderdiniz, lütfen daha sonra tekrar deneyin.'
 };
 
