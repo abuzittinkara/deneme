@@ -88,4 +88,12 @@ If your existing `users` collection contains a `blocked` array field, rename it 
 ```javascript
 db.users.updateMany({}, { $rename: { blocked: "blockedUsers" } })
 ```
+
+If upgrading from versions prior to attachment support, initialize the new
+`attachments` field on existing messages:
+
+```javascript
+db.messages.updateMany({ attachments: { $exists: false } }, { $set: { attachments: [] } })
+db.dmmessages.updateMany({ attachments: { $exists: false } }, { $set: { attachments: [] } })
+```
 Happy coding!
