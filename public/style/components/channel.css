@@ -77,6 +77,9 @@
   height: 24px;
   border-radius: 45%;
   background-color: #666;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 .channel-user-avatar.speaking {
   box-shadow: 0 0 0 2px #c61884;
