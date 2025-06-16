@@ -173,11 +173,12 @@
   background: var(--background-tertiary);
   padding: 16px 20px;
   border-radius: 12px;
-  margin-top: 24px;
-  width: 100%;
+  margin: 24px 20px 20px;
+  width: calc(100% - 40px);
   max-width: 700px;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 }
 
 #userSettingsPage .info-row {
@@ -232,6 +233,7 @@
 
 @media (max-width: 839px) {
   #userSettingsPage .info-card {
-    max-width: 100%;
+    width: calc(100% - 40px);
+    max-width: none;
   }
 }
