@@ -158,14 +158,18 @@ export function initAttachments() {
 
   function openOverlay() {
     if (!overlay) return;
+    const messages = document.getElementById('textMessages');
     overlayIdx = 0;
     renderOverlay();
     overlay.style.display = 'flex';
+    if (messages) messages.style.display = 'none';
   }
 
   function closeOverlay() {
     if (!overlay) return;
     overlay.style.display = 'none';
+    const messages = document.getElementById('textMessages');
+    if (messages) messages.style.display = '';
   }
 
   function closeMenu() {
