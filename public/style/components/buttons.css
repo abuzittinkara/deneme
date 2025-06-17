@@ -16,12 +16,12 @@
   background: #a3156f;
 }
 .btn.secondary {
-  background: transparent;
-  color: #ddd;
-  border: 1px solid #72767d;
+  background: #a3156f;
+  color: #fff;
+  border: none;
 }
 .btn.secondary:hover {
-  background: rgba(255,255,255,0.1);
+  background: #c61884;
 }
 .btn.small-btn {
   padding: 0.5rem 0.75rem;

@@ -203,6 +203,11 @@
   right: 8px;
   top: 50%;
   transform: translateY(-50%);
+  color: #c61884;
+}
+
+.text-chat-input-bar .send-icon:hover {
+  color: #a3156f;
 }
 .typing-indicator {
   flex: 0 0 16px;   /* 16px yüksekliğe sabit */
