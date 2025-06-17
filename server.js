@@ -43,8 +43,15 @@ app.use(express.json({ limit: '1mb' }));
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const userId = req.body.userId;
-    const dest = path.join(__dirname, 'uploads', String(userId || 'anonymous'));
+    const rawId = String(req.body.userId || '').trim();
+    const isValid =
+      rawId &&
+      /^[a-zA-Z0-9_-]+$/.test(rawId) &&
+      !rawId.includes('..') &&
+      !rawId.includes('/') &&
+      !rawId.includes('\\');
+    const userId = isValid ? rawId : 'anonymous';
+    const dest = path.join(__dirname, 'uploads', userId);
     fs.mkdirSync(dest, { recursive: true });
     cb(null, dest);
   },
