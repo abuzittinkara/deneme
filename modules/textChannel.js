@@ -25,7 +25,7 @@ module.exports = function registerTextChannelEvents(socket, { Channel, Message, 
   });
 
   // Gelen metin mesajlarını işleme ve diğer kullanıcılara iletme
-  socket.on('textMessage', async ({ groupId, roomId, message, username }) => {
+  socket.on('textMessage', async ({ groupId, roomId, message, username, attachments = [] }) => {
     try {
       const channelDoc = await Channel.findOne({ channelId: roomId });
       if (!channelDoc) {
@@ -40,6 +40,7 @@ module.exports = function registerTextChannelEvents(socket, { Channel, Message, 
         channel: channelDoc._id,
         user: userDoc._id,
         content: clean,
+        attachments,
         timestamp: new Date()
       });
       await newMsg.save();
@@ -49,7 +50,8 @@ module.exports = function registerTextChannelEvents(socket, { Channel, Message, 
         message: {
           content: newMsg.content,
           username: username,
-          timestamp: newMsg.timestamp
+          timestamp: newMsg.timestamp,
+          attachments: newMsg.attachments
         }
       };
 

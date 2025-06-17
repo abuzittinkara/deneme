@@ -48,6 +48,7 @@ module.exports = function registerDMChatEvents(socket, { io, User, DMMessage, us
       const formatted = messages.map(m => ({
         username: m.from.username,
         content: m.content,
+        attachments: m.attachments,
         timestamp: m.timestamp
       }));
       callback({ success: true, messages: formatted });
@@ -57,7 +58,7 @@ module.exports = function registerDMChatEvents(socket, { io, User, DMMessage, us
     }
   });
 
-  socket.on('dmMessage', async ({ friend, content }, callback) => {
+  socket.on('dmMessage', async ({ friend, content, attachments = [] }, callback) => {
     const fromUsername = users[socket.id]?.username;
     try {
       if (!fromUsername || !friend || !content) {
@@ -78,12 +79,14 @@ module.exports = function registerDMChatEvents(socket, { io, User, DMMessage, us
       const dmMessage = new DMMessage({
         from: fromUserDoc._id,
         to: toUserDoc._id,
-        content: clean
+        content: clean,
+        attachments
       });
       await dmMessage.save();
       const messageObj = {
         username: fromUsername,
         content: clean,
+        attachments: dmMessage.attachments,
         timestamp: dmMessage.timestamp
       };
       socket.emit('newDMMessage', { friend, message: messageObj });

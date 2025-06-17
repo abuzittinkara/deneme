@@ -20,10 +20,11 @@ function createContext() {
 
   class DMMessage {
     static messages = [];
-    constructor({ from, to, content }) {
+    constructor({ from, to, content, attachments = [] }) {
       this.from = from;
       this.to = to;
       this.content = content;
+      this.attachments = attachments;
       this.timestamp = new Date();
     }
     async save() {
@@ -31,6 +32,7 @@ function createContext() {
         from: this.from,
         to: this.to,
         content: this.content,
+        attachments: this.attachments,
         timestamp: this.timestamp
       });
     }
@@ -46,6 +48,7 @@ function createContext() {
           return msgs.map(m => ({
             from: { username: usersById[m.from].username },
             content: m.content,
+            attachments: m.attachments,
             timestamp: m.timestamp
           }));
         }

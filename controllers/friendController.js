@@ -105,17 +105,17 @@ function registerFriendHandlers(io, socket, context) {
     const fromUsername = users[socket.id]?.username;
     try {
       if (!fromUsername) return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
-      const { toUsername, content } = data;
+      const { toUsername, content, attachments = [] } = data;
       if (!toUsername || !content) return callback({ success: false, message: 'Eksik parametre.' });
       const fromUserDoc = await User.findOne({ username: fromUsername });
       const toUserDoc = await User.findOne({ username: toUsername });
       if (!fromUserDoc || !toUserDoc) return callback({ success: false, message: 'Kullanıcılar bulunamadı.' });
       if (toUserDoc.blockedUsers.includes(fromUserDoc._id)) return callback({ success: false, message: 'Bu kullanıcıya mesaj gönderemezsiniz.' });
-      const dmMessage = new DMMessage({ from: fromUserDoc._id, to: toUserDoc._id, content });
+      const dmMessage = new DMMessage({ from: fromUserDoc._id, to: toUserDoc._id, content, attachments });
       await dmMessage.save();
       Object.keys(users).forEach(socketId => {
         if (users[socketId].username === toUsername) {
-          io.to(socketId).emit('receiveDM', { from: fromUsername, content, timestamp: dmMessage.timestamp });
+          io.to(socketId).emit('receiveDM', { from: fromUsername, content, attachments, timestamp: dmMessage.timestamp });
         }
       });
       callback({ success: true, timestamp: dmMessage.timestamp });
