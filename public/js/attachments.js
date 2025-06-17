@@ -1,14 +1,16 @@
 let files = [];
 let previewDocHandler = null;
 let overlayIdx = 0;
+let overlay = null;
+let captionInput = null;
 
 export function initAttachments() {
   const attachBtn = document.getElementById('attachBtn');
   const preview = document.getElementById('attachmentPreview');
-  const overlay = document.getElementById('previewWrapper');
+  overlay = document.getElementById('previewWrapper');
   const mainMedia = overlay?.querySelector('.main-media');
   const tray = overlay?.querySelector('.thumbnail-tray');
-  const captionInput = overlay?.querySelector('.caption-input');
+  captionInput = overlay?.querySelector('.caption-input');
   const closeBtn = overlay?.querySelector('.close-icon');
   const textContainer = document.getElementById('textChannelContainer');
   const inputs = {
