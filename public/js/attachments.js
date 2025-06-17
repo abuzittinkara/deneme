@@ -1,4 +1,5 @@
 let files = [];
+let previewDocHandler = null;
 
 export function initAttachments() {
   const attachBtn = document.getElementById('attachBtn');
@@ -14,7 +15,6 @@ export function initAttachments() {
 
 
   let menu = null;
-  let previewDocHandler = null;
 
   function renderPreview() {
     preview.innerHTML = '';
