@@ -96,4 +96,8 @@ If upgrading from versions prior to attachment support, initialize the new
 db.messages.updateMany({ attachments: { $exists: false } }, { $set: { attachments: [] } })
 db.dmmessages.updateMany({ attachments: { $exists: false } }, { $set: { attachments: [] } })
 ```
+The `messages` schema also now stores file metadata in this `attachments` array
+with objects of the form `{ id, url, type }`. Existing deployments should
+ensure these arrays are present for all documents as shown above before running
+the updated server.
 Happy coding!
