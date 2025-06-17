@@ -1,4 +1,7 @@
+const fs = require('fs');
 const { createLogger, format, transports } = require('winston');
+
+fs.mkdirSync('logs', { recursive: true });
 
 const logger = createLogger({
   level: 'info',
