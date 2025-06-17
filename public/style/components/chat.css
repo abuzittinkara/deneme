@@ -313,3 +313,44 @@
 #attachmentPreview .upload-failed .retry-btn {
   display: block;
 }
+
+/* Message attachments */
+.message-attachments {
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 480px;
+}
+
+.message-attachments img,
+.message-attachments video {
+  max-width: 100%;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.file-pill {
+  display: inline-block;
+  background: #c61884;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  max-width: 480px;
+  word-break: break-all;
+}
+
+.file-pill:hover {
+  background: #a3156f;
+}
+
+#mediaLightbox {
+  display: none;
+}
+
+#mediaLightbox img,
+#mediaLightbox video {
+  max-width: 90vw;
+  max-height: 90vh;
+}

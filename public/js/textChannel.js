@@ -63,6 +63,83 @@ function insertDateSeparator(container, timestamp) {
 }
 
 // Mesajı, tam header (avatar, kullanıcı adı ve zaman) şeklinde render eder.
+function formatFileSize(bytes) {
+  if (!bytes && bytes !== 0) return '';
+  const mb = 1024 * 1024;
+  const kb = 1024;
+  if (bytes >= mb) return `${(bytes / mb).toFixed(1)} MB`;
+  if (bytes >= kb) return `${(bytes / kb).toFixed(1)} KB`;
+  return `${bytes} B`;
+}
+
+function renderAttachments(atts = []) {
+  if (!atts.length) return '';
+  return `
+    <div class="message-attachments">
+      ${atts
+        .map(a => {
+          const type = a.type || '';
+          const url = a.url || '';
+          const name = a.name || url.split('/').pop();
+          const size = a.size ? ` (${formatFileSize(a.size)})` : '';
+          if (type.startsWith('image/')) {
+            return `<img src="${url}" data-lightbox="${url}" alt="${name}">`;
+          } else if (type.startsWith('video/')) {
+            return `<video controls data-lightbox="${url}"><source src="${url}" type="${type}"></video>`;
+          } else if (type.startsWith('audio/')) {
+            return `<audio controls src="${url}"></audio>`;
+          }
+          return `<div class="file-pill" data-url="${url}" data-name="${name}" tabindex="0">${name}${size}</div>`;
+        })
+        .join('')}
+    </div>`;
+}
+
+let lightboxEl = null;
+
+function openLightbox(target) {
+  if (!lightboxEl) {
+    lightboxEl = document.createElement('div');
+    lightboxEl.id = 'mediaLightbox';
+    lightboxEl.className = 'modal';
+    const content = document.createElement('div');
+    content.className = 'modal-content';
+    content.style.background = 'transparent';
+    content.style.boxShadow = 'none';
+    content.style.padding = '0';
+    lightboxEl.appendChild(content);
+    lightboxEl.style.display = 'none';
+    lightboxEl.addEventListener('click', e => {
+      if (e.target === lightboxEl) closeLightbox();
+    });
+    document.body.appendChild(lightboxEl);
+  }
+  const container = lightboxEl.querySelector('.modal-content');
+  container.innerHTML = '';
+  let node;
+  if (target.tagName === 'IMG') {
+    node = document.createElement('img');
+    node.src = target.dataset.lightbox || target.src;
+  } else {
+    node = document.createElement('video');
+    node.src = target.dataset.lightbox || target.querySelector('source')?.src || target.src;
+    node.controls = true;
+  }
+  container.appendChild(node);
+  lightboxEl.style.display = 'flex';
+  lightboxEl.classList.add('active');
+  document.addEventListener('keydown', escClose);
+}
+
+function escClose(e) { if (e.key === 'Escape') closeLightbox(); }
+
+function closeLightbox() {
+  if (!lightboxEl) return;
+  lightboxEl.style.display = 'none';
+  lightboxEl.classList.remove('active');
+  document.removeEventListener('keydown', escClose);
+}
+
 function renderFullMessage(msg, sender, time, msgClass) {
   return `
     <div class="message-item">
@@ -75,7 +152,7 @@ function renderFullMessage(msg, sender, time, msgClass) {
           <span class="timestamp">${time}</span>
         </div>
       </div>
-      <div class="message-content ${msgClass}">${msg.content}</div>
+      <div class="message-content ${msgClass}">${msg.content}${renderAttachments(msg.attachments)}</div>
     </div>
   `;
 }
@@ -87,7 +164,7 @@ function renderContentOnly(msg, msgClass, timestamp) {
   return `
     <div class="message-item" style="position: relative;">
       <span class="hover-time">${formatTime(timestamp)}</span>
-      <div class="message-content ${msgClass}">${msg.content}</div>
+      <div class="message-content ${msgClass}">${msg.content}${renderAttachments(msg.attachments)}</div>
     </div>
   `;
 }
@@ -247,11 +324,28 @@ function initTextChannelEvents(socket, container) {
   container.addEventListener('click', (e) => {
     const avatar = e.target.closest('.message-avatar');
     const nameEl = e.target.closest('.sender-name');
+    const media = e.target.closest('.message-attachments img, .message-attachments video');
+    const file = e.target.closest('.file-pill');
     if (avatar) {
       const uname = avatar.dataset.username;
       if (uname) showProfilePopout(uname, e);
     } else if (nameEl) {
       showProfilePopout(nameEl.textContent.trim(), e);
+    } else if (media) {
+      openLightbox(media);
+    } else if (file) {
+      const url = file.dataset.url;
+      const name = file.dataset.name || '';
+      if (e.shiftKey) {
+        window.open(url, '_blank');
+      } else {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
     }
   });
 }
