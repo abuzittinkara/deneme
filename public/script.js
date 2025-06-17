@@ -92,6 +92,21 @@ let selfDeafened = false;
 let micWasEnabledBeforeDeaf = false;
 let hasMic = true;
 
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').then(reg => {
+    window.swRegistration = reg;
+  }).catch(err => console.warn('Service worker registration failed', err));
+}
+
+window.cacheUploadUrls = function(urls) {
+  if (!Array.isArray(urls) || !urls.length || !navigator.serviceWorker) return;
+  const send = reg => { reg.active && reg.active.postMessage({ type: 'cache-uploads', urls }); };
+  if (window.swRegistration) {
+    send(window.swRegistration);
+  } else {
+    navigator.serviceWorker.getRegistration('/sw.js').then(reg => { if (reg) send(reg); });
+  }
+};
 window.userAvatars = {};
 window.loadAvatar = async function(username) {
   if (!username) return null;

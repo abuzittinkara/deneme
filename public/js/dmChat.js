@@ -156,6 +156,12 @@ export function initDMChat(socket, friendUsername) {
   socket.on('newDMMessage', (data) => {
     if (data.friend === friendUsername && data.message) {
       addDMMessage(data.message);
+      const atts = Array.isArray(data.message.attachments)
+        ? data.message.attachments.map(a => a.url).filter(u => u && u.startsWith('/uploads/'))
+        : [];
+      if (atts.length && window.cacheUploadUrls) {
+        window.cacheUploadUrls(atts);
+      }
     }
   });
 }

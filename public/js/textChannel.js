@@ -313,6 +313,12 @@ function initTextChannelEvents(socket, container) {
         insertDateSeparator(container, msg.timestamp);
       }
       appendNewMessage(msg, container);
+      const attachmentUrls = Array.isArray(msg.attachments)
+        ? msg.attachments.map(a => a.url).filter(u => u && u.startsWith('/uploads/'))
+        : [];
+      if (attachmentUrls.length && window.cacheUploadUrls) {
+        window.cacheUploadUrls(attachmentUrls);
+      }
     }
   });
   socket.on('avatarUpdated', ({ username, avatar }) => {

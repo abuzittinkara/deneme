@@ -122,3 +122,11 @@ Constraints:
 
 On success the server responds with the saved message and broadcasts a
 `newTextMessage` event to the channel.
+
+## Service Worker
+
+The front‑end registers `public/sw.js` which caches any `/uploads/` assets
+referenced in new messages. When the client receives a message containing
+attachments it posts those URLs to the worker so they can be fetched and stored
+locally. Subsequent requests for the same files are served from the cache when
+available.
