@@ -381,24 +381,17 @@
 .file-card {
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: #444;
+  background: #242424;
   color: #fff;
-  width: 60px;
-  height: 60px;
-  font-size: 12px;
-  text-align: center;
-  padding: 4px;
-  box-sizing: border-box;
+  border-radius: 8px;
+  padding: 4px 8px;
+  gap: 8px;
 }
-
-/* Message attachments */
-.message-attachments {
-  margin-top: 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  max-width: 480px;
+.file-card .remove-btn {
+  margin-left: auto;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
 }
 
 .message-attachments img,

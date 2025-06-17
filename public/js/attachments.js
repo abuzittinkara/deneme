@@ -86,6 +86,26 @@ export function initAttachments() {
     if (overlay && overlay.style.display !== 'none') renderOverlay();
   }
 
+  function createFileCard(item, idx) {
+    const card = document.createElement('div');
+    card.className = 'file-card';
+    const nameEl = document.createElement('span');
+    nameEl.textContent = item.file.name;
+    card.appendChild(nameEl);
+    const remove = document.createElement('span');
+    remove.className = 'remove-btn';
+    remove.textContent = '×';
+    remove.addEventListener('click', (e) => {
+      e.stopPropagation();
+      files.splice(idx, 1);
+      if (overlayIdx >= idx) overlayIdx = Math.max(overlayIdx - 1, 0);
+      renderPreview();
+      renderOverlay();
+    });
+    card.appendChild(remove);
+    return card;
+  }
+
   function renderOverlay() {
     if (!overlay) return;
     tray.innerHTML = '';
@@ -99,9 +119,7 @@ export function initAttachments() {
         el.src = URL.createObjectURL(item.file);
         el.muted = true;
       } else {
-        el = document.createElement('div');
-        el.className = 'file-card';
-        el.textContent = item.file.name;
+        el = createFileCard(item, idx);
       }
       el.dataset.index = idx;
       el.addEventListener('click', () => {
@@ -131,9 +149,7 @@ export function initAttachments() {
       src.type = item.file.type;
       el.appendChild(src);
     } else {
-      el = document.createElement('div');
-      el.className = 'file-card';
-      el.textContent = item.file.name;
+      el = createFileCard(item, overlayIdx);
     }
     mainMedia.appendChild(el);
   }
