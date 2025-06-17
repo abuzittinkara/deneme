@@ -68,6 +68,7 @@ import * as WebRTC from "./js/webrtc.js";
 import { applyAudioStates } from "./js/audioUtils.js";
 import { initUserSettings, openUserSettings, closeUserSettings } from "./js/userSettings.js";
 import { showProfilePopout, initProfilePopout } from "./js/profilePopout.js";
+import { initAttachments } from "./js/attachments.js";
 
 let socket = null;
 let device = null;   // mediasoup-client Device
@@ -412,6 +413,7 @@ window.addEventListener('DOMContentLoaded', () => {
   initTypingIndicator(socket, () => window.currentTextChannel, () => window.username);
   initFriendRequests(socket);
   initUserSettings();
+  initAttachments();
 
   const storedUser = (() => {
     try {
