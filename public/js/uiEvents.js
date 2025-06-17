@@ -2,6 +2,7 @@ import * as ScreenShare from './screenShare.js';
 import { applyAudioStates } from './audioUtils.js';
 import { sendTransport } from './webrtc.js';
 import * as Ping from './ping.js';
+import { getAttachments, clearAttachments, updateAttachmentProgress, markAttachmentFailed } from './attachments.js';
 
 export function initUIEvents(socket, attemptLogin, attemptRegister) {
   const {
@@ -317,15 +318,69 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
 
   function sendTextMessage() {
     const msg = textChannelMessageInput.value.trim();
-    if (!msg) return;
-    socket.emit('textMessage', {
-      groupId: window.selectedGroup,
-      roomId: window.currentTextChannel,
-      message: msg,
-      username: window.username,
-    });
-    textChannelMessageInput.value = '';
-    sendTextMessageBtn.style.display = 'none';
+    const atts = getAttachments();
+    if (!msg && atts.length === 0) return;
+
+    if (atts.length === 0) {
+      socket.emit('textMessage', {
+        groupId: window.selectedGroup,
+        roomId: window.currentTextChannel,
+        message: msg,
+        username: window.username,
+      });
+      textChannelMessageInput.value = '';
+      sendTextMessageBtn.style.display = 'none';
+      return;
+    }
+
+    const fd = new FormData();
+    fd.append('userId', window.userId || '');
+    fd.append('channelId', window.currentTextChannel);
+    fd.append('content', msg);
+    atts.forEach(a => fd.append('files', a.file));
+
+    const sizes = atts.map(a => a.file.size);
+    const offsets = [];
+    sizes.reduce((acc, sz, i) => { offsets[i] = acc; return acc + sz; }, 0);
+
+    const xhr = new XMLHttpRequest();
+    xhr.upload.onprogress = (e) => {
+      const loaded = e.loaded;
+      sizes.forEach((sz, i) => {
+        const start = offsets[i];
+        const end = start + sz;
+        let pct = 0;
+        if (loaded >= end) pct = 100;
+        else if (loaded > start) pct = ((loaded - start) / sz) * 100;
+        updateAttachmentProgress(i, pct);
+      });
+    };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        let data = {};
+        try { data = JSON.parse(xhr.responseText); } catch {}
+        clearAttachments();
+        textChannelMessageInput.value = '';
+        sendTextMessageBtn.style.display = 'none';
+        if (data && data.message && data.message.message) {
+          const m = data.message.message;
+          socket.emit('textMessage', {
+            groupId: window.selectedGroup,
+            roomId: window.currentTextChannel,
+            message: m.content,
+            username: window.username,
+            attachments: m.attachments || []
+          });
+        }
+      } else {
+        atts.forEach((_, i) => markAttachmentFailed(i, sendTextMessage));
+      }
+    };
+    xhr.onerror = () => {
+      atts.forEach((_, i) => markAttachmentFailed(i, sendTextMessage));
+    };
+    xhr.open('POST', '/api/message');
+    xhr.send(fd);
   }
   sendTextMessageBtn.addEventListener('click', sendTextMessage);
   textChannelMessageInput.addEventListener('input', () => {

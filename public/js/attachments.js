@@ -21,6 +21,7 @@ export function initAttachments() {
     files.forEach((item, idx) => {
       const wrapper = document.createElement('div');
       wrapper.className = 'preview-item';
+      wrapper.dataset.index = idx;
       let el;
       wrapper.tabIndex = 0;
       if (item.file.type.startsWith('image/')) {
@@ -48,6 +49,17 @@ export function initAttachments() {
         renderPreview();
       });
       wrapper.appendChild(rem);
+      const progress = document.createElement('div');
+      progress.className = 'upload-progress';
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      progress.appendChild(bar);
+      wrapper.appendChild(progress);
+      const retry = document.createElement('button');
+      retry.className = 'retry-btn';
+      retry.textContent = '↻';
+      retry.style.display = 'none';
+      wrapper.appendChild(retry);
       preview.appendChild(wrapper);
     });
     preview.style.display = files.length ? 'flex' : 'none';
@@ -173,5 +185,26 @@ export function clearAttachments() {
   if (previewDocHandler) {
     document.removeEventListener('click', previewDocHandler);
     previewDocHandler = null;
+  }
+}
+
+export function updateAttachmentProgress(idx, percent) {
+  const bar = document.querySelector(
+    `#attachmentPreview .preview-item[data-index="${idx}"] .bar`
+  );
+  if (bar) bar.style.width = `${percent}%`;
+}
+
+export function markAttachmentFailed(idx, retryFn) {
+  const wrapper = document.querySelector(
+    `#attachmentPreview .preview-item[data-index="${idx}"]`
+  );
+  if (wrapper) {
+    wrapper.classList.add('upload-failed');
+    const btn = wrapper.querySelector('.retry-btn');
+    if (btn) {
+      btn.style.display = 'block';
+      if (retryFn) btn.onclick = retryFn;
+    }
   }
 }
