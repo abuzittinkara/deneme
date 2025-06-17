@@ -257,6 +257,11 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  outline: none;
+}
+
+#attachmentPreview .preview-item:focus {
+  box-shadow: 0 0 0 2px #888;
 }
 
 #attachmentPreview .preview-item img {
