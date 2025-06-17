@@ -1,9 +1,15 @@
 let files = [];
 let previewDocHandler = null;
+let overlayIdx = 0;
 
 export function initAttachments() {
   const attachBtn = document.getElementById('attachBtn');
   const preview = document.getElementById('attachmentPreview');
+  const overlay = document.getElementById('previewWrapper');
+  const mainMedia = overlay?.querySelector('.main-media');
+  const tray = overlay?.querySelector('.thumbnail-tray');
+  const captionInput = overlay?.querySelector('.caption-input');
+  const closeBtn = overlay?.querySelector('.close-icon');
   const textContainer = document.getElementById('textChannelContainer');
   const inputs = {
     file: document.getElementById('attachFileInput'),
@@ -76,6 +82,72 @@ export function initAttachments() {
       document.removeEventListener('click', previewDocHandler);
       previewDocHandler = null;
     }
+
+    if (overlay && overlay.style.display !== 'none') renderOverlay();
+  }
+
+  function renderOverlay() {
+    if (!overlay) return;
+    tray.innerHTML = '';
+    files.slice(0, 12).forEach((item, idx) => {
+      let el;
+      if (item.file.type.startsWith('image/')) {
+        el = document.createElement('img');
+        el.src = URL.createObjectURL(item.file);
+      } else if (item.file.type.startsWith('video/')) {
+        el = document.createElement('video');
+        el.src = URL.createObjectURL(item.file);
+        el.muted = true;
+      } else {
+        el = document.createElement('div');
+        el.className = 'file-card';
+        el.textContent = item.file.name;
+      }
+      el.dataset.index = idx;
+      el.addEventListener('click', () => {
+        overlayIdx = idx;
+        updateMainMedia();
+      });
+      tray.appendChild(el);
+    });
+    if (files.length) updateMainMedia();
+    else closeOverlay();
+  }
+
+  function updateMainMedia() {
+    if (!overlay) return;
+    mainMedia.innerHTML = '';
+    const item = files[overlayIdx];
+    if (!item) return;
+    let el;
+    if (item.file.type.startsWith('image/')) {
+      el = document.createElement('img');
+      el.src = URL.createObjectURL(item.file);
+    } else if (item.file.type.startsWith('video/')) {
+      el = document.createElement('video');
+      el.controls = true;
+      const src = document.createElement('source');
+      src.src = URL.createObjectURL(item.file);
+      src.type = item.file.type;
+      el.appendChild(src);
+    } else {
+      el = document.createElement('div');
+      el.className = 'file-card';
+      el.textContent = item.file.name;
+    }
+    mainMedia.appendChild(el);
+  }
+
+  function openOverlay() {
+    if (!overlay) return;
+    overlayIdx = 0;
+    renderOverlay();
+    overlay.style.display = 'flex';
+  }
+
+  function closeOverlay() {
+    if (!overlay) return;
+    overlay.style.display = 'none';
   }
 
   function closeMenu() {
@@ -130,6 +202,7 @@ export function initAttachments() {
       Array.from(e.target.files).forEach(f => files.push({ file: f, type }));
       input.value = '';
       renderPreview();
+      openOverlay();
     });
   });
 
@@ -143,6 +216,7 @@ export function initAttachments() {
       if (dt && dt.files && dt.files.length) {
         Array.from(dt.files).forEach(f => files.push({ file: f, type: 'file' }));
         renderPreview();
+        openOverlay();
       }
     });
   }
@@ -165,12 +239,18 @@ export function initAttachments() {
         if (next) next.focus();
       }
     } else if (e.key === 'Escape') {
-      closeMenu();
-      if (files.length) {
-        clearAttachments();
+      if (overlay && overlay.style.display !== 'none') {
+        closeOverlay();
+      } else {
+        closeMenu();
+        if (files.length) {
+          clearAttachments();
+        }
       }
     }
   });
+
+  if (closeBtn) closeBtn.addEventListener('click', closeOverlay);
 }
 
 export function getAttachments() {
@@ -182,6 +262,10 @@ export function clearAttachments() {
   const preview = document.getElementById('attachmentPreview');
   if (preview) preview.innerHTML = '';
   if (preview) preview.style.display = 'none';
+  if (overlay) {
+    overlay.style.display = 'none';
+    if (captionInput) captionInput.value = '';
+  }
   if (previewDocHandler) {
     document.removeEventListener('click', previewDocHandler);
     previewDocHandler = null;

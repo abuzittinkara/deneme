@@ -317,7 +317,10 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
   });
 
   function sendTextMessage() {
-    const msg = textChannelMessageInput.value.trim();
+    const overlay = document.getElementById('previewWrapper');
+    const captionEl = overlay?.querySelector('.caption-input');
+    const overlayVisible = overlay && overlay.style.display !== 'none';
+    const msg = overlayVisible ? (captionEl?.value.trim() || '') : textChannelMessageInput.value.trim();
     const atts = getAttachments();
     if (!msg && atts.length === 0) return;
 
@@ -329,6 +332,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
         username: window.username,
       });
       textChannelMessageInput.value = '';
+      if (captionEl) captionEl.value = '';
       sendTextMessageBtn.style.display = 'none';
       return;
     }
@@ -361,6 +365,8 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
         try { data = JSON.parse(xhr.responseText); } catch {}
         clearAttachments();
         textChannelMessageInput.value = '';
+        if (captionEl) captionEl.value = '';
+        if (overlay) overlay.style.display = 'none';
         sendTextMessageBtn.style.display = 'none';
         if (data && data.message && data.message.message) {
           const m = data.message.message;
