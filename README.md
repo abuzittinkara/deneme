@@ -101,3 +101,24 @@ with objects of the form `{ id, url, type }`. Existing deployments should
 ensure these arrays are present for all documents as shown above before running
 the updated server.
 Happy coding!
+
+## API
+
+### `POST /api/message`
+
+Send a text message with optional file attachments.
+
+**Body fields**
+
+- `userId` – sender's MongoDB id
+- `channelId` – target channel id
+- `content` – plain text message
+- `files` – one or more files (multipart form data)
+
+Constraints:
+- max **10** files per request
+- each file up to **25&nbsp;MB**
+- combined size up to **100&nbsp;MB**
+
+On success the server responds with the saved message and broadcasts a
+`newTextMessage` event to the channel.

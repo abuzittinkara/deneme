@@ -6,6 +6,12 @@ const WebSocket = require('ws');
 const http = require('http');
 const mongoose = require('mongoose');
 const { v4: uuidv4 } = require('uuid');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const DOMPurify = require('dompurify');
+const { JSDOM } = require('jsdom');
+const purify = DOMPurify(new JSDOM('').window);
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const store = require('./utils/sharedStore');
@@ -34,6 +40,22 @@ app.set('trust proxy', 1); // Proxy güvendiğimizi belirt
 
 // Allow JSON bodies up to 1MB so avatar uploads don't trigger 413 errors
 app.use(express.json({ limit: '1mb' }));
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const userId = req.body.userId;
+    const dest = path.join(__dirname, 'uploads', String(userId || 'anonymous'));
+    fs.mkdirSync(dest, { recursive: true });
+    cb(null, dest);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname || '');
+    cb(null, `${uuidv4()}${ext}`);
+  }
+});
+const upload = multer({ storage, limits: { fileSize: 25 * 1024 * 1024 } });
+
+app.use('/uploads', express.static('uploads'));
 
 const server = http.createServer(app);
 
@@ -178,6 +200,62 @@ app.post('/api/user/avatar', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'server error' });
   }
+});
+
+app.post('/api/message', (req, res) => {
+  upload.array('files', 10)(req, res, async err => {
+    if (err) {
+      return res.status(413).json({ error: 'file_too_large' });
+    }
+
+    const { userId, channelId, content } = req.body || {};
+    if (!userId || !channelId || content === undefined) {
+      return res.status(400).json({ error: 'missing params' });
+    }
+
+    try {
+      const channelDoc = await Channel.findOne({ channelId });
+      const userDoc = await User.findById(userId);
+      if (!channelDoc || !userDoc) return res.status(404).json({ error: 'not found' });
+
+      const totalSize = req.files.reduce((sum, f) => sum + f.size, 0);
+      if (totalSize > 100 * 1024 * 1024) {
+        req.files.forEach(f => fs.unlinkSync(f.path));
+        return res.status(413).json({ error: 'batch_limit_exceeded' });
+      }
+
+      const attachments = req.files.map(f => ({
+        id: f.filename,
+        url: `/uploads/${userId}/${f.filename}`,
+        type: f.mimetype
+      }));
+
+      const clean = purify.sanitize(content, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+      const msg = new Message({
+        channel: channelDoc._id,
+        user: userDoc._id,
+        content: clean,
+        attachments,
+        timestamp: new Date()
+      });
+      await msg.save();
+
+      const payload = {
+        channelId,
+        message: {
+          content: msg.content,
+          username: userDoc.username,
+          timestamp: msg.timestamp,
+          attachments
+        }
+      };
+
+      io.to(channelId).emit('newTextMessage', payload);
+      res.json({ success: true, message: payload });
+    } catch (e) {
+      res.status(500).json({ error: 'server error' });
+    }
+  });
 });
 const context = { User, Group, Channel, Message, DMMessage, users, groups, onlineUsernames, userSessions, friendRequests, sfu, groupController, store };
 
