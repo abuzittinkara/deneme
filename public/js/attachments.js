@@ -73,7 +73,9 @@ export function initAttachments() {
     preview.style.display = files.length ? 'flex' : 'none';
     if (files.length && !previewDocHandler) {
       previewDocHandler = function(e) {
-        if (!preview.contains(e.target) && e.target !== attachBtn) {
+        const inPreview = preview.contains(e.target);
+        const inOverlay = overlay && overlay.contains(e.target);
+        if (!inPreview && !inOverlay && e.target !== attachBtn) {
           clearAttachments();
           document.removeEventListener('click', previewDocHandler);
           previewDocHandler = null;
@@ -163,6 +165,9 @@ export function initAttachments() {
     renderOverlay();
     overlay.style.display = 'flex';
     if (messages) messages.style.display = 'none';
+    if (captionInput) captionInput.focus();
+    const sendBtn = document.getElementById('sendTextMessageBtn');
+    if (sendBtn) sendBtn.style.display = 'block';
   }
 
   function closeOverlay() {

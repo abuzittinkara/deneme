@@ -403,6 +403,24 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     }
   });
 
+  const captionInput = document.querySelector('#previewWrapper .caption-input');
+  if (captionInput) {
+    captionInput.addEventListener('input', () => {
+      const val = captionInput.value.trim();
+      if (val !== '' || getAttachments().length > 0) {
+        sendTextMessageBtn.style.display = 'block';
+      } else {
+        sendTextMessageBtn.style.display = 'none';
+      }
+    });
+    captionInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        sendTextMessage();
+      }
+    });
+  }
+  
   if (screenShareButton) {
     screenShareButton.addEventListener('click', async () => {
       if (window.screenShareProducerVideo) {
