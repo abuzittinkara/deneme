@@ -81,7 +81,7 @@ function renderAttachments(atts = []) {
           const type = a.type || '';
           const url = a.url || '';
           const name = a.name || url.split('/').pop();
-          const size = a.size ? ` (${formatFileSize(a.size)})` : '';
+          const size = a.size ? formatFileSize(a.size) : '';
           if (type.startsWith('image/')) {
             return `<img src="${url}" data-lightbox="${url}" alt="${name}">`;
           } else if (type.startsWith('video/')) {
@@ -89,7 +89,21 @@ function renderAttachments(atts = []) {
           } else if (type.startsWith('audio/')) {
             return `<audio controls src="${url}"></audio>`;
           }
-          return `<div class="file-pill" data-url="${url}" data-name="${name}" tabindex="0">${name}${size}</div>`;
+          const icon = /pdf$/i.test(type) || name.toLowerCase().endsWith('.pdf')
+            ? 'picture_as_pdf'
+            : /(zip|rar|7z)/i.test(type) || name.toLowerCase().match(/\.(zip|rar|7z)$/)
+            ? 'archive'
+            : 'insert_drive_file';
+          const cls = icon === 'picture_as_pdf' ? 'pdf' : icon === 'archive' ? 'archive' : 'default';
+          return `
+            <a class="attachment-wrapper" data-url="${url}" data-name="${name}" tabindex="0">
+              <span class="file-icon ${cls} material-icons">${icon}</span>
+              <div class="file-text">
+                <div class="file-name">${name}</div>
+                <div class="file-info">${size}</div>
+              </div>
+            </a>
+          `;
         })
         .join('')}
     </div>`;
@@ -331,7 +345,7 @@ function initTextChannelEvents(socket, container) {
     const avatar = e.target.closest('.message-avatar');
     const nameEl = e.target.closest('.sender-name');
     const media = e.target.closest('.message-attachments img, .message-attachments video');
-    const file = e.target.closest('.file-pill');
+    const file = e.target.closest('.attachment-wrapper');
     if (avatar) {
       const uname = avatar.dataset.username;
       if (uname) showProfilePopout(uname, e);
@@ -340,6 +354,7 @@ function initTextChannelEvents(socket, container) {
     } else if (media) {
       openLightbox(media);
     } else if (file) {
+      e.preventDefault();
       const url = file.dataset.url;
       const name = file.dataset.name || '';
       if (e.shiftKey) {

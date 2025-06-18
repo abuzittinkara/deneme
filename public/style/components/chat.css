@@ -402,6 +402,14 @@
   line-height: 1;
 }
 
+.message-attachments {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+  max-width: calc(100% - 64px);
+}
+
 .message-attachments img,
 .message-attachments video {
   max-width: 100%;
@@ -411,19 +419,60 @@
   cursor: pointer;
 }
 
-.file-pill {
-  display: inline-block;
-  background: #c61884;
+.attachment-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #242424;
   color: #fff;
-  padding: 4px 8px;
   border-radius: 6px;
-  cursor: pointer;
-  max-width: 480px;
-  word-break: break-all;
+  padding: 4px 8px;
+  text-decoration: none;
+  word-break: break-word;
 }
 
-.file-pill:hover {
-  background: #a3156f;
+.attachment-wrapper:hover {
+  background: #2d2d2d;
+}
+
+.file-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 40px;
+  font-size: 24px;
+}
+
+.file-icon.pdf {
+  color: #e53935;
+}
+
+.file-icon.archive {
+  color: #ff9800;
+}
+
+.file-icon.default {
+  color: #cfcfcf;
+}
+
+.file-text {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.file-name {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-info {
+  font-size: 0.85em;
+  color: #bbb;
 }
 
 #mediaLightbox {
