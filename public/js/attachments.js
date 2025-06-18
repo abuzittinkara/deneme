@@ -114,7 +114,7 @@ export function initAttachments() {
   function renderOverlay() {
     if (!overlay) return;
     tray.innerHTML = '';
-    files.slice(0, 12).forEach((item, idx) => {
+    files.slice(0, MAX_FILES).forEach((item, idx) => {
       let el;
       if (item.file.type.startsWith('image/')) {
         el = document.createElement('img');
