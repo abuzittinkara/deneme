@@ -7,7 +7,8 @@ const ChannelSchema = new mongoose.Schema({
   group: { type: mongoose.Schema.Types.ObjectId, ref: 'Group', required: true },
   type: { type: String, enum: ['text', 'voice'], required: true },
   // Kanaldaki kullanıcılar (isteğe bağlı)
-  users: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+  users: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  order: { type: Number, default: 0 }
 });
 
 module.exports = mongoose.model('Channel', ChannelSchema);

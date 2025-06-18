@@ -352,3 +352,24 @@
 }
 .icon-btn:hover { color: #fff; }
 .icon-btn.muted { color: #c61884; }
+
+/* Channel Reordering */
+.channel-placeholder {
+  height: 40px;
+  margin-bottom: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed #777;
+  border-radius: 4px;
+}
+.channel-drag-preview {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(60, 60, 60, 0.9);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  z-index: 1000;
+  opacity: 0.8;
+}
+.channel-item.dragging { opacity: 0.5; }
+.channel-item.snap { transition: transform 0.15s; }

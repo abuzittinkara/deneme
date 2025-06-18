@@ -26,12 +26,12 @@ async function loadGroupsFromDB({ Group, groups }) {
 
 async function loadChannelsFromDB({ Channel, groups }) {
   try {
-    const channelDocs = await Channel.find({}).populate('group');
+    const channelDocs = await Channel.find({}).sort({ order: 1 }).populate('group');
     channelDocs.forEach(ch => {
       if (!ch.group) return;
       const gid = ch.group.groupId;
       if (!groups[gid]) return;
-      groups[gid].rooms[ch.channelId] = { name: ch.name, type: ch.type, users: [] };
+      groups[gid].rooms[ch.channelId] = { name: ch.name, type: ch.type, users: [], order: ch.order || 0 };
       store.setJSON(store.key('group', gid), groups[gid]);
     });
     console.log('loadChannelsFromDB tamam.');
@@ -89,22 +89,18 @@ function broadcastAllChannelsData(io, users, groups, groupId) {
 function sendRoomsListToUser(io, socketId, groups, groupId) {
   if (!groups[groupId]) return;
   const groupObj = groups[groupId];
-  const roomArray = Object.keys(groupObj.rooms).map(rId => ({
-    id: rId,
-    name: groupObj.rooms[rId].name,
-    type: groupObj.rooms[rId].type
-  }));
+  const roomArray = Object.entries(groupObj.rooms)
+    .sort((a, b) => (a[1].order || 0) - (b[1].order || 0))
+    .map(([rId, rm]) => ({ id: rId, name: rm.name, type: rm.type }));
   io.to(socketId).emit('roomsList', roomArray);
 }
 
 function broadcastRoomsListToGroup(io, groups, groupId) {
   if (!groups[groupId]) return;
   const groupObj = groups[groupId];
-  const roomArray = Object.keys(groupObj.rooms).map(rId => ({
-    id: rId,
-    name: groupObj.rooms[rId].name,
-    type: groupObj.rooms[rId].type
-  }));
+  const roomArray = Object.entries(groupObj.rooms)
+    .sort((a, b) => (a[1].order || 0) - (b[1].order || 0))
+    .map(([rId, rm]) => ({ id: rId, name: rm.name, type: rm.type }));
   io.to(groupId).emit('roomsList', roomArray);
 }
 
@@ -292,9 +288,10 @@ function register(io, socket, context) {
       }
 
       const channelId = uuidv4();
-      const newChannel = new Channel({ channelId, name: chanTrimmed, group: newGroup._id, type: 'text' });
+      const order = 0;
+      const newChannel = new Channel({ channelId, name: chanTrimmed, group: newGroup._id, type: 'text', order });
       await newChannel.save();
-      groups[groupId].rooms[channelId] = { name: chanTrimmed, type: 'text', users: [] };
+      groups[groupId].rooms[channelId] = { name: chanTrimmed, type: 'text', users: [], order };
       if (context.store) {
         context.store.setJSON(context.store.key('group', groupId), groups[groupId]);
       }
@@ -457,16 +454,18 @@ function register(io, socket, context) {
       const groupDoc = await Group.findOne({ groupId });
       if (!groupDoc) return;
       const channelId = uuidv4();
+      const order = Object.keys(groups[groupId]?.rooms || {}).length;
       const newChannel = new Channel({
         channelId,
         name: trimmed,
         group: groupDoc._id,
         type: 'text',
+        order
       });
       await newChannel.save();
       if (groups[groupId]) {
-        groups[groupId].rooms[channelId] = { name: trimmed, type: 'text', users: [] };
-        io.to(groupId).emit('channelCreated', { id: channelId, name: trimmed, type: 'text' });
+        groups[groupId].rooms[channelId] = { name: trimmed, type: 'text', users: [], order };
+        io.to(groupId).emit('channelCreated', { id: channelId, name: trimmed, type: 'text', order });
         broadcastRoomsListToGroup(io, groups, groupId);
       }
     } catch (err) {
@@ -496,6 +495,31 @@ function register(io, socket, context) {
     }
   });
 
+  socket.on('reorderChannel', async ({ groupId, channelId, newIndex }) => {
+    try {
+      if (!groupId || !channelId || typeof newIndex !== 'number') return;
+      const grp = groups[groupId];
+      if (!grp || !grp.rooms[channelId]) return;
+
+      const entries = Object.entries(grp.rooms).sort((a, b) => (a[1].order || 0) - (b[1].order || 0));
+      const oldIndex = entries.findIndex(([id]) => id === channelId);
+      if (oldIndex === -1 || newIndex < 0 || newIndex >= entries.length) return;
+
+      const [moved] = entries.splice(oldIndex, 1);
+      entries.splice(newIndex, 0, moved);
+      for (let i = 0; i < entries.length; i++) {
+        const [cid, room] = entries[i];
+        room.order = i;
+        await Channel.findOneAndUpdate({ channelId: cid }, { order: i });
+      }
+      grp.rooms = Object.fromEntries(entries);
+      if (context.store) context.store.setJSON(context.store.key('group', groupId), grp);
+      broadcastRoomsListToGroup(io, groups, groupId);
+    } catch (err) {
+      console.error('reorderChannel error:', err);
+    }
+  });
+  
   socket.on('deleteChannel', async channelId => {
     try {
       if (!channelId) return;

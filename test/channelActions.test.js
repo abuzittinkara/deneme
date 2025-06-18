@@ -7,22 +7,25 @@ const groupController = require('../controllers/groupController');
 function createContext() {
   const users = {};
   const groups = {
-    group1: { owner: 'u1', name: 'g', users: [], rooms: { chan1: { name: 'Old', type: 'text', users: [] } } }
+    group1: { owner: 'u1', name: 'g', users: [], rooms: { chan1: { name: 'Old', type: 'text', users: [], order: 0 } } }
   };
   const channelStore = {
-    chan1: { channelId: 'chan1', name: 'Old', group: { groupId: 'group1' } }
+    chan1: { channelId: 'chan1', name: 'Old', group: { groupId: 'group1' }, order: 0 }
   };
   const Channel = {
     async findOne(query) {
-      if (query.channelId === 'chan1') {
-        return { ...channelStore.chan1, group: { groupId: 'group1' } };
+      const ch = channelStore[query.channelId];
+      if (ch) {
+        return { ...ch, group: { groupId: 'group1' } };
       }
       return null;
     },
     async findOneAndUpdate(query, update) {
-      if (query.channelId === 'chan1') {
-        channelStore.chan1.name = update.name;
-        return { ...channelStore.chan1, group: { groupId: 'group1' } };
+      const ch = channelStore[query.channelId];
+      if (ch) {
+        if (update.name !== undefined) ch.name = update.name;
+        if (update.order !== undefined) ch.order = update.order;
+        return { ...ch, group: { groupId: 'group1' } };
       }
       return null;
     },
@@ -40,8 +43,8 @@ function createContext() {
 
 function createContextWithTwoChannels() {
   const ctx = createContext();
-  ctx.groups.group1.rooms.chan2 = { name: 'Other', type: 'text', users: [] };
-  ctx.channelStore.chan2 = { channelId: 'chan2', name: 'Other', group: { groupId: 'group1' } };
+  ctx.groups.group1.rooms.chan2 = { name: 'Other', type: 'text', users: [], order: 1 };
+  ctx.channelStore.chan2 = { channelId: 'chan2', name: 'Other', group: { groupId: 'group1' }, order: 1 };
   return ctx;
 }
 
@@ -79,4 +82,18 @@ test('deleteChannel refuses to remove last text channel', async () => {
   assert.ok(groups.group1.rooms.chan1);
   assert.ok(!io.emitted.find(e=>e.ev==='channelDeleted'));
   assert.ok(errors.length > 0);
+});
+
+test('reorderChannel updates memory and emits roomsList', async () => {
+  const socket = new EventEmitter();
+  const io = { emitted: [], to(room) { return { emit:(ev,p)=>io.emitted.push({room,ev,p}) }; } };
+  const { users, groups, Channel, channelStore } = createContextWithTwoChannels();
+  groupController.register(io, socket, { users, groups, User:{}, Group:{}, Channel, onlineUsernames:new Set() });
+  const handler = socket.listeners('reorderChannel')[0];
+  await handler({ groupId:'group1', channelId:'chan2', newIndex:0 });
+  assert.strictEqual(groups.group1.rooms.chan2.order, 0);
+  assert.strictEqual(groups.group1.rooms.chan1.order, 1);
+  assert.strictEqual(channelStore.chan2.order, 0);
+  assert.strictEqual(channelStore.chan1.order, 1);
+  assert.ok(io.emitted.find(e=>e.ev==='roomsList'));
 });

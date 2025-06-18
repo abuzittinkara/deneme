@@ -37,6 +37,32 @@ function hideDragPreview() {
   }
 }
 
+// --- Channel Dragging Helpers ---
+let channelPreviewEl = null;
+let channelPlaceholder = null;
+let draggedChannelEl = null;
+
+function showChannelPreview(name) {
+  channelPreviewEl = document.createElement('div');
+  channelPreviewEl.classList.add('channel-drag-preview');
+  channelPreviewEl.textContent = name;
+  document.body.appendChild(channelPreviewEl);
+}
+
+function updateChannelPreview(x, y) {
+  if (channelPreviewEl) {
+    channelPreviewEl.style.left = `${x + 10}px`;
+    channelPreviewEl.style.top = `${y + 10}px`;
+  }
+}
+
+function hideChannelPreview() {
+  if (channelPreviewEl) {
+    channelPreviewEl.remove();
+    channelPreviewEl = null;
+  }
+}
+
 function attachUserDragHandlers(el, userId, username) {
   el.setAttribute('draggable', 'true');
   el.addEventListener('dragstart', (e) => {
@@ -47,8 +73,66 @@ function attachUserDragHandlers(el, userId, username) {
   el.addEventListener('dragend', hideDragPreview);
 }
 
+function attachChannelDragHandlers(el) {
+  el.setAttribute('draggable', 'true');
+  el.addEventListener('dragstart', (e) => {
+    draggedChannelEl = el;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setDragImage(new Image(), 0, 0);
+    const name = el.querySelector('.channel-header span')?.textContent || '';
+    showChannelPreview(name);
+    channelPlaceholder = document.createElement('div');
+    channelPlaceholder.classList.add('channel-placeholder');
+    el.parentNode.insertBefore(channelPlaceholder, el.nextSibling);
+    el.classList.add('dragging');
+  });
+  el.addEventListener('dragend', () => {
+    hideChannelPreview();
+    if (channelPlaceholder) channelPlaceholder.remove();
+    channelPlaceholder = null;
+    el.classList.remove('dragging');
+    draggedChannelEl = null;
+  });
+}
+
+function setupChannelDragContainer(socket, container) {
+  container.addEventListener('dragover', (e) => {
+    if (!draggedChannelEl) return;
+    e.preventDefault();
+    const target = e.target.closest('.channel-item');
+    if (!target || target === draggedChannelEl) {
+      updateChannelPreview(e.clientX, e.clientY);
+      return;
+    }
+    const rect = target.getBoundingClientRect();
+    const next = e.clientY - rect.top > rect.height / 2;
+    container.insertBefore(channelPlaceholder, next ? target.nextSibling : target);
+    updateChannelPreview(e.clientX, e.clientY);
+  });
+  container.addEventListener('drop', (e) => {
+    if (!draggedChannelEl || !channelPlaceholder) return;
+    e.preventDefault();
+    container.insertBefore(draggedChannelEl, channelPlaceholder);
+    const items = Array.from(container.querySelectorAll('.channel-item'));
+    const newIndex = items.indexOf(draggedChannelEl);
+    hideChannelPreview();
+    channelPlaceholder.remove();
+    channelPlaceholder = null;
+    draggedChannelEl.classList.remove('dragging');
+    socket.emit('reorderChannel', {
+      groupId: window.selectedGroup,
+      channelId: draggedChannelEl.dataset.roomId,
+      newIndex
+    });
+    draggedChannelEl.classList.add('snap');
+    setTimeout(() => draggedChannelEl.classList.remove('snap'), 150);
+    draggedChannelEl = null;
+  });
+}
+
 document.addEventListener('dragover', (e) => {
   updateDragPreview(e.clientX, e.clientY);
+  updateChannelPreview(e.clientX, e.clientY);
 });
 
 function refreshVisibilityIcons() {
@@ -96,6 +180,8 @@ export function initSocketEvents(socket) {
     textChannelContainer,
   } = window;
 
+  setupChannelDragContainer(socket, roomListDiv);
+  
   if (UserList.initAvatarUpdates) {
     UserList.initAvatarUpdates(socket);
   }
@@ -668,6 +754,7 @@ export function initSocketEvents(socket) {
     roomsArray.forEach((roomObj) => {
       const roomItem = buildChannelItem(roomObj);
       roomListDiv.appendChild(roomItem);
+      attachChannelDragHandlers(roomItem);
     });
     const storedChannel = (() => {
       try {
