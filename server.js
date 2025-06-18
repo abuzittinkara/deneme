@@ -292,11 +292,18 @@ app.post('/api/message', (req, res) => {
       io.to(channelId).emit('newTextMessage', payload);
       res.json({ success: true, message: payload });
     } catch (e) {
-      logger.error(`Failed to store message: ${e.stack || e}`);
-      res.status(500).json({
+      logger.error('Failed to store message', {
+        message: e.message,
+        stack: e.stack
+      });
+      const response = {
         error: 'server_error',
         message: 'Unable to process message.'
-      });
+      };
+      if (process.env.NODE_ENV !== 'production') {
+        response.detail = purify.sanitize(String(e.message || ''));
+      }
+      res.status(500).json(response);
     }
   });
 });
