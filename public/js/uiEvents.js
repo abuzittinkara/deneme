@@ -368,16 +368,6 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
         if (captionEl) captionEl.value = '';
         if (overlay) overlay.style.display = 'none';
         sendTextMessageBtn.style.display = 'none';
-        if (data && data.message && data.message.message) {
-          const m = data.message.message;
-          socket.emit('textMessage', {
-            groupId: window.selectedGroup,
-            roomId: window.currentTextChannel,
-            message: m.content,
-            username: window.username,
-            attachments: m.attachments || []
-          });
-        }
       } else {
         atts.forEach((_, i) => markAttachmentFailed(i, sendTextMessage));
       }
