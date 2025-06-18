@@ -213,12 +213,24 @@ app.post('/api/user/avatar', async (req, res) => {
 app.post('/api/message', (req, res) => {
   upload.array('files', 10)(req, res, async err => {
     if (err) {
-      return res.status(413).json({ error: 'file_too_large' });
+      logger.error(`File upload error: ${err.message}`);
+      return res.status(413).json({
+        error: 'file_too_large',
+        message: 'Attachment exceeds 25MB limit.'
+      });
     }
 
     const { userId, username, channelId, content } = req.body || {};
     if ((!userId && !username) || !channelId || content === undefined) {
-      return res.status(400).json({ error: 'missing params' });
+      logger.warn('Missing required fields in /api/message', {
+        userId,
+        username,
+        channelId
+      });
+      return res.status(400).json({
+        error: 'missing_params',
+        message: 'userId or username, channelId and content are required.'
+      });
     }
 
     try {
@@ -226,22 +238,38 @@ app.post('/api/message', (req, res) => {
       const userDoc = userId
         ? await User.findById(userId)
         : await User.findOne({ username });
-      if (!channelDoc || !userDoc) return res.status(404).json({ error: 'not found' });
 
-      const totalSize = req.files.reduce((sum, f) => sum + f.size, 0);
-      if (totalSize > 100 * 1024 * 1024) {
-        req.files.forEach(f => fs.unlinkSync(f.path));
-        return res.status(413).json({ error: 'batch_limit_exceeded' });
+      if (!channelDoc) {
+        return res.status(404).json({ error: 'channel_not_found' });
+      }
+      if (!userDoc) {
+        return res.status(404).json({ error: 'user_not_found' });
       }
 
-      const folder = req.files[0] ? path.basename(path.dirname(req.files[0].path)) : '';
-      const attachments = req.files.map(f => ({
+      const totalSize = Array.isArray(req.files)
+        ? req.files.reduce((sum, f) => sum + f.size, 0)
+        : 0;
+      if (totalSize > 100 * 1024 * 1024) {
+        req.files.forEach(f => fs.unlinkSync(f.path));
+        return res.status(413).json({
+          error: 'batch_limit_exceeded',
+          message: 'Combined files exceed 100MB.'
+        });
+      }
+
+      const folder = req.files[0]
+        ? path.basename(path.dirname(req.files[0].path))
+        : '';
+      const attachments = (req.files || []).map(f => ({
         id: f.filename,
-       url: `/uploads/${folder}/${f.filename}`,
+        url: `/uploads/${folder}/${f.filename}`,
         type: f.mimetype
       }));
 
-      const clean = purify.sanitize(content, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+      const clean = purify.sanitize(content, {
+        ALLOWED_TAGS: [],
+        ALLOWED_ATTR: []
+      });
       const msg = new Message({
         channel: channelDoc._id,
         user: userDoc._id,
@@ -264,7 +292,11 @@ app.post('/api/message', (req, res) => {
       io.to(channelId).emit('newTextMessage', payload);
       res.json({ success: true, message: payload });
     } catch (e) {
-      res.status(500).json({ error: 'server error' });
+      logger.error(`Failed to store message: ${e.stack || e}`);
+      res.status(500).json({
+        error: 'server_error',
+        message: 'Unable to process message.'
+      });
     }
   });
 });
