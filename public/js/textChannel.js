@@ -154,6 +154,82 @@ function closeLightbox() {
   document.removeEventListener('keydown', escClose);
 }
 
+function showAttachmentMenu(wrapper, e) {
+  e.preventDefault();
+  const existing = document.getElementById('attachmentContextMenu');
+  if (existing) existing.remove();
+
+  const menu = document.createElement('div');
+  menu.id = 'attachmentContextMenu';
+  menu.className = 'context-menu';
+  menu.style.position = 'absolute';
+  menu.style.top = e.pageY + 'px';
+  menu.style.left = e.pageX + 'px';
+  menu.style.display = 'flex';
+  menu.style.flexDirection = 'column';
+
+  function closeMenu() {
+    menu.remove();
+    document.removeEventListener('click', onDoc);
+    document.removeEventListener('keydown', onEsc);
+  }
+
+  function onDoc(ev) {
+    if (!menu.contains(ev.target)) closeMenu();
+  }
+
+  function onEsc(ev) { if (ev.key === 'Escape') closeMenu(); }
+
+  const url = wrapper.dataset.url;
+  const name = wrapper.dataset.name || '';
+
+  const items = [
+    {
+      text: 'Download',
+      action: () => {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+    },
+    {
+      text: 'Preview',
+      action: () => {
+        window.open(url, '_blank');
+      }
+    },
+    {
+      text: 'Copy link to message',
+      action: () => {
+        const msg = wrapper.closest('.text-message');
+        const ts = msg ? msg.dataset.timestamp : '';
+        const link = `${location.origin}${location.pathname}#${ts}`;
+        navigator.clipboard.writeText(link).catch(() => {});
+      }
+    }
+  ];
+
+  items.forEach(it => {
+    const item = document.createElement('div');
+    item.className = 'context-menu-item';
+    item.textContent = it.text;
+    item.addEventListener('click', () => {
+      it.action();
+      closeMenu();
+    });
+    menu.appendChild(item);
+  });
+
+  document.body.appendChild(menu);
+  setTimeout(() => {
+    document.addEventListener('click', onDoc);
+    document.addEventListener('keydown', onEsc);
+  });
+}
+
 function renderFullMessage(msg, sender, time, msgClass) {
   return `
     <div class="message-item">
