@@ -407,6 +407,7 @@
 .message-attachments {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 4px;
   margin-top: 4px;
   max-width: calc(100% - 64px);
