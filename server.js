@@ -221,7 +221,9 @@ app.post('/api/message', (req, res) => {
     }
 
     const { userId, username, channelId, content } = req.body || {};
-    if ((!userId && !username) || !channelId || content === undefined) {
+    const noContent = content === undefined || content === null || content === '';
+    const noFiles = !Array.isArray(req.files) || req.files.length === 0;
+    if ((!userId && !username) || !channelId || (noContent && noFiles)) {
       logger.warn('Missing required fields in /api/message', {
         userId,
         username,
@@ -229,7 +231,7 @@ app.post('/api/message', (req, res) => {
       });
       return res.status(400).json({
         error: 'missing_params',
-        message: 'userId or username, channelId and content are required.'
+        message: 'userId or username, channelId and content or files are required.'
       });
     }
 

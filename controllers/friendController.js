@@ -106,7 +106,7 @@ function registerFriendHandlers(io, socket, context) {
     try {
       if (!fromUsername) return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
       const { toUsername, content, attachments = [] } = data;
-      if (!toUsername || !content) return callback({ success: false, message: 'Eksik parametre.' });
+      if (!toUsername || (!content && attachments.length === 0)) return callback({ success: false, message: 'Eksik parametre.' });
       const fromUserDoc = await User.findOne({ username: fromUsername });
       const toUserDoc = await User.findOne({ username: toUsername });
       if (!fromUserDoc || !toUserDoc) return callback({ success: false, message: 'Kullanıcılar bulunamadı.' });

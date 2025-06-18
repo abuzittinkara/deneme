@@ -100,6 +100,7 @@ The `messages` schema also now stores file metadata in this `attachments` array
 with objects of the form `{ id, url, type }`. Existing deployments should
 ensure these arrays are present for all documents as shown above before running
 the updated server.
+Messages may now consist solely of attachments without any text content.
 Happy coding!
 
 ## API
@@ -112,7 +113,7 @@ Send a text message with optional file attachments.
 
 - `username` – sender's username (or `userId` for legacy clients)
 - `channelId` – target channel id
-- `content` – plain text message
+- `content` – plain text message (optional if files are included)
 - `files` – one or more files (multipart form data)
 
 Constraints:

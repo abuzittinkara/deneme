@@ -61,7 +61,7 @@ module.exports = function registerDMChatEvents(socket, { io, User, DMMessage, us
   socket.on('dmMessage', async ({ friend, content, attachments = [] }, callback) => {
     const fromUsername = users[socket.id]?.username;
     try {
-      if (!fromUsername || !friend || !content) {
+      if (!fromUsername || !friend || (!content && attachments.length === 0)) {
         logger.warn('dmMessage failed: from %s to %s', fromUsername, friend);
         return callback({ success: false, message: 'Eksik parametre.' });
       }
