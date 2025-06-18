@@ -100,6 +100,8 @@ The `messages` schema also now stores file metadata in this `attachments` array
 with objects of the form `{ id, url, type }`. Existing deployments should
 ensure these arrays are present for all documents as shown above before running
 the updated server.
+An `Attachment` sub-schema is defined in `models/Attachment.js` and shared by
+both message models.
 Messages may now consist solely of attachments without any text content.
 Happy coding!
 
