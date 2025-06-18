@@ -357,8 +357,10 @@
 
 .preview-wrapper .main-media img,
 .preview-wrapper .main-media video {
+  max-height: 350px;
+  width: auto;
+  height: auto;
   max-width: 100%;
-  max-height: 100%;
   object-fit: contain;
 }
 
