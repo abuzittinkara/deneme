@@ -43,15 +43,16 @@ app.use(express.json({ limit: '1mb' }));
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const rawId = String(req.body.userId || '').trim();
-    const isValid =
-      rawId &&
-      /^[a-zA-Z0-9_-]+$/.test(rawId) &&
-      !rawId.includes('..') &&
-      !rawId.includes('/') &&
-      !rawId.includes('\\');
-    const userId = isValid ? rawId : 'anonymous';
-    const dest = path.join(__dirname, 'uploads', userId);
+    const raw = String(req.body.userId || req.body.username || '').trim();
+    const safe =
+      raw &&
+      /^[a-zA-Z0-9_-]+$/.test(raw) &&
+      !raw.includes('..') &&
+      !raw.includes('/') &&
+      !raw.includes('\\')
+        ? raw
+        : 'anonymous';
+    const dest = path.join(__dirname, 'uploads', safe);
     fs.mkdirSync(dest, { recursive: true });
     cb(null, dest);
   },
@@ -215,14 +216,16 @@ app.post('/api/message', (req, res) => {
       return res.status(413).json({ error: 'file_too_large' });
     }
 
-    const { userId, channelId, content } = req.body || {};
-    if (!userId || !channelId || content === undefined) {
+    const { userId, username, channelId, content } = req.body || {};
+    if ((!userId && !username) || !channelId || content === undefined) {
       return res.status(400).json({ error: 'missing params' });
     }
 
     try {
       const channelDoc = await Channel.findOne({ channelId });
-      const userDoc = await User.findById(userId);
+      const userDoc = userId
+        ? await User.findById(userId)
+        : await User.findOne({ username });
       if (!channelDoc || !userDoc) return res.status(404).json({ error: 'not found' });
 
       const totalSize = req.files.reduce((sum, f) => sum + f.size, 0);
@@ -231,9 +234,10 @@ app.post('/api/message', (req, res) => {
         return res.status(413).json({ error: 'batch_limit_exceeded' });
       }
 
+      const folder = req.files[0] ? path.basename(path.dirname(req.files[0].path)) : '';
       const attachments = req.files.map(f => ({
         id: f.filename,
-        url: `/uploads/${userId}/${f.filename}`,
+       url: `/uploads/${folder}/${f.filename}`,
         type: f.mimetype
       }));
 

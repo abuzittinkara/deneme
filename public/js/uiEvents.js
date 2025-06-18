@@ -338,7 +338,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     }
 
     const fd = new FormData();
-    fd.append('userId', window.userId || '');
+    fd.append('username', window.username || '');
     fd.append('channelId', window.currentTextChannel);
     fd.append('content', msg);
     atts.forEach(a => fd.append('files', a.file));
@@ -420,7 +420,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
       }
     });
   }
-  
+
   if (screenShareButton) {
     screenShareButton.addEventListener('click', async () => {
       if (window.screenShareProducerVideo) {

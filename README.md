@@ -110,7 +110,7 @@ Send a text message with optional file attachments.
 
 **Body fields**
 
-- `userId` – sender's MongoDB id
+- `username` – sender's username (or `userId` for legacy clients)
 - `channelId` – target channel id
 - `content` – plain text message
 - `files` – one or more files (multipart form data)
