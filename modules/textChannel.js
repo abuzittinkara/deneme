@@ -35,6 +35,15 @@ module.exports = function registerTextChannelEvents(socket, { Channel, Message, 
       if (!userDoc) {
         return;
       }
+      if (!Array.isArray(attachments) ||
+          !attachments.every(a => a && typeof a === 'object' &&
+            Object.prototype.hasOwnProperty.call(a, 'id') &&
+            Object.prototype.hasOwnProperty.call(a, 'url') &&
+            Object.prototype.hasOwnProperty.call(a, 'type'))) {
+        console.warn('textMessage ignored due to invalid attachments');
+        return;
+      }      
+      
       const clean = purify.sanitize(message, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
       const newMsg = new Message({
         channel: channelDoc._id,

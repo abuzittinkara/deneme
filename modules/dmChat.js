@@ -75,6 +75,15 @@ module.exports = function registerDMChatEvents(socket, { io, User, DMMessage, us
         logger.warn('dmMessage failed (blocked): from %s to %s', fromUsername, friend);
         return callback({ success: false, message: 'Bu kullanıcıya mesaj gönderemezsiniz.' });
       }
+      if (!Array.isArray(attachments) ||
+          !attachments.every(a => a && typeof a === 'object' &&
+            Object.prototype.hasOwnProperty.call(a, 'id') &&
+            Object.prototype.hasOwnProperty.call(a, 'url') &&
+            Object.prototype.hasOwnProperty.call(a, 'type'))) {
+        logger.warn('dmMessage failed (invalid attachments): from %s to %s', fromUsername, friend);
+        return callback({ success: false, message: 'Geçersiz ekler.' });
+      }
+
       const clean = purify.sanitize(content, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
       const dmMessage = new DMMessage({
         from: fromUserDoc._id,

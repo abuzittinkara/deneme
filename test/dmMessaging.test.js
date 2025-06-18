@@ -148,3 +148,36 @@ test('dm messages are sanitized', async () => {
   assert.strictEqual(selfPayload.message.content, 'Hello');
   assert.strictEqual(friendPayload.message.content, 'Hello');
 });
+
+test('dm message with valid attachments is stored', async () => {
+  const { users, User, DMMessage, logger } = createContext();
+  const socket = new EventEmitter();
+  socket.id = 's1';
+  socket.join = () => {};
+  const io = { emitted: [], to() { return { emit() {} }; } };
+
+  registerDMChatEvents(socket, { io, User, DMMessage, users, logger });
+
+  const dm = socket.listeners('dmMessage')[0];
+  await new Promise(res => dm({ friend: 'bob', content: 'f', attachments: [{ id: '1', url: '/a', type: 'img' }] }, res));
+
+  assert.strictEqual(DMMessage.messages.length, 1);
+  assert.strictEqual(DMMessage.messages[0].attachments[0].url, '/a');
+});
+
+test('dm message with invalid attachments is rejected', async () => {
+  const { users, User, DMMessage, logger } = createContext();
+  const socket = new EventEmitter();
+  socket.id = 's1';
+  socket.join = () => {};
+  const io = { emitted: [], to() { return { emit() {} }; } };
+
+  registerDMChatEvents(socket, { io, User, DMMessage, users, logger });
+
+  const dm = socket.listeners('dmMessage')[0];
+  let result;
+  await new Promise(res => dm({ friend: 'bob', content: 'x', attachments: [{ id: '1', url: '/a' }] }, r => { result = r; res(); }));
+
+  assert.ok(!result.success);
+  assert.strictEqual(DMMessage.messages.length, 0);
+});
