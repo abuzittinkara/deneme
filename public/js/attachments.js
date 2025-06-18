@@ -293,6 +293,8 @@ export function clearAttachments() {
     overlay.style.display = 'none';
     if (captionInput) captionInput.value = '';
   }
+  const messages = document.getElementById('textMessages');
+  if (messages) messages.style.display = '';
   if (previewDocHandler) {
     document.removeEventListener('click', previewDocHandler);
     previewDocHandler = null;
