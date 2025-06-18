@@ -1,3 +1,4 @@
+export const MAX_FILES = 10;
 let files = [];
 let previewDocHandler = null;
 let overlayIdx = 0;
@@ -226,7 +227,12 @@ export function initAttachments() {
   Object.keys(inputs).forEach(type => {
     const input = inputs[type];
     input.addEventListener('change', (e) => {
-      Array.from(e.target.files).forEach(f => files.push({ file: f, type }));
+      const incoming = Array.from(e.target.files);
+      const remaining = MAX_FILES - files.length;
+      incoming.slice(0, remaining).forEach(f => files.push({ file: f, type }));
+      if (incoming.length > remaining) {
+        alert(`En fazla ${MAX_FILES} dosya ekleyebilirsiniz.`);
+      }
       input.value = '';
       renderPreview();
       openOverlay();
@@ -241,7 +247,12 @@ export function initAttachments() {
       e.preventDefault();
       const dt = e.dataTransfer;
       if (dt && dt.files && dt.files.length) {
-        Array.from(dt.files).forEach(f => files.push({ file: f, type: 'file' }));
+        const incoming = Array.from(dt.files);
+        const remaining = MAX_FILES - files.length;
+        incoming.slice(0, remaining).forEach(f => files.push({ file: f, type: 'file' }));
+        if (incoming.length > remaining) {
+          alert(`En fazla ${MAX_FILES} dosya ekleyebilirsiniz.`);
+        }
         renderPreview();
         openOverlay();
       }
