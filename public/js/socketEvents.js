@@ -66,11 +66,15 @@ function hideChannelPreview() {
 function attachUserDragHandlers(el, userId, username) {
   el.setAttribute('draggable', 'true');
   el.addEventListener('dragstart', (e) => {
+    e.stopPropagation();
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', userId);
     showDragPreview(username);
   });
-  el.addEventListener('dragend', hideDragPreview);
+  el.addEventListener('dragend', (e) => {
+    e.stopPropagation();
+    hideDragPreview();
+  });
 }
 
 function attachChannelDragHandlers(el) {

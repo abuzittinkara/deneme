@@ -51,6 +51,10 @@
   box-sizing: border-box;
   gap: 0.4rem;
 }
+.channel-user:hover {
+  background-color: #3d3d3d;
+  border-radius: 4px;
+}
 .channel-user-left {
   display: flex;
   align-items: center;

@@ -97,3 +97,13 @@ test('reorderChannel updates memory and emits roomsList', async () => {
   assert.strictEqual(channelStore.chan1.order, 1);
   assert.ok(io.emitted.find(e=>e.ev==='roomsList'));
 });
+
+test('reorderChannel also emits allChannelsData', async () => {
+  const socket = new EventEmitter();
+  const io = { emitted: [], to(room) { return { emit:(ev,p)=>io.emitted.push({room,ev,p}) }; } };
+  const { users, groups, Channel } = createContextWithTwoChannels();
+  groupController.register(io, socket, { users, groups, User:{}, Group:{}, Channel, onlineUsernames:new Set() });
+  const handler = socket.listeners('reorderChannel')[0];
+  await handler({ groupId:'group1', channelId:'chan2', newIndex:0 });
+  assert.ok(io.emitted.find(e=>e.ev==='allChannelsData'));
+});

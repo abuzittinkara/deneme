@@ -515,6 +515,7 @@ function register(io, socket, context) {
       grp.rooms = Object.fromEntries(entries);
       if (context.store) context.store.setJSON(context.store.key('group', groupId), grp);
       broadcastRoomsListToGroup(io, groups, groupId);
+      broadcastAllChannelsData(io, users, groups, groupId);
     } catch (err) {
       console.error('reorderChannel error:', err);
     }
