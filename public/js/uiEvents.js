@@ -264,6 +264,12 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
       toggleDMButton.querySelector('.material-icons').textContent = 'forum';
       selectedChannelTitle.textContent = 'Kanal Seçilmedi';
       window.isDMMode = false;
+      const messages = document.getElementById('textMessages');
+      const chatInput = document.getElementById('textChannelMessageInput');
+      const chatBar = document.getElementById('textChatInputBar');
+      if (messages) messages.style.width = '';
+      if (chatInput) chatInput.style.width = '';
+      if (chatBar) chatBar.style.width = '';
     }
   });
 
