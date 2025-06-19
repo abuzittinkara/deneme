@@ -65,15 +65,56 @@ export function initDMChat(socket, friendUsername) {
     textChatInputBar.className = 'text-chat-input-bar';
     const chatInputWrapper = document.createElement('div');
     chatInputWrapper.className = 'chat-input-wrapper';
+
+    const attachBtn = document.createElement('button');
+    attachBtn.id = 'attachBtn';
+    attachBtn.className = 'icon-btn';
+    attachBtn.type = 'button';
+    attachBtn.innerHTML = '<span class="material-symbols-outlined">add</span>';
+
+    const fileInput = document.createElement('input');
+    fileInput.id = 'attachFileInput';
+    fileInput.type = 'file';
+    fileInput.multiple = true;
+    fileInput.hidden = true;
+
+    const mediaInput = document.createElement('input');
+    mediaInput.id = 'attachMediaInput';
+    mediaInput.type = 'file';
+    mediaInput.accept = 'image/*,video/*';
+    mediaInput.multiple = true;
+    mediaInput.hidden = true;
+
+    const audioInput = document.createElement('input');
+    audioInput.id = 'attachAudioInput';
+    audioInput.type = 'file';
+    audioInput.accept = 'audio/*';
+    audioInput.multiple = true;
+    audioInput.hidden = true;
+
+    const gifInput = document.createElement('input');
+    gifInput.id = 'attachGifInput';
+    gifInput.type = 'file';
+    gifInput.accept = 'image/gif';
+    gifInput.multiple = true;
+    gifInput.hidden = true;
+    
     dmInput = document.createElement('input');
     dmInput.type = 'text';
     dmInput.id = 'dmMessageInput';
     dmInput.className = 'chat-input';
     dmInput.placeholder = 'Bir mesaj yazın...';
+
     sendButton = document.createElement('span');
     sendButton.id = 'dmSendButton';
     sendButton.className = 'send-icon';
     sendButton.innerHTML = '<span class="material-symbols-outlined">send</span>';
+    
+    chatInputWrapper.appendChild(attachBtn);
+    chatInputWrapper.appendChild(fileInput);
+    chatInputWrapper.appendChild(mediaInput);
+    chatInputWrapper.appendChild(audioInput);
+    chatInputWrapper.appendChild(gifInput);
     chatInputWrapper.appendChild(dmInput);
     chatInputWrapper.appendChild(sendButton);
     textChatInputBar.appendChild(chatInputWrapper);

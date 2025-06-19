@@ -189,14 +189,14 @@
 #textChannelMessageInput {
   position: relative;
   padding-left: 40px; /* Ikon için boşluk */
-  flex: none;
-  width: calc(100% - 26px); /* Attach butonu genişliği kadar daralt */
+  flex: 1;
 }
 #dmMessageInput {
   flex: 1;
   height: 45px;
   box-sizing: border-box;
   padding: 0 0.5rem;
+  padding-left: 40px;
   padding-right: 40px;
   background: #444;
   border: 1px solid #666;
@@ -244,7 +244,11 @@
 }
 
 .text-chat-input-bar #attachBtn {
-  margin-right: 4px;
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-right: 0;
 }
 
 /* Attachment preview overlay */
