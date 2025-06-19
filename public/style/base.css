@@ -23,8 +23,17 @@ body {
   color: #ccc;
 }
 .material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
   font-size: 20px !important;
+  line-height: 1;
   color: #ccc;
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
 }
 
 /* Ekran kapsayıcı */
