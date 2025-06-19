@@ -755,12 +755,22 @@ export function initSocketEvents(socket) {
     }
   });
   socket.on('roomsList', (roomsArray) => {
+    const prevTextChannel = window.currentTextChannel;
     roomListDiv.innerHTML = '';
     roomsArray.forEach((roomObj) => {
       const roomItem = buildChannelItem(roomObj);
       roomListDiv.appendChild(roomItem);
       attachChannelDragHandlers(roomItem);
     });
+    
+    if (prevTextChannel && roomsArray.some((r) => r.id === prevTextChannel)) {
+      const el = roomListDiv.querySelector(`.channel-item[data-room-id="${prevTextChannel}"]`);
+      if (el) {
+        el.classList.add('connected');
+      }
+      return;
+    }
+
     const storedChannel = (() => {
       try {
         return localStorage.getItem(`lastTextChannel:${window.selectedGroup}`);
