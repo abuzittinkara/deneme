@@ -6,7 +6,7 @@
   justify-content: center;
   align-items: flex-start;
   cursor: pointer;
-  padding: 7px 12px 3px 8px;
+  padding: 5px 12px 5px 8px;
   margin-bottom: 0;
   border-radius: 5px;
   background: #2d2d2d;
@@ -17,8 +17,8 @@
   background-color: #3d3d3d;
 }
 .channel-header {
-  display: block;
-  overflow: auto;
+  display: flex;
+  align-items: center;
   gap: 0.6rem;
   width: 100%;
   line-height: 1.2;
