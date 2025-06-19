@@ -125,7 +125,8 @@ function setupChannelDragContainer(socket, container) {
       newIndex
     });
     draggedChannelEl.classList.add('snap');
-    setTimeout(() => draggedChannelEl.classList.remove('snap'), 150);
+    const droppedEl = draggedChannelEl;
+    setTimeout(() => droppedEl.classList.remove('snap'), 150);
     draggedChannelEl = null;
   });
 }
