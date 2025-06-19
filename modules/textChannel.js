@@ -5,7 +5,7 @@ const DOMPurify = require('dompurify');
 const { JSDOM } = require('jsdom');
 const purify = DOMPurify(new JSDOM('').window);
 
-module.exports = function registerTextChannelEvents(socket, { Channel, Message, User }) {
+module.exports = function registerTextChannelEvents(io, socket, { Channel, Message, User, users }) {
   // Kullanıcının bir metin kanalına katılma ve mesaj geçmişini alma
   socket.on('joinTextChannel', async ({ groupId, roomId }) => {
     try {
@@ -57,6 +57,7 @@ module.exports = function registerTextChannelEvents(socket, { Channel, Message, 
       const messageData = {
         channelId: roomId,
         message: {
+          id: newMsg._id.toString(),
           content: newMsg.content,
           username: username,
           timestamp: newMsg.timestamp,
@@ -82,5 +83,18 @@ module.exports = function registerTextChannelEvents(socket, { Channel, Message, 
   socket.on('stop typing', ({ username, channel }) => {
     if (!channel || !username) return;
     socket.broadcast.to(channel).emit('stop typing', { username, channel });
+  });
+  
+  socket.on('deleteTextMessage', async ({ channelId, messageId }) => {
+    try {
+      if (!messageId) return;
+      const msg = await Message.findById(messageId).populate('user');
+      const username = users[socket.id]?.username;
+      if (!msg || !username || msg.user.username !== username) return;
+      await Message.deleteOne({ _id: messageId });
+      io.to(channelId).emit('textMessageDeleted', { channelId, messageId });
+    } catch (err) {
+      console.error('deleteTextMessage error:', err);
+    }
   });
 };

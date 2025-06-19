@@ -26,9 +26,11 @@ function createContext() {
       this.content = content;
       this.attachments = attachments;
       this.timestamp = new Date();
+      this._id = `m${DMMessage.messages.length + 1}`;
     }
     async save() {
       DMMessage.messages.push({
+        _id: this._id,
         from: this.from,
         to: this.to,
         content: this.content,
@@ -46,6 +48,7 @@ function createContext() {
         sort() { msgs.sort((a, b) => a.timestamp - b.timestamp); return this; },
         async populate() {
           return msgs.map(m => ({
+            _id: m._id,
             from: { username: usersById[m.from].username },
             content: m.content,
             attachments: m.attachments,
@@ -53,6 +56,13 @@ function createContext() {
           }));
         }
       };
+    }
+    static async findById(id) {
+      return DMMessage.messages.find(m => m._id === id) || null;
+    }
+    static async deleteOne(query) {
+      const idx = DMMessage.messages.findIndex(m => m._id === query._id);
+      if (idx !== -1) DMMessage.messages.splice(idx, 1);
     }
   }
 
@@ -179,5 +189,22 @@ test('dm message with invalid attachments is rejected', async () => {
   await new Promise(res => dm({ friend: 'bob', content: 'x', attachments: [{ id: '1', url: '/a' }] }, r => { result = r; res(); }));
 
   assert.ok(!result.success);
+  assert.strictEqual(DMMessage.messages.length, 0);
+});
+
+test('dm message can be deleted by author', async () => {
+  const { users, User, DMMessage, logger } = createContext();
+  const socket = new EventEmitter();
+  socket.id = 's1';
+  socket.join = () => {};
+  const io = { emitted: [], to(){ return { emit(){} } } };
+
+  registerDMChatEvents(socket, { io, User, DMMessage, users, logger });
+
+  const send = socket.listeners('dmMessage')[0];
+  await new Promise(res => send({ friend: 'bob', content: 'hi' }, res));
+  const del = socket.listeners('deleteDMMessage')[0];
+  const id = DMMessage.messages[0]._id;
+  await new Promise(res => del({ friend: 'bob', messageId: id }, res));
   assert.strictEqual(DMMessage.messages.length, 0);
 });

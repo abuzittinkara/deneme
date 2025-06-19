@@ -3,7 +3,7 @@
 // Grup metin kanallarındaki sohbet işlevselliğine benzer şekilde, DM sohbet ekranı oluşturur,
 // mesaj geçmişini yükler ve yeni mesajların gönderilmesini sağlar.
 
-import { renderTextMessages, appendNewMessage, insertDateSeparator, isDifferentDay } from './textChannel.js';
+import { renderTextMessages, appendNewMessage, insertDateSeparator, isDifferentDay, removeMessageElement } from './textChannel.js';
 import { showProfilePopout } from './profilePopout.js';
 
 export function initDMChat(socket, friendUsername) {
@@ -31,11 +31,17 @@ export function initDMChat(socket, friendUsername) {
   dmMessages.addEventListener('click', (e) => {
     const avatar = e.target.closest('.message-avatar');
     const nameEl = e.target.closest('.sender-name');
+    const del = e.target.closest('.delete-icon');
     if (avatar) {
       const uname = avatar.dataset.username;
       if (uname) showProfilePopout(uname, e);
     } else if (nameEl) {
       showProfilePopout(nameEl.textContent.trim(), e);
+    } else if (del) {
+      const msgEl = del.closest('.text-message');
+      if (msgEl) {
+        socket.emit('deleteDMMessage', { friend: friendUsername, messageId: msgEl.dataset.id });
+      }
     }
   });
   
@@ -150,6 +156,7 @@ export function initDMChat(socket, friendUsername) {
         if (msgRes.success && msgRes.messages) {
           dmMessages.innerHTML = '';
           const formatted = msgRes.messages.map(m => ({
+            id: m.id || m._id,
             content: m.content,
             timestamp: m.timestamp,
             user: { username: m.username }
@@ -204,5 +211,8 @@ export function initDMChat(socket, friendUsername) {
         window.cacheUploadUrls(atts);
       }
     }
+  });
+  socket.on('dmMessageDeleted', ({ messageId }) => {
+    removeMessageElement(dmMessages, messageId);
   });
 }

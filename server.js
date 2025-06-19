@@ -349,7 +349,7 @@ io.on("connection", (socket) => {
     logger,
     store
   });
-  registerTextChannelEvents(socket, { Channel, Message, User });
+  registerTextChannelEvents(io, socket, { Channel, Message, User, users });
   registerDMChatEvents(socket, { io, User, DMMessage, users, logger });
   socket.on("disconnect", () => { groupController.handleDisconnect(io, socket, context); });
 });

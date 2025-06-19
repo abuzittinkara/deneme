@@ -46,6 +46,7 @@ module.exports = function registerDMChatEvents(socket, { io, User, DMMessage, us
       }).sort({ timestamp: 1 }).populate('from', 'username');
 
       const formatted = messages.map(m => ({
+        id: m._id.toString(),
         username: m.from.username,
         content: m.content,
         attachments: m.attachments,
@@ -93,6 +94,7 @@ module.exports = function registerDMChatEvents(socket, { io, User, DMMessage, us
       });
       await dmMessage.save();
       const messageObj = {
+        id: dmMessage._id.toString(),
         username: fromUsername,
         content: clean,
         attachments: dmMessage.attachments,
@@ -109,6 +111,20 @@ module.exports = function registerDMChatEvents(socket, { io, User, DMMessage, us
     } catch (err) {
       logger.error('dmMessage error: %o', err);
       callback({ success: false, message: 'DM gönderilirken bir hata oluştu.' });
+    }
+  });
+  socket.on('deleteDMMessage', async ({ messageId, friend }, cb = () => {}) => {
+    const username = users[socket.id]?.username;
+    try {
+      if (!username || !messageId || !friend) return cb({ success: false });
+      const msg = await DMMessage.findById(messageId).populate('from');
+      if (!msg || msg.from.username !== username) return cb({ success: false });
+      await DMMessage.deleteOne({ _id: messageId });
+      io.to(getRoomName(username, friend)).emit('dmMessageDeleted', { messageId });
+      cb({ success: true });
+    } catch (err) {
+      logger.error('deleteDMMessage error: %o', err);
+      cb({ success: false });
     }
   });
 };

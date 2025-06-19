@@ -232,7 +232,8 @@ function showAttachmentMenu(wrapper, e) {
 
 function renderFullMessage(msg, sender, time, msgClass) {
   return `
-    <div class="message-item">
+    <div class="message-item" style="position: relative;">
+      <span class="delete-icon material-symbols-outlined">delete</span>
       <div class="message-header">
         <div class="message-avatar-container">
           <img class="message-avatar" data-username="${sender}" src="/images/default-avatar.png" alt="">
@@ -254,6 +255,7 @@ function renderContentOnly(msg, msgClass, timestamp) {
   return `
     <div class="message-item" style="position: relative;">
       <span class="hover-time">${formatTime(timestamp)}</span>
+      <span class="delete-icon material-symbols-outlined">delete</span>
       <div class="message-content ${msgClass}">${msg.content}${renderAttachments(msg.attachments)}</div>
     </div>
   `;
@@ -304,8 +306,10 @@ function renderTextMessages(messages, container) {
     
     const msgDiv = document.createElement('div');
     msgDiv.className = `text-message ${msgClass}`;
+    msgDiv.setAttribute('data-id', msg.id || msg._id || '');
     msgDiv.setAttribute('data-timestamp', new Date(msg.timestamp).toISOString());
     msgDiv.setAttribute('data-sender', sender);
+    if (sender === window.username) msgDiv.classList.add('own-message');
     window.loadAvatar(sender).then(av => {
       const img = msgDiv.querySelector('.message-avatar');
       if (img) img.src = av;
@@ -361,9 +365,11 @@ function appendNewMessage(msg, container) {
   }
   
   const msgDiv = document.createElement('div');
+  msgDiv.setAttribute('data-id', msg.id || msg._id || '');
   msgDiv.className = `text-message ${newMsgClass}`;
   msgDiv.setAttribute('data-timestamp', new Date(msg.timestamp).toISOString());
   msgDiv.setAttribute('data-sender', sender);
+  if (sender === window.username) msgDiv.classList.add('own-message');
   window.loadAvatar(sender).then(av => {
     const img = msgDiv.querySelector('.message-avatar');
     if (img) img.src = av;
@@ -374,6 +380,45 @@ function appendNewMessage(msg, container) {
   
   // Son mesaj bilgilerini güncelle (DOM üzerinden güncelleme yapılıyor)
   lastMessageInfo[container.dataset.channelId] = { sender, timestamp: new Date(msg.timestamp) };
+}
+
+function updateMessageClasses(container) {
+  const msgs = Array.from(container.querySelectorAll('.text-message'));
+  msgs.forEach((msg, i) => {
+    const prev = msgs[i - 1];
+    const next = msgs[i + 1];
+    const sender = msg.dataset.sender;
+    const prevSender = prev ? prev.dataset.sender : null;
+    const nextSender = next ? next.dataset.sender : null;
+    const prevTs = prev ? prev.dataset.timestamp : null;
+    const nextTs = next ? next.dataset.timestamp : null;
+    const ts = msg.dataset.timestamp;
+    const prevSame = prev && prevSender === sender && !isDifferentDay(prevTs, ts);
+    const nextSame = next && nextSender === sender && !isDifferentDay(ts, nextTs);
+    let cls = 'only-message';
+    if (!prevSame && nextSame) cls = 'first-message';
+    else if (prevSame && !nextSame) cls = 'last-message';
+    else if (prevSame && nextSame) cls = 'middle-message';
+    msg.classList.remove('first-message','middle-message','last-message','only-message');
+    msg.classList.add(cls);
+    const content = msg.querySelector('.message-content');
+    if (content) {
+      content.classList.remove('first-message','middle-message','last-message','only-message');
+      content.classList.add(cls);
+    }
+  });
+}
+
+function removeMessageElement(container, id) {
+  const el = container.querySelector(`.text-message[data-id="${id}"]`);
+  if (!el) return;
+  const prev = el.previousElementSibling;
+  const next = el.nextElementSibling;
+  el.remove();
+  if (prev && prev.classList.contains('date-separator') && (!next || next.classList.contains('date-separator'))) {
+    prev.remove();
+  }
+  updateMessageClasses(container);
 }
 
 // Yeni gelen mesajı, mevcut mesaj listesine eklerken tarih ayıracı kontrolünü yapar.
@@ -411,6 +456,11 @@ function initTextChannelEvents(socket, container) {
       }
     }
   });
+  socket.on('textMessageDeleted', ({ channelId, messageId }) => {
+    if (channelId === container.dataset.channelId) {
+      removeMessageElement(container, messageId);
+    }
+  });
   socket.on('avatarUpdated', ({ username, avatar }) => {
     window.userAvatars[username] = avatar;
     container.querySelectorAll(`[data-username="${username}"]`).forEach(img => {
@@ -422,6 +472,7 @@ function initTextChannelEvents(socket, container) {
     const nameEl = e.target.closest('.sender-name');
     const media = e.target.closest('.message-attachments img, .message-attachments video');
     const file = e.target.closest('.attachment-wrapper');
+    const del = e.target.closest('.delete-icon');
     if (avatar) {
       const uname = avatar.dataset.username;
       if (uname) showProfilePopout(uname, e);
@@ -443,8 +494,16 @@ function initTextChannelEvents(socket, container) {
         a.click();
         a.remove();
       }
+    } else if (del) {
+      const msgEl = del.closest('.text-message');
+      if (msgEl) {
+        socket.emit('deleteTextMessage', {
+          channelId: container.dataset.channelId,
+          messageId: msgEl.dataset.id
+        });
+      }
     }
   });
 }
 
-export { isDifferentDay, formatTimestamp, formatLongDate, insertDateSeparator, renderTextMessages, initTextChannelEvents, appendNewMessage };
+export { isDifferentDay, formatTimestamp, formatLongDate, insertDateSeparator, renderTextMessages, initTextChannelEvents, appendNewMessage, removeMessageElement };
