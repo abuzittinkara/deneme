@@ -56,7 +56,7 @@ export function initDMChat(socket, friendUsername) {
     if (sendButton) {
       sendButton.id = 'dmSendButton';
       sendButton.classList.remove('material-icons');
-      sendButton.innerHTML = '<span class="material-symbols-outlined">send</span>';
+      sendButton.innerHTML = '<span class="material-icons">send</span>';
     }
   } else {
     // Fallback: yapıyı manuel olarak oluştur
@@ -70,7 +70,7 @@ export function initDMChat(socket, friendUsername) {
     attachBtn.id = 'attachBtn';
     attachBtn.className = 'icon-btn';
     attachBtn.type = 'button';
-    attachBtn.innerHTML = '<span class="material-symbols-outlined">add</span>';
+    attachBtn.innerHTML = '<span class="material-icons">add</span>';
 
     const fileInput = document.createElement('input');
     fileInput.id = 'attachFileInput';
@@ -108,7 +108,7 @@ export function initDMChat(socket, friendUsername) {
     sendButton = document.createElement('span');
     sendButton.id = 'dmSendButton';
     sendButton.className = 'send-icon';
-    sendButton.innerHTML = '<span class="material-symbols-outlined">send</span>';
+    sendButton.innerHTML = '<span class="material-icons">send</span>';
     
     chatInputWrapper.appendChild(attachBtn);
     chatInputWrapper.appendChild(fileInput);
