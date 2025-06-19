@@ -188,26 +188,9 @@
 }
 #textChannelMessageInput {
   position: relative;
-  padding-left: 40px; /* Sol tarafta ikon ve ayraç için boşluk */
-}
-#textChannelMessageInput::before {
-  content: '+';
-  font-family: 'Material Symbols Outlined';
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  color: #ccc;
-}
-#textChannelMessageInput::after {
-  content: '';
-  position: absolute;
-  left: 30px;
-  top: 8px;
-  bottom: 8px;
-  width: 1px;
-  background: #666;
+  padding-left: 40px; /* Ikon için boşluk */
+  flex: none;
+  width: calc(100% - 26px); /* Attach butonu genişliği kadar daralt */
 }
 #dmMessageInput {
   flex: 1;
