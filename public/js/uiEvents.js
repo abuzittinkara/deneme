@@ -3,6 +3,7 @@ import { applyAudioStates } from './audioUtils.js';
 import { sendTransport } from './webrtc.js';
 import * as Ping from './ping.js';
 import { getAttachments, clearAttachments, updateAttachmentProgress, markAttachmentFailed } from './attachments.js';
+import { toggleInputIcons } from './uiHelpers.js';
 
 export function initUIEvents(socket, attemptLogin, attemptRegister) {
   const {
@@ -436,15 +437,9 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     xhr.send(fd);
   }
   sendTextMessageBtn.addEventListener('click', sendTextMessage);
-  textChannelMessageInput.addEventListener('input', () => {
-    if (textChannelMessageInput.value.trim() !== '') {
-      sendTextMessageBtn.style.display = 'block';
-      if (micMessageBtn) micMessageBtn.style.display = 'none';
-    } else {
-      sendTextMessageBtn.style.display = 'none';
-      if (micMessageBtn) micMessageBtn.style.display = 'block';
-    }
-  });
+  textChannelMessageInput.addEventListener('input', () =>
+    toggleInputIcons(textChannelMessageInput, micMessageBtn, sendTextMessageBtn)
+  );
   textChannelMessageInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();

@@ -5,6 +5,7 @@
 
 import { renderTextMessages, appendNewMessage, insertDateSeparator, isDifferentDay, removeMessageElement, updateMessageClasses } from './textChannel.js';
 import { showProfilePopout } from './profilePopout.js';
+import { toggleInputIcons } from "./uiHelpers.js";
 
 export function initDMChat(socket, friendUsername) {
   // dmContentArea'yı al veya oluştur
@@ -191,8 +192,7 @@ export function initDMChat(socket, friendUsername) {
     socket.emit('dmMessage', { friend: friendUsername, content }, (ack) => {
       if (ack && ack.success) {
         dmInput.value = '';
-        sendButton.style.display = 'none';
-        if (micButton) micButton.style.display = 'block';
+        toggleInputIcons(dmInput, micButton, sendButton);
       } else {
         alert('Mesaj gönderilemedi.');
       }
@@ -200,15 +200,9 @@ export function initDMChat(socket, friendUsername) {
   }
 
   sendButton.addEventListener('click', sendDM);
-  dmInput.addEventListener('input', () => {
-    if (dmInput.value.trim() !== '') {
-      sendButton.style.display = 'block';
-      if (micButton) micButton.style.display = 'none';
-    } else {
-      sendButton.style.display = 'none';
-      if (micButton) micButton.style.display = 'block';
-    }
-  });
+  dmInput.addEventListener('input', () =>
+    toggleInputIcons(dmInput, micButton, sendButton)
+  );
   dmInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
