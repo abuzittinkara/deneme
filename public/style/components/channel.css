@@ -41,6 +41,9 @@
   width: 100%;
   box-sizing: border-box;
 }
+.channel-users:empty {
+  margin-top: 0;
+}
 
 /* Kanal Kullanıcıları */
 .channel-user {
