@@ -83,7 +83,7 @@ function attachChannelDragHandlers(el) {
     draggedChannelEl = el;
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setDragImage(new Image(), 0, 0);
-    const name = el.querySelector('.channel-header span')?.textContent || '';
+    const name = el.querySelector('.channel-header .channel-name')?.textContent || '';
     showChannelPreview(name);
     channelPlaceholder = document.createElement('div');
     channelPlaceholder.classList.add('channel-placeholder');
@@ -659,9 +659,14 @@ export function initSocketEvents(socket) {
       icon.textContent = 'chat';
     }
     const textSpan = document.createElement('span');
+    textSpan.classList.add('channel-name');
     textSpan.textContent = roomObj.name;
     channelHeader.appendChild(icon);
     channelHeader.appendChild(textSpan);
+    const settingsBtn = document.createElement('span');
+    settingsBtn.classList.add('material-icons', 'channel-settings-btn');
+    settingsBtn.textContent = 'settings';
+    channelHeader.appendChild(settingsBtn);
     const channelUsers = document.createElement('div');
     channelUsers.className = 'channel-users';
     channelUsers.id = `channel-users-${roomObj.id}`;
@@ -743,9 +748,9 @@ export function initSocketEvents(socket) {
   socket.on('channelRenamed', ({ channelId, newName }) => {
     const item = roomListDiv.querySelector(`.channel-item[data-room-id="${channelId}"]`);
     if (item) {
-      const header = item.querySelector('.channel-header');
-      if (header && header.lastElementChild) {
-        header.lastElementChild.textContent = newName;
+      const nameEl = item.querySelector('.channel-header .channel-name');
+      if (nameEl) {
+        nameEl.textContent = newName;
       }
     }
   });

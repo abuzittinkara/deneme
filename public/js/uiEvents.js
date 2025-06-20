@@ -340,7 +340,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
         const el = document.querySelector(`.channel-item[data-room-id="${window.currentTextChannel}"]`);
         if (el) {
           el.classList.add('connected');
-          const headerText = el.querySelector('.channel-header span:last-child');
+          const headerText = el.querySelector('.channel-header .channel-name');
           if (headerText) selectedChannelTitle.textContent = headerText.textContent;
           textChannelContainer.style.display = 'flex';
           textChannelContainer.style.flexDirection = 'column';

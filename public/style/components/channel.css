@@ -16,6 +16,9 @@
 .channel-item:hover {
   background-color: #3d3d3d;
 }
+.channel-item:hover .channel-settings-btn {
+  display: flex;
+}
 .channel-item.connected {
   border: 2px solid #c61884;
 }
@@ -34,6 +37,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+.channel-settings-btn {
+  display: none;
+  margin-left: auto;
 }
 .channel-users {
   margin-top: 10px;
