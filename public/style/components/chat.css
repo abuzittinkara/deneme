@@ -123,7 +123,7 @@
 .delete-icon {
   position: absolute;
   right: 4px;
-  top: 50%;
+  top: 0;
   transform: translateY(-50%);
   color: #c61884;
   display: none;
