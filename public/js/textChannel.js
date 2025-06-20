@@ -459,6 +459,7 @@ function initTextChannelEvents(socket, container) {
   socket.on('textMessageDeleted', ({ channelId, messageId }) => {
     if (channelId === container.dataset.channelId) {
       removeMessageElement(container, messageId);
+      updateMessageClasses(container);
     }
   });
   socket.on('avatarUpdated', ({ username, avatar }) => {
@@ -502,9 +503,10 @@ function initTextChannelEvents(socket, container) {
           messageId: msgEl.dataset.id
         });
         removeMessageElement(container, msgEl.dataset.id);
+        updateMessageClasses(container);
       }
     }
   });
 }
 
-export { isDifferentDay, formatTimestamp, formatLongDate, insertDateSeparator, renderTextMessages, initTextChannelEvents, appendNewMessage, removeMessageElement };
+export { isDifferentDay, formatTimestamp, formatLongDate, insertDateSeparator, renderTextMessages, initTextChannelEvents, appendNewMessage, removeMessageElement, updateMessageClasses };

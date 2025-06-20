@@ -3,7 +3,7 @@
 // Grup metin kanallarındaki sohbet işlevselliğine benzer şekilde, DM sohbet ekranı oluşturur,
 // mesaj geçmişini yükler ve yeni mesajların gönderilmesini sağlar.
 
-import { renderTextMessages, appendNewMessage, insertDateSeparator, isDifferentDay, removeMessageElement } from './textChannel.js';
+import { renderTextMessages, appendNewMessage, insertDateSeparator, isDifferentDay, removeMessageElement, updateMessageClasses } from './textChannel.js';
 import { showProfilePopout } from './profilePopout.js';
 
 export function initDMChat(socket, friendUsername) {
@@ -42,6 +42,7 @@ export function initDMChat(socket, friendUsername) {
       if (msgEl) {
         socket.emit('deleteDMMessage', { friend: friendUsername, messageId: msgEl.dataset.id });
         removeMessageElement(dmMessages, msgEl.dataset.id);
+        updateMessageClasses(dmMessages);
       }
     }
   });
@@ -215,5 +216,6 @@ export function initDMChat(socket, friendUsername) {
   });
   socket.on('dmMessageDeleted', ({ messageId }) => {
     removeMessageElement(dmMessages, messageId);
+    updateMessageClasses(dmMessages);
   });
 }
