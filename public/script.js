@@ -178,6 +178,7 @@ let isDMMode = false;
 const rightPanel = document.getElementById('rightPanel');
 // Kullanıcı listesi (rightPanel içinde)
 const userListDiv = document.getElementById('userList');
+const toggleUserListButton = document.getElementById('toggleUserListButton');
 
 // Kanal Durum Paneli
 const channelStatusPanel = document.getElementById('channelStatusPanel');
@@ -349,6 +350,7 @@ Object.assign(window, {
   dmPanel,
   cameraShareButton,
   screenShareLargeButton,
+  toggleUserListButton,
   soundbarButton,
   groupModal,
   modalGroupCreateBtn,

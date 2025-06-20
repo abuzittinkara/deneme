@@ -35,6 +35,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     textChannelMessageInput,
     screenShareButton,
     screenShareLargeButton,
+    toggleUserListButton,
     channelContentArea,
     selectedChannelTitle,
     textChannelContainer,
@@ -54,6 +55,37 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     userSettingsPage,
     closeUserSettingsPageBtn,
   } = window;
+
+  const RIGHT_PANEL_KEY = 'rightPanelOpen';
+  const initialPanelOpen = (() => {
+    try { return localStorage.getItem(RIGHT_PANEL_KEY) !== '0'; } catch (e) { return true; }
+  })();
+  if (!initialPanelOpen) {
+    rightPanel.classList.add('collapsed');
+    rightPanel.style.display = 'none';
+  } else {
+    rightPanel.style.display = 'flex';
+  }
+
+  function applyRightPanelState(open) {
+    if (open) {
+      rightPanel.style.display = 'flex';
+      requestAnimationFrame(() => rightPanel.classList.remove('collapsed'));
+    } else {
+      rightPanel.classList.add('collapsed');
+      rightPanel.addEventListener('transitionend', function handler(e) {
+        if (e.propertyName === 'width') {
+          rightPanel.style.display = 'none';
+          rightPanel.removeEventListener('transitionend', handler);
+        }
+      });
+    }
+  }
+
+  function setRightPanelOpen(open) {
+    applyRightPanelState(open);
+    try { localStorage.setItem(RIGHT_PANEL_KEY, open ? '1' : '0'); } catch (e) {}
+  }
 
   loginForm.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -246,7 +278,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     if (!window.isDMMode) {
       roomPanel.style.display = 'none';
       channelContentArea.style.display = 'none';
-      rightPanel.style.display = 'none';
+      applyRightPanelState(false);
       selectedChannelBar.style.display = 'none';
       selectedDMBar.style.display = 'flex';
       dmContentArea.style.display = 'flex';
@@ -256,7 +288,8 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     } else {
       roomPanel.style.display = 'flex';
       channelContentArea.style.display = 'flex';
-      rightPanel.style.display = 'flex';
+      const stored = (() => { try { return localStorage.getItem(RIGHT_PANEL_KEY) !== '0'; } catch (e) { return true; } })();
+      applyRightPanelState(stored);
       selectedDMBar.style.display = 'none';
       dmContentArea.style.display = 'none';
       dmPanel.style.display = 'none';
@@ -273,6 +306,12 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     }
   });
 
+  if (toggleUserListButton) {
+    toggleUserListButton.addEventListener('click', () => {
+      const open = !rightPanel.classList.contains('collapsed');
+      setRightPanelOpen(!open);
+    });
+  }
 
   if (leaveButton) {
     leaveButton.addEventListener('click', () => {

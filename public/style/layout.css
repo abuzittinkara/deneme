@@ -147,6 +147,10 @@
   align-items: center;
   box-sizing: border-box;
 }
+.userlist-toggle {
+  margin-left: auto;
+  cursor: pointer;
+}
 
 /* Seçili DM Barı – Kanal barı ile aynı tasarım */
 .selected-dm-bar {
@@ -181,6 +185,16 @@
   box-sizing: border-box;
   overflow-y: auto;
   overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease, padding 0.3s ease, transform 0.3s ease;
+}
+
+#rightPanel.collapsed {
+  width: 0;
+  padding: 0;
+  transform: translateX(100%);
+  overflow: hidden;
 }
 
 #rightPanel .user-item {

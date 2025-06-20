@@ -5,6 +5,7 @@
   .channel-status-panel { width:300px; }
   .app-title { font-size:1.2rem; }
   .right-panel { width:200px; }
+  .right-panel.collapsed { width:0; }
 }
 @media (max-width: 600px) {
   .channel-status-panel {
