@@ -132,9 +132,13 @@
   justify-content: center;
   background: var(--background-secondary, #1e1e1e);
   border-radius: 4px;
-  color: #c61884;
+  color: #ccc;
   cursor: pointer;
   display: none;
+}
+
+.delete-icon:hover {
+  color: #c61884;
 }
 
 .text-message.own-message:hover .delete-icon {

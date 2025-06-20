@@ -41,9 +41,12 @@ export function initDMChat(socket, friendUsername) {
     } else if (del) {
       const msgEl = del.closest('.text-message');
       if (msgEl) {
-        socket.emit('deleteDMMessage', { friend: friendUsername, messageId: msgEl.dataset.id });
-        removeMessageElement(dmMessages, msgEl.dataset.id);
-        updateMessageClasses(dmMessages);
+        const ok = e.shiftKey || window.confirm('Bu mesajı silmek istediğinize emin misiniz?');
+        if (ok) {
+          socket.emit('deleteDMMessage', { friend: friendUsername, messageId: msgEl.dataset.id });
+          removeMessageElement(dmMessages, msgEl.dataset.id);
+          updateMessageClasses(dmMessages);
+        }
       }
     }
   });

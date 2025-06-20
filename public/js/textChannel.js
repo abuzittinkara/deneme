@@ -544,12 +544,15 @@ function initTextChannelEvents(socket, container) {
     } else if (del) {
       const msgEl = del.closest('.text-message');
       if (msgEl) {
-        socket.emit('deleteTextMessage', {
-          channelId: container.dataset.channelId,
-          messageId: msgEl.dataset.id
-        });
-        removeMessageElement(container, msgEl.dataset.id);
-        updateMessageClasses(container);
+        const ok = e.shiftKey || window.confirm('Bu mesajı silmek istediğinize emin misiniz?');
+        if (ok) {
+          socket.emit('deleteTextMessage', {
+            channelId: container.dataset.channelId,
+            messageId: msgEl.dataset.id
+          });
+          removeMessageElement(container, msgEl.dataset.id);
+          updateMessageClasses(container);
+        }
       }
     }
   });
