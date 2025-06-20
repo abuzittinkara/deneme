@@ -399,8 +399,54 @@ function updateMessageClasses(container) {
     if (!prevSame && nextSame) cls = 'first-message';
     else if (prevSame && !nextSame) cls = 'last-message';
     else if (prevSame && nextSame) cls = 'middle-message';
+
+    const oldCls = msg.classList.contains('first-message') ? 'first-message'
+                  : msg.classList.contains('last-message') ? 'last-message'
+                  : msg.classList.contains('middle-message') ? 'middle-message'
+                  : 'only-message';
+
     msg.classList.remove('first-message','middle-message','last-message','only-message');
     msg.classList.add(cls);
+
+    const item = msg.querySelector('.message-item');
+    if (item && cls !== oldCls) {
+      if ((cls === 'first-message' || cls === 'only-message') &&
+          !(oldCls === 'first-message' || oldCls === 'only-message')) {
+        const hover = item.querySelector('.hover-time');
+        if (hover) hover.remove();
+        if (!item.querySelector('.message-header')) {
+          const sender = msg.dataset.sender;
+          const header = document.createElement('div');
+          header.className = 'message-header';
+          header.innerHTML = `
+            <div class="message-avatar-container">
+              <img class="message-avatar" data-username="${sender}" src="/images/default-avatar.png" alt="">
+            </div>
+            <div class="sender-info">
+              <span class="sender-name">${sender}</span>
+              <span class="timestamp">${formatTimestamp(ts)}</span>
+            </div>`;
+          const delIcon = item.querySelector('.delete-icon');
+          if (delIcon) item.insertBefore(header, delIcon.nextSibling);
+          else item.insertBefore(header, item.firstChild);
+          window.loadAvatar(sender).then(av => {
+            const img = header.querySelector('.message-avatar');
+            if (img) img.src = av;
+          });
+        }
+      } else if ((cls === 'middle-message' || cls === 'last-message') &&
+                 (oldCls === 'first-message' || oldCls === 'only-message')) {
+        const header = item.querySelector('.message-header');
+        if (header) header.remove();
+        if (!item.querySelector('.hover-time')) {
+          const hover = document.createElement('span');
+          hover.className = 'hover-time';
+          hover.textContent = formatTime(ts);
+          item.insertBefore(hover, item.firstChild);
+        }
+      }
+    }
+    
     const content = msg.querySelector('.message-content');
     if (content) {
       content.classList.remove('first-message','middle-message','last-message','only-message');
