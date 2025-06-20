@@ -45,22 +45,13 @@
 .text-message.last-message,
 .text-message.only-message {
   max-width: 100%;
-}
-.text-message.first-message {
-  padding-top: 10px;
-  padding-bottom: 0px;
-}
-.text-message.middle-message {
-  padding-top: 0px;
-  padding-bottom: 0px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 24px;
+  padding-right: 24px;
 }
 .text-message.last-message {
-  padding-top: 0px;
-  padding-bottom: 0px;
   margin-bottom: 20px;
-}
-.text-message.only-message {
-  /* Tek mesaj (yalnızca bir mesaj varsa) için özel stil */
 }
 .message-item {
   position: relative;
