@@ -72,6 +72,8 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
   function applyRightPanelState(open) {
     if (open) {
       rightPanel.style.display = 'flex';
+      // force reflow so the slide-in transition runs reliably
+      void rightPanel.offsetWidth;
       requestAnimationFrame(() => rightPanel.classList.remove('collapsed'));
     } else {
       rightPanel.classList.add('collapsed');
