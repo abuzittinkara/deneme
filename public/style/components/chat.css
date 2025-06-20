@@ -227,9 +227,13 @@
   display: block;
 }
 
-.text-chat-input-bar #attachBtn:hover,
 .text-chat-input-bar .send-icon:hover,
 .text-chat-input-bar .mic-icon:hover {
+  background: #c61884;
+  color: #fff;
+}
+
+.text-chat-input-bar #attachBtn:hover {
   background: #c61884;
   color: #fff;
 }
