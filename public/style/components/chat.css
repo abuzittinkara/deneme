@@ -173,7 +173,7 @@
   gap: 2px;        /* Input ile typingIndicator arası */
 }
 .text-chat-input-bar .chat-input-wrapper {
-  height: 28px; /* Input yükseklik */
+  height: 45px; /* Input yükseklik chat-input ile eşit */
   position: relative;
   display: flex;
   align-items: center;
