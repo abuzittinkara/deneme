@@ -41,6 +41,11 @@
 .channel-settings-btn {
   display: none;
   margin-left: auto;
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+  align-items: center;
+  justify-content: center;
 }
 .channel-users {
   margin-top: 10px;
