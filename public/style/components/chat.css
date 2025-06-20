@@ -123,15 +123,22 @@
 .delete-icon {
   position: absolute;
   right: 4px;
-  top: 0;
+  top: 8px;
   transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--background-secondary, #1e1e1e);
+  border-radius: 4px;
   color: #c61884;
-  display: none;
   cursor: pointer;
+  display: none;
 }
 
 .text-message.own-message:hover .delete-icon {
-  display: inline;
+  display: flex;
 }
 
 /* Scrollbar - WebKit */
