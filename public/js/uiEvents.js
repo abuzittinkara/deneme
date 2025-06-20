@@ -289,13 +289,22 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
       if (typeof window.hideVoiceSections === 'function') {
         window.hideVoiceSections();
       }
-      selectedChannelTitle.textContent = 'Kanal Seçilmedi';
       const container = document.getElementById('channelUsersContainer');
       if (container) {
         container.innerHTML = '';
       }
-      textChannelContainer.style.display = 'none';
+      document.querySelectorAll('.channel-item').forEach((ci) => ci.classList.remove('connected'));
       socket.emit('browseGroup', window.currentGroup);
+      if (window.currentTextChannel) {
+        const el = document.querySelector(`.channel-item[data-room-id="${window.currentTextChannel}"]`);
+        if (el) {
+          el.classList.add('connected');
+          const headerText = el.querySelector('.channel-header span:last-child');
+          if (headerText) selectedChannelTitle.textContent = headerText.textContent;
+          textChannelContainer.style.display = 'flex';
+          textChannelContainer.style.flexDirection = 'column';
+        }
+      }
     });
   }
 

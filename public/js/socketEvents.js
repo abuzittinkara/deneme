@@ -699,6 +699,8 @@ export function initSocketEvents(socket) {
         if (typeof window.removeScreenShareEndedMessage === 'function') {
           window.removeScreenShareEndedMessage();
         }
+        document.querySelectorAll('.channel-item').forEach((ci) => ci.classList.remove('connected'));
+        roomItem.classList.add('connected');
         return;
       }
       window.clearScreenShareUI();
