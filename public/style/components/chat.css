@@ -195,6 +195,7 @@
   position: relative;
   padding-left: 40px; /* Ikon için boşluk */
   flex: 1;
+  border-radius: 20px;
 }
 #dmMessageInput {
   flex: 1;
@@ -209,17 +210,28 @@
   color: #fff;
   margin: 0;
 }
-.text-chat-input-bar .send-icon {
-  display: none; /* Başlangıçta gizli */
+.text-chat-input-bar .send-icon,
+.text-chat-input-bar .mic-icon {
+  display: none;
   position: absolute;
   right: 8px;
   top: 50%;
   transform: translateY(-50%);
   color: #c61884;
+  padding: 4px;
+  border-radius: 50%;
+  cursor: pointer;
 }
 
-.text-chat-input-bar .send-icon:hover {
-  color: #a3156f;
+.text-chat-input-bar .mic-icon {
+  display: block;
+}
+
+.text-chat-input-bar #attachBtn:hover,
+.text-chat-input-bar .send-icon:hover,
+.text-chat-input-bar .mic-icon:hover {
+  background: #c61884;
+  color: #fff;
 }
 .typing-indicator {
   flex: 0 0 16px;   /* 16px yüksekliğe sabit */
@@ -260,6 +272,8 @@
   align-items: center;
   justify-content: center;
   color: #ccc;
+  border-radius: 50%;
+  cursor: pointer;
   z-index: 60;
 }
 

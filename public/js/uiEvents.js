@@ -32,6 +32,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     deafenToggleButton,
     settingsButton,
     sendTextMessageBtn,
+    micMessageBtn,
     textChannelMessageInput,
     screenShareButton,
     screenShareLargeButton,
@@ -388,6 +389,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
       textChannelMessageInput.value = '';
       if (captionEl) captionEl.value = '';
       sendTextMessageBtn.style.display = 'none';
+      if (micMessageBtn) micMessageBtn.style.display = 'block';
       return;
     }
 
@@ -422,6 +424,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
         if (captionEl) captionEl.value = '';
         if (overlay) overlay.style.display = 'none';
         sendTextMessageBtn.style.display = 'none';
+        if (micMessageBtn) micMessageBtn.style.display = 'block';
       } else {
         atts.forEach((_, i) => markAttachmentFailed(i, sendTextMessage));
       }
@@ -436,8 +439,10 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
   textChannelMessageInput.addEventListener('input', () => {
     if (textChannelMessageInput.value.trim() !== '') {
       sendTextMessageBtn.style.display = 'block';
+      if (micMessageBtn) micMessageBtn.style.display = 'none';
     } else {
       sendTextMessageBtn.style.display = 'none';
+      if (micMessageBtn) micMessageBtn.style.display = 'block';
     }
   });
   textChannelMessageInput.addEventListener('keydown', (e) => {
@@ -453,8 +458,10 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
       const val = captionInput.value.trim();
       if (val !== '' || getAttachments().length > 0) {
         sendTextMessageBtn.style.display = 'block';
+        if (micMessageBtn) micMessageBtn.style.display = 'none';
       } else {
         sendTextMessageBtn.style.display = 'none';
+        if (micMessageBtn) micMessageBtn.style.display = 'block';
       }
     });
     captionInput.addEventListener('keydown', (e) => {

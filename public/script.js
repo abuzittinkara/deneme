@@ -264,6 +264,7 @@ const textChannelContainer = document.getElementById('textChannelContainer');
 const textMessages = document.getElementById('textMessages');
 const textChatInputBar = document.getElementById('textChatInputBar');
 const textChannelMessageInput = document.getElementById('textChannelMessageInput');
+const micMessageBtn = document.getElementById('micMessageBtn');
 const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
 
 // Ek: Seçili başlık ve ana içerik alanı
@@ -343,6 +344,7 @@ Object.assign(window, {
   textMessages,
   textChatInputBar,
   textChannelMessageInput,
+  micMessageBtn,
   sendTextMessageBtn,
   selectedChannelTitle,
   channelContentArea,

@@ -52,6 +52,7 @@ export function initDMChat(socket, friendUsername) {
   let textChatInputBar;
   let dmInput;
   let sendButton;
+  let micButton;
   if (baseInputBar) {
     textChatInputBar = baseInputBar.cloneNode(true);
     textChatInputBar.id = 'dmTextChatInputBar';
@@ -65,6 +66,10 @@ export function initDMChat(socket, friendUsername) {
       sendButton.id = 'dmSendButton';
       sendButton.classList.remove('material-icons');
       sendButton.innerHTML = '<span class="material-icons">send</span>';
+    }
+    micButton = textChatInputBar.querySelector('#micMessageBtn');
+    if (micButton) {
+      micButton.id = 'dmMicMessageBtn';
     }
   } else {
     // Fallback: yapıyı manuel olarak oluştur
@@ -112,6 +117,11 @@ export function initDMChat(socket, friendUsername) {
     dmInput.id = 'dmMessageInput';
     dmInput.className = 'chat-input';
     dmInput.placeholder = 'Bir mesaj yazın...';
+    
+    micButton = document.createElement('span');
+    micButton.id = 'dmMicMessageBtn';
+    micButton.className = 'mic-icon';
+    micButton.textContent = 'mic';
 
     sendButton = document.createElement('span');
     sendButton.id = 'dmSendButton';
@@ -124,6 +134,7 @@ export function initDMChat(socket, friendUsername) {
     chatInputWrapper.appendChild(audioInput);
     chatInputWrapper.appendChild(gifInput);
     chatInputWrapper.appendChild(dmInput);
+    chatInputWrapper.appendChild(micButton);
     chatInputWrapper.appendChild(sendButton);
     textChatInputBar.appendChild(chatInputWrapper);
   }
@@ -181,6 +192,7 @@ export function initDMChat(socket, friendUsername) {
       if (ack && ack.success) {
         dmInput.value = '';
         sendButton.style.display = 'none';
+        if (micButton) micButton.style.display = 'block';
       } else {
         alert('Mesaj gönderilemedi.');
       }
@@ -191,8 +203,10 @@ export function initDMChat(socket, friendUsername) {
   dmInput.addEventListener('input', () => {
     if (dmInput.value.trim() !== '') {
       sendButton.style.display = 'block';
+      if (micButton) micButton.style.display = 'none';
     } else {
       sendButton.style.display = 'none';
+      if (micButton) micButton.style.display = 'block';
     }
   });
   dmInput.addEventListener('keydown', (e) => {

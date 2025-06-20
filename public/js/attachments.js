@@ -169,6 +169,8 @@ export function initAttachments() {
     if (captionInput) captionInput.focus();
     const sendBtn = document.getElementById('sendTextMessageBtn');
     if (sendBtn) sendBtn.style.display = 'block';
+    const micBtn = document.getElementById('micMessageBtn');
+    if (micBtn) micBtn.style.display = 'none';
   }
 
   function closeOverlay() {
@@ -176,6 +178,18 @@ export function initAttachments() {
     overlay.style.display = 'none';
     const messages = document.getElementById('textMessages');
     if (messages) messages.style.display = '';
+    const input = document.getElementById('textChannelMessageInput');
+    const sendBtn = document.getElementById('sendTextMessageBtn');
+    const micBtn = document.getElementById('micMessageBtn');
+    if (input && sendBtn && micBtn) {
+      if (input.value.trim() === '') {
+        sendBtn.style.display = 'none';
+        micBtn.style.display = 'block';
+      } else {
+        sendBtn.style.display = 'block';
+        micBtn.style.display = 'none';
+      }
+    }
   }
 
   function closeMenu() {
