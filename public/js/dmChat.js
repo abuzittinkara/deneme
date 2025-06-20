@@ -41,6 +41,7 @@ export function initDMChat(socket, friendUsername) {
       const msgEl = del.closest('.text-message');
       if (msgEl) {
         socket.emit('deleteDMMessage', { friend: friendUsername, messageId: msgEl.dataset.id });
+        removeMessageElement(dmMessages, msgEl.dataset.id);
       }
     }
   });

@@ -501,6 +501,7 @@ function initTextChannelEvents(socket, container) {
           channelId: container.dataset.channelId,
           messageId: msgEl.dataset.id
         });
+        removeMessageElement(container, msgEl.dataset.id);
       }
     }
   });
