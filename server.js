@@ -236,7 +236,7 @@ app.post('/api/message', (req, res) => {
     }
 
     try {
-      const channelDoc = await Channel.findOne({ channelId });
+      const channelDoc = await Channel.findOne({ channelId }).populate('group');
       const userDoc = userId
         ? await User.findById(userId)
         : await User.findOne({ username });
@@ -292,6 +292,12 @@ app.post('/api/message', (req, res) => {
       };
 
       io.to(channelId).emit('newTextMessage', payload);
+      if (channelDoc.group && channelDoc.group.groupId) {
+        io.to(channelDoc.group.groupId).emit('channelUnread', {
+          groupId: channelDoc.group.groupId,
+          channelId
+        });
+      }
       res.json({ success: true, message: payload });
     } catch (e) {
       logger.error('Failed to store message', {

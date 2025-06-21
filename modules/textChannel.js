@@ -68,6 +68,7 @@ module.exports = function registerTextChannelEvents(io, socket, { Channel, Messa
       // Gönderici hariç tüm kullanıcılara ve aynı zamanda göndericiye de mesajı gönderiyoruz.
       socket.broadcast.to(roomId).emit('newTextMessage', messageData);
       socket.emit('newTextMessage', messageData);
+      io.to(groupId).emit('channelUnread', { groupId, channelId: roomId });
     } catch (err) {
       console.error("textMessage error:", err);
     }

@@ -5,6 +5,7 @@ import * as Ping from './ping.js';
 
 // Holds latest channel data so that we can re-render user lists when needed
 window.latestChannelsData = null;
+window.unreadCounter = {};
 
 // --- Drag and Drop Helpers ---
 let dragPreviewEl = null;
@@ -554,6 +555,7 @@ export function initSocketEvents(socket) {
         const dot = document.createElement('span');
         dot.className = 'unread-dot';
         grpItem.appendChild(dot);
+        window.unreadCounter[groupObj.id] = 0;
       }
       if (groupObj.id === window.selectedGroup) {
         grpItem.classList.add('selected');
@@ -634,6 +636,20 @@ export function initSocketEvents(socket) {
     if (window.selectedGroup === groupId) {
       window.selectedGroup = null;
       groupTitle.textContent = 'Seçili Grup';
+    }
+  });
+  socket.on('channelUnread', ({ groupId, channelId }) => {
+    if (
+      groupId !== window.selectedGroup ||
+      channelId !== window.currentTextChannel
+    ) {
+      window.unreadCounter[groupId] = (window.unreadCounter[groupId] || 0) + 1;
+      const el = groupListDiv.querySelector(`.grp-item[data-group-id="${groupId}"]`);
+      if (el && !el.querySelector('.unread-dot')) {
+        const dot = document.createElement('span');
+        dot.className = 'unread-dot';
+        el.appendChild(dot);
+      }
     }
   });
 
