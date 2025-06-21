@@ -28,6 +28,7 @@ const sfu = require('./sfu');
 const registerTextChannelEvents = require('./modules/textChannel');
 const registerMediaEvents = require('./modules/mediaEvents');
 const registerDMChatEvents = require('./modules/dmChat');
+const emitChannelUnread = require('./utils/emitChannelUnread');
 const expressWinston = require('express-winston');
 const logger = require('./utils/logger');
 
@@ -293,10 +294,13 @@ app.post('/api/message', (req, res) => {
 
       io.to(channelId).emit('newTextMessage', payload);
       if (channelDoc.group && channelDoc.group.groupId) {
-        io.to(channelDoc.group.groupId).emit('channelUnread', {
-          groupId: channelDoc.group.groupId,
-          channelId
-        });
+        await emitChannelUnread(
+          io,
+          channelDoc.group.groupId,
+          channelId,
+          Group,
+          userSessions
+        );
       }
       res.json({ success: true, message: payload });
     } catch (e) {
@@ -355,7 +359,14 @@ io.on("connection", (socket) => {
     logger,
     store
   });
-  registerTextChannelEvents(io, socket, { Channel, Message, User, users });
+  registerTextChannelEvents(io, socket, {
+    Channel,
+    Message,
+    User,
+    users,
+    Group,
+    userSessions
+  });
   registerDMChatEvents(socket, { io, User, DMMessage, users, logger });
   socket.on("disconnect", () => { groupController.handleDisconnect(io, socket, context); });
 });

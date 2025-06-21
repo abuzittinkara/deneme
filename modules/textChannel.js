@@ -4,8 +4,9 @@
 const DOMPurify = require('dompurify');
 const { JSDOM } = require('jsdom');
 const purify = DOMPurify(new JSDOM('').window);
+const emitChannelUnread = require('../utils/emitChannelUnread');
 
-module.exports = function registerTextChannelEvents(io, socket, { Channel, Message, User, users }) {
+module.exports = function registerTextChannelEvents(io, socket, { Channel, Message, User, users, Group, userSessions }) {
   // Kullanıcının bir metin kanalına katılma ve mesaj geçmişini alma
   socket.on('joinTextChannel', async ({ groupId, roomId }) => {
     try {
@@ -68,7 +69,7 @@ module.exports = function registerTextChannelEvents(io, socket, { Channel, Messa
       // Gönderici hariç tüm kullanıcılara ve aynı zamanda göndericiye de mesajı gönderiyoruz.
       socket.broadcast.to(roomId).emit('newTextMessage', messageData);
       socket.emit('newTextMessage', messageData);
-      io.to(groupId).emit('channelUnread', { groupId, channelId: roomId });
+      await emitChannelUnread(io, groupId, roomId, Group, userSessions);
     } catch (err) {
       console.error("textMessage error:", err);
     }
