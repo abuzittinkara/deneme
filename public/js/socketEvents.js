@@ -546,6 +546,15 @@ export function initSocketEvents(socket) {
       grpItem.setAttribute('data-group-id', groupObj.id);
       grpItem.innerText = groupObj.name[0].toUpperCase();
       grpItem.title = groupObj.name + ' (' + groupObj.id + ')';
+      const unreadCount =
+        (groupObj.unreadCount ?? groupObj.unread ?? 0) ||
+        (window.unreadCounter && window.unreadCounter[groupObj.id]) ||
+        0;
+      if (unreadCount >= 1) {
+        const dot = document.createElement('span');
+        dot.className = 'unread-dot';
+        grpItem.appendChild(dot);
+      }
       if (groupObj.id === window.selectedGroup) {
         grpItem.classList.add('selected');
       }
@@ -553,6 +562,8 @@ export function initSocketEvents(socket) {
         document.querySelectorAll('.grp-item').forEach((el) => el.classList.remove('selected'));
         grpItem.classList.add('selected');
         window.selectedGroup = groupObj.id;
+        const dot = grpItem.querySelector('.unread-dot');
+        if (dot) dot.remove();
         try {
           localStorage.setItem('lastGroupId', groupObj.id);
         } catch (e) {

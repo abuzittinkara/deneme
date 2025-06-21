@@ -53,6 +53,7 @@
   cursor: pointer;
   transition: all 0.5s ease;
   border: 2px solid transparent;
+  position: relative;
 }
 .grp-item:hover {
   background: #666;
@@ -60,6 +61,18 @@
 .grp-item.selected {
   border: 2px solid #c61884;
   border-radius: 15px;
+}
+
+.grp-item .unread-dot {
+  position: absolute;
+  left: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10px;
+  height: 10px;
+  background: #ffffff;
+  border-radius: 50%;
+  pointer-events: none;
 }
 
 /* Odalar Paneli */
