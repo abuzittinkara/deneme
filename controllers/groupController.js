@@ -102,12 +102,41 @@ function broadcastAllChannelsData(io, users, groups, groupId) {
   io.to(groupId).emit('allChannelsData', channelsObj);
 }
 
-function sendRoomsListToUser(io, socketId, groups, groupId) {
+async function sendRoomsListToUser(io, socketId, context, groupId) {
+  const { groups, users, Group, User, GroupMember } = context;
   if (!groups[groupId]) return;
+  let channelUnreads = {};
+  if (users && Group && User && GroupMember) {
+    try {
+      const username = users[socketId]?.username;
+      if (username) {
+        const [userDoc, groupDoc] = await Promise.all([
+          User.findOne({ username }),
+          Group.findOne({ groupId })
+        ]);
+        if (userDoc && groupDoc) {
+          const gm = await GroupMember.findOne({ user: userDoc._id, group: groupDoc._id });
+          if (gm && gm.channelUnreads) {
+            const entries = typeof gm.channelUnreads.entries === 'function'
+              ? Array.from(gm.channelUnreads.entries())
+              : Object.entries(gm.channelUnreads);
+            channelUnreads = Object.fromEntries(entries);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('sendRoomsListToUser error:', err);
+    }
+  }
   const groupObj = groups[groupId];
   const roomArray = Object.entries(groupObj.rooms)
     .sort((a, b) => (a[1].order || 0) - (b[1].order || 0))
-    .map(([rId, rm]) => ({ id: rId, name: rm.name, type: rm.type }));
+    .map(([rId, rm]) => ({
+      id: rId,
+      name: rm.name,
+      type: rm.type,
+      unreadCount: Number(channelUnreads[rId] || 0)
+    }));
   io.to(socketId).emit('roomsList', roomArray);
 }
 
@@ -116,7 +145,12 @@ function broadcastRoomsListToGroup(io, groups, groupId) {
   const groupObj = groups[groupId];
   const roomArray = Object.entries(groupObj.rooms)
     .sort((a, b) => (a[1].order || 0) - (b[1].order || 0))
-    .map(([rId, rm]) => ({ id: rId, name: rm.name, type: rm.type }));
+    .map(([rId, rm]) => ({
+      id: rId,
+      name: rm.name,
+      type: rm.type,
+      unreadCount: 0
+    }));
   io.to(groupId).emit('roomsList', roomArray);
 }
 
@@ -369,7 +403,7 @@ function register(io, socket, context) {
       userData.currentTextChannel = null;
       if (context.store) context.store.setJSON(context.store.key('session', socket.id), userData);
       socket.join(groupId);
-      sendRoomsListToUser(io, socket.id, groups, groupId);
+      await sendRoomsListToUser(io, socket.id, { groups, users, Group, User, GroupMember }, groupId);
       await sendGroupsListToUser(io, socket.id, { User, users, GroupMember });
       broadcastAllChannelsData(io, users, groups, groupId);
       broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
@@ -378,9 +412,9 @@ function register(io, socket, context) {
     }
   });
 
-  socket.on('browseGroup', (groupId) => {
+  socket.on('browseGroup', async (groupId) => {
     if (!groups[groupId]) return;
-    sendRoomsListToUser(io, socket.id, groups, groupId);
+    await sendRoomsListToUser(io, socket.id, { groups, users, Group, User, GroupMember }, groupId);
     broadcastAllChannelsData(io, users, groups, groupId);
     broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
   });

@@ -12,6 +12,7 @@
   background: #2d2d2d;
   line-height: 1.2;
   box-sizing: border-box;
+  position: relative;
 }
 .channel-item:hover {
   background-color: #3d3d3d;
@@ -21,6 +22,17 @@
 }
 .channel-item.connected {
   border: 2px solid #c61884;
+}
+.channel-item .unread-dot {
+  position: absolute;
+  left: -17px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10px;
+  height: 10px;
+  background: #ffffff;
+  border-radius: 50%;
+  pointer-events: none;
 }
 .channel-header {
   display: flex;

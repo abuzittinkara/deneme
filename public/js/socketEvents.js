@@ -666,6 +666,12 @@ export function initSocketEvents(socket) {
     const roomItem = document.createElement('div');
     roomItem.className = 'channel-item';
     roomItem.dataset.roomId = roomObj.id;
+    const unreadCount = roomObj.unreadCount ?? roomObj.unread ?? 0;
+    if (unreadCount > 0) {
+      const dot = document.createElement('span');
+      dot.className = 'unread-dot';
+      roomItem.appendChild(dot);
+    }
     if (roomObj.type === 'voice') {
       roomItem.classList.add('voice-channel-item');
       roomItem.addEventListener('dragover', (e) => e.preventDefault());
@@ -715,6 +721,8 @@ export function initSocketEvents(socket) {
     });
 
     roomItem.addEventListener('click', () => {
+      const dot = roomItem.querySelector('.unread-dot');
+      if (dot) dot.remove();
       if (roomObj.type === 'text') {
         selectedChannelTitle.textContent = roomObj.name;
         textChannelContainer.style.display = 'flex';
