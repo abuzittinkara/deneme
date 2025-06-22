@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('assert');
 const emitChannelUnread = require('../utils/emitChannelUnread');
 
-function createContext() {
+function createContext(opts = {}) {
   const groupDoc = {
     _id: 'gid1',
     groupId: 'g1',
@@ -13,11 +13,15 @@ function createContext() {
   };
   const updates = [];
   const GroupMember = {
-    updateOne: async (q, upd) => { updates.push(upd); }
+    updateOne: async (q, upd) => { updates.push(upd); },
+    findOne: async () => ({
+      muteUntil: opts.muteUntil,
+      channelMuteUntil: new Map(Object.entries(opts.channelMuteUntil || {}))
+    })
   };
   const userSessions = { u1: 's1' };
   const users = { s1: { currentGroup: 'g1', currentTextChannel: 'ch1' } };
-  const io = { to: () => ({ emit() {} }) };
+  const io = { emitted: [], to: () => ({ emit(ev, p) { io.emitted.push({ ev, p }) } }) };
   return { io, Group, GroupMember, userSessions, users, updates };
 }
 
@@ -26,4 +30,20 @@ test('emitChannelUnread increments per channel when not viewing channel', async 
   await emitChannelUnread(io, 'g1', 'ch2', Group, userSessions, GroupMember, users);
   assert.strictEqual(updates.length, 1);
   assert.strictEqual(updates[0].$inc['channelUnreads.ch2'], 1);
+});
+
+test('emitChannelUnread ignores group when group mute active', async () => {
+  const muteUntil = new Date(Date.now() + 1000);
+  const { io, Group, GroupMember, userSessions, users, updates } = createContext({ muteUntil });
+  await emitChannelUnread(io, 'g1', 'ch2', Group, userSessions, GroupMember, users);
+  assert.strictEqual(updates.length, 0);
+  assert.strictEqual(io.emitted.length, 0);
+});
+
+test('emitChannelUnread ignores channel when channel mute active', async () => {
+  const muteUntil = new Date(Date.now() + 1000);
+  const { io, Group, GroupMember, userSessions, users, updates } = createContext({ channelMuteUntil: { ch2: muteUntil } });
+  await emitChannelUnread(io, 'g1', 'ch2', Group, userSessions, GroupMember, users);
+  assert.strictEqual(updates.length, 0);
+  assert.strictEqual(io.emitted.length, 0);
 });
