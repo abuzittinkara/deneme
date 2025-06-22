@@ -645,6 +645,66 @@ function register(io, socket, context) {
       console.error('markGroupRead error:', err);
     }
   });
+
+  socket.on('muteGroup', async ({ groupId, duration }) => {
+    try {
+      if (!groupId) return;
+      const username = users[socket.id]?.username;
+      if (!username) return;
+      const [userDoc, groupDoc] = await Promise.all([
+        User.findOne({ username }),
+        Group.findOne({ groupId })
+      ]);
+      if (!userDoc || !groupDoc) return;
+      const ms = Number(duration) || 0;
+      const expire = ms > 0 ? new Date(Date.now() + ms) : null;
+      const update = expire
+        ? { $set: { muteUntil: expire } }
+        : { $unset: { muteUntil: '' } };
+      await GroupMember.updateOne(
+        { user: userDoc._id, group: groupDoc._id },
+        update,
+        { upsert: true }
+      );
+      const ev = expire ? 'groupMuted' : 'muteCleared';
+      const payload = expire
+        ? { groupId, muteUntil: expire }
+        : { groupId };
+      io.to(socket.id).emit(ev, payload);
+    } catch (err) {
+      console.error('muteGroup error:', err);
+    }
+  });
+
+  socket.on('muteChannel', async ({ groupId, channelId, duration }) => {
+    try {
+      if (!groupId || !channelId) return;
+      const username = users[socket.id]?.username;
+      if (!username) return;
+      const [userDoc, groupDoc, channelDoc] = await Promise.all([
+        User.findOne({ username }),
+        Group.findOne({ groupId }),
+        Channel.findOne({ channelId })
+      ]);
+      if (!userDoc || !groupDoc || !channelDoc) return;
+      const ms = Number(duration) || 0;
+      const expire = ms > 0 ? new Date(Date.now() + ms) : null;
+      const field = `channelMuteUntil.${channelId}`;
+      const update = expire ? { $set: { [field]: expire } } : { $unset: { [field]: '' } };
+      await GroupMember.updateOne(
+        { user: userDoc._id, group: groupDoc._id },
+        update,
+        { upsert: true }
+      );
+      const ev = expire ? 'channelMuted' : 'muteCleared';
+      const payload = expire
+        ? { groupId, channelId, muteUntil: expire }
+        : { groupId, channelId };
+      io.to(socket.id).emit(ev, payload);
+    } catch (err) {
+      console.error('muteChannel error:', err);
+    }
+  });
   // Diğer handlerlar (joinGroupByID, browseGroup, createRoom, joinRoom, leaveRoom,
   // renameGroup, deleteGroup, renameChannel, deleteChannel) buraya benzer şekilde
   // taşınabilir. Daha kısalık için özetlenmiştir.
