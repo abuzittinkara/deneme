@@ -40,7 +40,19 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 45px; /* Satır yüksekliği sabit 45px */
+  height: 15px; /* Satır yüksekliği sabit 15px */
+  line-height: 15px;
+}
+
+#muteSubMenu .context-menu-item {
+  height: 15px; /* Alt menüde de sabit 15px */
+  line-height: 15px;
+}
+
+#groupContextMenu .context-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 .context-menu-item:last-child {
   border-bottom: none;

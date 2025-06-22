@@ -523,12 +523,13 @@ function showMuteSubMenu(target, type) {
   subMenu.style.flexDirection = 'column';
 
   const durations = [
-    { label: '15m', ms: 15 * 60 * 1000 },
-    { label: '30m', ms: 30 * 60 * 1000 },
-    { label: '1h', ms: 60 * 60 * 1000 },
-    { label: '8h', ms: 8 * 60 * 60 * 1000 },
-    { label: '24h', ms: 24 * 60 * 60 * 1000 },
-    { label: 'Until re-enabled', ms: 0 }
+    { label: '15 dakika', ms: 15 * 60 * 1000 },
+    { label: '30 dakika', ms: 30 * 60 * 1000 },
+    { label: '1 saat', ms: 60 * 60 * 1000 },
+    { label: '3 saat', ms: 3 * 60 * 60 * 1000 },
+    { label: '8 saat', ms: 8 * 60 * 60 * 1000 },
+    { label: '24 saat', ms: 24 * 60 * 60 * 1000 },
+    { label: 'Ben tekrar açana kadar', ms: 0 }
   ];
 
   durations.forEach(d => {
