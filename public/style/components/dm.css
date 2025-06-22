@@ -35,6 +35,13 @@
   color: #fff;
   border-bottom: 1px solid #444;
 }
+/* Özel kural: Kanal bağlam menüsü satırları sabit yükseklikte olsun */
+#channelContextMenu .context-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 2.4rem;
+}
 .context-menu-item:last-child {
   border-bottom: none;
 }
