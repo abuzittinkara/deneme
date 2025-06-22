@@ -107,9 +107,9 @@ export function handleInput(input) {
   const maxHeight = rect.top - barBottom - gap;
   dd.style.maxHeight = maxHeight + 'px';
   dd.style.left = rect.left + 'px';
+  dd.style.display = 'block';
   const height = Math.min(dd.scrollHeight, maxHeight);
   dd.style.top = (rect.top - height - gap) + 'px';
-  dd.style.display = 'block';
 }
 
 export function handleKeydown(e) {
