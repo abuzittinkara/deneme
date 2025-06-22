@@ -4,9 +4,15 @@ const GroupMemberSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   group: { type: mongoose.Schema.Types.ObjectId, ref: 'Group', required: true },
   unread: { type: Number, default: 0 },
+  muteUntil: { type: Date },
   channelUnreads: {
     type: Map,
     of: Number,
+    default: {}
+  },
+  channelMuteUntil: {
+    type: Map,
+    of: Date,
     default: {}
   }
 });
