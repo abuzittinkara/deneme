@@ -509,6 +509,57 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 /* Yeni fonksiyon: Context Menu Gösterimi */
+function showMuteSubMenu(target, type) {
+  const existing = document.getElementById('muteSubMenu');
+  if (existing) existing.remove();
+  const subMenu = document.createElement('div');
+  subMenu.id = 'muteSubMenu';
+  subMenu.className = 'context-menu';
+  subMenu.style.position = 'absolute';
+  const rect = target.getBoundingClientRect();
+  subMenu.style.top = rect.top + 'px';
+  subMenu.style.left = rect.right + 'px';
+  subMenu.style.display = 'flex';
+  subMenu.style.flexDirection = 'column';
+
+  const durations = [
+    { label: '15m', ms: 15 * 60 * 1000 },
+    { label: '30m', ms: 30 * 60 * 1000 },
+    { label: '1h', ms: 60 * 60 * 1000 },
+    { label: '8h', ms: 8 * 60 * 60 * 1000 },
+    { label: '24h', ms: 24 * 60 * 60 * 1000 },
+    { label: 'Until re-enabled', ms: 0 }
+  ];
+
+  durations.forEach(d => {
+    const item = document.createElement('div');
+    item.className = 'context-menu-item';
+    item.textContent = d.label;
+    item.addEventListener('click', () => {
+      if (type === 'channel') {
+        const gid = window.selectedGroup;
+        const cid = target.dataset.channelId;
+        socket.emit('muteChannel', { groupId: gid, channelId: cid, duration: d.ms });
+      } else if (type === 'group') {
+        const gid = target.dataset.groupId;
+        socket.emit('muteGroup', { groupId: gid, duration: d.ms });
+      }
+      subMenu.remove();
+      const ctx = document.getElementById(type === 'channel' ? 'channelContextMenu' : 'groupContextMenu');
+      if (ctx) ctx.remove();
+    });
+    subMenu.appendChild(item);
+  });
+
+  document.body.appendChild(subMenu);
+  document.addEventListener('click', function handler() {
+    const m = document.getElementById('muteSubMenu');
+    if (m) m.remove();
+    document.removeEventListener('click', handler);
+  });
+}
+window.showMuteSubMenu = showMuteSubMenu;
+
 function showChannelContextMenu(e, roomObj) {
   const existingMenu = document.getElementById('channelContextMenu');
   if(existingMenu) {
@@ -534,6 +585,11 @@ function showChannelContextMenu(e, roomObj) {
       action: () => { alert('Kanal ayarları henüz uygulanmadı.'); }
     },
     {
+      text: 'Bu kanalı sessize al',
+      mute: true,
+      action: () => {}
+    },
+    {
       text: 'Kanalın İsmini Değiştir',
       action: () => {
         const newName = prompt('Yeni kanal ismini girin:', roomObj.name);
@@ -556,11 +612,23 @@ function showChannelContextMenu(e, roomObj) {
     if (item.hide) return;
     const menuItem = document.createElement('div');
     menuItem.className = 'context-menu-item';
-    menuItem.textContent = item.text;
-    menuItem.addEventListener('click', () => {
-      item.action();
-      menu.remove();
-    });
+    if (item.mute) {
+      const label = document.createElement('span');
+      label.textContent = item.text;
+      const icon = document.createElement('span');
+      icon.classList.add('material-icons');
+      icon.textContent = 'chevron_right';
+      menuItem.appendChild(label);
+      menuItem.appendChild(icon);
+      menuItem.dataset.channelId = roomObj.id;
+      menuItem.addEventListener('mouseenter', () => showMuteSubMenu(menuItem, 'channel'));
+    } else {
+      menuItem.textContent = item.text;
+      menuItem.addEventListener('click', () => {
+        item.action();
+        menu.remove();
+      });
+    }
     menu.appendChild(menuItem);
   });
   document.body.appendChild(menu);
@@ -572,6 +640,57 @@ function showChannelContextMenu(e, roomObj) {
   });
 }
 window.showChannelContextMenu = showChannelContextMenu;
+
+function showGroupContextMenu(e, groupObj) {
+  const existingMenu = document.getElementById('groupContextMenu');
+  if (existingMenu) existingMenu.remove();
+  const menu = document.createElement('div');
+  menu.id = 'groupContextMenu';
+  menu.className = 'context-menu';
+  menu.style.position = 'absolute';
+  menu.style.top = e.pageY + 'px';
+  menu.style.left = e.pageX + 'px';
+  menu.style.display = 'flex';
+  menu.style.flexDirection = 'column';
+
+  const menuItems = [
+    { text: 'Grup ID Kopyala', action: () => navigator.clipboard.writeText(groupObj.id) },
+    { text: 'Bu grubu sessize al', mute: true, action: () => {} },
+    { text: 'Gruptan Ayrıl', hide: groupObj.owner === window.username, action: () => { socket.emit('leaveGroup', groupObj.id); } }
+  ];
+
+  menuItems.forEach(item => {
+    if (item.hide) return;
+    const menuItem = document.createElement('div');
+    menuItem.className = 'context-menu-item';
+    if (item.mute) {
+      const label = document.createElement('span');
+      label.textContent = item.text;
+      const icon = document.createElement('span');
+      icon.classList.add('material-icons');
+      icon.textContent = 'chevron_right';
+      menuItem.appendChild(label);
+      menuItem.appendChild(icon);
+      menuItem.dataset.groupId = groupObj.id;
+      menuItem.addEventListener('mouseenter', () => showMuteSubMenu(menuItem, 'group'));
+    } else {
+      menuItem.textContent = item.text;
+      menuItem.addEventListener('click', () => {
+        item.action();
+        menu.remove();
+      });
+    }
+    menu.appendChild(menuItem);
+  });
+
+  document.body.appendChild(menu);
+  document.addEventListener('click', function handler() {
+    const m = document.getElementById('groupContextMenu');
+    if (m) m.remove();
+    document.removeEventListener('click', handler);
+  });
+}
+window.showGroupContextMenu = showGroupContextMenu;
 
 /* Yeni fonksiyon: Video için Context Menu */
 function showVideoContextMenu(e) {
