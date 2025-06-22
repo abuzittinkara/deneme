@@ -15,6 +15,9 @@ module.exports = function registerTextChannelEvents(io, socket, { Channel, Messa
         return;
       }
       socket.join(roomId);
+      if (users[socket.id]) {
+        users[socket.id].currentTextChannel = roomId;
+      }
       const messages = await Message.find({ channel: channelDoc._id })
                                     .sort({ timestamp: 1 })
                                     .populate('user')
@@ -97,6 +100,28 @@ module.exports = function registerTextChannelEvents(io, socket, { Channel, Messa
       io.to(channelId).emit('textMessageDeleted', { channelId, messageId });
     } catch (err) {
       console.error('deleteTextMessage error:', err);
+    }
+  });
+  socket.on('markChannelRead', async ({ groupId, channelId }) => {
+    try {
+      if (!groupId || !channelId) return;
+      const username = users[socket.id]?.username;
+      if (!username) return;
+      const [userDoc, groupDoc] = await Promise.all([
+        User.findOne({ username }),
+        Group.findOne({ groupId })
+      ]);
+      if (!userDoc || !groupDoc) return;
+      const update = {};
+      update[`channelUnreads.${channelId}`] = 0;
+      await GroupMember.updateOne(
+        { user: userDoc._id, group: groupDoc._id },
+        { $set: update },
+        { upsert: true }
+      );
+      io.to(socket.id).emit('channelUnreadReset', { groupId, channelId });
+    } catch (err) {
+      console.error('markChannelRead error:', err);
     }
   });
 };

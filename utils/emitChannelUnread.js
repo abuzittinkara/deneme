@@ -5,12 +5,16 @@ async function emitChannelUnread(io, groupId, channelId, Group, userSessions, Gr
     const updates = [];
     groupDoc.users.forEach(u => {
       const sid = userSessions[u.username];
-      const viewing = sid && users[sid]?.currentGroup === groupId;
-      if (!viewing) {
+      const inGroup = sid && users[sid]?.currentGroup === groupId;
+      const inChannel = sid && users[sid]?.currentTextChannel === channelId;
+      const inc = {};
+      if (!inGroup) inc.unread = 1;
+      if (!inChannel) inc[`channelUnreads.${channelId}`] = 1;
+      if (Object.keys(inc).length > 0) {
         updates.push(
           GroupMember.updateOne(
             { user: u._id, group: groupDoc._id },
-            { $inc: { unread: 1 } },
+            { $inc: inc },
             { upsert: true }
           )
         );

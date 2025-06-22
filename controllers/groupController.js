@@ -195,6 +195,7 @@ function removeUserFromAllGroupsAndRooms(io, socket, users, groups, store) {
   if (users[socket.id]) {
     users[socket.id].currentGroup = null;
     users[socket.id].currentRoom = null;
+    users[socket.id].currentTextChannel = null;
   }
   cleanupWatchingRelations(io, users, socket.id);
 }
@@ -249,6 +250,7 @@ async function handleLeaveGroup(io, socket, context, groupId) {
   if (userData.currentGroup === groupId) {
     userData.currentGroup = null;
     userData.currentRoom = null;
+    userData.currentTextChannel = null;
     if (store) store.setJSON(store.key('session', socket.id), userData);
   }
 
@@ -288,7 +290,12 @@ function register(io, socket, context) {
       const groupId = uuidv4();
       const newGroup = new Group({ groupId, name: trimmed, owner: userDoc._id, users: [userDoc._id] });
       await newGroup.save();
-      await GroupMember.create({ user: userDoc._id, group: newGroup._id, unread: 0 });
+      await GroupMember.create({
+        user: userDoc._id,
+        group: newGroup._id,
+        unread: 0,
+        channelUnreads: {}
+      });
       userDoc.groups.push(newGroup._id);
       await userDoc.save();
       groups[groupId] = { owner: userName, name: trimmed, users: [{ id: socket.id, username: userName }], rooms: {} };
@@ -340,7 +347,7 @@ function register(io, socket, context) {
         }
         await GroupMember.updateOne(
           { user: userDoc._id, group: groupDoc._id },
-          { $set: { unread: 0 } },
+          { $set: { unread: 0, channelUnreads: {} } },
           { upsert: true }
         );
       }
@@ -351,6 +358,7 @@ function register(io, socket, context) {
       }
       userData.currentGroup = groupId;
       userData.currentRoom = null;
+      userData.currentTextChannel = null;
       if (context.store) context.store.setJSON(context.store.key('session', socket.id), userData);
       socket.join(groupId);
       sendRoomsListToUser(io, socket.id, groups, groupId);
@@ -586,6 +594,7 @@ function register(io, socket, context) {
       if (!userDoc || !groupDoc) return;
       await GroupMember.updateOne(
         { user: userDoc._id, group: groupDoc._id },
+        { $set: { unread: 0, channelUnreads: {} } },
         { $set: { unread: 0 } },
         { upsert: true }
       );
