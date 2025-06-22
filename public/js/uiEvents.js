@@ -485,7 +485,10 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
       sendTextMessage();
     }
   });
-  textChannelMessageInput.addEventListener('blur', () => Mentions.hideDropdown());
+  // The mentions dropdown should remain visible on blur so users can
+  // click items without it disappearing. It will be hidden by Mentions
+  // when the @ trigger is removed or becomes invalid.
+  // textChannelMessageInput.addEventListener('blur', () => Mentions.hideDropdown());
 
   const captionInput = document.querySelector('#previewWrapper .caption-input');
   if (captionInput) {
