@@ -21,7 +21,7 @@
   display: flex;
 }
 .channel-item.connected {
-  border: 2px solid #c61884;
+  border: 1px solid #c61884;
 }
 .channel-item .unread-dot {
   position: absolute;
