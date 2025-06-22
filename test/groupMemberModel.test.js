@@ -12,3 +12,12 @@ test('default mute fields', () => {
   assert.ok(gm.channelMuteUntil instanceof Map);
   assert.strictEqual(gm.channelMuteUntil.size, 0);
 });
+
+test('default unread maps', () => {
+  const gm = new GroupMember({
+    user: new mongoose.Types.ObjectId(),
+    group: new mongoose.Types.ObjectId()
+  });
+  assert.ok(gm.channelUnreads instanceof Map);
+  assert.strictEqual(gm.channelUnreads.size, 0);
+});
