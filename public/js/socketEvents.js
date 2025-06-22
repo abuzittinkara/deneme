@@ -7,6 +7,8 @@ import * as Ping from './ping.js';
 window.latestChannelsData = null;
 window.unreadCounter = {};
 window.channelUnreadCounts = {};
+window.groupMuteUntil = {};
+window.channelMuteUntil = {};
 
 // --- Drag and Drop Helpers ---
 let dragPreviewEl = null;
@@ -548,10 +550,13 @@ export function initSocketEvents(socket) {
       grpItem.setAttribute('data-group-id', groupObj.id);
       grpItem.innerText = groupObj.name[0].toUpperCase();
       grpItem.title = groupObj.name + ' (' + groupObj.id + ')';
-      const unreadCount =
+      let unreadCount =
         (groupObj.unreadCount ?? groupObj.unread ?? 0) ||
         (window.unreadCounter && window.unreadCounter[groupObj.id]) ||
         0;
+      const mutedTs = window.groupMuteUntil[groupObj.id];
+      const muted = mutedTs && Date.now() < mutedTs;
+      if (muted) unreadCount = 0;
       if (unreadCount >= 1) {
         const dot = document.createElement('span');
         dot.className = 'unread-dot';
@@ -651,6 +656,10 @@ export function initSocketEvents(socket) {
     }
   });
   socket.on('channelUnread', ({ groupId, channelId }) => {
+    const gMuteTs = window.groupMuteUntil[groupId];
+    if (gMuteTs && Date.now() < gMuteTs) return;
+    const cMuteTs = window.channelMuteUntil[groupId] && window.channelMuteUntil[groupId][channelId];
+    if (cMuteTs && Date.now() < cMuteTs) return;
     if (!window.channelUnreadCounts[groupId]) {
       window.channelUnreadCounts[groupId] = {};
     }
@@ -704,7 +713,9 @@ export function initSocketEvents(socket) {
     window.channelUnreadCounts = data || {};
     Object.entries(data || {}).forEach(([gid, channels]) => {
       const total = Object.values(channels).reduce((a, b) => a + (Number(b) || 0), 0);
-      if (total > 0) {
+      const gMuteTs = window.groupMuteUntil[gid];
+      const gMuted = gMuteTs && Date.now() < gMuteTs;
+      if (total > 0 && !gMuted) {
         window.unreadCounter[gid] = total;
         const el = groupListDiv.querySelector(`.grp-item[data-group-id="${gid}"]`);
         if (el && !el.querySelector('.unread-dot')) {
@@ -717,12 +728,14 @@ export function initSocketEvents(socket) {
         Object.entries(channels).forEach(([cid, count]) => {
           const item = roomListDiv.querySelector(`.channel-item[data-room-id="${cid}"]`);
           if (!item) return;
+          const cMuteTs = window.channelMuteUntil[gid] && window.channelMuteUntil[gid][cid];
+          const muted = gMuted || (cMuteTs && Date.now() < cMuteTs);
           let dot = item.querySelector('.unread-dot');
-          if (count > 0 && !dot) {
+          if (count > 0 && !muted && !dot) {
             dot = document.createElement('span');
             dot.className = 'unread-dot';
             item.appendChild(dot);
-          } else if (count === 0 && dot) {
+          } else if ((count === 0 || muted) && dot) {
             dot.remove();
           }
         });
@@ -730,11 +743,70 @@ export function initSocketEvents(socket) {
     });
   });
 
+  socket.on('groupMuted', ({ groupId, muteUntil }) => {
+    if (!groupId) return;
+    window.groupMuteUntil[groupId] = muteUntil ? new Date(muteUntil).getTime() : 0;
+    const el = groupListDiv.querySelector(`.grp-item[data-group-id="${groupId}"]`);
+    if (el) {
+      const dot = el.querySelector('.unread-dot');
+      if (dot) dot.remove();
+    }
+    window.unreadCounter[groupId] = 0;
+    if (groupId === window.selectedGroup) {
+      roomListDiv.querySelectorAll('.channel-item .unread-dot').forEach(d => d.remove());
+      if (window.channelUnreadCounts[groupId]) {
+        Object.keys(window.channelUnreadCounts[groupId]).forEach(cid => {
+          window.channelUnreadCounts[groupId][cid] = 0;
+        });
+      }
+    }
+  });
+
+  socket.on('channelMuted', ({ groupId, channelId, muteUntil }) => {
+    if (!groupId || !channelId) return;
+    if (!window.channelMuteUntil[groupId]) window.channelMuteUntil[groupId] = {};
+    window.channelMuteUntil[groupId][channelId] = muteUntil ? new Date(muteUntil).getTime() : 0;
+    if (window.channelUnreadCounts[groupId]) {
+      window.channelUnreadCounts[groupId][channelId] = 0;
+    }
+    if (groupId === window.selectedGroup) {
+      const item = roomListDiv.querySelector(`.channel-item[data-room-id="${channelId}"]`);
+      if (item) {
+        const dot = item.querySelector('.unread-dot');
+        if (dot) dot.remove();
+      }
+      const total = Object.values(window.channelUnreadCounts[groupId] || {}).reduce((a,b)=>a+(Number(b)||0),0);
+      if (total === 0) {
+        const el = groupListDiv.querySelector(`.grp-item[data-group-id="${groupId}"]`);
+        if (el) {
+          const dot = el.querySelector('.unread-dot');
+          if (dot) dot.remove();
+        }
+        window.unreadCounter[groupId] = 0;
+      }
+    }
+  });
+
+  socket.on('muteCleared', ({ groupId, channelId }) => {
+    if (channelId) {
+      if (window.channelMuteUntil[groupId]) delete window.channelMuteUntil[groupId][channelId];
+    } else if (groupId) {
+      delete window.groupMuteUntil[groupId];
+    }
+  });
+
   function buildChannelItem(roomObj) {
     const roomItem = document.createElement('div');
     roomItem.className = 'channel-item';
     roomItem.dataset.roomId = roomObj.id;
-    const unreadCount = roomObj.unreadCount ?? roomObj.unread ?? 0;
+    let unreadCount = roomObj.unreadCount ?? roomObj.unread ?? 0;
+    const gMuteTs = window.groupMuteUntil[window.selectedGroup];
+    const gMuted = gMuteTs && Date.now() < gMuteTs;
+    const cMuteTs =
+      window.channelMuteUntil[window.selectedGroup] &&
+      window.channelMuteUntil[window.selectedGroup][roomObj.id];
+    const cMuted = cMuteTs && Date.now() < cMuteTs;
+    if (gMuted || cMuted) unreadCount = 0;
     if (roomObj.type === 'text' && unreadCount > 0) {
       const dot = document.createElement('span');
       dot.className = 'unread-dot';
