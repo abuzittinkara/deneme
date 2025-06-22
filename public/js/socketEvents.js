@@ -555,7 +555,6 @@ export function initSocketEvents(socket) {
         const dot = document.createElement('span');
         dot.className = 'unread-dot';
         grpItem.appendChild(dot);
-        window.unreadCounter[groupObj.id] = 0;
       }
       if (groupObj.id === window.selectedGroup) {
         grpItem.classList.add('selected');
@@ -573,6 +572,7 @@ export function initSocketEvents(socket) {
         }
         groupTitle.textContent = groupObj.name;
         socket.emit('joinGroup', groupObj.id);
+        socket.emit('markGroupRead', groupObj.id);
         if (typeof window.removeScreenShareEndedMessage === 'function') {
           window.removeScreenShareEndedMessage();
         }
@@ -636,6 +636,16 @@ export function initSocketEvents(socket) {
     if (window.selectedGroup === groupId) {
       window.selectedGroup = null;
       groupTitle.textContent = 'Seçili Grup';
+    }
+  });
+  socket.on('groupUnreadReset', ({ groupId }) => {
+    const el = groupListDiv.querySelector(`.grp-item[data-group-id="${groupId}"]`);
+    if (el) {
+      const dot = el.querySelector('.unread-dot');
+      if (dot) dot.remove();
+    }
+    if (window.unreadCounter[groupId]) {
+      window.unreadCounter[groupId] = 0;
     }
   });
   socket.on('channelUnread', ({ groupId, channelId }) => {
@@ -723,6 +733,7 @@ export function initSocketEvents(socket) {
         window.currentTextChannel = roomObj.id;
         window.textMessages.dataset.channelId = roomObj.id;
         socket.emit('joinTextChannel', { groupId: window.selectedGroup, roomId: roomObj.id });
+        socket.emit('markGroupRead', window.selectedGroup);
         try {
           localStorage.setItem(`lastTextChannel:${window.selectedGroup}`, roomObj.id);
         } catch (e) {

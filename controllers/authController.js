@@ -96,7 +96,7 @@ function registerAuthHandlers(io, socket, context) {
         context.store.addSetMember('onlineUsers', trimmedName);
       }
       if (groupController && groupController.sendGroupsListToUser) {
-        await groupController.sendGroupsListToUser(io, socket.id, { User, users });
+        await groupController.sendGroupsListToUser(io, socket.id, { User, users, GroupMember: context.GroupMember });
       }
     }
   });

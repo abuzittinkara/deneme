@@ -24,6 +24,7 @@ const Group = require('./models/Group');
 const Channel = require('./models/Channel');
 const Message = require('./models/Message');
 const DMMessage = require('./models/DmMessage');
+const GroupMember = require('./models/GroupMember');
 const sfu = require('./sfu');
 const registerTextChannelEvents = require('./modules/textChannel');
 const registerMediaEvents = require('./modules/mediaEvents');
@@ -299,7 +300,9 @@ app.post('/api/message', (req, res) => {
           channelDoc.group.groupId,
           channelId,
           Group,
-          userSessions
+          userSessions,
+          GroupMember,
+          users
         );
       }
       res.json({ success: true, message: payload });
@@ -319,7 +322,7 @@ app.post('/api/message', (req, res) => {
     }
   });
 });
-const context = { User, Group, Channel, Message, DMMessage, users, groups, onlineUsernames, userSessions, friendRequests, sfu, groupController, store };
+const context = { User, Group, Channel, Message, DMMessage, GroupMember, users, groups, onlineUsernames, userSessions, friendRequests, sfu, groupController, store };
 
 io.on("connection", (socket) => {
   logger.info(`Yeni bağlantı: ${socket.id}`);
@@ -348,7 +351,7 @@ io.on("connection", (socket) => {
     watching: [],
     watchers: []
   });
-  authController(io, socket, { User, users, onlineUsernames, groupController, store, userSessions });
+  authController(io, socket, { User, users, onlineUsernames, groupController, store, userSessions, GroupMember });
   groupController.register(io, socket, context);
   friendController(io, socket, context);
   registerMediaEvents(io, socket, {
@@ -365,7 +368,8 @@ io.on("connection", (socket) => {
     User,
     users,
     Group,
-    userSessions
+    userSessions,
+    GroupMember
   });
   registerDMChatEvents(socket, { io, User, DMMessage, users, logger });
   socket.on("disconnect", () => { groupController.handleDisconnect(io, socket, context); });

@@ -2,6 +2,7 @@
 const { v4: uuidv4 } = require('uuid');
 const sfu = require('../sfu');
 const store = require('../utils/sharedStore');
+const GroupMember = require('../models/GroupMember');
 
 async function ensureUserDoc(doc) {
   if (doc && typeof doc.populate === 'function' &&
@@ -41,18 +42,24 @@ async function loadChannelsFromDB({ Channel, groups }) {
   }
 }
 
-async function sendGroupsListToUser(io, socketId, { User, users }) {
+async function sendGroupsListToUser(io, socketId, { User, users, GroupMember }) {
   const userData = users[socketId];
   if (!userData || !userData.username) return;
   try {
     const userDoc = await User.findOne({ username: userData.username })
       .populate({ path: 'groups', populate: { path: 'owner', select: 'username' } });
     if (!userDoc) return;
-    const groupList = userDoc.groups.map(g => ({
-      id: g.groupId,
-      name: g.name,
-      owner: g.owner?.username || null
-    }));
+    const groupList = await Promise.all(
+      userDoc.groups.map(async g => {
+        const gm = await GroupMember.findOne({ user: userDoc._id, group: g._id });
+        return {
+          id: g.groupId,
+          name: g.name,
+          owner: g.owner?.username || null,
+          unreadCount: gm ? gm.unread : 0
+        };
+      })
+    );
     io.to(socketId).emit('groupsList', groupList);
   } catch (err) {
     console.error('sendGroupsListToUser hatası:', err);
@@ -259,13 +266,13 @@ async function handleLeaveGroup(io, socket, context, groupId) {
     console.error('leaveGroup error:', err);
   }
 
-  await sendGroupsListToUser(io, socket.id, { User, users });
+  await sendGroupsListToUser(io, socket.id, { User, users, GroupMember });
   broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
   if (store) store.setJSON(store.key('group', groupId), groups[groupId]);
 }
 
 function register(io, socket, context) {
-  const { users, groups, User, Group, Channel, onlineUsernames } = context;
+  const { users, groups, User, Group, Channel, onlineUsernames, GroupMember } = context;
 
   socket.on('createGroup', async ({ groupName, channelName }) => {
     try {
@@ -281,6 +288,7 @@ function register(io, socket, context) {
       const groupId = uuidv4();
       const newGroup = new Group({ groupId, name: trimmed, owner: userDoc._id, users: [userDoc._id] });
       await newGroup.save();
+      await GroupMember.create({ user: userDoc._id, group: newGroup._id, unread: 0 });
       userDoc.groups.push(newGroup._id);
       await userDoc.save();
       groups[groupId] = { owner: userName, name: trimmed, users: [{ id: socket.id, username: userName }], rooms: {} };
@@ -297,7 +305,7 @@ function register(io, socket, context) {
         context.store.setJSON(context.store.key('group', groupId), groups[groupId]);
       }
 
-      await sendGroupsListToUser(io, socket.id, { User, users });
+      await sendGroupsListToUser(io, socket.id, { User, users, GroupMember });
       broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
     } catch (err) {
       console.error('Create group error:', err);
@@ -330,6 +338,11 @@ function register(io, socket, context) {
           groupDoc.users.push(userDoc._id);
           await groupDoc.save();
         }
+        await GroupMember.updateOne(
+          { user: userDoc._id, group: groupDoc._id },
+          { $set: { unread: 0 } },
+          { upsert: true }
+        );
       }
 
       if (!groups[groupId].users.some(u => u.id === socket.id)) {
@@ -341,7 +354,7 @@ function register(io, socket, context) {
       if (context.store) context.store.setJSON(context.store.key('session', socket.id), userData);
       socket.join(groupId);
       sendRoomsListToUser(io, socket.id, groups, groupId);
-      await sendGroupsListToUser(io, socket.id, { User, users });
+      await sendGroupsListToUser(io, socket.id, { User, users, GroupMember });
       broadcastAllChannelsData(io, users, groups, groupId);
       broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
     } catch (err) {
@@ -558,6 +571,27 @@ function register(io, socket, context) {
       }
     } catch (err) {
       console.error('deleteChannel error:', err);
+    }
+  });
+  
+  socket.on('markGroupRead', async groupId => {
+    try {
+      if (!groupId) return;
+      const username = users[socket.id]?.username;
+      if (!username) return;
+      const [userDoc, groupDoc] = await Promise.all([
+        User.findOne({ username }),
+        Group.findOne({ groupId })
+      ]);
+      if (!userDoc || !groupDoc) return;
+      await GroupMember.updateOne(
+        { user: userDoc._id, group: groupDoc._id },
+        { $set: { unread: 0 } },
+        { upsert: true }
+      );
+      io.to(socket.id).emit('groupUnreadReset', { groupId });
+    } catch (err) {
+      console.error('markGroupRead error:', err);
     }
   });
   // Diğer handlerlar (joinGroupByID, browseGroup, createRoom, joinRoom, leaveRoom,

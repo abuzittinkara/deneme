@@ -16,13 +16,14 @@ function createContext() {
       return queryObj.username === 'u1' ? query(userDoc) : query(null);
     }
   };
-  return { users, User };
+  const GroupMember = { findOne: async () => ({ unread: 0 }) };
+  return { users, User, GroupMember };
 }
 
 test('sendGroupsListToUser emits owners username', async () => {
   const io = { emitted: [], to(room){ return { emit:(ev,p)=>io.emitted.push({room, ev, p}) }; } };
-  const { users, User } = createContext();
-  await groupController.sendGroupsListToUser(io, 'sock1', { User, users });
+  const { users, User, GroupMember } = createContext();
+  await groupController.sendGroupsListToUser(io, 'sock1', { User, users, GroupMember });
   assert.strictEqual(io.emitted[0].ev, 'groupsList');
   assert.strictEqual(io.emitted[0].p[0].owner, 'owner1');
 });
@@ -43,6 +44,7 @@ test('sendGroupsListToUser handles missing owner', async () => {
     }
   };
 
-  await groupController.sendGroupsListToUser(io, 'sock1', { User, users });
+  const GroupMember = { findOne: async () => ({ unread: 0 }) };
+  await groupController.sendGroupsListToUser(io, 'sock1', { User, users, GroupMember });
   assert.strictEqual(io.emitted[0].p[0].owner, null);
 });
