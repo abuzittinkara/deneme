@@ -1,4 +1,5 @@
 export const MAX_FILES = 10;
+import { getInputText } from './uiHelpers.js';
 let files = [];
 let previewDocHandler = null;
 let overlayIdx = 0;
@@ -182,7 +183,8 @@ export function initAttachments() {
     const sendBtn = document.getElementById('sendTextMessageBtn');
     const micBtn = document.getElementById('micMessageBtn');
     if (input && sendBtn && micBtn) {
-      if (input.value.trim() === '') {
+      const val = getInputText(input).trim();
+      if (val === '') {
         sendBtn.style.display = 'none';
         micBtn.style.display = 'block';
       } else {

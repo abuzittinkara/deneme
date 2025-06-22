@@ -3,7 +3,7 @@ import { applyAudioStates } from './audioUtils.js';
 import { sendTransport } from './webrtc.js';
 import * as Ping from './ping.js';
 import { getAttachments, clearAttachments, updateAttachmentProgress, markAttachmentFailed } from './attachments.js';
-import { toggleInputIcons } from './uiHelpers.js';
+import { toggleInputIcons, getInputText, clearInput } from './uiHelpers.js';
 import * as Mentions from './mentions.js';
 
 export function initUIEvents(socket, attemptLogin, attemptRegister) {
@@ -410,7 +410,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     const overlay = document.getElementById('previewWrapper');
     const captionEl = overlay?.querySelector('.caption-input');
     const overlayVisible = overlay && overlay.style.display !== 'none';
-    const msg = overlayVisible ? (captionEl?.value.trim() || '') : textChannelMessageInput.value.trim();
+    const msg = overlayVisible ? (captionEl?.value.trim() || '') : getInputText(textChannelMessageInput).trim();
     const atts = getAttachments();
     if (!msg && atts.length === 0) return;
 
@@ -421,7 +421,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
         message: msg,
         username: window.username,
       });
-      textChannelMessageInput.value = '';
+      clearInput(textChannelMessageInput);
       if (captionEl) captionEl.value = '';
       sendTextMessageBtn.style.display = 'none';
       if (micMessageBtn) micMessageBtn.style.display = 'block';
@@ -455,7 +455,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
         let data = {};
         try { data = JSON.parse(xhr.responseText); } catch {}
         clearAttachments();
-        textChannelMessageInput.value = '';
+        clearInput(textChannelMessageInput);
         if (captionEl) captionEl.value = '';
         if (overlay) overlay.style.display = 'none';
         sendTextMessageBtn.style.display = 'none';
