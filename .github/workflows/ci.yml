@@ -16,6 +16,6 @@ jobs:
           node-version: 18
           cache: 'npm'
       - name: Install dependencies
-        run: ./setup.sh
+        run: bash ./setup.sh
       - name: Run tests
         run: npm test
