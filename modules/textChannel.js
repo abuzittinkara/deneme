@@ -112,6 +112,7 @@ module.exports = function registerTextChannelEvents(io, socket, { Channel, Messa
         Group.findOne({ groupId })
       ]);
       if (!userDoc || !groupDoc) return;
+
       const update = {};
       update[`channelUnreads.${channelId}`] = 0;
       await GroupMember.updateOne(
@@ -119,6 +120,22 @@ module.exports = function registerTextChannelEvents(io, socket, { Channel, Messa
         { $set: update },
         { upsert: true }
       );
+
+      const gm = await GroupMember.findOne({ user: userDoc._id, group: groupDoc._id });
+      const values = gm && gm.channelUnreads
+        ? (typeof gm.channelUnreads.values === 'function'
+            ? Array.from(gm.channelUnreads.values())
+            : Object.values(gm.channelUnreads))
+        : [];
+      const total = values.reduce((a, b) => a + (Number(b) || 0), 0);
+      if (total === 0) {
+        await GroupMember.updateOne(
+          { user: userDoc._id, group: groupDoc._id },
+          { $set: { unread: 0 } }
+        );
+        io.to(socket.id).emit('groupUnreadReset', { groupId });
+      }
+      
       io.to(socket.id).emit('channelUnreadReset', { groupId, channelId });
     } catch (err) {
       console.error('markChannelRead error:', err);
