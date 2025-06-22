@@ -637,7 +637,6 @@ function register(io, socket, context) {
       await GroupMember.updateOne(
         { user: userDoc._id, group: groupDoc._id },
         { $set: { unread: 0, channelUnreads: {} } },
-        { $set: { unread: 0 } },
         { upsert: true }
       );
       io.to(socket.id).emit('groupUnreadReset', { groupId });
