@@ -7,8 +7,8 @@ let activeInput = null;
 export function initMentions(socket) {
   socket.on('groupUsers', (data) => {
     const list = [];
-    if (data && data.online) list.push(...data.online.map(u => u.username));
-    if (data && data.offline) list.push(...data.offline.map(u => u.username));
+    if (data && data.online) list.push(...data.online.map(u => ({ username: u.username, avatar: u.avatar })));
+    if (data && data.offline) list.push(...data.offline.map(u => ({ username: u.username, avatar: u.avatar })));
     groupUsers = list;
   });
 }
@@ -60,17 +60,26 @@ export function handleInput(input) {
   if (at === -1) { hideDropdown(); return; }
   const query = val.slice(at + 1, pos);
   if (/\s/.test(query)) { hideDropdown(); return; }
-  const list = groupUsers.filter(u => u.toLowerCase().startsWith(query.toLowerCase()));
+  const list = groupUsers.filter(u => u.username.toLowerCase().startsWith(query.toLowerCase()));
   if (!list.length) { hideDropdown(); return; }
   const dd = getDropdown();
   dd.innerHTML = '';
   list.forEach((u, i) => {
     const item = document.createElement('div');
     item.className = 'mention-dropdown-item';
-    item.textContent = u;
+    item.dataset.username = u.username;
+    const img = document.createElement('img');
+    img.src = u.avatar || '/images/default-avatar.png';
+    img.width = 24;
+    img.height = 24;
+    img.style.borderRadius = '45%';
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = u.username;
+    item.appendChild(img);
+    item.appendChild(nameSpan);
     item.addEventListener('mousedown', (e) => {
       e.preventDefault();
-      insertMention(u);
+      insertMention(u.username);
     });
     dd.appendChild(item);
   });
@@ -107,7 +116,7 @@ export function handleKeydown(e) {
   if (e.key === 'Enter') {
     e.preventDefault();
     const item = dropdown.children[selectedIndex];
-    if (item) insertMention(item.textContent);
+    if (item) insertMention(item.dataset.username);
     return true;
   }
   if (e.key === 'Escape') {
