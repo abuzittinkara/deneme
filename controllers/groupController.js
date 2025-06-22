@@ -15,7 +15,8 @@ async function loadGroupsFromDB({ Group, groups }) {
   try {
     const groupDocs = await Group.find({}).populate('owner', 'username');
     groupDocs.forEach(g => {
-      groups[g.groupId] = { owner: g.owner.username, name: g.name, users: [], rooms: {} };
+      const ownerName = g.owner ? g.owner.username : null;
+      groups[g.groupId] = { owner: ownerName, name: g.name, users: [], rooms: {} };
       store.setJSON(store.key('group', g.groupId), groups[g.groupId]);
     });
     console.log('loadGroupsFromDB tamam, groups:', Object.keys(groups));
