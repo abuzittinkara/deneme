@@ -56,6 +56,12 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     closeGroupSettingsModal,
     userSettingsPage,
     closeUserSettingsPageBtn,
+    roomModal,
+    modalRoomName,
+    textChannel,
+    voiceChannel,
+    modalCreateRoomBtn,
+    modalCloseRoomBtn,
   } = window;
 
   const RIGHT_PANEL_KEY = 'rightPanelOpen';
@@ -144,11 +150,34 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
 
   if (createChannelBtn) {
     createChannelBtn.addEventListener('click', () => {
-      const name = prompt('Kanal adı:');
-      if (name && name.trim() !== '') {
-        socket.emit('createChannel', { groupId: window.selectedGroup, name: name.trim() });
+      if (roomModal) {
+        roomModal.style.display = 'flex';
+        roomModal.classList.add('active');
       }
       if (groupDropdownMenu) groupDropdownMenu.style.display = 'none';
+    });
+  }
+
+  if (modalCloseRoomBtn) {
+    modalCloseRoomBtn.addEventListener('click', () => {
+      if (roomModal) {
+        roomModal.style.display = 'none';
+        roomModal.classList.remove('active');
+      }
+    });
+  }
+
+  if (modalCreateRoomBtn) {
+    modalCreateRoomBtn.addEventListener('click', () => {
+      const name = modalRoomName ? modalRoomName.value.trim() : '';
+      if (!name) return;
+      const type = voiceChannel && voiceChannel.checked ? 'voice' : 'text';
+      socket.emit('createChannel', { groupId: window.selectedGroup, name, type });
+      modalRoomName.value = '';
+      if (roomModal) {
+        roomModal.style.display = 'none';
+        roomModal.classList.remove('active');
+      }
     });
   }
   

@@ -447,7 +447,7 @@ function register(io, socket, context) {
     removeUserFromRoom(io, socket, users, groups, groupId, roomId);
   });
 
-  socket.on('createChannel', async ({ groupId, name }) => {
+  socket.on('createChannel', async ({ groupId, name, type }) => {
     try {
       if (!groupId || !name) return;
       const trimmed = name.trim();
@@ -455,17 +455,18 @@ function register(io, socket, context) {
       if (!groupDoc) return;
       const channelId = uuidv4();
       const order = Object.keys(groups[groupId]?.rooms || {}).length;
+      const resolvedType = type === 'voice' ? 'voice' : 'text';
       const newChannel = new Channel({
         channelId,
         name: trimmed,
         group: groupDoc._id,
-        type: 'text',
+        type: resolvedType,
         order
       });
       await newChannel.save();
       if (groups[groupId]) {
-        groups[groupId].rooms[channelId] = { name: trimmed, type: 'text', users: [], order };
-        io.to(groupId).emit('channelCreated', { id: channelId, name: trimmed, type: 'text', order });
+        groups[groupId].rooms[channelId] = { name: trimmed, type: resolvedType, users: [], order };
+        io.to(groupId).emit('channelCreated', { id: channelId, name: trimmed, type: resolvedType, order });
         broadcastRoomsListToGroup(io, groups, groupId);
       }
     } catch (err) {
