@@ -553,6 +553,18 @@ function showMuteSubMenu(target, type) {
   });
 
   document.body.appendChild(subMenu);
+  const removeIfOutside = e => {
+    const to = e.relatedTarget;
+    if (!target.contains(to) && !subMenu.contains(to)) {
+      subMenu.remove();
+      target.removeEventListener('mouseleave', removeIfOutside);
+      subMenu.removeEventListener('mouseleave', removeIfOutside);
+    }
+  };
+
+  target.addEventListener('mouseleave', removeIfOutside);
+  subMenu.addEventListener('mouseleave', removeIfOutside);
+
   document.addEventListener('click', function handler() {
     const m = document.getElementById('muteSubMenu');
     if (m) m.remove();
