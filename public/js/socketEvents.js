@@ -563,8 +563,6 @@ export function initSocketEvents(socket) {
         document.querySelectorAll('.grp-item').forEach((el) => el.classList.remove('selected'));
         grpItem.classList.add('selected');
         window.selectedGroup = groupObj.id;
-        const dot = grpItem.querySelector('.unread-dot');
-        if (dot) dot.remove();
         try {
           localStorage.setItem('lastGroupId', groupObj.id);
         } catch (e) {
