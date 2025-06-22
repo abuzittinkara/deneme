@@ -193,6 +193,7 @@
 .text-chat-input-bar .chat-input {
   flex: 1;
   height: 45px; /* Yükseklik 45px olarak ayarlandı */
+  line-height: 45px;
   box-sizing: border-box;
   padding: 0 0.5rem;
   padding-right: 40px;
@@ -212,6 +213,10 @@
   padding-left: 40px; /* Ikon için boşluk */
   flex: 1;
   border-radius: 20px;
+  line-height: 45px;
+}
+#textChannelMessageInput[contenteditable="true"]:empty:before {
+  line-height: 45px;
 }
 #dmMessageInput {
   flex: 1;
