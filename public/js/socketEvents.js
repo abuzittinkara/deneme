@@ -6,6 +6,7 @@ import * as Ping from './ping.js';
 // Holds latest channel data so that we can re-render user lists when needed
 window.latestChannelsData = null;
 window.unreadCounter = {};
+window.channelUnreadCounts = {};
 
 // --- Drag and Drop Helpers ---
 let dragPreviewEl = null;
@@ -646,6 +647,11 @@ export function initSocketEvents(socket) {
     }
   });
   socket.on('channelUnread', ({ groupId, channelId }) => {
+    if (!window.channelUnreadCounts[groupId]) {
+      window.channelUnreadCounts[groupId] = {};
+    }
+    window.channelUnreadCounts[groupId][channelId] =
+      (window.channelUnreadCounts[groupId][channelId] || 0) + 1;
     if (
       groupId !== window.selectedGroup ||
       channelId !== window.currentTextChannel
@@ -656,6 +662,16 @@ export function initSocketEvents(socket) {
         const dot = document.createElement('span');
         dot.className = 'unread-dot';
         el.appendChild(dot);
+      }
+      if (groupId === window.selectedGroup) {
+        const item = roomListDiv.querySelector(
+          `.channel-item[data-room-id="${channelId}"]`
+        );
+        if (item && !item.querySelector('.unread-dot')) {
+          const dot = document.createElement('span');
+          dot.className = 'unread-dot';
+          item.appendChild(dot);
+        }
       }
     }
   });
@@ -668,9 +684,20 @@ export function initSocketEvents(socket) {
         if (dot) dot.remove();
       }
     }
+    if (window.channelUnreadCounts[groupId]) {
+      window.channelUnreadCounts[groupId][channelId] = 0;
+    }
+    if (groupId === window.selectedGroup) {
+      const item = roomListDiv.querySelector(`.channel-item[data-room-id="${channelId}"]`);
+      if (item) {
+        const dot = item.querySelector('.unread-dot');
+        if (dot) dot.remove();
+      }
+    }
   });
   socket.on('unreadCounts', (data) => {
     window.unreadCounter = window.unreadCounter || {};
+    window.channelUnreadCounts = data || {};
     Object.entries(data || {}).forEach(([gid, channels]) => {
       const total = Object.values(channels).reduce((a, b) => a + (Number(b) || 0), 0);
       if (total > 0) {
@@ -682,6 +709,20 @@ export function initSocketEvents(socket) {
           el.appendChild(dot);
         }
       }
+      if (gid === window.selectedGroup) {
+        Object.entries(channels).forEach(([cid, count]) => {
+          const item = roomListDiv.querySelector(`.channel-item[data-room-id="${cid}"]`);
+          if (!item) return;
+          let dot = item.querySelector('.unread-dot');
+          if (count > 0 && !dot) {
+            dot = document.createElement('span');
+            dot.className = 'unread-dot';
+            item.appendChild(dot);
+          } else if (count === 0 && dot) {
+            dot.remove();
+          }
+        });
+      }
     });
   });
 
@@ -690,10 +731,16 @@ export function initSocketEvents(socket) {
     roomItem.className = 'channel-item';
     roomItem.dataset.roomId = roomObj.id;
     const unreadCount = roomObj.unreadCount ?? roomObj.unread ?? 0;
-    if (unreadCount > 0) {
+    if (roomObj.type === 'text' && unreadCount > 0) {
       const dot = document.createElement('span');
       dot.className = 'unread-dot';
       roomItem.appendChild(dot);
+    }
+    if (!window.channelUnreadCounts[window.selectedGroup]) {
+      window.channelUnreadCounts[window.selectedGroup] = {};
+    }
+    if (roomObj.type === 'text') {
+      window.channelUnreadCounts[window.selectedGroup][roomObj.id] = unreadCount;
     }
     if (roomObj.type === 'voice') {
       roomItem.classList.add('voice-channel-item');
@@ -744,8 +791,6 @@ export function initSocketEvents(socket) {
     });
 
     roomItem.addEventListener('click', () => {
-      const dot = roomItem.querySelector('.unread-dot');
-      if (dot) dot.remove();
       if (roomObj.type === 'text') {
         selectedChannelTitle.textContent = roomObj.name;
         textChannelContainer.style.display = 'flex';
@@ -832,6 +877,7 @@ export function initSocketEvents(socket) {
   socket.on('roomsList', (roomsArray) => {
     const prevTextChannel = window.currentTextChannel;
     roomListDiv.innerHTML = '';
+    window.channelUnreadCounts[window.selectedGroup] = {};
     roomsArray.forEach((roomObj) => {
       const roomItem = buildChannelItem(roomObj);
       roomListDiv.appendChild(roomItem);
