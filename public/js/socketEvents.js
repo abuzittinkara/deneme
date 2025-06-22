@@ -763,7 +763,6 @@ export function initSocketEvents(socket) {
         window.currentTextChannel = roomObj.id;
         window.textMessages.dataset.channelId = roomObj.id;
         socket.emit('joinTextChannel', { groupId: window.selectedGroup, roomId: roomObj.id });
-        socket.emit('markGroupRead', window.selectedGroup);
         socket.emit('markChannelRead', { groupId: window.selectedGroup, channelId: roomObj.id });
         try {
           localStorage.setItem(`lastTextChannel:${window.selectedGroup}`, roomObj.id);
