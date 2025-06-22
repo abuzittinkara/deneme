@@ -5,7 +5,7 @@
 
 import { renderTextMessages, appendNewMessage, insertDateSeparator, isDifferentDay, removeMessageElement, updateMessageClasses } from './textChannel.js';
 import { showProfilePopout } from './profilePopout.js';
-import { toggleInputIcons } from "./uiHelpers.js";
+import { toggleInputIcons, getInputText, clearInput } from "./uiHelpers.js";
 
 export function initDMChat(socket, friendUsername) {
   // dmContentArea'yı al veya oluştur
@@ -116,11 +116,11 @@ export function initDMChat(socket, friendUsername) {
     gifInput.multiple = true;
     gifInput.hidden = true;
     
-    dmInput = document.createElement('input');
-    dmInput.type = 'text';
+    dmInput = document.createElement('div');
     dmInput.id = 'dmMessageInput';
     dmInput.className = 'chat-input';
-    dmInput.placeholder = 'Bir mesaj yazın...';
+    dmInput.setAttribute('contenteditable', 'true');
+    dmInput.setAttribute('data-placeholder', 'Bir mesaj yazın...');
     
     micButton = document.createElement('span');
     micButton.id = 'dmMicMessageBtn';
@@ -190,11 +190,11 @@ export function initDMChat(socket, friendUsername) {
 
   // Yeni mesaj gönderme işlevi
   function sendDM() {
-    const content = dmInput.value.trim();
+    const content = getInputText(dmInput).trim();
     if (!content) return;
     socket.emit('dmMessage', { friend: friendUsername, content }, (ack) => {
       if (ack && ack.success) {
-        dmInput.value = '';
+        clearInput(dmInput);
         toggleInputIcons(dmInput, micButton, sendButton);
       } else {
         alert('Mesaj gönderilemedi.');

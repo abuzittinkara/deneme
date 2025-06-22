@@ -201,6 +201,11 @@
   border-radius: 6px;
   color: #fff;
   margin: 0;
+  outline: none;
+}
+.chat-input[contenteditable="true"]:empty:before {
+  content: attr(data-placeholder);
+  color: #aaa;
 }
 #textChannelMessageInput {
   position: relative;
@@ -220,6 +225,7 @@
   border-radius: 6px;
   color: #fff;
   margin: 0;
+  outline: none;
 }
 .text-chat-input-bar .send-icon,
 .text-chat-input-bar .mic-icon {

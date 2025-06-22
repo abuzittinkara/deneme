@@ -1,7 +1,6 @@
 let groupUsers = [];
 let dropdown = null;
 let selectedIndex = -1;
-let atPosition = -1;
 let activeInput = null;
 
 export function initMentions(socket) {
@@ -28,7 +27,6 @@ function hideDropdown() {
   dropdown.style.display = 'none';
   dropdown.innerHTML = '';
   selectedIndex = -1;
-  atPosition = -1;
 }
 
 function highlight() {
@@ -42,20 +40,36 @@ function highlight() {
 
 function insertMention(name) {
   if (!activeInput) return;
-  const val = activeInput.value;
-  const before = val.slice(0, atPosition);
-  const after = val.slice(activeInput.selectionStart);
-  const text = `@${name} `;
-  activeInput.value = before + text + after;
-  const pos = before.length + text.length;
-  activeInput.setSelectionRange(pos, pos);
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return;
+  const range = sel.getRangeAt(0);
+  range.deleteContents();
+  const span = document.createElement('span');
+  span.className = 'mention';
+  span.textContent = `@${name}`;
+  range.insertNode(span);
+  const space = document.createTextNode('\u00a0');
+  span.after(space);
+  range.setStartAfter(space);
+  range.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(range);
   hideDropdown();
+}
+
+function getCaretPos(el) {
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return 0;
+  const range = sel.getRangeAt(0).cloneRange();
+  range.selectNodeContents(el);
+  range.setEnd(sel.focusNode, sel.focusOffset);
+  return range.toString().length;
 }
 
 export function handleInput(input) {
   activeInput = input;
-  const pos = input.selectionStart;
-  const val = input.value;
+  const pos = getCaretPos(input);
+  const val = input.value !== undefined ? input.value : input.innerText;
   const at = val.lastIndexOf('@', pos - 1);
   if (at === -1) { hideDropdown(); return; }
   const query = val.slice(at + 1, pos);
@@ -85,7 +99,6 @@ export function handleInput(input) {
   });
   selectedIndex = 0;
   highlight();
-  atPosition = at;
   const rect = input.getBoundingClientRect();
   dd.style.width = rect.width + 'px';
   const bar = document.getElementById('selectedChannelBar');

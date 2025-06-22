@@ -79,12 +79,14 @@ export function initTypingIndicator(socket, getCurrentTextChannel, getLocalUsern
   inputField.addEventListener('input', () => {
     // Her input değişiminde indicator'ın bağlı olduğu kanal bilgisini güncelliyoruz.
     typingIndicator.setAttribute('data-channel', getCurrentTextChannel());
-    const inputText = inputField.value.trim();
+    const val = inputField.value !== undefined ? inputField.value : inputField.innerText;
+    const inputText = val.trim();
     if (inputText !== "") {
       socket.emit('typing', { username: getLocalUsername(), channel: getCurrentTextChannel() });
       if (!typingInterval) {
         typingInterval = setInterval(() => {
-          if (inputField.value.trim() !== "") {
+          const val = inputField.value !== undefined ? inputField.value : inputField.innerText;
+          if (val.trim() !== "") {
             socket.emit('typing', { username: getLocalUsername(), channel: getCurrentTextChannel() });
           } else {
             clearInterval(typingInterval);
