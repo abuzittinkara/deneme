@@ -250,8 +250,9 @@ async function broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId) 
     const online = [];
     const offline = [];
     groupDoc.users.forEach(u => {
-      if (onlineUsernames.has(u.username)) online.push({ username: u.username });
-      else offline.push({ username: u.username });
+      const info = { username: u.username, avatar: u.avatar };
+      if (onlineUsernames.has(u.username)) online.push(info);
+      else offline.push(info);
     });
     io.to(groupId).emit('groupUsers', { online, offline });
   } catch (err) {
