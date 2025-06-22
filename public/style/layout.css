@@ -36,6 +36,12 @@
   position: relative;
   box-sizing: border-box;
 }
+#toggleDMButton {
+  margin-bottom: 1rem;
+}
+#groupList {
+  margin-bottom: 1rem;
+}
 .group-list {
   display: flex;
   flex-direction: column;
