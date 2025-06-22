@@ -351,7 +351,7 @@ io.on("connection", (socket) => {
     watching: [],
     watchers: []
   });
-  authController(io, socket, { User, users, onlineUsernames, groupController, store, userSessions, GroupMember });
+  authController(io, socket, { User, Group, GroupMember, users, onlineUsernames, groupController, store, userSessions });
   groupController.register(io, socket, context);
   friendController(io, socket, context);
   registerMediaEvents(io, socket, {

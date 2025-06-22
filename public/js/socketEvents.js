@@ -661,6 +661,31 @@ export function initSocketEvents(socket) {
       }
     }
   });
+  socket.on('channelRead', ({ groupId, channelId }) => {
+    if (window.unreadCounter[groupId]) {
+      window.unreadCounter[groupId] = Math.max(0, window.unreadCounter[groupId] - 1);
+      const el = groupListDiv.querySelector(`.grp-item[data-group-id="${groupId}"]`);
+      if (el && window.unreadCounter[groupId] === 0) {
+        const dot = el.querySelector('.unread-dot');
+        if (dot) dot.remove();
+      }
+    }
+  });
+  socket.on('unreadCounts', (data) => {
+    window.unreadCounter = window.unreadCounter || {};
+    Object.entries(data || {}).forEach(([gid, channels]) => {
+      const total = Object.values(channels).reduce((a, b) => a + (Number(b) || 0), 0);
+      if (total > 0) {
+        window.unreadCounter[gid] = total;
+        const el = groupListDiv.querySelector(`.grp-item[data-group-id="${gid}"]`);
+        if (el && !el.querySelector('.unread-dot')) {
+          const dot = document.createElement('span');
+          dot.className = 'unread-dot';
+          el.appendChild(dot);
+        }
+      }
+    });
+  });
 
   function buildChannelItem(roomObj) {
     const roomItem = document.createElement('div');

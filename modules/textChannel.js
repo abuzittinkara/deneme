@@ -128,15 +128,16 @@ module.exports = function registerTextChannelEvents(io, socket, { Channel, Messa
             : Object.values(gm.channelUnreads))
         : [];
       const total = values.reduce((a, b) => a + (Number(b) || 0), 0);
+      const target = userSessions[username] || socket.id;
       if (total === 0) {
         await GroupMember.updateOne(
           { user: userDoc._id, group: groupDoc._id },
           { $set: { unread: 0 } }
         );
-        io.to(socket.id).emit('groupUnreadReset', { groupId });
+        io.to(target).emit('groupUnreadReset', { groupId });
       }
-      
-      io.to(socket.id).emit('channelUnreadReset', { groupId, channelId });
+
+      io.to(target).emit('channelRead', { groupId, channelId });
     } catch (err) {
       console.error('markChannelRead error:', err);
     }

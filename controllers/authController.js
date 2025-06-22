@@ -1,8 +1,10 @@
 // Authentication handlers
 const bcrypt = require('bcryptjs');
 
+const collectUnreadCounts = require('../utils/collectUnreadCounts');
+
 function registerAuthHandlers(io, socket, context) {
-  const { User, users, onlineUsernames, groupController } = context;
+  const { User, Group, GroupMember, users, onlineUsernames, groupController } = context;
 
   socket.on('login', async ({ username, password }) => {
     try {
@@ -96,7 +98,12 @@ function registerAuthHandlers(io, socket, context) {
         context.store.addSetMember('onlineUsers', trimmedName);
       }
       if (groupController && groupController.sendGroupsListToUser) {
-        await groupController.sendGroupsListToUser(io, socket.id, { User, users, GroupMember: context.GroupMember });
+        await groupController.sendGroupsListToUser(io, socket.id, { User, users, GroupMember });
+      }
+
+      if (Group && GroupMember) {
+        const unread = await collectUnreadCounts(trimmedName, { User, Group, GroupMember });
+        socket.emit('unreadCounts', unread);
       }
     }
   });
