@@ -572,7 +572,6 @@ export function initSocketEvents(socket) {
         }
         groupTitle.textContent = groupObj.name;
         socket.emit('joinGroup', groupObj.id);
-        socket.emit('markGroupRead', groupObj.id);
         if (typeof window.removeScreenShareEndedMessage === 'function') {
           window.removeScreenShareEndedMessage();
         }

@@ -52,11 +52,19 @@ async function sendGroupsListToUser(io, socketId, { User, users, GroupMember }) 
     const groupList = await Promise.all(
       userDoc.groups.map(async g => {
         const gm = await GroupMember.findOne({ user: userDoc._id, group: g._id });
+        let unread = 0;
+        if (gm && gm.channelUnreads) {
+          const values =
+            typeof gm.channelUnreads.values === 'function'
+              ? Array.from(gm.channelUnreads.values())
+              : Object.values(gm.channelUnreads);
+          unread = values.reduce((a, b) => a + (Number(b) || 0), 0);
+        }
         return {
           id: g.groupId,
           name: g.name,
           owner: g.owner?.username || null,
-          unreadCount: gm ? gm.unread : 0
+          unreadCount: unread
         };
       })
     );
@@ -347,7 +355,7 @@ function register(io, socket, context) {
         }
         await GroupMember.updateOne(
           { user: userDoc._id, group: groupDoc._id },
-          { $set: { unread: 0, channelUnreads: {} } },
+          { $setOnInsert: { unread: 0, channelUnreads: {} } },
           { upsert: true }
         );
       }

@@ -48,3 +48,11 @@ test('sendGroupsListToUser handles missing owner', async () => {
   await groupController.sendGroupsListToUser(io, 'sock1', { User, users, GroupMember });
   assert.strictEqual(io.emitted[0].p[0].owner, null);
 });
+
+test('group unreadCount sums channel unreads', async () => {
+  const io = { emitted: [], to(room){ return { emit:(ev,p)=>io.emitted.push({room, ev, p}) }; } };
+  const { users, User } = createContext();
+  const GroupMember = { findOne: async () => ({ channelUnreads: { c1: 2, c2: 3 } }) };
+  await groupController.sendGroupsListToUser(io, 'sock1', { User, users, GroupMember });
+  assert.strictEqual(io.emitted[0].p[0].unreadCount, 5);
+});
