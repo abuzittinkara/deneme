@@ -25,7 +25,8 @@
 }
 .channel-item .unread-dot {
   position: absolute;
-  left: -17px;
+  /* offset by the room-list padding so the dot sits at the panel edge */
+  left: calc(-17px - 1rem);
   top: 50%;
   transform: translateY(-50%);
   width: 10px;
