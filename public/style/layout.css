@@ -37,10 +37,10 @@
   box-sizing: border-box;
 }
 #toggleDMButton {
-  margin-bottom: 1rem;
+  margin-bottom: 8px;
 }
 #groupList {
-  margin-bottom: 1rem;
+  margin-bottom: 8px;
 }
 .group-list {
   display: flex;
