@@ -579,16 +579,32 @@ function showChannelContextMenu(e, roomObj) {
       .filter(c => c.type === 'text').length;
   }
   
+  const cMuteTs =
+    window.channelMuteUntil[window.selectedGroup] &&
+    window.channelMuteUntil[window.selectedGroup][roomObj.id];
+  const channelMuted = cMuteTs && Date.now() < cMuteTs;
+
   const menuItems = [
     {
       text: 'Kanal Ayarları',
       action: () => { alert('Kanal ayarları henüz uygulanmadı.'); }
     },
-    {
-      text: 'Bu kanalı sessize al',
-      mute: true,
-      action: () => {}
-    },
+    channelMuted
+      ? {
+          text: 'Sessizi kaldır',
+          action: () => {
+            socket.emit('muteChannel', {
+              groupId: window.selectedGroup,
+              channelId: roomObj.id,
+              duration: 0
+            });
+          }
+        }
+      : {
+          text: 'Bu kanalı sessize al',
+          mute: true,
+          action: () => {}
+        },
     {
       text: 'Kanalın İsmini Değiştir',
       action: () => {
@@ -653,9 +669,14 @@ function showGroupContextMenu(e, groupObj) {
   menu.style.display = 'flex';
   menu.style.flexDirection = 'column';
 
+  const gMuteTs = window.groupMuteUntil[groupObj.id];
+  const groupMuted = gMuteTs && Date.now() < gMuteTs;
+
   const menuItems = [
     { text: 'Grup ID Kopyala', action: () => navigator.clipboard.writeText(groupObj.id) },
-    { text: 'Bu grubu sessize al', mute: true, action: () => {} },
+    groupMuted
+      ? { text: 'Sessizi kaldır', action: () => { socket.emit('muteGroup', { groupId: groupObj.id, duration: 0 }); } }
+      : { text: 'Bu grubu sessize al', mute: true, action: () => {} },
     { text: 'Gruptan Ayrıl', hide: groupObj.owner === window.username, action: () => { socket.emit('leaveGroup', groupObj.id); } }
   ];
 
