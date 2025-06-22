@@ -560,6 +560,10 @@ export function initSocketEvents(socket) {
       if (groupObj.id === window.selectedGroup) {
         grpItem.classList.add('selected');
       }
+      grpItem.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        window.showGroupContextMenu(e, groupObj);
+      });
       grpItem.addEventListener('click', () => {
         document.querySelectorAll('.grp-item').forEach((el) => el.classList.remove('selected'));
         grpItem.classList.add('selected');
