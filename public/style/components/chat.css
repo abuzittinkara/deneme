@@ -538,3 +538,28 @@
   max-width: 90vw;
   max-height: 90vh;
 }
+
+.mention {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.mention-dropdown {
+  position: absolute;
+  background: #2d2d2d;
+  border: 1px solid #444;
+  border-radius: 4px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.mention-dropdown-item {
+  padding: 4px 8px;
+  cursor: pointer;
+  color: #fff;
+}
+
+.mention-dropdown-item:hover,
+.mention-dropdown-item.active {
+  background: #444;
+}

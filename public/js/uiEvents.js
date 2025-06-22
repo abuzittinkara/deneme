@@ -4,6 +4,7 @@ import { sendTransport } from './webrtc.js';
 import * as Ping from './ping.js';
 import { getAttachments, clearAttachments, updateAttachmentProgress, markAttachmentFailed } from './attachments.js';
 import { toggleInputIcons } from './uiHelpers.js';
+import * as Mentions from './mentions.js';
 
 export function initUIEvents(socket, attemptLogin, attemptRegister) {
   const {
@@ -63,6 +64,8 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     modalCreateRoomBtn,
     modalCloseRoomBtn,
   } = window;
+
+  Mentions.initMentions(socket);
 
   const RIGHT_PANEL_KEY = 'rightPanelOpen';
   const initialPanelOpen = (() => {
@@ -467,16 +470,22 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     xhr.open('POST', '/api/message');
     xhr.send(fd);
   }
-  sendTextMessageBtn.addEventListener('click', sendTextMessage);
-  textChannelMessageInput.addEventListener('input', () =>
-    toggleInputIcons(textChannelMessageInput, micMessageBtn, sendTextMessageBtn)
-  );
+  sendTextMessageBtn.addEventListener('click', () => {
+    Mentions.hideDropdown();
+    sendTextMessage();
+  });
+  textChannelMessageInput.addEventListener('input', (e) => {
+    toggleInputIcons(textChannelMessageInput, micMessageBtn, sendTextMessageBtn);
+    Mentions.handleInput(e.target);
+  });
   textChannelMessageInput.addEventListener('keydown', (e) => {
+    if (Mentions.handleKeydown(e)) return;
     if (e.key === 'Enter') {
       e.preventDefault();
       sendTextMessage();
     }
   });
+  textChannelMessageInput.addEventListener('blur', () => Mentions.hideDropdown());
 
   const captionInput = document.querySelector('#previewWrapper .caption-input');
   if (captionInput) {
