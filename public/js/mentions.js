@@ -90,11 +90,12 @@ export function handleInput(input) {
   dd.style.width = rect.width + 'px';
   const bar = document.getElementById('selectedChannelBar');
   const barBottom = bar ? bar.getBoundingClientRect().bottom : 0;
-  const maxHeight = rect.top - barBottom - 4;
+  const gap = parseFloat(getComputedStyle(document.documentElement).fontSize);
+  const maxHeight = rect.top - barBottom - gap;
   dd.style.maxHeight = maxHeight + 'px';
   dd.style.left = rect.left + 'px';
   const height = Math.min(dd.scrollHeight, maxHeight);
-  dd.style.top = (rect.top - height - 4) + 'px';
+  dd.style.top = (rect.top - height - gap) + 'px';
   dd.style.display = 'block';
 }
 
