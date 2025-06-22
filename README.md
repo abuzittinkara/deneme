@@ -73,6 +73,8 @@ The client-side code under `public/js` is organized into small ES modules:
 Right-click a channel name in the rooms list to rename or delete it. Selecting
 "Kanalın İsmini Değiştir" will immediately update the name for all users, while
 "Kanalı Sil" removes the channel from the group.
+You can mention other members in a text channel by typing `@` followed by their
+username. A dropdown will appear for quick selection.
 
 ### Migration Note
 

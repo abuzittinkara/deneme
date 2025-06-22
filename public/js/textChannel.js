@@ -109,6 +109,11 @@ function renderAttachments(atts = []) {
     </div>`;
 }
 
+function highlightMentions(text) {
+  if (!text) return '';
+  return text.replace(/@([A-Za-z0-9_]+)/g, '<span class="mention">@$1</span>');
+}
+
 let lightboxEl = null;
 
 function openLightbox(target) {
@@ -231,6 +236,7 @@ function showAttachmentMenu(wrapper, e) {
 }
 
 function renderFullMessage(msg, sender, time, msgClass) {
+  const content = highlightMentions(msg.content);
   return `
     <div class="message-item" style="position: relative;">
       <span class="delete-icon material-symbols-outlined">delete</span>
@@ -243,7 +249,7 @@ function renderFullMessage(msg, sender, time, msgClass) {
           <span class="timestamp">${time}</span>
         </div>
       </div>
-      <div class="message-content ${msgClass}">${msg.content}${renderAttachments(msg.attachments)}</div>
+      <div class="message-content ${msgClass}">${content}${renderAttachments(msg.attachments)}</div>
     </div>
   `;
 }
@@ -252,11 +258,12 @@ function renderFullMessage(msg, sender, time, msgClass) {
 // Bu durumda mesajın solunda hover ile gösterilecek saat bilgisi için .hover-time elementi eklenir.
 // Güncelleme: hover-time kısmında yalnızca saat bilgisi gösterilsin.
 function renderContentOnly(msg, msgClass, timestamp) {
+  const content = highlightMentions(msg.content);
   return `
     <div class="message-item" style="position: relative;">
       <span class="hover-time">${formatTime(timestamp)}</span>
       <span class="delete-icon material-symbols-outlined">delete</span>
-      <div class="message-content ${msgClass}">${msg.content}${renderAttachments(msg.attachments)}</div>
+      <div class="message-content ${msgClass}">${content}${renderAttachments(msg.attachments)}</div>
     </div>
   `;
 }
