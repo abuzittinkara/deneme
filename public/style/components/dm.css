@@ -40,7 +40,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 2.4rem;
+  height: 45px; /* Satır yüksekliği sabit 45px */
 }
 .context-menu-item:last-child {
   border-bottom: none;
