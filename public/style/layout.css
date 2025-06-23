@@ -68,6 +68,9 @@
   border: 2px solid #c61884;
   border-radius: 15px;
 }
+.grp-item.muted {
+  color: #888;
+}
 
 .grp-item .unread-dot {
   position: absolute;

@@ -305,6 +305,10 @@
   color: #ccc;
   font-size: 0.9rem;
 }
+.channel-item.muted .channel-icon,
+.channel-item.muted .channel-name {
+  color: #888;
+}
 .group-name {
   color: #ddd;
   font-weight: 600;

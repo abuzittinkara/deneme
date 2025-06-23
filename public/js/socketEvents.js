@@ -774,6 +774,7 @@ export function initSocketEvents(socket) {
       if (item) {
         const dot = item.querySelector('.unread-dot');
         if (dot) dot.remove();
+        item.classList.add('muted');
       }
       const total = Object.values(window.channelUnreadCounts[groupId] || {}).reduce((a,b)=>a+(Number(b)||0),0);
       if (total === 0) {
@@ -781,6 +782,7 @@ export function initSocketEvents(socket) {
         if (el) {
           const dot = el.querySelector('.unread-dot');
           if (dot) dot.remove();
+          el.classList.add('muted');
         }
         window.unreadCounter[groupId] = 0;
       }
@@ -790,8 +792,15 @@ export function initSocketEvents(socket) {
   socket.on('muteCleared', ({ groupId, channelId }) => {
     if (channelId) {
       if (window.channelMuteUntil[groupId]) delete window.channelMuteUntil[groupId][channelId];
+      const item = roomListDiv.querySelector(`.channel-item[data-room-id="${channelId}"]`);
+      if (item) item.classList.remove('muted');
     } else if (groupId) {
       delete window.groupMuteUntil[groupId];
+      const el = groupListDiv.querySelector(`.grp-item[data-group-id="${groupId}"]`);
+      if (el) el.classList.remove('muted');
+      if (groupId === window.selectedGroup) {
+        roomListDiv.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('muted'));
+      }
     }
   });
 
@@ -806,7 +815,10 @@ export function initSocketEvents(socket) {
       window.channelMuteUntil[window.selectedGroup] &&
       window.channelMuteUntil[window.selectedGroup][roomObj.id];
     const cMuted = cMuteTs && Date.now() < cMuteTs;
-    if (gMuted || cMuted) unreadCount = 0;
+    if (gMuted || cMuted) {
+      unreadCount = 0;
+      roomItem.classList.add('muted');
+    }
     if (roomObj.type === 'text' && unreadCount > 0) {
       const dot = document.createElement('span');
       dot.className = 'unread-dot';
