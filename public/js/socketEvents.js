@@ -802,6 +802,35 @@ export function initSocketEvents(socket) {
 
   const INDEFINITE_TS = 8640000000000000;
 
+  socket.on('activeMutes', (mutes) => {
+    window.groupMuteUntil = window.groupMuteUntil || {};
+    window.channelMuteUntil = window.channelMuteUntil || {};
+    Object.entries(mutes || {}).forEach(([gid, info]) => {
+      if (info.muteUntil) {
+        const ts = new Date(info.muteUntil).getTime();
+        window.groupMuteUntil[gid] = ts >= INDEFINITE_TS ? Infinity : ts;
+        const gEl = groupListDiv.querySelector(`.grp-item[data-group-id="${gid}"]`);
+        if (gEl) gEl.classList.add('muted');
+        if (gid === window.selectedGroup) {
+          roomListDiv.querySelectorAll('.channel-item').forEach((ci) =>
+            ci.classList.add('muted', 'channel-muted')
+          );
+        }
+      }
+      if (info.channelMuteUntil) {
+        if (!window.channelMuteUntil[gid]) window.channelMuteUntil[gid] = {};
+        Object.entries(info.channelMuteUntil).forEach(([cid, tsVal]) => {
+          const ts = new Date(tsVal).getTime();
+          window.channelMuteUntil[gid][cid] = ts >= INDEFINITE_TS ? Infinity : ts;
+          if (gid === window.selectedGroup) {
+            const item = roomListDiv.querySelector(`.channel-item[data-room-id="${cid}"]`);
+            if (item) item.classList.add('muted', 'channel-muted');
+          }
+        });
+      }
+    });
+  });
+
   socket.on('groupMuted', ({ groupId, muteUntil }) => {
     if (!groupId) return;
     if (muteUntil) {
