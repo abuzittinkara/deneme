@@ -703,7 +703,7 @@ function showGroupContextMenu(e, groupObj) {
   const menuItems = [
     { text: 'Grup ID Kopyala', action: () => navigator.clipboard.writeText(groupObj.id) },
     groupMuted
-      ? { text: 'Bu kanalın sesini aç', action: () => { socket.emit('muteGroup', { groupId: groupObj.id, duration: 0 }); } }
+      ? { text: 'Bu grubun sesini aç', action: () => { socket.emit('muteGroup', { groupId: groupObj.id, duration: 0 }); } }
       : { text: 'Bu grubu sessize al', mute: true, action: () => {} },
     { text: 'Gruptan Ayrıl', hide: groupObj.owner === window.username, action: () => { socket.emit('leaveGroup', groupObj.id); } }
   ];
