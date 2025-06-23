@@ -199,7 +199,7 @@ export function initSocketEvents(socket) {
   setInterval(() => {
     // Check group mutes
     Object.entries(window.groupMuteUntil || {}).forEach(([gid, ts]) => {
-      if (ts && Date.now() > ts) {
+      if (ts !== Infinity && ts && Date.now() > ts) {
         delete window.groupMuteUntil[gid];
         socket.emit('muteGroup', { groupId: gid, duration: 0 });
         const el = groupListDiv.querySelector(`.grp-item[data-group-id="${gid}"]`);
@@ -216,7 +216,7 @@ export function initSocketEvents(socket) {
     Object.entries(window.channelMuteUntil || {}).forEach(([gid, channels]) => {
       if (!channels) return;
       Object.entries(channels).forEach(([cid, ts]) => {
-        if (ts && Date.now() > ts) {
+        if (ts !== Infinity && ts && Date.now() > ts) {
           delete window.channelMuteUntil[gid][cid];
           socket.emit('muteChannel', {
             groupId: gid,
@@ -782,9 +782,16 @@ export function initSocketEvents(socket) {
     });
   });
 
+  const INDEFINITE_TS = 8640000000000000;
+
   socket.on('groupMuted', ({ groupId, muteUntil }) => {
     if (!groupId) return;
-    window.groupMuteUntil[groupId] = muteUntil ? new Date(muteUntil).getTime() : 0;
+    if (muteUntil) {
+      const ts = new Date(muteUntil).getTime();
+      window.groupMuteUntil[groupId] = ts >= INDEFINITE_TS ? Infinity : ts;
+    } else {
+      window.groupMuteUntil[groupId] = 0;
+    }
     const el = groupListDiv.querySelector(`.grp-item[data-group-id="${groupId}"]`);
     if (el) {
       const dot = el.querySelector('.unread-dot');
@@ -804,7 +811,12 @@ export function initSocketEvents(socket) {
   socket.on('channelMuted', ({ groupId, channelId, muteUntil }) => {
     if (!groupId || !channelId) return;
     if (!window.channelMuteUntil[groupId]) window.channelMuteUntil[groupId] = {};
-    window.channelMuteUntil[groupId][channelId] = muteUntil ? new Date(muteUntil).getTime() : 0;
+    if (muteUntil) {
+      const ts = new Date(muteUntil).getTime();
+      window.channelMuteUntil[groupId][channelId] = ts >= INDEFINITE_TS ? Infinity : ts;
+    } else {
+      window.channelMuteUntil[groupId][channelId] = 0;
+    }
     if (window.channelUnreadCounts[groupId]) {
       window.channelUnreadCounts[groupId][channelId] = 0;
     }
