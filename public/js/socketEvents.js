@@ -190,10 +190,49 @@ export function initSocketEvents(socket) {
   } = window;
 
   setupChannelDragContainer(socket, roomListDiv);
-  
+
   if (UserList.initAvatarUpdates) {
     UserList.initAvatarUpdates(socket);
   }
+
+  // Periodically check for expired mutes
+  setInterval(() => {
+    // Check group mutes
+    Object.entries(window.groupMuteUntil || {}).forEach(([gid, ts]) => {
+      if (ts && Date.now() > ts) {
+        delete window.groupMuteUntil[gid];
+        socket.emit('muteGroup', { groupId: gid, duration: 0 });
+        const el = groupListDiv.querySelector(`.grp-item[data-group-id="${gid}"]`);
+        if (el) el.classList.remove('muted');
+        if (gid === window.selectedGroup) {
+          roomListDiv
+            .querySelectorAll('.channel-item')
+            .forEach((ci) => ci.classList.remove('muted'));
+        }
+      }
+    });
+
+    // Check channel mutes
+    Object.entries(window.channelMuteUntil || {}).forEach(([gid, channels]) => {
+      if (!channels) return;
+      Object.entries(channels).forEach(([cid, ts]) => {
+        if (ts && Date.now() > ts) {
+          delete window.channelMuteUntil[gid][cid];
+          socket.emit('muteChannel', {
+            groupId: gid,
+            channelId: cid,
+            duration: 0,
+          });
+          if (gid === window.selectedGroup) {
+            const item = roomListDiv.querySelector(
+              `.channel-item[data-room-id="${cid}"]`
+            );
+            if (item) item.classList.remove('muted');
+          }
+        }
+      });
+    });
+  }, 60 * 1000);
 
   function renderChannelUsers(channelsObj) {
     if (!channelsObj) return;
