@@ -5,6 +5,7 @@ const DOMPurify = require('dompurify');
 const { JSDOM } = require('jsdom');
 const purify = DOMPurify(new JSDOM('').window);
 const emitChannelUnread = require('../utils/emitChannelUnread');
+const emitMentionUnread = require('../utils/emitMentionUnread');
 
 module.exports = function registerTextChannelEvents(io, socket, { Channel, Message, User, users, Group, userSessions, GroupMember }) {
   // Kullanıcının bir metin kanalına katılma ve mesaj geçmişini alma
@@ -49,6 +50,15 @@ module.exports = function registerTextChannelEvents(io, socket, { Channel, Messa
       }      
       
       const clean = purify.sanitize(message, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+      const mentionRegex = /@([A-Za-z0-9_]+)/g;
+      const mentions = [];
+      let m;
+      while ((m = mentionRegex.exec(clean))) {
+        const uname = m[1];
+        if (uname && uname !== username && !mentions.includes(uname)) {
+          mentions.push(uname);
+        }
+      }
       const newMsg = new Message({
         channel: channelDoc._id,
         user: userDoc._id,
@@ -73,6 +83,11 @@ module.exports = function registerTextChannelEvents(io, socket, { Channel, Messa
       socket.broadcast.to(roomId).emit('newTextMessage', messageData);
       socket.emit('newTextMessage', messageData);
       await emitChannelUnread(io, groupId, roomId, Group, userSessions, GroupMember, users);
+      await Promise.all(
+        mentions.map(u =>
+          emitMentionUnread(io, groupId, roomId, u, Group, userSessions, GroupMember, users)
+        )
+      );
     } catch (err) {
       console.error("textMessage error:", err);
     }

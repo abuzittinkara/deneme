@@ -83,6 +83,9 @@
   border-radius: 50%;
   pointer-events: none;
 }
+.grp-item .mention-dot {
+  background: #c61884;
+}
 
 /* Odalar Paneli */
 .rooms-panel {

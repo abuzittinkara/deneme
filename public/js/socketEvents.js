@@ -9,6 +9,7 @@ window.unreadCounter = {};
 window.channelUnreadCounts = {};
 window.groupMuteUntil = {};
 window.channelMuteUntil = {};
+window.mentionUnread = {};
 
 // --- Drag and Drop Helpers ---
 let dragPreviewEl = null;
@@ -703,6 +704,16 @@ export function initSocketEvents(socket) {
     if (window.unreadCounter[groupId]) {
       window.unreadCounter[groupId] = 0;
     }
+    if (window.mentionUnread[groupId]) {
+      delete window.mentionUnread[groupId];
+    }
+    if (groupId === window.selectedGroup) {
+      roomListDiv.querySelectorAll('.channel-item').forEach(ci => {
+        const d = ci.querySelector('.unread-dot');
+        if (d) d.remove();
+        ci.classList.remove('unread');
+      });
+    }
   });
   socket.on('channelUnread', ({ groupId, channelId }) => {
     const gMuteTs = window.groupMuteUntil[groupId];
@@ -739,6 +750,34 @@ export function initSocketEvents(socket) {
       }
     }
   });
+  socket.on('mentionUnread', ({ groupId, channelId }) => {
+    if (!window.mentionUnread[groupId]) window.mentionUnread[groupId] = {};
+    window.mentionUnread[groupId][channelId] = true;
+    const el = groupListDiv.querySelector(`.grp-item[data-group-id="${groupId}"]`);
+    if (el) {
+      let dot = el.querySelector('.unread-dot');
+      if (!dot) {
+        dot = document.createElement('span');
+        dot.className = 'unread-dot';
+        el.appendChild(dot);
+      }
+      dot.classList.add('mention-dot');
+      el.classList.add('unread');
+    }
+    if (groupId === window.selectedGroup) {
+      const item = roomListDiv.querySelector(`.channel-item[data-room-id="${channelId}"]`);
+      if (item) {
+        let dot = item.querySelector('.unread-dot');
+        if (!dot) {
+          dot = document.createElement('span');
+          dot.className = 'unread-dot';
+          item.appendChild(dot);
+        }
+        dot.classList.add('mention-dot');
+        item.classList.add('unread');
+      }
+    }
+  });
   socket.on('channelRead', ({ groupId, channelId }) => {
     if (window.unreadCounter[groupId]) {
       window.unreadCounter[groupId] = Math.max(0, window.unreadCounter[groupId] - 1);
@@ -747,16 +786,25 @@ export function initSocketEvents(socket) {
         const dot = el.querySelector('.unread-dot');
         if (dot) dot.remove();
         el.classList.remove('unread');
+      } else if (el) {
+        const dot = el.querySelector('.unread-dot');
+        if (dot) dot.classList.remove('mention-dot');
       }
     }
     if (window.channelUnreadCounts[groupId]) {
       window.channelUnreadCounts[groupId][channelId] = 0;
     }
+    if (window.mentionUnread[groupId]) {
+      delete window.mentionUnread[groupId][channelId];
+    }
     if (groupId === window.selectedGroup) {
       const item = roomListDiv.querySelector(`.channel-item[data-room-id="${channelId}"]`);
       if (item) {
         const dot = item.querySelector('.unread-dot');
-        if (dot) dot.remove();
+        if (dot) {
+          dot.classList.remove('mention-dot');
+          dot.remove();
+        }
         item.classList.remove('unread');
       }
     }
