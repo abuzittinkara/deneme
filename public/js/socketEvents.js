@@ -203,11 +203,11 @@ export function initSocketEvents(socket) {
         delete window.groupMuteUntil[gid];
         socket.emit('muteGroup', { groupId: gid, duration: 0 });
         const el = groupListDiv.querySelector(`.grp-item[data-group-id="${gid}"]`);
-        if (el) el.classList.remove('muted');
+        if (el) el.classList.remove('muted', 'channel-muted');
         if (gid === window.selectedGroup) {
           roomListDiv
             .querySelectorAll('.channel-item')
-            .forEach((ci) => ci.classList.remove('muted'));
+            .forEach((ci) => ci.classList.remove('muted', 'channel-muted'));
         }
       }
     });
@@ -227,7 +227,7 @@ export function initSocketEvents(socket) {
             const item = roomListDiv.querySelector(
               `.channel-item[data-room-id="${cid}"]`
             );
-            if (item) item.classList.remove('muted');
+            if (item) item.classList.remove('muted', 'channel-muted');
           }
         }
       });
@@ -813,7 +813,7 @@ export function initSocketEvents(socket) {
       if (item) {
         const dot = item.querySelector('.unread-dot');
         if (dot) dot.remove();
-        item.classList.add('muted');
+        item.classList.add('muted', 'channel-muted');
       }
       const total = Object.values(window.channelUnreadCounts[groupId] || {}).reduce((a,b)=>a+(Number(b)||0),0);
       if (total === 0) {
@@ -832,13 +832,13 @@ export function initSocketEvents(socket) {
     if (channelId) {
       if (window.channelMuteUntil[groupId]) delete window.channelMuteUntil[groupId][channelId];
       const item = roomListDiv.querySelector(`.channel-item[data-room-id="${channelId}"]`);
-      if (item) item.classList.remove('muted');
+      if (item) item.classList.remove('muted', 'channel-muted');
     } else if (groupId) {
       delete window.groupMuteUntil[groupId];
       const el = groupListDiv.querySelector(`.grp-item[data-group-id="${groupId}"]`);
       if (el) el.classList.remove('muted');
       if (groupId === window.selectedGroup) {
-        roomListDiv.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('muted'));
+        roomListDiv.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('muted', 'channel-muted'));
       }
     }
   });
@@ -856,7 +856,7 @@ export function initSocketEvents(socket) {
     const cMuted = cMuteTs && Date.now() < cMuteTs;
     if (gMuted || cMuted) {
       unreadCount = 0;
-      roomItem.classList.add('muted');
+      roomItem.classList.add('muted', 'channel-muted');
     }
     if (roomObj.type === 'text' && unreadCount > 0) {
       const dot = document.createElement('span');

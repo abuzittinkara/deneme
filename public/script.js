@@ -550,8 +550,8 @@ function showMuteSubMenu(target, type) {
         if (gid === window.selectedGroup) {
           const el = document.querySelector(`.channel-item[data-room-id="${cid}"]`);
           if (el) {
-            if (d.ms > 0) el.classList.add('muted');
-            else el.classList.remove('muted');
+            if (d.ms > 0) el.classList.add('muted', 'channel-muted');
+            else el.classList.remove('muted', 'channel-muted');
           }
         }
       } else if (type === 'group') {
