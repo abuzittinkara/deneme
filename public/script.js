@@ -588,6 +588,59 @@ function showMuteSubMenu(target, type) {
 }
 window.showMuteSubMenu = showMuteSubMenu;
 
+function showNotificationSubMenu(target, type) {
+  const existing = document.getElementById('notifySubMenu');
+  if (existing) existing.remove();
+  const subMenu = document.createElement('div');
+  subMenu.id = 'notifySubMenu';
+  subMenu.className = 'context-menu';
+  subMenu.style.position = 'absolute';
+  const rect = target.getBoundingClientRect();
+  subMenu.style.top = rect.top + 'px';
+  subMenu.style.left = rect.right + 'px';
+  subMenu.style.display = 'flex';
+  subMenu.style.flexDirection = 'column';
+
+  const options = [
+    { label: 'Bütün mesajlar', value: 'all' },
+    { label: 'Sadece bahsetmeler', value: 'mentions' },
+    { label: 'Hiçbir şey', value: 'nothing' }
+  ];
+
+  options.forEach(o => {
+    const item = document.createElement('div');
+    item.className = 'context-menu-item';
+    item.textContent = o.label;
+    item.addEventListener('click', () => {
+      console.log('Notification type selected:', o.value);
+      subMenu.remove();
+      const ctx = document.getElementById(type === 'channel' ? 'channelContextMenu' : 'groupContextMenu');
+      if (ctx) ctx.remove();
+    });
+    subMenu.appendChild(item);
+  });
+
+  document.body.appendChild(subMenu);
+  const removeIfOutside = e => {
+    const to = e.relatedTarget;
+    if (!target.contains(to) && !subMenu.contains(to)) {
+      subMenu.remove();
+      target.removeEventListener('mouseleave', removeIfOutside);
+      subMenu.removeEventListener('mouseleave', removeIfOutside);
+    }
+  };
+
+  target.addEventListener('mouseleave', removeIfOutside);
+  subMenu.addEventListener('mouseleave', removeIfOutside);
+
+  document.addEventListener('click', function handler() {
+    const m = document.getElementById('notifySubMenu');
+    if (m) m.remove();
+    document.removeEventListener('click', handler);
+  });
+}
+window.showNotificationSubMenu = showNotificationSubMenu;
+
 function showChannelContextMenu(e, roomObj) {
   const existingMenu = document.getElementById('channelContextMenu');
   if(existingMenu) {
@@ -634,6 +687,11 @@ function showChannelContextMenu(e, roomObj) {
           action: () => {}
         },
     {
+      text: 'Bildirim türü',
+      notification: true,
+      action: () => {}
+    },
+    {
       text: 'Kanalın İsmini Değiştir',
       action: () => {
         const newName = prompt('Yeni kanal ismini girin:', roomObj.name);
@@ -666,6 +724,16 @@ function showChannelContextMenu(e, roomObj) {
       menuItem.appendChild(icon);
       menuItem.dataset.channelId = roomObj.id;
       menuItem.addEventListener('mouseenter', () => showMuteSubMenu(menuItem, 'channel'));
+    } else if (item.notification) {
+      const label = document.createElement('span');
+      label.textContent = item.text;
+      const icon = document.createElement('span');
+      icon.classList.add('material-icons');
+      icon.textContent = 'chevron_right';
+      menuItem.appendChild(label);
+      menuItem.appendChild(icon);
+      menuItem.dataset.channelId = roomObj.id;
+      menuItem.addEventListener('mouseenter', () => showNotificationSubMenu(menuItem, 'channel'));
     } else {
       menuItem.textContent = item.text;
       menuItem.addEventListener('click', () => {
@@ -705,6 +773,7 @@ function showGroupContextMenu(e, groupObj) {
     groupMuted
       ? { text: 'Bu grubun sesini aç', action: () => { socket.emit('muteGroup', { groupId: groupObj.id, duration: 0 }); } }
       : { text: 'Bu grubu sessize al', mute: true, action: () => {} },
+    { text: 'Bildirim türü', notification: true, action: () => {} },
     { text: 'Gruptan Ayrıl', hide: groupObj.owner === window.username, action: () => { socket.emit('leaveGroup', groupObj.id); } }
   ];
 
@@ -722,6 +791,16 @@ function showGroupContextMenu(e, groupObj) {
       menuItem.appendChild(icon);
       menuItem.dataset.groupId = groupObj.id;
       menuItem.addEventListener('mouseenter', () => showMuteSubMenu(menuItem, 'group'));
+    } else if (item.notification) {
+      const label = document.createElement('span');
+      label.textContent = item.text;
+      const icon = document.createElement('span');
+      icon.classList.add('material-icons');
+      icon.textContent = 'chevron_right';
+      menuItem.appendChild(label);
+      menuItem.appendChild(icon);
+      menuItem.dataset.groupId = groupObj.id;
+      menuItem.addEventListener('mouseenter', () => showNotificationSubMenu(menuItem, 'group'));
     } else {
       menuItem.textContent = item.text;
       menuItem.addEventListener('click', () => {
