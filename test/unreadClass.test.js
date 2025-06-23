@@ -48,3 +48,22 @@ test('unread class toggles and mute clears it', async () => {
   assert.ok(!channelItem.classList.contains('unread'));
   assert.ok(!groupItem.classList.contains('unread'));
 });
+
+test('group unmute preserves individual channel mute', async () => {
+  const { socket } = await setup();
+  window.selectedGroup = 'g1';
+  socket.emit('groupsList', [{ id: 'g1', name: 'G1', owner: 'u1' }]);
+  socket.emit('roomsList', [
+    { id: 'c1', name: 'C1', type: 'text', unreadCount: 0 },
+    { id: 'c2', name: 'C2', type: 'text', unreadCount: 0 }
+  ]);
+  const ch1 = window.roomListDiv.querySelector('[data-room-id="c1"]');
+  const ch2 = window.roomListDiv.querySelector('[data-room-id="c2"]');
+
+  socket.emit('channelMuted', { groupId: 'g1', channelId: 'c2', muteUntil: Date.now() + 1000 });
+  socket.emit('groupMuted', { groupId: 'g1', muteUntil: Date.now() + 1000 });
+  socket.emit('muteCleared', { groupId: 'g1' });
+
+  assert.ok(!ch1.classList.contains('muted'));
+  assert.ok(ch2.classList.contains('muted'));
+});

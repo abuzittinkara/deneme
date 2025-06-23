@@ -207,7 +207,15 @@ export function initSocketEvents(socket) {
         if (gid === window.selectedGroup) {
           roomListDiv
             .querySelectorAll('.channel-item')
-            .forEach((ci) => ci.classList.remove('muted', 'channel-muted'));
+            .forEach((ci) => {
+              ci.classList.remove('muted', 'channel-muted');
+              const cid = ci.dataset.roomId;
+              const ts =
+                window.channelMuteUntil[gid] && window.channelMuteUntil[gid][cid];
+              if (ts && Date.now() < ts) {
+                ci.classList.add('muted', 'channel-muted');
+              }
+            });
         }
       }
     });
@@ -905,7 +913,15 @@ export function initSocketEvents(socket) {
       const el = groupListDiv.querySelector(`.grp-item[data-group-id="${groupId}"]`);
       if (el) el.classList.remove('muted');
       if (groupId === window.selectedGroup) {
-        roomListDiv.querySelectorAll('.channel-item').forEach(ci => ci.classList.remove('muted', 'channel-muted'));
+        roomListDiv.querySelectorAll('.channel-item').forEach(ci => {
+          ci.classList.remove('muted', 'channel-muted');
+          const cid = ci.dataset.roomId;
+          const ts =
+            window.channelMuteUntil[groupId] && window.channelMuteUntil[groupId][cid];
+          if (ts && Date.now() < ts) {
+            ci.classList.add('muted', 'channel-muted');
+          }
+        });
       }
     }
   });
