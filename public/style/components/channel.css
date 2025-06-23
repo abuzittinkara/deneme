@@ -306,7 +306,9 @@
   font-size: 0.9rem;
 }
 .channel-item.muted .channel-icon,
-.channel-item.muted .channel-name {
+.channel-item.muted .channel-name,
+.channel-item.channel-muted .channel-icon,
+.channel-item.channel-muted .channel-name {
   color: #888;
 }
 .group-name {
