@@ -605,9 +605,15 @@ export function initSocketEvents(socket) {
       const mutedTs = window.groupMuteUntil[groupObj.id];
       const muted = mutedTs && Date.now() < mutedTs;
       if (muted) unreadCount = 0;
-      if (unreadCount >= 1) {
+      const hasMentions =
+        window.mentionUnread[groupObj.id] &&
+        Object.keys(window.mentionUnread[groupObj.id]).length > 0;
+      if (unreadCount >= 1 || hasMentions) {
         const dot = document.createElement('span');
         dot.className = 'unread-dot';
+        if (hasMentions) {
+          dot.classList.add('mention-dot');
+        }
         grpItem.appendChild(dot);
         grpItem.classList.add('unread');
       }
@@ -781,21 +787,31 @@ export function initSocketEvents(socket) {
   socket.on('channelRead', ({ groupId, channelId }) => {
     if (window.unreadCounter[groupId]) {
       window.unreadCounter[groupId] = Math.max(0, window.unreadCounter[groupId] - 1);
-      const el = groupListDiv.querySelector(`.grp-item[data-group-id="${groupId}"]`);
-      if (el && window.unreadCounter[groupId] === 0) {
-        const dot = el.querySelector('.unread-dot');
-        if (dot) dot.remove();
-        el.classList.remove('unread');
-      } else if (el) {
-        const dot = el.querySelector('.unread-dot');
-        if (dot) dot.classList.remove('mention-dot');
-      }
     }
     if (window.channelUnreadCounts[groupId]) {
       window.channelUnreadCounts[groupId][channelId] = 0;
     }
     if (window.mentionUnread[groupId]) {
       delete window.mentionUnread[groupId][channelId];
+      if (Object.keys(window.mentionUnread[groupId]).length === 0) {
+        delete window.mentionUnread[groupId];
+      }
+    }
+    const el = groupListDiv.querySelector(`.grp-item[data-group-id="${groupId}"]`);
+    if (el) {
+      if (window.unreadCounter[groupId] === 0) {
+        const dot = el.querySelector('.unread-dot');
+        if (dot) dot.remove();
+        el.classList.remove('unread');
+      } else {
+        const dot = el.querySelector('.unread-dot');
+        if (
+          dot &&
+          (!window.mentionUnread[groupId] || Object.keys(window.mentionUnread[groupId]).length === 0)
+        ) {
+          dot.classList.remove('mention-dot');
+        }
+      }
     }
     if (groupId === window.selectedGroup) {
       const item = roomListDiv.querySelector(`.channel-item[data-room-id="${channelId}"]`);
@@ -819,10 +835,18 @@ export function initSocketEvents(socket) {
       const el = groupListDiv.querySelector(`.grp-item[data-group-id="${gid}"]`);
       if (total > 0 && !gMuted) {
         window.unreadCounter[gid] = total;
-        if (el && !el.querySelector('.unread-dot')) {
-          const dot = document.createElement('span');
+        let dot = el && el.querySelector('.unread-dot');
+        if (el && !dot) {
+          dot = document.createElement('span');
           dot.className = 'unread-dot';
           el.appendChild(dot);
+        }
+        if (
+          dot &&
+          window.mentionUnread[gid] &&
+          Object.keys(window.mentionUnread[gid]).length > 0
+        ) {
+          dot.classList.add('mention-dot');
         }
         if (el) el.classList.add('unread');
       } else {
@@ -845,6 +869,14 @@ export function initSocketEvents(socket) {
             item.appendChild(dot);
           } else if ((count === 0 || muted) && dot) {
             dot.remove();
+          }
+          if (count > 0 && !muted && dot) {
+            if (
+              window.mentionUnread[gid] &&
+              window.mentionUnread[gid][cid]
+            ) {
+              dot.classList.add('mention-dot');
+            }
           }
           if (count > 0 && !muted) {
             item.classList.add('unread');
@@ -992,6 +1024,12 @@ export function initSocketEvents(socket) {
     if (roomObj.type === 'text' && unreadCount > 0) {
       const dot = document.createElement('span');
       dot.className = 'unread-dot';
+      if (
+        window.mentionUnread[window.selectedGroup] &&
+        window.mentionUnread[window.selectedGroup][roomObj.id]
+      ) {
+        dot.classList.add('mention-dot');
+      }
       roomItem.appendChild(dot);
       roomItem.classList.add('unread');
     }
