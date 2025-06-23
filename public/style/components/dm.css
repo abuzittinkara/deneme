@@ -49,6 +49,11 @@
   line-height: 15px;
 }
 
+#notifySubMenu .context-menu-item {
+  height: 15px; /* Bildirim alt menüsü için de sabit yükseklik */
+  line-height: 15px;
+}
+
 #groupContextMenu .context-menu-item {
   display: flex;
   align-items: center;
