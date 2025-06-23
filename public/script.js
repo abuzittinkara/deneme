@@ -541,6 +541,19 @@ function showMuteSubMenu(target, type) {
         const gid = window.selectedGroup;
         const cid = target.dataset.channelId;
         socket.emit('muteChannel', { groupId: gid, channelId: cid, duration: d.ms });
+        if (!window.channelMuteUntil[gid]) window.channelMuteUntil[gid] = {};
+        if (d.ms > 0) {
+          window.channelMuteUntil[gid][cid] = Date.now() + d.ms;
+        } else {
+          delete window.channelMuteUntil[gid][cid];
+        }
+        if (gid === window.selectedGroup) {
+          const el = document.querySelector(`.channel-item[data-room-id="${cid}"]`);
+          if (el) {
+            if (d.ms > 0) el.classList.add('muted');
+            else el.classList.remove('muted');
+          }
+        }
       } else if (type === 'group') {
         const gid = target.dataset.groupId;
         socket.emit('muteGroup', { groupId: gid, duration: d.ms });
