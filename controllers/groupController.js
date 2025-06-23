@@ -678,7 +678,11 @@ function register(io, socket, context) {
       const payload = expire
         ? { groupId, muteUntil: expire }
         : { groupId };
-      io.to(socket.id).emit(ev, payload);
+      Object.entries(users).forEach(([sid, u]) => {
+        if (u.username === username) {
+          io.to(sid).emit(ev, payload);
+        }
+      });
     } catch (err) {
       console.error('muteGroup error:', err);
     }
@@ -713,7 +717,11 @@ function register(io, socket, context) {
       const payload = expire
         ? { groupId, channelId, muteUntil: expire }
         : { groupId, channelId };
-      io.to(socket.id).emit(ev, payload);
+      Object.entries(users).forEach(([sid, u]) => {
+        if (u.username === username) {
+          io.to(sid).emit(ev, payload);
+        }
+      });
     } catch (err) {
       console.error('muteChannel error:', err);
     }
