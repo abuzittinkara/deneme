@@ -302,14 +302,19 @@
 }
 .channel-name {
   font-weight: 400;
-  color: #ccc;
+  color: #aaa;
   font-size: 0.9rem;
+}
+
+.channel-item.unread:not(.muted) .channel-icon,
+.channel-item.unread:not(.muted) .channel-name {
+  color: #eee;
 }
 .channel-item.muted .channel-icon,
 .channel-item.muted .channel-name,
 .channel-item.channel-muted .channel-icon,
 .channel-item.channel-muted .channel-name {
-  color: #888;
+  color: #575757;
 }
 .group-name {
   color: #ddd;

@@ -600,6 +600,7 @@ export function initSocketEvents(socket) {
         const dot = document.createElement('span');
         dot.className = 'unread-dot';
         grpItem.appendChild(dot);
+        grpItem.classList.add('unread');
       }
       if (groupObj.id === window.selectedGroup) {
         grpItem.classList.add('selected');
@@ -689,6 +690,7 @@ export function initSocketEvents(socket) {
     if (el) {
       const dot = el.querySelector('.unread-dot');
       if (dot) dot.remove();
+      el.classList.remove('unread');
     }
     if (window.unreadCounter[groupId]) {
       window.unreadCounter[groupId] = 0;
@@ -715,6 +717,7 @@ export function initSocketEvents(socket) {
         dot.className = 'unread-dot';
         el.appendChild(dot);
       }
+      if (el) el.classList.add('unread');
       if (groupId === window.selectedGroup) {
         const item = roomListDiv.querySelector(
           `.channel-item[data-room-id="${channelId}"]`
@@ -724,6 +727,7 @@ export function initSocketEvents(socket) {
           dot.className = 'unread-dot';
           item.appendChild(dot);
         }
+        if (item) item.classList.add('unread');
       }
     }
   });
@@ -734,6 +738,7 @@ export function initSocketEvents(socket) {
       if (el && window.unreadCounter[groupId] === 0) {
         const dot = el.querySelector('.unread-dot');
         if (dot) dot.remove();
+        el.classList.remove('unread');
       }
     }
     if (window.channelUnreadCounts[groupId]) {
@@ -744,6 +749,7 @@ export function initSocketEvents(socket) {
       if (item) {
         const dot = item.querySelector('.unread-dot');
         if (dot) dot.remove();
+        item.classList.remove('unread');
       }
     }
   });
@@ -754,13 +760,20 @@ export function initSocketEvents(socket) {
       const total = Object.values(channels).reduce((a, b) => a + (Number(b) || 0), 0);
       const gMuteTs = window.groupMuteUntil[gid];
       const gMuted = gMuteTs && Date.now() < gMuteTs;
+      const el = groupListDiv.querySelector(`.grp-item[data-group-id="${gid}"]`);
       if (total > 0 && !gMuted) {
         window.unreadCounter[gid] = total;
-        const el = groupListDiv.querySelector(`.grp-item[data-group-id="${gid}"]`);
         if (el && !el.querySelector('.unread-dot')) {
           const dot = document.createElement('span');
           dot.className = 'unread-dot';
           el.appendChild(dot);
+        }
+        if (el) el.classList.add('unread');
+      } else {
+        if (el) {
+          const dot = el.querySelector('.unread-dot');
+          if (dot) dot.remove();
+          el.classList.remove('unread');
         }
       }
       if (gid === window.selectedGroup) {
@@ -776,6 +789,11 @@ export function initSocketEvents(socket) {
             item.appendChild(dot);
           } else if ((count === 0 || muted) && dot) {
             dot.remove();
+          }
+          if (count > 0 && !muted) {
+            item.classList.add('unread');
+          } else {
+            item.classList.remove('unread');
           }
         });
       }
@@ -796,10 +814,16 @@ export function initSocketEvents(socket) {
     if (el) {
       const dot = el.querySelector('.unread-dot');
       if (dot) dot.remove();
+      el.classList.remove('unread');
+      el.classList.add('muted');
     }
     window.unreadCounter[groupId] = 0;
     if (groupId === window.selectedGroup) {
-      roomListDiv.querySelectorAll('.channel-item .unread-dot').forEach(d => d.remove());
+      roomListDiv.querySelectorAll('.channel-item').forEach(ci => {
+        const d = ci.querySelector('.unread-dot');
+        if (d) d.remove();
+        ci.classList.remove('unread');
+      });
       if (window.channelUnreadCounts[groupId]) {
         Object.keys(window.channelUnreadCounts[groupId]).forEach(cid => {
           window.channelUnreadCounts[groupId][cid] = 0;
@@ -825,6 +849,7 @@ export function initSocketEvents(socket) {
       if (item) {
         const dot = item.querySelector('.unread-dot');
         if (dot) dot.remove();
+        item.classList.remove('unread');
         item.classList.add('muted', 'channel-muted');
       }
       const total = Object.values(window.channelUnreadCounts[groupId] || {}).reduce((a,b)=>a+(Number(b)||0),0);
@@ -833,6 +858,7 @@ export function initSocketEvents(socket) {
         if (el) {
           const dot = el.querySelector('.unread-dot');
           if (dot) dot.remove();
+          el.classList.remove('unread');
           el.classList.add('muted');
         }
         window.unreadCounter[groupId] = 0;
@@ -874,6 +900,7 @@ export function initSocketEvents(socket) {
       const dot = document.createElement('span');
       dot.className = 'unread-dot';
       roomItem.appendChild(dot);
+      roomItem.classList.add('unread');
     }
     if (!window.channelUnreadCounts[window.selectedGroup]) {
       window.channelUnreadCounts[window.selectedGroup] = {};
