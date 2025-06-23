@@ -51,7 +51,7 @@
   width: 43px;
   height: 43px;
   background: #444;
-  color: #fff;
+  color: #aaa;
   border-radius: 45%;
   display: flex;
   justify-content: center;
@@ -69,7 +69,7 @@
   border-radius: 15px;
 }
 .grp-item.muted {
-  color: #888;
+  color: #575757;
 }
 
 .grp-item .unread-dot {
@@ -79,7 +79,7 @@
   transform: translateY(-50%);
   width: 10px;
   height: 10px;
-  background: #ffffff;
+  background: #eee;
   border-radius: 50%;
   pointer-events: none;
 }
