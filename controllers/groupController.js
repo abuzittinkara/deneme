@@ -4,6 +4,9 @@ const sfu = require('../sfu');
 const store = require('../utils/sharedStore');
 const GroupMember = require('../models/GroupMember');
 
+// Timestamp representing an indefinite mute
+const INDEFINITE_TS = new Date(8640000000000000);
+
 async function ensureUserDoc(doc) {
   if (doc && typeof doc.populate === 'function' &&
       (!Array.isArray(doc.groups) || !doc._id)) {
@@ -656,8 +659,13 @@ function register(io, socket, context) {
         Group.findOne({ groupId })
       ]);
       if (!userDoc || !groupDoc) return;
-      const ms = Number(duration) || 0;
-      const expire = ms > 0 ? new Date(Date.now() + ms) : null;
+      const ms = Number(duration);
+      let expire = null;
+      if (ms === -1) {
+        expire = INDEFINITE_TS;
+      } else if (ms > 0) {
+        expire = new Date(Date.now() + ms);
+      }
       const update = expire
         ? { $set: { muteUntil: expire } }
         : { $unset: { muteUntil: '' } };
@@ -687,8 +695,13 @@ function register(io, socket, context) {
         Channel.findOne({ channelId })
       ]);
       if (!userDoc || !groupDoc || !channelDoc) return;
-      const ms = Number(duration) || 0;
-      const expire = ms > 0 ? new Date(Date.now() + ms) : null;
+      const ms = Number(duration);
+      let expire = null;
+      if (ms === -1) {
+        expire = INDEFINITE_TS;
+      } else if (ms > 0) {
+        expire = new Date(Date.now() + ms);
+      }
       const field = `channelMuteUntil.${channelId}`;
       const update = expire ? { $set: { [field]: expire } } : { $unset: { [field]: '' } };
       await GroupMember.updateOne(
@@ -719,5 +732,6 @@ module.exports = {
   broadcastGroupUsers,
   handleLeaveGroup,
   removeUserFromAllGroupsAndRooms,
-  handleDisconnect
+  handleDisconnect,
+  INDEFINITE_TS
 };

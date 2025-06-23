@@ -529,7 +529,7 @@ function showMuteSubMenu(target, type) {
     { label: '3 saat', ms: 3 * 60 * 60 * 1000 },
     { label: '8 saat', ms: 8 * 60 * 60 * 1000 },
     { label: '24 saat', ms: 24 * 60 * 60 * 1000 },
-    { label: 'Ben tekrar açana kadar', ms: 0 }
+    { label: 'Ben tekrar açana kadar', ms: -1 }
   ];
 
   durations.forEach(d => {
@@ -544,13 +544,15 @@ function showMuteSubMenu(target, type) {
         if (!window.channelMuteUntil[gid]) window.channelMuteUntil[gid] = {};
         if (d.ms > 0) {
           window.channelMuteUntil[gid][cid] = Date.now() + d.ms;
+        } else if (d.ms === -1) {
+          window.channelMuteUntil[gid][cid] = Infinity;
         } else {
           delete window.channelMuteUntil[gid][cid];
         }
         if (gid === window.selectedGroup) {
           const el = document.querySelector(`.channel-item[data-room-id="${cid}"]`);
           if (el) {
-            if (d.ms > 0) el.classList.add('muted', 'channel-muted');
+            if (d.ms > 0 || d.ms === -1) el.classList.add('muted', 'channel-muted');
             else el.classList.remove('muted', 'channel-muted');
           }
         }
