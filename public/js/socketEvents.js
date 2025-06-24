@@ -825,6 +825,17 @@ export function initSocketEvents(socket) {
       }
     }
   });
+  socket.on('mentionCounts', (data) => {
+    window.mentionUnread = {};
+    Object.entries(data || {}).forEach(([gid, channels]) => {
+      Object.entries(channels).forEach(([cid, count]) => {
+        if (Number(count) > 0) {
+          if (!window.mentionUnread[gid]) window.mentionUnread[gid] = {};
+          window.mentionUnread[gid][cid] = true;
+        }
+      });
+    });
+  });
   socket.on('unreadCounts', (data) => {
     window.unreadCounter = window.unreadCounter || {};
     window.channelUnreadCounts = data || {};

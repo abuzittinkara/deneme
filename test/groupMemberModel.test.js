@@ -20,4 +20,6 @@ test('default unread maps', () => {
   });
   assert.ok(gm.channelUnreads instanceof Map);
   assert.strictEqual(gm.channelUnreads.size, 0);
+  assert.ok(gm.mentionUnreads instanceof Map);
+  assert.strictEqual(gm.mentionUnreads.size, 0);
 });

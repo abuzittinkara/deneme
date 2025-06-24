@@ -8,7 +8,7 @@ async function emitMentionUnread(io, groupId, channelId, username, Group, userSe
     const inGroup = sid && users[sid]?.currentGroup === groupId;
     const inChannel = sid && users[sid]?.currentTextChannel === channelId;
     const gm = await GroupMember.findOne({ user: target._id, group: groupDoc._id })
-      .select('muteUntil channelMuteUntil');
+      .select('muteUntil channelMuteUntil mentionUnreads');
     const now = Date.now();
     const groupMuteUntil = gm?.muteUntil instanceof Date ? gm.muteUntil.getTime() : 0;
     let channelMuteUntil;
@@ -22,6 +22,13 @@ async function emitMentionUnread(io, groupId, channelId, username, Group, userSe
     const channelMuteTs = channelMuteUntil instanceof Date ? channelMuteUntil.getTime() : 0;
     const muteActive = groupMuteUntil > now || channelMuteTs > now;
     if (muteActive || inChannel) return;
+
+    await GroupMember.updateOne(
+      { user: target._id, group: groupDoc._id },
+      { $inc: { [`mentionUnreads.${channelId}`]: 1 } },
+      { upsert: true }
+    );
+
     if (sid) {
       io.to(sid).emit('mentionUnread', { groupId, channelId });
     }
@@ -31,3 +38,4 @@ async function emitMentionUnread(io, groupId, channelId, username, Group, userSe
 }
 
 module.exports = emitMentionUnread;
+

@@ -10,6 +10,11 @@ const GroupMemberSchema = new mongoose.Schema({
     of: Number,
     default: {}
   },
+  mentionUnreads: {
+    type: Map,
+    of: Number,
+    default: {}
+  },
   channelMuteUntil: {
     type: Map,
     of: Date,
