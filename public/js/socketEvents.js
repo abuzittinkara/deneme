@@ -930,6 +930,19 @@ export function initSocketEvents(socket) {
     });
   });
 
+  socket.on('activeNotifyTypes', (data) => {
+    window.groupNotifyType = {};
+    window.channelNotifyType = {};
+    Object.entries(data || {}).forEach(([gid, info]) => {
+      if (info.notificationType) {
+        window.groupNotifyType[gid] = info.notificationType;
+      }
+      if (info.channelNotificationType) {
+        window.channelNotifyType[gid] = info.channelNotificationType;
+      }
+    });
+  });
+
   socket.on('groupMuted', ({ groupId, muteUntil }) => {
     if (!groupId) return;
     if (muteUntil) {
