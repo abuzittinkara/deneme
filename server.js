@@ -238,7 +238,10 @@ app.post('/api/message', (req, res) => {
     }
 
     try {
-      const channelDoc = await Channel.findOne({ channelId }).populate('group');
+      let channelDoc = await Channel.findOne({ channelId });
+      if (channelDoc && typeof channelDoc.populate === 'function') {
+        channelDoc = await channelDoc.populate('group');
+      }
       const userDoc = userId
         ? await User.findById(userId)
         : await User.findOne({ username });

@@ -247,7 +247,10 @@ module.exports = function registerFriendRequestEvents(socket, { User, friendRequ
         logger.warn('Get friends list failed (kullanıcı adı tanımsız)');
         return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
       }
-      const userDoc = await User.findOne({ username }).populate('friends');
+      let userDoc = await User.findOne({ username });
+      if (userDoc && typeof userDoc.populate === 'function') {
+        userDoc = await userDoc.populate('friends');
+      }
       if (!userDoc) {
         logger.warn('Get friends list failed (kullanıcı DB\'de yok): %s', username);
         return callback({ success: false, message: 'Kullanıcı bulunamadı.' });
@@ -270,7 +273,10 @@ module.exports = function registerFriendRequestEvents(socket, { User, friendRequ
         logger.warn('Get blocked users list failed (kullanıcı adı tanımsız)');
         return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
       }
-      const userDoc = await User.findOne({ username }).populate('blockedUsers');
+      let userDoc = await User.findOne({ username });
+      if (userDoc && typeof userDoc.populate === 'function') {
+        userDoc = await userDoc.populate('blockedUsers');
+      }
       if (!userDoc) {
         logger.warn('Get blocked users list failed (kullanıcı DB\'de yok): %s', username);
         return callback({ success: false, message: 'Kullanıcı bulunamadı.' });

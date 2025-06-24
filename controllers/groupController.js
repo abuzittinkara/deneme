@@ -21,7 +21,10 @@ async function ensureUserDoc(doc) {
 
 async function loadGroupsFromDB({ Group, groups }) {
   try {
-    const groupDocs = await Group.find({}).populate('owner', 'username');
+    let groupDocs = await Group.find({});
+    if (groupDocs && typeof groupDocs.populate === 'function') {
+      groupDocs = await groupDocs.populate('owner', 'username');
+    }
     groupDocs.forEach(g => {
       const ownerName = g.owner ? g.owner.username : null;
       groups[g.groupId] = { owner: ownerName, name: g.name, users: [], rooms: {} };
@@ -35,7 +38,10 @@ async function loadGroupsFromDB({ Group, groups }) {
 
 async function loadChannelsFromDB({ Channel, groups }) {
   try {
-    const channelDocs = await Channel.find({}).sort({ order: 1 }).populate('group');
+    let channelDocs = await Channel.find({}).sort({ order: 1 });
+    if (channelDocs && typeof channelDocs.populate === 'function') {
+      channelDocs = await channelDocs.populate('group');
+    }
     channelDocs.forEach(ch => {
       if (!ch.group) return;
       const gid = ch.group.groupId;
@@ -252,7 +258,10 @@ function removeUserFromAllGroupsAndRooms(io, socket, users, groups, store) {
 async function broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId) {
   if (!groupId) return;
   try {
-    const groupDoc = await Group.findOne({ groupId }).populate('users');
+    let groupDoc = await Group.findOne({ groupId });
+    if (groupDoc && typeof groupDoc.populate === 'function') {
+      groupDoc = await groupDoc.populate('users');
+    }
     if (!groupDoc) return;
     const online = [];
     const offline = [];

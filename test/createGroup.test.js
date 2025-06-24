@@ -25,7 +25,8 @@ function createContext() {
     constructor(data) { Object.assign(this, data); }
     async save() { savedChannels[this.channelId] = this; }
   }
-  return { users, groups, User, Group, Channel, savedGroups, savedChannels, userDoc };
+  const GroupMember = { async create() {} };
+  return { users, groups, User, Group, Channel, GroupMember, savedGroups, savedChannels, userDoc };
 }
 
 test('createGroup requires channel name and creates channel', async () => {

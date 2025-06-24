@@ -7,7 +7,10 @@ const getEntries = map => {
 async function collectMuteInfo(username, { User, Group, GroupMember }) {
   const result = {};
   try {
-    const userDoc = await User.findOne({ username }).populate('groups');
+    let userDoc = await User.findOne({ username });
+    if (userDoc && typeof userDoc.populate === 'function') {
+      userDoc = await userDoc.populate('groups');
+    }
     if (!userDoc) return result;
     const now = Date.now();
     await Promise.all(userDoc.groups.map(async g => {

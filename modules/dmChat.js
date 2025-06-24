@@ -38,12 +38,15 @@ module.exports = function registerDMChatEvents(socket, { io, User, DMMessage, us
         logger.warn("getDMMessages failed (users not found): %s, %s", username, friend);
         return callback({ success: false, message: 'Kullanıcılar bulunamadı.' });
       }
-      const messages = await DMMessage.find({
+      let messages = await DMMessage.find({
         $or: [
           { from: userDoc._id, to: friendDoc._id },
           { from: friendDoc._id, to: userDoc._id }
         ]
-      }).sort({ timestamp: 1 }).populate('from', 'username');
+      }).sort({ timestamp: 1 });
+      if (messages && typeof messages.populate === 'function') {
+        messages = await messages.populate('from', 'username');
+      }
 
       const formatted = messages.map(m => ({
         id: m._id.toString(),
@@ -117,7 +120,10 @@ module.exports = function registerDMChatEvents(socket, { io, User, DMMessage, us
     const username = users[socket.id]?.username;
     try {
       if (!username || !messageId || !friend) return cb({ success: false });
-      const msg = await DMMessage.findById(messageId).populate('from');
+      let msg = await DMMessage.findById(messageId);
+      if (msg && typeof msg.populate === 'function') {
+        msg = await msg.populate('from');
+      }
       if (!msg || msg.from.username !== username) return cb({ success: false });
       await DMMessage.deleteOne({ _id: messageId });
       io.to(getRoomName(username, friend)).emit('dmMessageDeleted', { messageId });
