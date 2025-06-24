@@ -10,7 +10,9 @@ This project contains the backend and frontend assets for a WebSocket-based chat
   - `MONGODB_URI` – MongoDB connection string
   - `PORT` – (optional) server port, defaults to `3000`
   - `ANNOUNCED_IP` – (optional) public IP for mediasoup
-  - `TURN_USERNAME` and `TURN_CREDENTIAL` – (optional) credentials for TURN servers
+  - `TURN_USERNAME` and `TURN_CREDENTIAL` – credentials for the bundled TURN
+    servers. If omitted the TURN servers are skipped and only a public STUN
+    server is used.
   - `SOCKET_URL` – (optional) base URL for the Socket.IO server. Defaults to
     `window.location.origin` if omitted.
     

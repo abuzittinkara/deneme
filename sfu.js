@@ -121,34 +121,43 @@ async function createWebRtcTransport(router) {
 
     /**
      * STUN/TURN sunucularını buraya ekliyoruz:
-     * .env'de TURN_USERNAME / TURN_CREDENTIAL tanımlanmadıysa varsayılan değerler kullanılır.
+     * TURN bilgileri sadece TURN_USERNAME ve TURN_CREDENTIAL tanımlıysa eklenir.
      */
-    iceServers: [
-      {
-        urls: 'stun:stun.l.google.com:19302'
-      },
+  };
+
+  const iceServers = [
+    {
+      urls: 'stun:stun.l.google.com:19302'
+    }
+  ];
+
+  if (process.env.TURN_USERNAME && process.env.TURN_CREDENTIAL) {
+    iceServers.push(
       {
         urls: 'turn:global.relay.metered.ca:80',
-        username: process.env.TURN_USERNAME || '6975c20c80cb0d79f1e4a4b6',
-        credential: process.env.TURN_CREDENTIAL || 'BCHrcOSfdcmZ/Dda'
+        username: process.env.TURN_USERNAME,
+        credential: process.env.TURN_CREDENTIAL
       },
       {
         urls: 'turn:global.relay.metered.ca:80?transport=tcp',
-        username: process.env.TURN_USERNAME || '6975c20c80cb0d79f1e4a4b6',
-        credential: process.env.TURN_CREDENTIAL || 'BCHrcOSfdcmZ/Dda'
+        username: process.env.TURN_USERNAME,
+        credential: process.env.TURN_CREDENTIAL
       },
       {
         urls: 'turn:global.relay.metered.ca:443',
-        username: process.env.TURN_USERNAME || '6975c20c80cb0d79f1e4a4b6',
-        credential: process.env.TURN_CREDENTIAL || 'BCHrcOSfdcmZ/Dda'
+        username: process.env.TURN_USERNAME,
+        credential: process.env.TURN_CREDENTIAL
       },
       {
         urls: 'turns:global.relay.metered.ca:443?transport=tcp',
-        username: process.env.TURN_USERNAME || '6975c20c80cb0d79f1e4a4b6',
-        credential: process.env.TURN_CREDENTIAL || 'BCHrcOSfdcmZ/Dda'
+        username: process.env.TURN_USERNAME,
+        credential: process.env.TURN_CREDENTIAL
       }
-    ]
-  };
+    );
+  }
+
+  transportOptions.iceServers = iceServers;
+
 
   const transport = await router.createWebRtcTransport(transportOptions);
   return transport;
