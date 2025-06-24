@@ -121,7 +121,10 @@ function broadcastAllChannelsData(io, users, groups, groupId) {
 
 async function sendRoomsListToUser(io, socketId, context, groupId) {
   const { groups, users, Group, User, GroupMember } = context;
-  if (!groups[groupId]) return;
+  if (!groups[groupId]) {
+    logger.warn(`sendRoomsListToUser: unknown groupId ${groupId}`);
+    return;
+  }
   let channelUnreads = {};
   if (users && Group && User && GroupMember) {
     try {
