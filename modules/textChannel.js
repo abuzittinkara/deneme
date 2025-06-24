@@ -130,6 +130,7 @@ module.exports = function registerTextChannelEvents(io, socket, { Channel, Messa
 
       const update = {};
       update[`channelUnreads.${channelId}`] = 0;
+      update[`mentionUnreads.${channelId}`] = 0;
       await GroupMember.updateOne(
         { user: userDoc._id, group: groupDoc._id },
         { $set: update },
