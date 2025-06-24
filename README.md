@@ -137,3 +137,17 @@ referenced in new messages. When the client receives a message containing
 attachments it posts those URLs to the worker so they can be fetched and stored
 locally. Subsequent requests for the same files are served from the cache when
 available.
+
+## Troubleshooting
+
+An empty rooms list usually indicates that the `groups` collection is empty or
+that `MONGODB_URI` in your `.env` file does not point to a valid MongoDB
+instance. Verify that your database contains the expected data and that the
+connection string is correct.
+
+Use the MongoDB shell to list your existing groups and channels:
+
+```javascript
+db.groups.find().pretty()
+db.channels.find().pretty()
+```
