@@ -108,7 +108,10 @@ module.exports = function registerTextChannelEvents(io, socket, { Channel, Messa
   socket.on('deleteTextMessage', async ({ channelId, messageId }) => {
     try {
       if (!messageId) return;
-      const msg = await Message.findById(messageId).populate('user');
+      let msg = await Message.findById(messageId);
+      if (msg && typeof msg.populate === 'function') {
+        msg = await msg.populate('user');
+      }
       const username = users[socket.id]?.username;
       if (!msg || !username || msg.user.username !== username) return;
       await Message.deleteOne({ _id: messageId });

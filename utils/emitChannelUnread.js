@@ -1,6 +1,9 @@
 async function emitChannelUnread(io, groupId, channelId, Group, userSessions, GroupMember, users, mentions = []) {
   try {
-    const groupDoc = await Group.findOne({ groupId }).populate('users', 'username');
+    let groupDoc = await Group.findOne({ groupId });
+    if (groupDoc && typeof groupDoc.populate === 'function') {
+      groupDoc = await groupDoc.populate('users', 'username');
+    }
     if (!groupDoc) return;
     const updates = [];
     for (const u of groupDoc.users) {

@@ -1,6 +1,9 @@
 async function emitMentionUnread(io, groupId, channelId, username, Group, userSessions, GroupMember, users) {
   try {
-    const groupDoc = await Group.findOne({ groupId }).populate('users', 'username');
+    let groupDoc = await Group.findOne({ groupId });
+    if (groupDoc && typeof groupDoc.populate === 'function') {
+      groupDoc = await groupDoc.populate('users', 'username');
+    }
     if (!groupDoc) return;
     const target = groupDoc.users.find(u => u.username === username);
     if (!target) return;

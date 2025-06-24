@@ -89,7 +89,10 @@ function registerFriendHandlers(io, socket, context) {
     const username = users[socket.id]?.username;
     try {
       if (!username) return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
-      const userDoc = await User.findOne({ username }).populate('friends');
+      let userDoc = await User.findOne({ username });
+      if (userDoc && typeof userDoc.populate === 'function') {
+        userDoc = await userDoc.populate('friends');
+      }
       if (!userDoc) return callback({ success: false, message: 'Kullanıcı bulunamadı.' });
       const friends = userDoc.friends.map(fr => ({
         username: fr.username,
