@@ -216,21 +216,18 @@ app.post('/api/user/avatar', async (req, res) => {
 
 function cleanupUploadedFiles(files) {
   if (Array.isArray(files)) {
-    for (const f of files) {
-      try {
-        fs.unlinkSync(f.path);
-      } catch (e) {
-        // ignore
-      }
-    }
+    return Promise.all(
+      files.map(f => fs.promises.unlink(f.path).catch(() => {}))
+    );
   }
+  return Promise.resolve();
 }
 
 app.post('/api/message', (req, res) => {
   upload.array('files', 10)(req, res, async err => {
     if (err) {
       logger.error(`File upload error: ${err.message}`);
-      cleanupUploadedFiles(req.files);
+      await cleanupUploadedFiles(req.files);
       return res.status(413).json({
         error: 'file_too_large',
         message: 'Attachment exceeds 25MB limit.'
@@ -246,7 +243,7 @@ app.post('/api/message', (req, res) => {
         username,
         channelId
       });
-      cleanupUploadedFiles(req.files);
+      await cleanupUploadedFiles(req.files);
       return res.status(400).json({
         error: 'missing_params',
         message: 'userId or username, channelId and content or files are required.'
@@ -263,11 +260,11 @@ app.post('/api/message', (req, res) => {
         : await User.findOne({ username });
 
       if (!channelDoc) {
-        cleanupUploadedFiles(req.files);
+        await cleanupUploadedFiles(req.files);
         return res.status(404).json({ error: 'channel_not_found' });
       }
       if (!userDoc) {
-        cleanupUploadedFiles(req.files);
+        await cleanupUploadedFiles(req.files);
         return res.status(404).json({ error: 'user_not_found' });
       }
 
@@ -275,7 +272,7 @@ app.post('/api/message', (req, res) => {
         ? req.files.reduce((sum, f) => sum + f.size, 0)
         : 0;
       if (totalSize > 100 * 1024 * 1024) {
-        cleanupUploadedFiles(req.files);
+        await cleanupUploadedFiles(req.files);
         return res.status(413).json({
           error: 'batch_limit_exceeded',
           message: 'Combined files exceed 100MB.'
@@ -349,7 +346,7 @@ app.post('/api/message', (req, res) => {
       if (process.env.NODE_ENV !== 'production') {
         response.detail = purify.sanitize(String(e.message || ''));
       }
-      cleanupUploadedFiles(req.files);
+      await cleanupUploadedFiles(req.files);
       res.status(500).json(response);
     }
   });
