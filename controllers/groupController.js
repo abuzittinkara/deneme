@@ -4,6 +4,10 @@ const sfu = require('../sfu');
 const store = require('../utils/sharedStore');
 const GroupMember = require('../models/GroupMember');
 
+// Events emitted when notification preferences change
+const GROUP_NOTIFY_UPDATED = 'groupNotifyTypeUpdated';
+const CHANNEL_NOTIFY_UPDATED = 'channelNotifyTypeUpdated';
+
 // Timestamp representing an indefinite mute
 const INDEFINITE_TS = new Date(8640000000000000);
 
@@ -726,6 +730,58 @@ function register(io, socket, context) {
       console.error('muteChannel error:', err);
     }
   });
+
+  socket.on('setGroupNotifyType', async ({ groupId, type }) => {
+    try {
+      if (!groupId || !['all', 'mentions', 'nothing'].includes(type)) return;
+      const username = users[socket.id]?.username;
+      if (!username) return;
+      const [userDoc, groupDoc] = await Promise.all([
+        User.findOne({ username }),
+        Group.findOne({ groupId })
+      ]);
+      if (!userDoc || !groupDoc) return;
+      await GroupMember.updateOne(
+        { user: userDoc._id, group: groupDoc._id },
+        { $set: { notificationType: type } },
+        { upsert: true }
+      );
+      Object.entries(users).forEach(([sid, u]) => {
+        if (u.username === username) {
+          io.to(sid).emit(GROUP_NOTIFY_UPDATED, { groupId, type });
+        }
+      });
+    } catch (err) {
+      console.error('setGroupNotifyType error:', err);
+    }
+  });
+
+  socket.on('setChannelNotifyType', async ({ groupId, channelId, type }) => {
+    try {
+      if (!groupId || !channelId || !['all', 'mentions', 'nothing'].includes(type)) return;
+      const username = users[socket.id]?.username;
+      if (!username) return;
+      const [userDoc, groupDoc, channelDoc] = await Promise.all([
+        User.findOne({ username }),
+        Group.findOne({ groupId }),
+        Channel.findOne({ channelId })
+      ]);
+      if (!userDoc || !groupDoc || !channelDoc) return;
+      const field = `channelNotificationType.${channelId}`;
+      await GroupMember.updateOne(
+        { user: userDoc._id, group: groupDoc._id },
+        { $set: { [field]: type } },
+        { upsert: true }
+      );
+      Object.entries(users).forEach(([sid, u]) => {
+        if (u.username === username) {
+          io.to(sid).emit(CHANNEL_NOTIFY_UPDATED, { groupId, channelId, type });
+        }
+      });
+    } catch (err) {
+      console.error('setChannelNotifyType error:', err);
+    }
+  });
   // Diğer handlerlar (joinGroupByID, browseGroup, createRoom, joinRoom, leaveRoom,
   // renameGroup, deleteGroup, renameChannel, deleteChannel) buraya benzer şekilde
   // taşınabilir. Daha kısalık için özetlenmiştir.
@@ -741,5 +797,7 @@ module.exports = {
   handleLeaveGroup,
   removeUserFromAllGroupsAndRooms,
   handleDisconnect,
-  INDEFINITE_TS
+  INDEFINITE_TS,
+  GROUP_NOTIFY_UPDATED,
+  CHANNEL_NOTIFY_UPDATED
 };
