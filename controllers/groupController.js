@@ -31,7 +31,12 @@ async function loadGroupsFromDB({ Group, groups }) {
       groups[g.groupId] = { owner: ownerName, name: g.name, users: [], rooms: {} };
       store.setJSON(store.key('group', g.groupId), groups[g.groupId]);
     });
-    logger.info('loadGroupsFromDB tamam, groups:', Object.keys(groups));
+    const groupKeys = Object.keys(groups);
+    if (groupKeys.length === 0) {
+      logger.warn('No groups found in MongoDB. Channels will not be available.');
+    } else {
+      logger.info('loadGroupsFromDB tamam, groups:', groupKeys);
+    }
   } catch (err) {
     console.error('loadGroupsFromDB hata:', err);
   }
