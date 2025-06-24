@@ -81,7 +81,11 @@ async function startServer() {
     await sfu.createWorkers();
     logger.info("Mediasoup Workers hazır!");
     await groupController.loadGroupsFromDB({ Group, groups });
-    await groupController.loadChannelsFromDB({ Channel, groups });
+    const chCount = await groupController.loadChannelsFromDB({ Channel, groups });
+    const grpCount = Object.keys(groups).length;
+    const totalCh = Object.values(groups).reduce((a,g)=>a+Object.keys(g.rooms).length,0);
+    const channelsLoaded = chCount || totalCh;
+    logger.info(`Startup: groups=${grpCount}, channels=${channelsLoaded}`);
     logger.info("Uygulama başlangıç yüklemeleri tamam.");
 
     server.listen(PORT, () => {
@@ -350,6 +354,12 @@ app.post('/api/message', (req, res) => {
       res.status(500).json(response);
     }
   });
+});
+
+app.get('/debug/group-channel-count', (req, res) => {
+  const groupCount = Object.keys(groups).length;
+  const channelCount = Object.values(groups).reduce((a, g) => a + Object.keys(g.rooms).length, 0);
+  res.json({ groupCount, channelCount });
 });
 const context = { User, Group, Channel, Message, DMMessage, GroupMember, users, groups, onlineUsernames, userSessions, friendRequests, sfu, groupController, store };
 

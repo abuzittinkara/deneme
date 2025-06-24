@@ -12,6 +12,49 @@ const CHANNEL_NOTIFY_UPDATED = 'channelNotifyTypeUpdated';
 // Timestamp representing an indefinite mute
 const INDEFINITE_TS = new Date(8640000000000000);
 
+function createEmptyGroupObj(groupDoc = {}) {
+  const ownerName = groupDoc.owner && groupDoc.owner.username
+    ? groupDoc.owner.username
+    : null;
+  return {
+    owner: ownerName,
+    name: groupDoc.name || '',
+    users: [],
+    rooms: {}
+  };
+}
+
+function convertChannelDoc(ch) {
+  return {
+    name: ch.name,
+    type: ch.type,
+    users: [],
+    order: ch.order || 0
+  };
+}
+
+async function createDefaultChannel(groupDoc, { Channel, groups, store }) {
+  const channelId = uuidv4();
+  await Channel.create({
+    channelId,
+    name: 'genel',
+    type: 'text',
+    group: groupDoc._id,
+    order: 0
+  });
+  if (!groups[groupDoc.groupId]) {
+    groups[groupDoc.groupId] = createEmptyGroupObj(groupDoc);
+  }
+  groups[groupDoc.groupId].rooms[channelId] = {
+    name: 'genel',
+    type: 'text',
+    users: [],
+    order: 0
+  };
+  if (store) store.setJSON(store.key('group', groupDoc.groupId), groups[groupDoc.groupId]);
+  return channelId;
+}
+
 async function ensureUserDoc(doc) {
   if (doc && typeof doc.populate === 'function' &&
       (!Array.isArray(doc.groups) || !doc._id)) {
@@ -49,15 +92,23 @@ async function loadChannelsFromDB({ Channel, groups }) {
       channelDocs = await channelDocs.populate('group');
     }
     channelDocs.forEach(ch => {
-      if (!ch.group) return;
-      const gid = ch.group.groupId;
-      if (!groups[gid]) return;
-      groups[gid].rooms[ch.channelId] = { name: ch.name, type: ch.type, users: [], order: ch.order || 0 };
-      store.setJSON(store.key('group', gid), groups[gid]);
+      try {
+        if (!ch.group || !ch.group.groupId) return;
+        const gid = ch.group.groupId;
+        if (!groups[gid]) {
+          groups[gid] = createEmptyGroupObj(ch.group);
+        }
+        groups[gid].rooms[ch.channelId] = convertChannelDoc(ch);
+        store.setJSON(store.key('group', gid), groups[gid]);
+      } catch (e) {
+        logger.error('loadChannelsFromDB channel error: %o', e);
+      }
     });
     logger.info('loadChannelsFromDB tamam.');
+    return channelDocs.length;
   } catch (err) {
-    console.error('loadChannelsFromDB hata:', err);
+    logger.error('loadChannelsFromDB hata: %o', err);
+    return 0;
   }
 }
 
@@ -125,7 +176,7 @@ function broadcastAllChannelsData(io, users, groups, groupId) {
 }
 
 async function sendRoomsListToUser(io, socketId, context, groupId) {
-  const { groups, users, Group, User, GroupMember } = context;
+  const { groups, users, Group, User, GroupMember, Channel, store } = context;
   if (!groups[groupId]) {
     logger.warn(`sendRoomsListToUser: unknown groupId ${groupId}`);
     return;
@@ -154,6 +205,35 @@ async function sendRoomsListToUser(io, socketId, context, groupId) {
     }
   }
   const groupObj = groups[groupId];
+  if (Object.keys(groupObj.rooms).length === 0) {
+    try {
+      let gDoc = await Group.findOne({ groupId });
+      if (gDoc && typeof gDoc.populate === 'function') {
+        gDoc = await gDoc.populate('owner', 'username');
+      }
+      if (gDoc) {
+        let chDocs = await Channel.find({ group: gDoc._id }).sort({ order: 1 });
+        if (chDocs && typeof chDocs.populate === 'function') {
+          chDocs = await chDocs.populate('group');
+        }
+        chDocs.forEach(ch => {
+          groupObj.rooms[ch.channelId] = convertChannelDoc(ch);
+        });
+        if (Object.keys(groupObj.rooms).length === 0) {
+          await createDefaultChannel(gDoc, { Channel, groups, store });
+        } else if (store) {
+          store.setJSON(store.key('group', groupId), groupObj);
+        }
+      }
+    } catch (err) {
+      logger.error('sendRoomsListToUser reload error: %o', err);
+    }
+    if (Object.keys(groupObj.rooms).length === 0) {
+      logger.warn(`sendRoomsListToUser: no channels for group ${groupId}`);
+      io.to(socketId).emit('roomsList', [], { noChannels: true });
+      return;
+    }
+  }
   const roomArray = Object.entries(groupObj.rooms)
     .sort((a, b) => (a[1].order || 0) - (b[1].order || 0))
     .map(([rId, rm]) => ({
@@ -435,7 +515,7 @@ function register(io, socket, context) {
       userData.currentTextChannel = null;
       if (context.store) context.store.setJSON(context.store.key('session', socket.id), userData);
       socket.join(groupId);
-      await sendRoomsListToUser(io, socket.id, { groups, users, Group, User, GroupMember }, groupId);
+      await sendRoomsListToUser(io, socket.id, { groups, users, Group, User, GroupMember, Channel, store: context.store }, groupId);
       await sendGroupsListToUser(io, socket.id, { User, users, GroupMember });
       broadcastAllChannelsData(io, users, groups, groupId);
       broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
@@ -446,7 +526,7 @@ function register(io, socket, context) {
 
   socket.on('browseGroup', async (groupId) => {
     if (!groups[groupId]) return;
-    await sendRoomsListToUser(io, socket.id, { groups, users, Group, User, GroupMember }, groupId);
+    await sendRoomsListToUser(io, socket.id, { groups, users, Group, User, GroupMember, Channel, store: context.store }, groupId);
     broadcastAllChannelsData(io, users, groups, groupId);
     broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
   });
