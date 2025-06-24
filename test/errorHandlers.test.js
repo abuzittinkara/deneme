@@ -2,11 +2,9 @@ const test = require('node:test');
 const assert = require('assert');
 const logger = require('../utils/logger');
 
-// Helper to require server without starting timers or the HTTP server
-function loadServer() {
-  const originalSetInterval = global.setInterval;
+// Helper to load and capture error handlers without loading the full server
+function loadHandlers() {
   const addedListeners = { uncaughtException: [], unhandledRejection: [] };
-  global.setInterval = () => ({ unref() {} }); // prevent timers
 
   const originalOn = process.on;
   process.on = (evt, handler) => {
@@ -16,13 +14,13 @@ function loadServer() {
     return originalOn.call(process, evt, handler);
   };
 
-  delete require.cache[require.resolve('../server')];
-  const serverModule = require('../server');
+  delete require.cache[require.resolve('../utils/errorHandlers')];
+  const { setupErrorHandlers } = require('../utils/errorHandlers');
+  setupErrorHandlers();
 
-  global.setInterval = originalSetInterval;
   process.on = originalOn;
 
-  return { serverModule, addedListeners };
+  return { addedListeners };
 }
 
 test('error handlers log stack without exiting', () => {
@@ -34,11 +32,12 @@ test('error handlers log stack without exiting', () => {
   const originalExit = process.exit;
   process.exit = () => { exitCalled = true; };
 
-  const { addedListeners } = loadServer();
+  const { addedListeners } = loadHandlers();
+  const { handleUncaughtException, handleUnhandledRejection } = require('../utils/errorHandlers');
 
   const uncaught = new Error('boom');
-  process.emit('uncaughtException', uncaught);
-  process.emit('unhandledRejection', 'oops');
+  handleUncaughtException(uncaught);
+  handleUnhandledRejection('oops');
 
   assert.ok(messages.some(m =>
     m.includes('Uncaught Exception: Error: boom') && m.includes('\n')

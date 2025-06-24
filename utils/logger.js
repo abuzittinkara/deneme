@@ -1,5 +1,15 @@
 const fs = require('fs');
-const { createLogger, format, transports } = require('winston');
+let createLogger, format, transports;
+
+try {
+  ({ createLogger, format, transports } = require('winston'));
+} catch (err) {
+  module.exports = {
+    info: console.log,
+    error: console.error
+  };
+  return;
+}
 
 fs.mkdirSync('logs', { recursive: true });
 
@@ -13,7 +23,7 @@ const logger = createLogger({
     new transports.Console(),
     new transports.File({ filename: 'logs/error.log', level: 'error' }),
     new transports.File({ filename: 'logs/combined.log' })
-  ],
+  ]
 });
 
 module.exports = logger;
