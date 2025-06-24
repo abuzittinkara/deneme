@@ -1,7 +1,7 @@
 import * as ScreenShare from "./screenShare.js";
 import { startVolumeAnalysis, stopVolumeAnalysis } from './audioUtils.js';
 import * as Ping from './ping.js';
-import logger from '../../utils/logger.js';
+import logger from '../utils/logger.js';
 
 export let device = null;   // mediasoup-client Device
 export let deviceIsLoaded = false;

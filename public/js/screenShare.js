@@ -1,6 +1,6 @@
 // public/js/screenShare.js
 
-import logger from '../../utils/logger.js';
+import logger from '../utils/logger.js';
 
 /**
  * Bu modül, ekran paylaşımını başlatıp durdurmak için gerekli fonksiyonları sağlar.
