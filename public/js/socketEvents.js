@@ -671,6 +671,11 @@ export function initSocketEvents(socket) {
       if (el) {
         el.click();
       }
+    } else if (groupArray.length > 0) {
+      const el = groupListDiv.querySelector(`.grp-item[data-group-id="${groupArray[0].id}"]`);
+      if (el) {
+        el.click();
+      }
     }
     if (window.selectedGroup && !groupArray.some((g) => g.id === window.selectedGroup)) {
       window.selectedGroup = null;
