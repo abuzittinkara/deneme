@@ -51,10 +51,10 @@ npm start
 ```
 The application now uses an in-memory store only, so simply run `npm start`.
 
-Ensure dependencies are installed first:
+Before running the tests, install the Node packages:
 
 ```bash
-./setup.sh
+./setup.sh     # installs required Node packages
 npm test
 ```
 
