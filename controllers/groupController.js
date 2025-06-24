@@ -20,7 +20,8 @@ function createEmptyGroupObj(groupDoc = {}) {
     owner: ownerName,
     name: groupDoc.name || '',
     users: [],
-    rooms: {}
+    rooms: {},
+    categories: {}
   };
 }
 
@@ -28,8 +29,16 @@ function convertChannelDoc(ch) {
   return {
     name: ch.name,
     type: ch.type,
+    categoryId: ch.category && ch.category.categoryId ? ch.category.categoryId : null,
     users: [],
     order: ch.order || 0
+  };
+}
+
+function convertCategoryDoc(cat) {
+  return {
+    name: cat.name,
+    order: cat.order || 0
   };
 }
 
@@ -71,7 +80,7 @@ async function loadGroupsFromDB({ Group, groups }) {
     }
     groupDocs.forEach(g => {
       const ownerName = g.owner ? g.owner.username : null;
-      groups[g.groupId] = { owner: ownerName, name: g.name, users: [], rooms: {} };
+      groups[g.groupId] = { owner: ownerName, name: g.name, users: [], rooms: {}, categories: {} };
       store.setJSON(store.key('group', g.groupId), groups[g.groupId]);
     });
     const groupKeys = Object.keys(groups);
@@ -89,7 +98,7 @@ async function loadChannelsFromDB({ Channel, groups }) {
   try {
     let channelDocs = await Channel.find({}).sort({ order: 1 });
     if (channelDocs && typeof channelDocs.populate === 'function') {
-      channelDocs = await channelDocs.populate('group');
+      channelDocs = await channelDocs.populate('group').populate('category');
     }
     channelDocs.forEach(ch => {
       try {
@@ -108,6 +117,34 @@ async function loadChannelsFromDB({ Channel, groups }) {
     return channelDocs.length;
   } catch (err) {
     logger.error('loadChannelsFromDB hata: %o', err);
+    return 0;
+  }
+}
+
+async function loadCategoriesFromDB({ Category, groups }) {
+  try {
+    let categoryDocs = await Category.find({}).sort({ order: 1 });
+    if (categoryDocs && typeof categoryDocs.populate === 'function') {
+      categoryDocs = await categoryDocs.populate('group');
+    }
+    categoryDocs.forEach(cat => {
+      try {
+        if (!cat.group || !cat.group.groupId) return;
+        const gid = cat.group.groupId;
+        if (!groups[gid]) {
+          groups[gid] = createEmptyGroupObj(cat.group);
+        }
+        if (!groups[gid].categories) groups[gid].categories = {};
+        groups[gid].categories[cat.categoryId] = convertCategoryDoc(cat);
+        store.setJSON(store.key('group', gid), groups[gid]);
+      } catch (e) {
+        logger.error('loadCategoriesFromDB category error: %o', e);
+      }
+    });
+    logger.info('loadCategoriesFromDB tamam.');
+    return categoryDocs.length;
+  } catch (err) {
+    logger.error('loadCategoriesFromDB hata: %o', err);
     return 0;
   }
 }
@@ -176,7 +213,7 @@ function broadcastAllChannelsData(io, users, groups, groupId) {
 }
 
 async function sendRoomsListToUser(io, socketId, context, groupId) {
-  const { groups, users, Group, User, GroupMember, Channel, store } = context;
+  const { groups, users, Group, User, GroupMember, Channel, Category, store } = context;
   if (!groups[groupId]) {
     logger.warn(`sendRoomsListToUser: unknown groupId ${groupId}`);
     return;
@@ -214,7 +251,7 @@ async function sendRoomsListToUser(io, socketId, context, groupId) {
       if (gDoc) {
         let chDocs = await Channel.find({ group: gDoc._id }).sort({ order: 1 });
         if (chDocs && typeof chDocs.populate === 'function') {
-          chDocs = await chDocs.populate('group');
+          chDocs = await chDocs.populate('group').populate('category');
         }
         chDocs.forEach(ch => {
           groupObj.rooms[ch.channelId] = convertChannelDoc(ch);
@@ -234,6 +271,23 @@ async function sendRoomsListToUser(io, socketId, context, groupId) {
       return;
     }
   }
+  if (Object.keys(groupObj.categories).length === 0) {
+    try {
+      let gDoc = await Group.findOne({ groupId });
+      if (gDoc) {
+        let catDocs = await Category.find({ group: gDoc._id }).sort({ order: 1 });
+        if (catDocs && typeof catDocs.populate === 'function') {
+          catDocs = await catDocs.populate('group');
+        }
+        catDocs.forEach(cat => {
+          groupObj.categories[cat.categoryId] = convertCategoryDoc(cat);
+        });
+        if (store) store.setJSON(store.key('group', groupId), groupObj);
+      }
+    } catch (err) {
+      logger.error('sendRoomsListToUser category reload error: %o', err);
+    }
+  }
   const roomArray = Object.entries(groupObj.rooms)
     .sort((a, b) => (a[1].order || 0) - (b[1].order || 0))
     .map(([rId, rm]) => ({
@@ -242,7 +296,16 @@ async function sendRoomsListToUser(io, socketId, context, groupId) {
       type: rm.type,
       unreadCount: Number(channelUnreads[rId] || 0)
     }));
-  io.to(socketId).emit('roomsList', roomArray);
+  const categoriesArr = Object.entries(groupObj.categories)
+    .sort((a,b)=> (a[1].order||0) - (b[1].order||0))
+    .map(([cid, cat]) => {
+      const channels = Object.entries(groupObj.rooms)
+        .filter(([_, ch]) => ch.categoryId === cid)
+        .sort((a,b)=> (a[1].order||0) - (b[1].order||0))
+        .map(([id,ch]) => ({ id, name: ch.name, type: ch.type, unreadCount: Number(channelUnreads[id] || 0) }));
+      return { id: cid, name: cat.name, channels };
+    });
+  io.to(socketId).emit('roomsList', roomArray, { categories: categoriesArr });
 }
 
 function broadcastRoomsListToGroup(io, groups, groupId) {
@@ -256,7 +319,16 @@ function broadcastRoomsListToGroup(io, groups, groupId) {
       type: rm.type,
       unreadCount: 0
     }));
-  io.to(groupId).emit('roomsList', roomArray);
+  const categoriesArr = Object.entries(groupObj.categories)
+    .sort((a,b)=> (a[1].order||0)-(b[1].order||0))
+    .map(([cid, cat]) => {
+      const channels = Object.entries(groupObj.rooms)
+        .filter(([_, ch]) => ch.categoryId === cid)
+        .sort((a,b)=> (a[1].order||0)-(b[1].order||0))
+        .map(([id,ch]) => ({ id, name: ch.name, type: ch.type, unreadCount: 0 }));
+      return { id: cid, name: cat.name, channels };
+    });
+  io.to(groupId).emit('roomsList', roomArray, { categories: categoriesArr });
 }
 
 function cleanupWatchingRelations(io, users, userId) {
@@ -425,7 +497,7 @@ async function handleLeaveGroup(io, socket, context, groupId) {
 }
 
 function register(io, socket, context) {
-  const { users, groups, User, Group, Channel, onlineUsernames, GroupMember } = context;
+  const { users, groups, User, Group, Channel, Category, onlineUsernames, GroupMember } = context;
 
   socket.on('createGroup', async ({ groupName, channelName }) => {
     try {
@@ -449,7 +521,7 @@ function register(io, socket, context) {
       });
       userDoc.groups.push(newGroup._id);
       await userDoc.save();
-      groups[groupId] = { owner: userName, name: trimmed, users: [{ id: socket.id, username: userName }], rooms: {} };
+      groups[groupId] = { owner: userName, name: trimmed, users: [{ id: socket.id, username: userName }], rooms: {}, categories: {} };
       if (context.store) {
         context.store.setJSON(context.store.key('group', groupId), groups[groupId]);
       }
@@ -735,6 +807,112 @@ function register(io, socket, context) {
       console.error('deleteChannel error:', err);
     }
   });
+
+  socket.on('createCategory', async ({ groupId, name }) => {
+    try {
+      if (!groupId || !name) return;
+      const trimmed = name.trim();
+      const groupDoc = await Group.findOne({ groupId });
+      if (!groupDoc) return;
+      const categoryId = uuidv4();
+      const order = Object.keys(groups[groupId]?.categories || {}).length;
+      await Category.create({ categoryId, name: trimmed, group: groupDoc._id, order });
+      if (!groups[groupId]) groups[groupId] = createEmptyGroupObj(groupDoc);
+      groups[groupId].categories[categoryId] = { name: trimmed, order };
+      if (context.store) context.store.setJSON(context.store.key('group', groupId), groups[groupId]);
+      broadcastRoomsListToGroup(io, groups, groupId);
+    } catch (err) {
+      console.error('createCategory error:', err);
+    }
+  });
+
+  socket.on('renameCategory', async ({ categoryId, newName }) => {
+    try {
+      if (!categoryId || !newName) return;
+      const catDoc = await Category.findOneAndUpdate({ categoryId }, { name: newName.trim() });
+      if (catDoc && typeof catDoc.populate === 'function') {
+        await catDoc.populate('group');
+      }
+      if (!catDoc || !catDoc.group) return;
+      const gid = catDoc.group.groupId;
+      if (groups[gid] && groups[gid].categories[categoryId]) {
+        groups[gid].categories[categoryId].name = newName.trim();
+        if (context.store) context.store.setJSON(context.store.key('group', gid), groups[gid]);
+        broadcastRoomsListToGroup(io, groups, gid);
+      }
+    } catch (err) {
+      console.error('renameCategory error:', err);
+    }
+  });
+
+  socket.on('deleteCategory', async categoryId => {
+    try {
+      if (!categoryId) return;
+      const catDoc = await Category.findOne({ categoryId });
+      if (catDoc && typeof catDoc.populate === 'function') {
+        await catDoc.populate('group');
+      }
+      if (!catDoc || !catDoc.group) return;
+      const gid = catDoc.group.groupId;
+      await Category.findOneAndDelete({ categoryId });
+      if (groups[gid]) {
+        delete groups[gid].categories[categoryId];
+        Object.values(groups[gid].rooms).forEach(room => {
+          if (room.categoryId === categoryId) room.categoryId = null;
+        });
+        if (context.store) context.store.setJSON(context.store.key('group', gid), groups[gid]);
+        broadcastRoomsListToGroup(io, groups, gid);
+      }
+    } catch (err) {
+      console.error('deleteCategory error:', err);
+    }
+  });
+
+  socket.on('reorderCategory', async ({ groupId, categoryId, newIndex }) => {
+    try {
+      if (!groupId || !categoryId || typeof newIndex !== 'number') return;
+      const grp = groups[groupId];
+      if (!grp || !grp.categories[categoryId]) return;
+      const entries = Object.entries(grp.categories).sort((a,b)=>(a[1].order||0)-(b[1].order||0));
+      const oldIndex = entries.findIndex(([id])=>id===categoryId);
+      if (oldIndex === -1 || newIndex < 0 || newIndex >= entries.length) return;
+      const [moved] = entries.splice(oldIndex,1);
+      entries.splice(newIndex,0,moved);
+      for (let i=0;i<entries.length;i++) {
+        const [cid, cat] = entries[i];
+        cat.order = i;
+        await Category.findOneAndUpdate({ categoryId: cid }, { order: i });
+      }
+      grp.categories = Object.fromEntries(entries);
+      if (context.store) context.store.setJSON(context.store.key('group', groupId), grp);
+      broadcastRoomsListToGroup(io, groups, groupId);
+    } catch (err) {
+      console.error('reorderCategory error:', err);
+    }
+  });
+
+  socket.on('assignChannelCategory', async ({ groupId, channelId, categoryId }) => {
+    try {
+      if (!groupId || !channelId) return;
+      const grp = groups[groupId];
+      if (!grp || !grp.rooms[channelId]) return;
+      let catDoc = null;
+      if (categoryId) {
+        catDoc = await Category.findOne({ categoryId });
+        if (!catDoc) return;
+      }
+      if (catDoc) {
+        await Channel.findOneAndUpdate({ channelId }, { category: catDoc._id });
+      } else {
+        await Channel.findOneAndUpdate({ channelId }, { $unset: { category: '' } });
+      }
+      grp.rooms[channelId].categoryId = categoryId || null;
+      if (context.store) context.store.setJSON(context.store.key('group', groupId), grp);
+      broadcastRoomsListToGroup(io, groups, groupId);
+    } catch (err) {
+      console.error('assignChannelCategory error:', err);
+    }
+  });
   
   socket.on('markGroupRead', async groupId => {
     try {
@@ -895,6 +1073,7 @@ module.exports = {
   register,
   loadGroupsFromDB,
   loadChannelsFromDB,
+  loadCategoriesFromDB,
   sendGroupsListToUser,
   broadcastAllChannelsData,
   broadcastGroupUsers,
