@@ -11,8 +11,11 @@ async function emitChannelUnread(io, groupId, channelId, Group, userSessions, Gr
       const inGroup = sid && users[sid]?.currentGroup === groupId;
       const inChannel = sid && users[sid]?.currentTextChannel === channelId;
 
-      const gm = await GroupMember.findOne({ user: u._id, group: groupDoc._id })
-        .select('muteUntil channelMuteUntil notificationType channelNotificationType');
+      let gmQuery = GroupMember.findOne({ user: u._id, group: groupDoc._id });
+      if (gmQuery && typeof gmQuery.select === 'function') {
+        gmQuery = gmQuery.select('muteUntil channelMuteUntil notificationType channelNotificationType');
+      }
+      const gm = await gmQuery;
       const now = Date.now();
       const groupMuteUntil = gm?.muteUntil instanceof Date ? gm.muteUntil.getTime() : 0;
       let channelMuteUntil;

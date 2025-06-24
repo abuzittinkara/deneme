@@ -13,8 +13,11 @@ async function collectNotifyInfo(username, { User, Group, GroupMember }) {
     }
     if (!userDoc) return result;
     await Promise.all(userDoc.groups.map(async g => {
-      const gm = await GroupMember.findOne({ user: userDoc._id, group: g._id })
-        .select('notificationType channelNotificationType');
+      let gmQuery = GroupMember.findOne({ user: userDoc._id, group: g._id });
+      if (gmQuery && typeof gmQuery.select === 'function') {
+        gmQuery = gmQuery.select('notificationType channelNotificationType');
+      }
+      const gm = await gmQuery;
       if (!gm) return;
       const channelEntries = getEntries(gm.channelNotificationType)
         .filter(([, val]) => typeof val === 'string');

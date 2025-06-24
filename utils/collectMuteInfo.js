@@ -14,8 +14,11 @@ async function collectMuteInfo(username, { User, Group, GroupMember }) {
     if (!userDoc) return result;
     const now = Date.now();
     await Promise.all(userDoc.groups.map(async g => {
-      const gm = await GroupMember.findOne({ user: userDoc._id, group: g._id })
-        .select('muteUntil channelMuteUntil');
+      let gmQuery = GroupMember.findOne({ user: userDoc._id, group: g._id });
+      if (gmQuery && typeof gmQuery.select === 'function') {
+        gmQuery = gmQuery.select('muteUntil channelMuteUntil');
+      }
+      const gm = await gmQuery;
       if (!gm) return;
       const groupMuteTs = gm.muteUntil instanceof Date ? gm.muteUntil.getTime() : 0;
       const channelMuteEntries = getEntries(gm.channelMuteUntil)
