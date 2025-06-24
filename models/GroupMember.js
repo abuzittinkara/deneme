@@ -29,6 +29,16 @@ const GroupMemberSchema = new mongoose.Schema({
     type: Map,
     of: { type: String, enum: ['all', 'mentions', 'nothing'] },
     default: {}
+  },
+  categoryOrder: {
+    type: Map,
+    of: Number,
+    default: {}
+  },
+  collapsedCategories: {
+    type: Map,
+    of: Boolean,
+    default: {}
   }
 });
 

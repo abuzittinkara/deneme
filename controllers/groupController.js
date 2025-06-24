@@ -8,6 +8,8 @@ const logger = require('../utils/logger');
 // Events emitted when notification preferences change
 const GROUP_NOTIFY_UPDATED = 'groupNotifyTypeUpdated';
 const CHANNEL_NOTIFY_UPDATED = 'channelNotifyTypeUpdated';
+const CATEGORY_COLLAPSE_UPDATED = 'categoryCollapseUpdated';
+const CATEGORY_ORDER_UPDATED = 'categoryOrderUpdated';
 
 // Timestamp representing an indefinite mute
 const INDEFINITE_TS = new Date(8640000000000000);
@@ -884,6 +886,26 @@ function register(io, socket, context) {
         await Category.findOneAndUpdate({ categoryId: cid }, { order: i });
       }
       grp.categories = Object.fromEntries(entries);
+      const orderMap = Object.fromEntries(entries.map(([cid], idx) => [cid, idx]));
+      const username = users[socket.id]?.username;
+      if (username) {
+        const [userDoc, groupDoc] = await Promise.all([
+          User.findOne({ username }),
+          Group.findOne({ groupId })
+        ]);
+        if (userDoc && groupDoc) {
+          await GroupMember.updateOne(
+            { user: userDoc._id, group: groupDoc._id },
+            { $set: { categoryOrder: orderMap } },
+            { upsert: true }
+          );
+          Object.entries(users).forEach(([sid, u]) => {
+            if (u.username === username) {
+              io.to(sid).emit(CATEGORY_ORDER_UPDATED, { groupId, order: orderMap });
+            }
+          });
+        }
+      }
       if (context.store) context.store.setJSON(context.store.key('group', groupId), grp);
       broadcastRoomsListToGroup(io, groups, groupId);
     } catch (err) {
@@ -911,6 +933,32 @@ function register(io, socket, context) {
       broadcastRoomsListToGroup(io, groups, groupId);
     } catch (err) {
       console.error('assignChannelCategory error:', err);
+    }
+  });
+
+  socket.on('setCategoryCollapsed', async ({ groupId, categoryId, collapsed }) => {
+    try {
+      if (!groupId || !categoryId || typeof collapsed !== 'boolean') return;
+      const username = users[socket.id]?.username;
+      if (!username) return;
+      const [userDoc, groupDoc] = await Promise.all([
+        User.findOne({ username }),
+        Group.findOne({ groupId })
+      ]);
+      if (!userDoc || !groupDoc) return;
+      const field = `collapsedCategories.${categoryId}`;
+      await GroupMember.updateOne(
+        { user: userDoc._id, group: groupDoc._id },
+        { $set: { [field]: collapsed } },
+        { upsert: true }
+      );
+      Object.entries(users).forEach(([sid, u]) => {
+        if (u.username === username) {
+          io.to(sid).emit(CATEGORY_COLLAPSE_UPDATED, { groupId, categoryId, collapsed });
+        }
+      });
+    } catch (err) {
+      console.error('setCategoryCollapsed error:', err);
     }
   });
   
@@ -1082,5 +1130,7 @@ module.exports = {
   handleDisconnect,
   INDEFINITE_TS,
   GROUP_NOTIFY_UPDATED,
-  CHANNEL_NOTIFY_UPDATED
+  CHANNEL_NOTIFY_UPDATED,
+  CATEGORY_COLLAPSE_UPDATED,
+  CATEGORY_ORDER_UPDATED
 };
