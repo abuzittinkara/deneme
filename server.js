@@ -174,6 +174,8 @@ app.patch('/api/user/me', async (req, res) => {
       user.username = newName;
     } else if (field === 'displayName') {
       user.name = value;
+    } else if (field === 'phone' && (value === '' || value === null || value === undefined)) {
+      user.phone = undefined;
     } else {
       user[field] = value;
     }

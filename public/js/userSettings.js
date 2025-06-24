@@ -432,7 +432,12 @@ function initAccountSection() {
   if (confirmRemovePhone) confirmRemovePhone.addEventListener('click', () => {
     const phoneVal = document.querySelector('#phoneRow .info-value');
     if (phoneVal) phoneVal.textContent = '—';
-    // TODO: remove phone on server
+    const uname = localStorage.getItem('username');
+    fetch(`/api/user/me?username=${encodeURIComponent(uname)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ field: 'phone', value: '' })
+    }).catch(() => {});
     closeModal('removePhoneConfirmModal');
   });
   const editProfileBtn = document.querySelector('.edit-profile-btn');
