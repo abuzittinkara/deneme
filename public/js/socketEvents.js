@@ -588,6 +588,10 @@ export function initSocketEvents(socket) {
       registerErrorMessage.style.display = 'block';
     }
   });
+  socket.on('errorMessage', (msg) => {
+    if (typeof showToast === 'function') showToast(msg);
+    else alert(msg);
+  });
   socket.on('groupUsers', (data) => {
     UserList.updateUserList(data);
   });
