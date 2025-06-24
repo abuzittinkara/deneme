@@ -63,6 +63,11 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     voiceChannel,
     modalCreateRoomBtn,
     modalCloseRoomBtn,
+    createCategoryBtn,
+    categoryModal,
+    modalCategoryName,
+    modalCreateCategoryBtn,
+    modalCloseCategoryBtn,
   } = window;
 
   Mentions.initMentions(socket);
@@ -161,11 +166,30 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     });
   }
 
+  if (createCategoryBtn) {
+    createCategoryBtn.addEventListener('click', () => {
+      if (categoryModal) {
+        categoryModal.style.display = 'flex';
+        categoryModal.classList.add('active');
+      }
+      if (groupDropdownMenu) groupDropdownMenu.style.display = 'none';
+    });
+  }
+
   if (modalCloseRoomBtn) {
     modalCloseRoomBtn.addEventListener('click', () => {
       if (roomModal) {
         roomModal.style.display = 'none';
         roomModal.classList.remove('active');
+      }
+    });
+  }
+
+  if (modalCloseCategoryBtn) {
+    modalCloseCategoryBtn.addEventListener('click', () => {
+      if (categoryModal) {
+        categoryModal.style.display = 'none';
+        categoryModal.classList.remove('active');
       }
     });
   }
@@ -180,6 +204,19 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
       if (roomModal) {
         roomModal.style.display = 'none';
         roomModal.classList.remove('active');
+      }
+    });
+  }
+
+  if (modalCreateCategoryBtn) {
+    modalCreateCategoryBtn.addEventListener('click', () => {
+      const name = modalCategoryName ? modalCategoryName.value.trim() : '';
+      if (!name) return;
+      socket.emit('createCategory', { groupId: window.selectedGroup, name });
+      modalCategoryName.value = '';
+      if (categoryModal) {
+        categoryModal.style.display = 'none';
+        categoryModal.classList.remove('active');
       }
     });
   }

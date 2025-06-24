@@ -304,6 +304,11 @@ const textChannel = document.getElementById('textChannel');
 const voiceChannel = document.getElementById('voiceChannel');
 const modalCreateRoomBtn = document.getElementById('modalCreateRoomBtn');
 const modalCloseRoomBtn = document.getElementById('modalCloseRoomBtn');
+const createCategoryBtn = document.getElementById('createCategoryBtn');
+const categoryModal = document.getElementById('categoryModal');
+const modalCategoryName = document.getElementById('modalCategoryName');
+const modalCreateCategoryBtn = document.getElementById('modalCreateCategoryBtn');
+const modalCloseCategoryBtn = document.getElementById('modalCloseCategoryBtn');
 Object.assign(window, {
   loginScreen,
   registerScreen,
@@ -380,7 +385,12 @@ Object.assign(window, {
   textChannel,
   voiceChannel,
   modalCreateRoomBtn,
-  modalCloseRoomBtn
+  modalCloseRoomBtn,
+  createCategoryBtn,
+  categoryModal,
+  modalCategoryName,
+  modalCreateCategoryBtn,
+  modalCloseCategoryBtn
 });
 window.WebRTC = WebRTC;
 window.joinRoom = WebRTC.joinRoom;
