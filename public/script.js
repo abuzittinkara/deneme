@@ -126,8 +126,10 @@ window.loadAvatar = async function(username) {
 };
 
 // Stores local notification preferences
-window.groupNotificationType = {};
-window.channelNotificationType = {};
+window.groupNotifyType = {};
+window.channelNotifyType = {};
+window.openNotifyTarget = null;
+window.openNotifyType = null;
 
 /* Formatlama fonksiyonları artık TextChannel modülünden sağlanıyor */
 
@@ -595,6 +597,8 @@ window.showMuteSubMenu = showMuteSubMenu;
 function showNotificationSubMenu(target, type) {
   const existing = document.getElementById('notifySubMenu');
   if (existing) existing.remove();
+  window.openNotifyTarget = target;
+  window.openNotifyType = type;
   const subMenu = document.createElement('div');
   subMenu.id = 'notifySubMenu';
   subMenu.className = 'context-menu';
@@ -614,10 +618,10 @@ function showNotificationSubMenu(target, type) {
   const gid = type === 'group' ? target.dataset.groupId : window.selectedGroup;
   const cid = type === 'channel' ? target.dataset.channelId : null;
   let selected = 'all';
-  if (type === 'channel' && window.channelNotificationType[gid]) {
-    selected = window.channelNotificationType[gid][cid] || selected;
+  if (type === 'channel' && window.channelNotifyType[gid]) {
+    selected = window.channelNotifyType[gid][cid] || selected;
   } else if (type === 'group') {
-    selected = window.groupNotificationType[gid] || selected;
+    selected = window.groupNotifyType[gid] || selected;
   }
 
   options.forEach(o => {
@@ -632,16 +636,18 @@ function showNotificationSubMenu(target, type) {
     }
     item.addEventListener('click', () => {
       if (type === 'channel') {
-        socket.emit('setChannelNotification', { groupId: gid, channelId: cid, notification: o.value });
-        window.channelNotificationType[gid] = window.channelNotificationType[gid] || {};
-        window.channelNotificationType[gid][cid] = o.value;
+        socket.emit('setChannelNotifyType', { groupId: gid, channelId: cid, type: o.value });
+        window.channelNotifyType[gid] = window.channelNotifyType[gid] || {};
+        window.channelNotifyType[gid][cid] = o.value;
       } else {
-        socket.emit('setGroupNotification', { groupId: gid, notification: o.value });
-        window.groupNotificationType[gid] = o.value;
+        socket.emit('setGroupNotifyType', { groupId: gid, type: o.value });
+        window.groupNotifyType[gid] = o.value;
       }
       subMenu.remove();
       const ctx = document.getElementById(type === 'channel' ? 'channelContextMenu' : 'groupContextMenu');
       if (ctx) ctx.remove();
+      window.openNotifyTarget = null;
+      window.openNotifyType = null;
     });
     subMenu.appendChild(item);
   });
@@ -662,6 +668,8 @@ function showNotificationSubMenu(target, type) {
   document.addEventListener('click', function handler() {
     const m = document.getElementById('notifySubMenu');
     if (m) m.remove();
+    window.openNotifyTarget = null;
+    window.openNotifyType = null;
     document.removeEventListener('click', handler);
   });
 }

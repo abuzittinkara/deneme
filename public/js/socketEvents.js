@@ -943,6 +943,26 @@ export function initSocketEvents(socket) {
     });
   });
 
+  socket.on('groupNotifyTypeUpdated', ({ groupId, type }) => {
+    if (!groupId) return;
+    window.groupNotifyType[groupId] = type;
+    if (window.openNotifyTarget && window.openNotifyType === 'group' &&
+        window.openNotifyTarget.dataset.groupId === groupId) {
+      window.showNotificationSubMenu(window.openNotifyTarget, 'group');
+    }
+  });
+
+  socket.on('channelNotifyTypeUpdated', ({ groupId, channelId, type }) => {
+    if (!groupId || !channelId) return;
+    window.channelNotifyType[groupId] = window.channelNotifyType[groupId] || {};
+    window.channelNotifyType[groupId][channelId] = type;
+    if (window.openNotifyTarget && window.openNotifyType === 'channel' &&
+        window.openNotifyTarget.dataset.channelId === channelId &&
+        window.openNotifyTarget.dataset.groupId === groupId) {
+      window.showNotificationSubMenu(window.openNotifyTarget, 'channel');
+    }
+  });
+
   socket.on('groupMuted', ({ groupId, muteUntil }) => {
     if (!groupId) return;
     if (muteUntil) {
