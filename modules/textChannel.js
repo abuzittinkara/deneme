@@ -82,7 +82,7 @@ module.exports = function registerTextChannelEvents(io, socket, { Channel, Messa
       // Gönderici hariç tüm kullanıcılara ve aynı zamanda göndericiye de mesajı gönderiyoruz.
       socket.broadcast.to(roomId).emit('newTextMessage', messageData);
       socket.emit('newTextMessage', messageData);
-      await emitChannelUnread(io, groupId, roomId, Group, userSessions, GroupMember, users);
+      await emitChannelUnread(io, groupId, roomId, Group, userSessions, GroupMember, users, mentions);
       await Promise.all(
         mentions.map(u =>
           emitMentionUnread(io, groupId, roomId, u, Group, userSessions, GroupMember, users)
