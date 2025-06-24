@@ -2,6 +2,7 @@ import * as UserList from './userList.js';
 import * as WebRTC from './webrtc.js';
 import { startVolumeAnalysis } from './audioUtils.js';
 import * as Ping from './ping.js';
+import logger from '../../utils/logger.js';
 
 // Holds latest channel data so that we can re-render user lists when needed
 window.latestChannelsData = null;
@@ -547,10 +548,10 @@ export function initSocketEvents(socket) {
     }
   }
   socket.on('connect', () => {
-    console.log('Socket connected =>', socket.id);
+    logger.info('Socket connected => ' + socket.id);
   });
   socket.on('disconnect', () => {
-    console.log('Socket disconnect');
+    logger.warn('Socket disconnect');
   });
   socket.on('loginResult', (data) => {
     if (data.success) {

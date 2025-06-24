@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const sfu = require('../sfu');
 const store = require('../utils/sharedStore');
 const GroupMember = require('../models/GroupMember');
+const logger = require('../utils/logger');
 
 // Events emitted when notification preferences change
 const GROUP_NOTIFY_UPDATED = 'groupNotifyTypeUpdated';
@@ -30,7 +31,7 @@ async function loadGroupsFromDB({ Group, groups }) {
       groups[g.groupId] = { owner: ownerName, name: g.name, users: [], rooms: {} };
       store.setJSON(store.key('group', g.groupId), groups[g.groupId]);
     });
-    console.log('loadGroupsFromDB tamam, groups:', Object.keys(groups));
+    logger.info('loadGroupsFromDB tamam, groups:', Object.keys(groups));
   } catch (err) {
     console.error('loadGroupsFromDB hata:', err);
   }
@@ -49,7 +50,7 @@ async function loadChannelsFromDB({ Channel, groups }) {
       groups[gid].rooms[ch.channelId] = { name: ch.name, type: ch.type, users: [], order: ch.order || 0 };
       store.setJSON(store.key('group', gid), groups[gid]);
     });
-    console.log('loadChannelsFromDB tamam.');
+    logger.info('loadChannelsFromDB tamam.');
   } catch (err) {
     console.error('loadChannelsFromDB hata:', err);
   }

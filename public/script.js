@@ -55,6 +55,7 @@ function clearScreenShareUI() {
 }
 window.clearScreenShareUI = clearScreenShareUI;
 
+import logger from '../utils/logger.js';
 import * as TextChannel from './js/textChannel.js';
 import * as ScreenShare from './js/screenShare.js';
 import { initTypingIndicator } from './js/typingIndicator.js';
@@ -509,7 +510,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click', function(e) {
     if(e.target && e.target.classList.contains('dm-filter-item')) {
       const filter = e.target.getAttribute('data-filter');
-      console.log("DM Filter clicked:", filter);
+      logger.info('DM Filter clicked: ' + filter);
     }
   });
 });
