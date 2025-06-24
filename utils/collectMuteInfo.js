@@ -18,7 +18,10 @@ async function collectMuteInfo(username, { User, Group, GroupMember }) {
       if (gmQuery && typeof gmQuery.select === 'function') {
         gmQuery = gmQuery.select('muteUntil channelMuteUntil');
       }
-      const gm = await gmQuery;
+      let gm = await gmQuery;
+      if (gm && typeof gm.select === 'function') {
+        gm = gm.select('muteUntil channelMuteUntil');
+      }
       if (!gm) return;
       const groupMuteTs = gm.muteUntil instanceof Date ? gm.muteUntil.getTime() : 0;
       const channelMuteEntries = getEntries(gm.channelMuteUntil)

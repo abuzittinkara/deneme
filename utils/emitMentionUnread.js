@@ -14,7 +14,10 @@ async function emitMentionUnread(io, groupId, channelId, username, Group, userSe
     if (gmQuery && typeof gmQuery.select === 'function') {
       gmQuery = gmQuery.select('muteUntil channelMuteUntil mentionUnreads');
     }
-    const gm = await gmQuery;
+    let gm = await gmQuery;
+    if (gm && typeof gm.select === 'function') {
+      gm = gm.select('muteUntil channelMuteUntil mentionUnreads');
+    }
     const now = Date.now();
     const groupMuteUntil = gm?.muteUntil instanceof Date ? gm.muteUntil.getTime() : 0;
     let channelMuteUntil;

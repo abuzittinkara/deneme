@@ -17,7 +17,10 @@ async function collectNotifyInfo(username, { User, Group, GroupMember }) {
       if (gmQuery && typeof gmQuery.select === 'function') {
         gmQuery = gmQuery.select('notificationType channelNotificationType');
       }
-      const gm = await gmQuery;
+      let gm = await gmQuery;
+      if (gm && typeof gm.select === 'function') {
+        gm = gm.select('notificationType channelNotificationType');
+      }
       if (!gm) return;
       const channelEntries = getEntries(gm.channelNotificationType)
         .filter(([, val]) => typeof val === 'string');
