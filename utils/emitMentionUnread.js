@@ -21,7 +21,7 @@ async function emitMentionUnread(io, groupId, channelId, username, Group, userSe
     }
     const channelMuteTs = channelMuteUntil instanceof Date ? channelMuteUntil.getTime() : 0;
     const muteActive = groupMuteUntil > now || channelMuteTs > now;
-    if (muteActive || inChannel) return;
+    if (inChannel) return;
 
     await GroupMember.updateOne(
       { user: target._id, group: groupDoc._id },
