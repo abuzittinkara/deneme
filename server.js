@@ -420,11 +420,13 @@ app.use((err, req, res, next) => {
 });
 
 process.on('uncaughtException', (err) => {
-  logger.error(`Uncaught Exception: ${err.message}`);
+  const msg = err && err.stack ? err.stack : err.message || err;
+  logger.error(`Uncaught Exception: ${msg}`);
 });
 
 process.on('unhandledRejection', (reason) => {
-  logger.error(`Unhandled Rejection: ${reason}`);
+  const msg = reason && reason.stack ? reason.stack : reason;
+  logger.error(`Unhandled Rejection: ${msg}`);
 });
 
 if (process.env.NODE_ENV !== 'test') {

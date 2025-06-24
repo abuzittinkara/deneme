@@ -25,7 +25,7 @@ function loadServer() {
   return { serverModule, addedListeners };
 }
 
-test('error handlers log without exiting', () => {
+test('error handlers log stack without exiting', () => {
   process.env.NODE_ENV = 'test';
   const messages = [];
   const originalError = logger.error;
@@ -40,7 +40,9 @@ test('error handlers log without exiting', () => {
   process.emit('uncaughtException', uncaught);
   process.emit('unhandledRejection', 'oops');
 
-  assert.ok(messages.some(m => m.includes('Uncaught Exception: boom')));
+  assert.ok(messages.some(m =>
+    m.includes('Uncaught Exception: Error: boom') && m.includes('\n')
+  ));
   assert.ok(messages.some(m => m.includes('Unhandled Rejection: oops')));
   assert.strictEqual(exitCalled, false);
 
