@@ -64,7 +64,10 @@ async function sendGroupsListToUser(io, socketId, { User, users, GroupMember }) 
     if (!userDoc) return;
     const groupList = await Promise.all(
       userDoc.groups.map(async g => {
-        const gm = await GroupMember.findOne({ user: userDoc._id, group: g._id });
+        let gm = null;
+        if (GroupMember && typeof GroupMember.findOne === 'function') {
+          gm = await GroupMember.findOne({ user: userDoc._id, group: g._id });
+        }
         let unread = 0;
         if (gm && gm.channelUnreads) {
           const values =
