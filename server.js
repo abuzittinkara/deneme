@@ -418,15 +418,9 @@ app.use((err, req, res, next) => {
   });
 });
 
-process.on('uncaughtException', (err) => {
-  const msg = err && err.stack ? err.stack : err.message || err;
-  logger.error(`Uncaught Exception: ${msg}`);
-});
 
-process.on('unhandledRejection', (reason) => {
-  const msg = reason && reason.stack ? reason.stack : reason;
-  logger.error(`Unhandled Rejection: ${msg}`);
-});
+const { setupErrorHandlers } = require('./utils/errorHandlers');
+setupErrorHandlers();
 
 if (process.env.NODE_ENV !== 'test') {
   startServer();
