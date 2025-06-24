@@ -12,6 +12,17 @@ window.groupMuteUntil = {};
 window.channelMuteUntil = {};
 window.mentionUnread = {};
 
+const CATEGORY_COLLAPSE_KEY = 'collapsedCategories';
+let collapsedCategories = {};
+try {
+  collapsedCategories = JSON.parse(localStorage.getItem(CATEGORY_COLLAPSE_KEY)) || {};
+} catch (e) {
+  collapsedCategories = {};
+}
+function saveCollapsedCategories() {
+  try { localStorage.setItem(CATEGORY_COLLAPSE_KEY, JSON.stringify(collapsedCategories)); } catch (e) {}
+}
+
 function simulateClick(el) {
   if (el) {
     el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
@@ -111,7 +122,7 @@ function attachChannelDragHandlers(el) {
   });
 }
 
-function setupChannelDragContainer(socket, container) {
+function setupChannelDragContainer(socket, container, rootContainer = container) {
   container.addEventListener('dragover', (e) => {
     if (!draggedChannelEl) return;
     e.preventDefault();
@@ -122,19 +133,26 @@ function setupChannelDragContainer(socket, container) {
     }
     const rect = target.getBoundingClientRect();
     const next = e.clientY - rect.top > rect.height / 2;
-    container.insertBefore(channelPlaceholder, next ? target.nextSibling : target);
+    target.parentNode.insertBefore(channelPlaceholder, next ? target.nextSibling : target);
     updateChannelPreview(e.clientX, e.clientY);
   });
   container.addEventListener('drop', (e) => {
     if (!draggedChannelEl || !channelPlaceholder) return;
     e.preventDefault();
-    container.insertBefore(draggedChannelEl, channelPlaceholder);
-    const items = Array.from(container.querySelectorAll('.channel-item'));
+    channelPlaceholder.parentNode.insertBefore(draggedChannelEl, channelPlaceholder);
+    const items = Array.from(rootContainer.querySelectorAll('.channel-item'));
     const newIndex = items.indexOf(draggedChannelEl);
     hideChannelPreview();
     channelPlaceholder.remove();
     channelPlaceholder = null;
     draggedChannelEl.classList.remove('dragging');
+    const catRow = draggedChannelEl.parentNode.closest('.category-row');
+    const categoryId = catRow ? catRow.dataset.categoryId : null;
+    socket.emit('assignChannelCategory', {
+      groupId: window.selectedGroup,
+      channelId: draggedChannelEl.dataset.roomId,
+      categoryId
+    });
     socket.emit('reorderChannel', {
       groupId: window.selectedGroup,
       channelId: draggedChannelEl.dataset.roomId,
@@ -1210,6 +1228,36 @@ export function initSocketEvents(socket) {
     return roomItem;
   }
 
+  function buildCategoryRow(catObj) {
+    const row = document.createElement('div');
+    row.className = 'category-row';
+    row.dataset.categoryId = catObj.id;
+    const header = document.createElement('div');
+    header.className = 'category-header';
+    const icon = document.createElement('span');
+    icon.classList.add('material-icons', 'collapse-icon');
+    const collapsed = collapsedCategories[catObj.id];
+    icon.textContent = collapsed ? 'chevron_right' : 'expand_more';
+    const nameEl = document.createElement('span');
+    nameEl.className = 'category-name';
+    nameEl.textContent = catObj.name;
+    header.appendChild(icon);
+    header.appendChild(nameEl);
+    row.appendChild(header);
+    const channelContainer = document.createElement('div');
+    channelContainer.className = 'category-channels';
+    if (collapsed) channelContainer.style.display = 'none';
+    row.appendChild(channelContainer);
+    header.addEventListener('click', () => {
+      const isCollapsed = channelContainer.style.display === 'none';
+      channelContainer.style.display = isCollapsed ? 'flex' : 'none';
+      icon.textContent = isCollapsed ? 'expand_more' : 'chevron_right';
+      collapsedCategories[catObj.id] = !isCollapsed;
+      saveCollapsedCategories();
+    });
+    return row;
+  }
+
   socket.on('channelRenamed', ({ channelId, newName }) => {
     const item = roomListDiv.querySelector(`.channel-item[data-room-id="${channelId}"]`);
     if (item) {
@@ -1230,11 +1278,30 @@ export function initSocketEvents(socket) {
     const prevTextChannel = window.currentTextChannel;
     roomListDiv.innerHTML = '';
     window.channelUnreadCounts[window.selectedGroup] = {};
+
+    const categories = opts.categories || [];
+    const chInCats = new Set();
+    categories.forEach(cat => {
+      const row = buildCategoryRow(cat);
+      roomListDiv.appendChild(row);
+      const container = row.querySelector('.category-channels');
+      cat.channels.forEach(ch => {
+        const item = buildChannelItem(ch);
+        container.appendChild(item);
+        attachChannelDragHandlers(item);
+        chInCats.add(ch.id);
+      });
+      setupChannelDragContainer(socket, container, roomListDiv);
+    });
+
     roomsArray.forEach((roomObj) => {
+      if (chInCats.has(roomObj.id)) return;
       const roomItem = buildChannelItem(roomObj);
       roomListDiv.appendChild(roomItem);
       attachChannelDragHandlers(roomItem);
     });
+
+    setupChannelDragContainer(socket, roomListDiv, roomListDiv);
     
     if (prevTextChannel && roomsArray.some((r) => r.id === prevTextChannel)) {
       const el = roomListDiv.querySelector(`.channel-item[data-room-id="${prevTextChannel}"]`);
