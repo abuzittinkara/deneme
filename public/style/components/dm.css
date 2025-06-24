@@ -50,6 +50,9 @@
 }
 
 #notifySubMenu .context-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   height: 15px; /* Bildirim alt menüsü için de sabit yükseklik */
   line-height: 15px;
 }

@@ -125,6 +125,10 @@ window.loadAvatar = async function(username) {
   return window.userAvatars[username];
 };
 
+// Stores local notification preferences
+window.groupNotificationType = {};
+window.channelNotificationType = {};
+
 /* Formatlama fonksiyonları artık TextChannel modülünden sağlanıyor */
 
 const loginScreen = document.getElementById('loginScreen');
@@ -607,12 +611,34 @@ function showNotificationSubMenu(target, type) {
     { label: 'Hiçbir şey', value: 'nothing' }
   ];
 
+  const gid = type === 'group' ? target.dataset.groupId : window.selectedGroup;
+  const cid = type === 'channel' ? target.dataset.channelId : null;
+  let selected = 'all';
+  if (type === 'channel' && window.channelNotificationType[gid]) {
+    selected = window.channelNotificationType[gid][cid] || selected;
+  } else if (type === 'group') {
+    selected = window.groupNotificationType[gid] || selected;
+  }
+
   options.forEach(o => {
     const item = document.createElement('div');
     item.className = 'context-menu-item';
     item.textContent = o.label;
+    if (o.value === selected) {
+      const check = document.createElement('span');
+      check.classList.add('material-icons');
+      check.textContent = 'check';
+      item.appendChild(check);
+    }
     item.addEventListener('click', () => {
-      console.log('Notification type selected:', o.value);
+      if (type === 'channel') {
+        socket.emit('setChannelNotification', { groupId: gid, channelId: cid, notification: o.value });
+        window.channelNotificationType[gid] = window.channelNotificationType[gid] || {};
+        window.channelNotificationType[gid][cid] = o.value;
+      } else {
+        socket.emit('setGroupNotification', { groupId: gid, notification: o.value });
+        window.groupNotificationType[gid] = o.value;
+      }
       subMenu.remove();
       const ctx = document.getElementById(type === 'channel' ? 'channelContextMenu' : 'groupContextMenu');
       if (ctx) ctx.remove();
