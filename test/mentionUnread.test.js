@@ -51,10 +51,11 @@ test('emitMentionUnread ignores when viewing channel', async () => {
   assert.strictEqual(ctx.GroupMember.updates.length, 0);
 });
 
-test('emitMentionUnread ignores when muted', async () => {
+test('emitMentionUnread still emits when muted', async () => {
   const muteUntil = new Date(Date.now() + 1000);
   const ctx = createContext({ currentGroup: 'g1', currentChannel: 'other', muteUntil });
   await emitMentionUnread(ctx.io, 'g1', 'ch1', 'u2', ctx.Group, ctx.userSessions, ctx.GroupMember, ctx.users);
-  assert.strictEqual(ctx.io.emitted.length, 0);
-  assert.strictEqual(ctx.GroupMember.updates.length, 0);
+  assert.strictEqual(ctx.io.emitted.length, 1);
+  assert.strictEqual(ctx.io.emitted[0].ev, 'mentionUnread');
+  assert.strictEqual(ctx.GroupMember.updates[0].$inc['mentionUnreads.ch1'], 1);
 });
