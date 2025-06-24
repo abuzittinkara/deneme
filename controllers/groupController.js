@@ -388,7 +388,10 @@ function register(io, socket, context) {
 
   socket.on('joinGroup', async (groupId) => {
     try {
-      if (!groups[groupId]) return;
+      if (!groups[groupId]) {
+        socket.emit('errorMessage', 'Group not found');
+        return;
+      }
       if (users[socket.id].currentGroup === groupId) return;
 
       removeUserFromAllGroupsAndRooms(io, socket, users, groups, context.store);
