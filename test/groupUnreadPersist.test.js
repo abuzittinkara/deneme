@@ -51,10 +51,9 @@ test('group unread dot persists until channel read', async () => {
 
   window.textMessages.clientHeight = 100;
   window.textMessages.scrollHeight = 100;
-  window.textMessages.scrollTop = 0;
-  window.textMessages.dispatchEvent(new window.Event('scroll', { bubbles: true }));
+  socket.emit('textHistory', []);
 
-  assert.strictEqual(emitted.length, 1, 'markChannelRead emitted after scroll');
+  assert.strictEqual(emitted.length, 1, 'markChannelRead emitted after history');
   socket.emit('channelRead', { groupId: 'g1', channelId: 'c1' });
   const dotAfterRead = groupItem.querySelector('.unread-dot');
   assert.ok(!dotAfterRead, 'dot removed after read');
