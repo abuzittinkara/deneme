@@ -496,6 +496,7 @@ function initTextChannelEvents(socket, container) {
 
   socket.on('textHistory', (messages) => {
     renderTextMessages(messages, container);
+    markReadIfAtBottom();
   });
 
   socket.on('newTextMessage', (data) => {
