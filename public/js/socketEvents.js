@@ -12,6 +12,12 @@ window.groupMuteUntil = {};
 window.channelMuteUntil = {};
 window.mentionUnread = {};
 
+function simulateClick(el) {
+  if (el) {
+    el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  }
+}
+
 // --- Drag and Drop Helpers ---
 let dragPreviewEl = null;
 function showDragPreview(username) {
@@ -672,14 +678,10 @@ export function initSocketEvents(socket) {
     })();
     if (storedGroup) {
       const el = groupListDiv.querySelector(`.grp-item[data-group-id="${storedGroup}"]`);
-      if (el) {
-        el.click();
-      }
+      simulateClick(el);
     } else if (groupArray.length > 0) {
       const el = groupListDiv.querySelector(`.grp-item[data-group-id="${groupArray[0].id}"]`);
-      if (el) {
-        el.click();
-      }
+      simulateClick(el);
     }
     if (window.selectedGroup && !groupArray.some((g) => g.id === window.selectedGroup)) {
       window.selectedGroup = null;
@@ -1224,7 +1226,7 @@ export function initSocketEvents(socket) {
       item.remove();
     }
   });
-  socket.on('roomsList', (roomsArray) => {
+  socket.on('roomsList', (roomsArray, opts = {}) => {
     const prevTextChannel = window.currentTextChannel;
     roomListDiv.innerHTML = '';
     window.channelUnreadCounts[window.selectedGroup] = {};
