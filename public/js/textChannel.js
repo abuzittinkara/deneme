@@ -476,6 +476,24 @@ function removeMessageElement(container, id) {
 
 // Yeni gelen mesajı, mevcut mesaj listesine eklerken tarih ayıracı kontrolünü yapar.
 function initTextChannelEvents(socket, container) {
+  function markReadIfAtBottom() {
+    const atBottom =
+      container.scrollTop + container.clientHeight >= container.scrollHeight - 5;
+    const groupId = window.selectedGroup;
+    const channelId = container.dataset.channelId;
+    if (
+      atBottom &&
+      groupId &&
+      channelId &&
+      window.channelUnreadCounts[groupId] &&
+      window.channelUnreadCounts[groupId][channelId] > 0
+    ) {
+      socket.emit('markChannelRead', { groupId, channelId });
+    }
+  }
+
+  container.addEventListener('scroll', markReadIfAtBottom);
+
   socket.on('textHistory', (messages) => {
     renderTextMessages(messages, container);
   });
@@ -501,6 +519,7 @@ function initTextChannelEvents(socket, container) {
         insertDateSeparator(container, msg.timestamp);
       }
       appendNewMessage(msg, container);
+      markReadIfAtBottom();
       const attachmentUrls = Array.isArray(msg.attachments)
         ? msg.attachments.map(a => a.url).filter(u => u && u.startsWith('/uploads/'))
         : [];
