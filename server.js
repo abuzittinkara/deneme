@@ -22,6 +22,7 @@ const { connectToDatabase } = require('./config/database');
 const User = require('./models/User');
 const Group = require('./models/Group');
 const Channel = require('./models/Channel');
+const Category = require('./models/Category');
 const Message = require('./models/Message');
 const DMMessage = require('./models/DmMessage');
 const GroupMember = require('./models/GroupMember');
@@ -81,11 +82,12 @@ async function startServer() {
     await sfu.createWorkers();
     logger.info("Mediasoup Workers hazır!");
     await groupController.loadGroupsFromDB({ Group, groups });
+    const catCount = await groupController.loadCategoriesFromDB({ Category, groups });
     const chCount = await groupController.loadChannelsFromDB({ Channel, groups });
     const grpCount = Object.keys(groups).length;
     const totalCh = Object.values(groups).reduce((a,g)=>a+Object.keys(g.rooms).length,0);
     const channelsLoaded = chCount || totalCh;
-    logger.info(`Startup: groups=${grpCount}, channels=${channelsLoaded}`);
+    logger.info(`Startup: groups=${grpCount}, categories=${catCount}, channels=${channelsLoaded}`);
     logger.info("Uygulama başlangıç yüklemeleri tamam.");
 
     server.listen(PORT, () => {
@@ -361,7 +363,7 @@ app.get('/debug/group-channel-count', (req, res) => {
   const channelCount = Object.values(groups).reduce((a, g) => a + Object.keys(g.rooms).length, 0);
   res.json({ groupCount, channelCount });
 });
-const context = { User, Group, Channel, Message, DMMessage, GroupMember, users, groups, onlineUsernames, userSessions, friendRequests, sfu, groupController, store };
+const context = { User, Group, Channel, Category, Message, DMMessage, GroupMember, users, groups, onlineUsernames, userSessions, friendRequests, sfu, groupController, store };
 
 io.on("connection", (socket) => {
   logger.info(`Yeni bağlantı: ${socket.id}`);
