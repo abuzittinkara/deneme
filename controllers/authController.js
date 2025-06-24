@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const collectUnreadCounts = require('../utils/collectUnreadCounts');
 const collectMentionCounts = require('../utils/collectMentionCounts');
 const collectMuteInfo = require('../utils/collectMuteInfo');
+const collectNotifyInfo = require('../utils/collectNotifyInfo');
 
 function registerAuthHandlers(io, socket, context) {
   const { User, Group, GroupMember, users, onlineUsernames, groupController } = context;
@@ -110,6 +111,8 @@ function registerAuthHandlers(io, socket, context) {
         socket.emit('unreadCounts', unread);
         const mutes = await collectMuteInfo(trimmedName, { User, Group, GroupMember });
         socket.emit('activeMutes', mutes);
+        const notify = await collectNotifyInfo(trimmedName, { User, Group, GroupMember });
+        socket.emit('activeNotifyTypes', notify);
       }
     }
   });
