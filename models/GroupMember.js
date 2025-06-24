@@ -19,6 +19,16 @@ const GroupMemberSchema = new mongoose.Schema({
     type: Map,
     of: Date,
     default: {}
+  },
+  notificationType: {
+    type: String,
+    enum: ['all', 'mentions', 'nothing'],
+    default: 'all'
+  },
+  channelNotificationType: {
+    type: Map,
+    of: { type: String, enum: ['all', 'mentions', 'nothing'] },
+    default: {}
   }
 });
 
