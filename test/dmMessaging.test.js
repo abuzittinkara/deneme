@@ -58,7 +58,14 @@ function createContext() {
       };
     }
     static async findById(id) {
-      return DMMessage.messages.find(m => m._id === id) || null;
+      const msg = DMMessage.messages.find(m => m._id === id) || null;
+      if (!msg) return null;
+      return {
+        ...msg,
+        async populate() {
+          return { ...msg, from: { username: usersById[msg.from].username } };
+        }
+      };
     }
     static async deleteOne(query) {
       const idx = DMMessage.messages.findIndex(m => m._id === query._id);
