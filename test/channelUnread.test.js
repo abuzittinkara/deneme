@@ -14,10 +14,15 @@ function createContext(opts = {}) {
   const updates = [];
   const GroupMember = {
     updateOne: async (q, upd) => { updates.push(upd); },
-    findOne: async () => ({
-      muteUntil: opts.muteUntil,
-      channelMuteUntil: new Map(Object.entries(opts.channelMuteUntil || {}))
-    })
+    async findOne() {
+      const doc = {
+        muteUntil: opts.muteUntil,
+        channelMuteUntil: new Map(Object.entries(opts.channelMuteUntil || {})),
+        notificationType: undefined,
+        channelNotificationType: undefined
+      };
+      return { select() { return doc; } };
+    }
   };
   const userSessions = { u1: 's1' };
   const users = { s1: { currentGroup: 'g1', currentTextChannel: 'ch1' } };

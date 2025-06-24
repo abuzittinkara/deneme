@@ -17,11 +17,12 @@ function createContext(opts = {}) {
   const GroupMember = {
     async findOne(q) {
       if (q.user === 'uid2') {
-        return {
+        const doc = {
           muteUntil: opts.muteUntil,
           channelMuteUntil: new Map(Object.entries(opts.channelMuteUntil || {})),
           mentionUnreads: new Map(Object.entries(opts.mentionUnreads || {}))
         };
+        return { select() { return doc; } };
       }
       return null;
     },

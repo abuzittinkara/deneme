@@ -17,7 +17,12 @@ function createContext() {
   const userDoc = { _id: 'u1id', groups: [{ _id: 'g1id', groupId: 'g1' }] };
   const User = { findOne: async q => q.username === 'u1' ? query(userDoc) : query(null) };
   const Group = {};
-  const GroupMember = { findOne: async () => ({ notificationType: 'mentions', channelNotificationType: new Map([['c1','nothing']]) }) };
+  const GroupMember = {
+    async findOne() {
+      const doc = { notificationType: 'mentions', channelNotificationType: new Map([['c1', 'nothing']]) };
+      return { select() { return doc; } };
+    }
+  };
   const ctx = {
     User,
     Group,
