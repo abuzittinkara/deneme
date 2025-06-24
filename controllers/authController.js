@@ -5,6 +5,7 @@ const collectUnreadCounts = require('../utils/collectUnreadCounts');
 const collectMentionCounts = require('../utils/collectMentionCounts');
 const collectMuteInfo = require('../utils/collectMuteInfo');
 const collectNotifyInfo = require('../utils/collectNotifyInfo');
+const collectCategoryPrefs = require('../utils/collectCategoryPrefs');
 
 function registerAuthHandlers(io, socket, context) {
   const { User, Group, GroupMember, users, onlineUsernames, groupController } = context;
@@ -113,6 +114,8 @@ function registerAuthHandlers(io, socket, context) {
         socket.emit('activeMutes', mutes);
         const notify = await collectNotifyInfo(trimmedName, { User, Group, GroupMember });
         socket.emit('activeNotifyTypes', notify);
+        const prefs = await collectCategoryPrefs(trimmedName, { User, Group, GroupMember });
+        socket.emit('activeCategoryPrefs', prefs);
       }
     }
   });

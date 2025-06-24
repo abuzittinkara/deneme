@@ -19,6 +19,7 @@ try {
 } catch (e) {
   collapsedCategories = {};
 }
+let categoryOrder = {};
 function saveCollapsedCategories() {
   try { localStorage.setItem(CATEGORY_COLLAPSE_KEY, JSON.stringify(collapsedCategories)); } catch (e) {}
 }
@@ -973,6 +974,16 @@ export function initSocketEvents(socket) {
     });
   });
 
+  socket.on('activeCategoryPrefs', (data) => {
+    categoryOrder = data.order || {};
+    Object.entries(data.collapsed || {}).forEach(([gid, cats]) => {
+      Object.entries(cats).forEach(([cid, val]) => {
+        collapsedCategories[cid] = !!val;
+      });
+    });
+    saveCollapsedCategories();
+  });
+
   socket.on('groupNotifyTypeUpdated', ({ groupId, type }) => {
     if (!groupId) return;
     window.groupNotifyType[groupId] = type;
@@ -1077,6 +1088,35 @@ export function initSocketEvents(socket) {
           }
         });
       }
+    }
+  });
+
+  socket.on('categoryCollapseUpdated', ({ groupId, categoryId, collapsed }) => {
+    collapsedCategories[categoryId] = collapsed;
+    saveCollapsedCategories();
+    if (groupId === window.selectedGroup) {
+      const row = roomListDiv.querySelector(`.category-row[data-category-id="${categoryId}"]`);
+      if (row) {
+        const container = row.querySelector('.category-channels');
+        const icon = row.querySelector('.collapse-icon');
+        if (container && icon) {
+          container.style.display = collapsed ? 'none' : 'flex';
+          icon.textContent = collapsed ? 'chevron_right' : 'expand_more';
+        }
+      }
+    }
+  });
+
+  socket.on('categoryOrderUpdated', ({ groupId, order }) => {
+    categoryOrder[groupId] = order || {};
+    if (groupId === window.selectedGroup) {
+      const rows = Array.from(roomListDiv.querySelectorAll('.category-row'));
+      rows.sort((a, b) => {
+        const oa = order[a.dataset.categoryId];
+        const ob = order[b.dataset.categoryId];
+        return (oa ?? 0) - (ob ?? 0);
+      });
+      rows.forEach(r => roomListDiv.appendChild(r));
     }
   });
 
@@ -1254,6 +1294,11 @@ export function initSocketEvents(socket) {
       icon.textContent = isCollapsed ? 'expand_more' : 'chevron_right';
       collapsedCategories[catObj.id] = !isCollapsed;
       saveCollapsedCategories();
+      socket.emit('setCategoryCollapsed', {
+        groupId: window.selectedGroup,
+        categoryId: catObj.id,
+        collapsed: !isCollapsed
+      });
     });
     return row;
   }
@@ -1279,7 +1324,16 @@ export function initSocketEvents(socket) {
     roomListDiv.innerHTML = '';
     window.channelUnreadCounts[window.selectedGroup] = {};
 
-    const categories = opts.categories || [];
+    const categories = (opts.categories || []).slice();
+    const orderMap = categoryOrder[window.selectedGroup] || {};
+    categories.sort((a,b)=>{
+      const oa = orderMap[a.id];
+      const ob = orderMap[b.id];
+      if (oa !== undefined && ob !== undefined) return oa - ob;
+      if (oa !== undefined) return -1;
+      if (ob !== undefined) return 1;
+      return 0;
+    });
     const chInCats = new Set();
     categories.forEach(cat => {
       const row = buildCategoryRow(cat);
