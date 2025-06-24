@@ -1,4 +1,4 @@
-async function emitChannelUnread(io, groupId, channelId, Group, userSessions, GroupMember, users) {
+async function emitChannelUnread(io, groupId, channelId, Group, userSessions, GroupMember, users, mentions = []) {
   try {
     const groupDoc = await Group.findOne({ groupId }).populate('users', 'username');
     if (!groupDoc) return;
@@ -9,7 +9,7 @@ async function emitChannelUnread(io, groupId, channelId, Group, userSessions, Gr
       const inChannel = sid && users[sid]?.currentTextChannel === channelId;
 
       const gm = await GroupMember.findOne({ user: u._id, group: groupDoc._id })
-        .select('muteUntil channelMuteUntil');
+        .select('muteUntil channelMuteUntil notificationType channelNotificationType');
       const now = Date.now();
       const groupMuteUntil = gm?.muteUntil instanceof Date ? gm.muteUntil.getTime() : 0;
       let channelMuteUntil;
@@ -36,7 +36,21 @@ async function emitChannelUnread(io, groupId, channelId, Group, userSessions, Gr
           )
         );
       }
-      if (sid) {
+      let notifyType = 'all';
+      if (gm) {
+        let chType;
+        if (gm.channelNotificationType) {
+          chType = typeof gm.channelNotificationType.get === 'function'
+            ? gm.channelNotificationType.get(channelId)
+            : gm.channelNotificationType[channelId];
+        }
+        notifyType = chType || gm.notificationType || 'all';
+      }
+
+      const shouldEmit =
+        notifyType === 'all' || (notifyType === 'mentions' && mentions.includes(u.username));
+
+      if (sid && shouldEmit) {
         io.to(sid).emit('channelUnread', { groupId, channelId });
       }
     }

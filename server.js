@@ -274,6 +274,15 @@ app.post('/api/message', (req, res) => {
         ALLOWED_TAGS: [],
         ALLOWED_ATTR: []
       });
+      const mentionRegex = /@([A-Za-z0-9_]+)/g;
+      const mentions = [];
+      let m;
+      while ((m = mentionRegex.exec(clean))) {
+        const uname = m[1];
+        if (uname && uname !== userDoc.username && !mentions.includes(uname)) {
+          mentions.push(uname);
+        }
+      }
       const msg = new Message({
         channel: channelDoc._id,
         user: userDoc._id,
@@ -302,7 +311,8 @@ app.post('/api/message', (req, res) => {
           Group,
           userSessions,
           GroupMember,
-          users
+          users,
+          mentions
         );
       }
       res.json({ success: true, message: payload });
