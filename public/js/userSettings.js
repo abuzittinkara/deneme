@@ -129,6 +129,9 @@ function showToast(msg) {
   setTimeout(() => { t.style.display = 'none'; }, 2000);
 }
 
+// Expose toast helper globally for modules loaded later
+window.showToast = showToast;
+
 
 function openEditUsernameModal() {
   const modal = document.getElementById('editUsernameModal');
