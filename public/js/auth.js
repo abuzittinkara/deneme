@@ -1,3 +1,5 @@
+import logger from '../../utils/logger.js';
+
 export function attemptRegister(socket, elements) {
   const {
     regUsernameInput,
@@ -11,7 +13,7 @@ export function attemptRegister(socket, elements) {
     registerErrorMessage
   } = elements;
 
-  console.log("🔐 attemptRegister tetiklendi");
+  logger.info('🔐 attemptRegister tetiklendi');
 
   const usernameVal = regUsernameInput.value.trim();
   const nameVal     = regNameInput.value.trim();

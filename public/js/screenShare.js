@@ -1,5 +1,7 @@
 // public/js/screenShare.js
 
+import logger from '../../utils/logger.js';
+
 /**
  * Bu modül, ekran paylaşımını başlatıp durdurmak için gerekli fonksiyonları sağlar.
  * Kullanım: sendTransport üzerinden yeni producerlar yaratılarak ekran paylaşımı yapılır.
@@ -65,7 +67,7 @@ export async function stopScreenShare(socket) {
   // Sunucuya bildir
   socket.emit('screenShareStatusChanged', { isScreenSharing: false });
   socket.emit('screenShareEnded');
-  console.log("Ekran paylaşımı tamamen durduruldu.");
+  logger.info('Ekran paylaşımı tamamen durduruldu.');
   if (typeof window !== 'undefined' && window.clearScreenShareUI) {
     window.clearScreenShareUI();
   }

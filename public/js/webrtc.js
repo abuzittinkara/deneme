@@ -1,6 +1,7 @@
 import * as ScreenShare from "./screenShare.js";
 import { startVolumeAnalysis, stopVolumeAnalysis } from './audioUtils.js';
 import * as Ping from './ping.js';
+import logger from '../../utils/logger.js';
 
 export let device = null;   // mediasoup-client Device
 export let deviceIsLoaded = false;
@@ -24,7 +25,7 @@ export function setScreenShareContainer(value) {
 
 export async function requestMicrophoneAccess(socket, applyAudioStates, hasMicRef) {
   try {
-    console.log('Mikrofon izni isteniyor...');
+    logger.info('Mikrofon izni isteniyor...');
     const constraints = {
       audio: {
         echoCancellation: true,
@@ -33,7 +34,7 @@ export async function requestMicrophoneAccess(socket, applyAudioStates, hasMicRe
       },
     };
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
-    console.log('Mikrofon erişimi verildi:', stream);
+    logger.info('Mikrofon erişimi verildi: ' + stream);
     localStream = stream;
     audioPermissionGranted = true;
     if (hasMicRef) hasMicRef.value = true;
@@ -87,13 +88,13 @@ function createScreenShareContainer(videoEl, onEnd) {
 }
 
 export function startSfuFlow(socket, currentGroup, currentRoom) {
-  console.log('startSfuFlow => group:', currentGroup, ' room:', currentRoom);
+  logger.info('startSfuFlow => group: ' + currentGroup + ' room: ' + currentRoom);
   if (!device) {
     device = new mediasoupClient.Device();
   }
   if (!localStream || localStream.getAudioTracks()[0].readyState === 'ended') {
     requestMicrophoneAccess(socket, () => {}, null).then(() => {
-      console.log('Mikrofon izni alındı, SFU akışı başlatılıyor...');
+      logger.info('Mikrofon izni alındı, SFU akışı başlatılıyor...');
       createTransportFlow(socket, currentGroup, currentRoom);
     }).catch((err) => {
       console.error('Mikrofon izni alınamadı:', err);
@@ -112,13 +113,13 @@ export async function createTransportFlow(socket, currentGroup, currentRoom) {
   if (!deviceIsLoaded) {
     await device.load({ routerRtpCapabilities: transportParams.routerRtpCapabilities });
     deviceIsLoaded = true;
-    console.log('Device yüklendi:', device.rtpCapabilities);
+    logger.info('Device yüklendi: ' + device.rtpCapabilities);
   } else {
-    console.log('Device zaten yüklü.');
+    logger.info('Device zaten yüklü.');
   }
   sendTransport = device.createSendTransport(transportParams);
   sendTransport.on('connect', ({ dtlsParameters }, callback, errback) => {
-    console.log('sendTransport connect => dtls');
+    logger.info('sendTransport connect => dtls');
     socket.emit('connectTransport', {
       groupId: currentGroup,
       roomId: currentRoom,
@@ -133,7 +134,7 @@ export async function createTransportFlow(socket, currentGroup, currentRoom) {
     });
   });
   sendTransport.on('produce', async (producerOptions, callback, errback) => {
-    console.log('sendTransport produce =>', producerOptions);
+    logger.info('sendTransport produce => ' + JSON.stringify(producerOptions));
     socket.emit('produce', {
       groupId: currentGroup,
       roomId: currentRoom,
@@ -155,7 +156,7 @@ export async function createTransportFlow(socket, currentGroup, currentRoom) {
         track: audioTrack,
         stopTracks: false,
       });
-      console.log('Mikrofon producer oluşturuldu:', localProducer.id);
+      logger.info('Mikrofon producer oluşturuldu: ' + localProducer.id);
     } catch (err) {
       if (err.name === 'InvalidStateError') {
         console.error('Audio track bitti, yeniden mikrofon izni isteniyor...');
@@ -165,7 +166,7 @@ export async function createTransportFlow(socket, currentGroup, currentRoom) {
           track: audioTrack,
           stopTracks: false,
         });
-        console.log('Yeni audio track ile producer oluşturuldu:', localProducer.id);
+        logger.info('Yeni audio track ile producer oluşturuldu: ' + localProducer.id);
       } else {
         throw err;
       }
@@ -181,7 +182,7 @@ export async function createTransportFlow(socket, currentGroup, currentRoom) {
   }
   recvTransport = device.createRecvTransport(recvParams);
   recvTransport.on('connect', ({ dtlsParameters }, callback, errback) => {
-    console.log('recvTransport connect => dtls');
+    logger.info('recvTransport connect => dtls');
     socket.emit('connectTransport', {
       groupId: currentGroup,
       roomId: currentRoom,
@@ -196,15 +197,15 @@ export async function createTransportFlow(socket, currentGroup, currentRoom) {
     });
   });
   const producers = await listProducers(socket, currentGroup, currentRoom);
-  console.log('Mevcut producerlar:', producers);
+  logger.info('Mevcut producerlar: ' + JSON.stringify(producers));
   for (const prod of producers) {
     if (prod.peerId === socket.id) {
-      console.log('Kendi producer, tüketme yapılmıyor:', prod.id);
+      logger.info('Kendi producer, tüketme yapılmıyor: ' + prod.id);
       continue;
     }
     await consumeProducer(socket, currentGroup, currentRoom, prod.id);
   }
-  console.log('SFU akışı tamamlandı.');
+  logger.info('SFU akışı tamamlandı.');
   if (typeof window.setConnectionStatus === 'function') {
     window.setConnectionStatus('connected');
   }
@@ -251,7 +252,7 @@ export async function consumeProducer(socket, currentGroup, currentRoom, produce
     console.error('consume error:', consumeParams.error);
     return;
   }
-  console.log('consumeProducer parametreleri:', consumeParams);
+  logger.info('consumeProducer parametreleri: ' + JSON.stringify(consumeParams));
   const consumer = await recvTransport.consume({
     id: consumeParams.id,
     producerId: consumeParams.producerId,
@@ -269,12 +270,12 @@ export async function consumeProducer(socket, currentGroup, currentRoom, produce
     remoteAudios.push(audioEl);
     audioEl.play().catch((err) => console.error('Ses oynatılamadı:', err));
     startVolumeAnalysis(audioEl.srcObject, consumer.appData.peerId);
-    console.log('Yeni audio consumer oluşturuldu:', consumer.id, '-> konuşan:', consumer.appData.peerId);
+    logger.info('Yeni audio consumer oluşturuldu: ' + consumer.id + ' -> konuşan: ' + consumer.appData.peerId);
     if (typeof window.setConnectionStatus === 'function') {
       window.setConnectionStatus('connected');
     }
   } else if (consumer.kind === 'video') {
-    console.log('Video consumer alındı, ekran paylaşım için tıklama ile consume edilecek. Producer:', consumeParams.producerId);
+    logger.info('Video consumer alındı, ekran paylaşım için tıklama ile consume edilecek. Producer: ' + consumeParams.producerId);
   }
 }
 
@@ -319,7 +320,7 @@ export function leaveRoomInternal(socket) {
       window.activeVoiceGroupName = '';
     }
   }
-  console.log('leaveRoomInternal: SFU transportlar kapatıldı');
+  logger.info('leaveRoomInternal: SFU transportlar kapatıldı');
 }
 
 export function joinRoom(
@@ -454,7 +455,7 @@ export async function showScreenShare(socket, currentGroup, currentRoom, produce
       );
     }
     
-    console.log('Yeni video consumer oluşturuldu:', consumer.id, '-> yayıncı:', consumer.appData.peerId);
+    logger.info('Yeni video consumer oluşturuldu: ' + consumer.id + ' -> yayıncı: ' + consumer.appData.peerId);
     if (typeof window.setConnectionStatus === 'function') {
       window.setConnectionStatus('connected');
     }
