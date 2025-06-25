@@ -358,6 +358,10 @@ function appendNewMessage(msg, container) {
   const sender = msg.username || "Anon";
   const fullTime = formatTimestamp(msg.timestamp);
   let newMsgClass = "last-message"; // varsayılan
+
+  const nearBottom =
+    container.scrollTop + container.clientHeight >=
+    container.scrollHeight - 20;
   
   // Son eklenen metin mesajı (date separator hariç) alınıyor.
   const messages = container.querySelectorAll('.text-message');
@@ -402,7 +406,9 @@ function appendNewMessage(msg, container) {
   });
   msgDiv.innerHTML = msgHTML;
   container.appendChild(msgDiv);
-  container.scrollTop = container.scrollHeight;
+  if (nearBottom) {
+    msgDiv.scrollIntoView({ behavior: 'smooth' });
+  }
   
   // Son mesaj bilgilerini güncelle (DOM üzerinden güncelleme yapılıyor)
   lastMessageInfo[container.dataset.channelId] = { sender, timestamp: new Date(msg.timestamp) };
