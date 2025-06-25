@@ -68,8 +68,11 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     modalCategoryName,
     modalCreateCategoryBtn,
     modalCloseCategoryBtn,
-    createChannelTargetCategory: null,
+    createChannelTargetCategory,
   } = window;
+
+  // ensure this helper value exists for later use
+  window.createChannelTargetCategory ??= null;
 
   Mentions.initMentions(socket);
 
