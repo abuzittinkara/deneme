@@ -43,8 +43,8 @@
 }
 .category-placeholder {
   width: 100%;
-  height: 1px;
-  background: #fff;
+  height: 2px;
+  background: #666;
   margin: 0;
   border: none;
   border-radius: 0;
