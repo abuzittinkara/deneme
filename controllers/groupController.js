@@ -44,6 +44,16 @@ function convertCategoryDoc(cat) {
   };
 }
 
+function getNextOrder(groups, groupId) {
+  const grp = groups[groupId];
+  if (!grp) return 0;
+  const orders = [
+    ...Object.values(grp.rooms || {}).map(r => r.order || 0),
+    ...Object.values(grp.categories || {}).map(c => c.order || 0)
+  ];
+  return orders.length > 0 ? Math.max(...orders) + 1 : 0;
+}
+
 async function createDefaultChannel(groupDoc, { Channel, groups, store }) {
   const channelId = uuidv4();
   await Channel.create({
@@ -289,24 +299,24 @@ async function sendRoomsListToUser(io, socketId, context, groupId) {
       logger.error('sendRoomsListToUser category reload error: %o', err);
     }
   }
-  const roomArray = Object.entries(groupObj.rooms)
-    .sort((a, b) => (a[1].order || 0) - (b[1].order || 0))
-    .map(([rId, rm]) => ({
-      id: rId,
+  const items = [
+    ...Object.entries(groupObj.categories || {}).map(([cid, cat]) => ({
+      id: cid,
+      name: cat.name,
+      type: 'category',
+      order: cat.order || 0
+    })),
+    ...Object.entries(groupObj.rooms || {}).map(([rid, rm]) => ({
+      id: rid,
       name: rm.name,
       type: rm.type,
-      unreadCount: Number(channelUnreads[rId] || 0)
-    }));
-  const categoriesArr = Object.entries(groupObj.categories)
-    .sort((a,b)=> (a[1].order||0) - (b[1].order||0))
-    .map(([cid, cat]) => {
-      const channels = Object.entries(groupObj.rooms)
-        .filter(([_, ch]) => ch.categoryId === cid)
-        .sort((a,b)=> (a[1].order||0) - (b[1].order||0))
-        .map(([id,ch]) => ({ id, name: ch.name, type: ch.type, unreadCount: Number(channelUnreads[id] || 0) }));
-      return { id: cid, name: cat.name, channels };
-    });
-  io.to(socketId).emit('roomsList', roomArray, { categories: categoriesArr });
+      categoryId: rm.categoryId || null,
+      order: rm.order || 0,
+      unreadCount: Number(channelUnreads[rid] || 0)
+    }))
+  ];
+  items.sort((a,b)=>(a.order||0)-(b.order||0));
+  io.to(socketId).emit('roomsList', items);
 }
 
 function broadcastRoomsListToGroup(io, groups, groupId) {
@@ -315,25 +325,24 @@ function broadcastRoomsListToGroup(io, groups, groupId) {
     return;
   }
   const groupObj = groups[groupId];
-  const categoriesObj = groupObj.categories || {};
-  const roomArray = Object.entries(groupObj.rooms)
-    .sort((a, b) => (a[1].order || 0) - (b[1].order || 0))
-    .map(([rId, rm]) => ({
-      id: rId,
+  const items = [
+    ...Object.entries(groupObj.categories || {}).map(([cid, cat]) => ({
+      id: cid,
+      name: cat.name,
+      type: 'category',
+      order: cat.order || 0
+    })),
+    ...Object.entries(groupObj.rooms || {}).map(([rid, rm]) => ({
+      id: rid,
       name: rm.name,
       type: rm.type,
+      categoryId: rm.categoryId || null,
+      order: rm.order || 0,
       unreadCount: 0
-    }));
-  const categoriesArr = Object.entries(categoriesObj)
-    .sort((a,b)=> (a[1].order||0)-(b[1].order||0))
-    .map(([cid, cat]) => {
-      const channels = Object.entries(groupObj.rooms)
-        .filter(([_, ch]) => ch.categoryId === cid)
-        .sort((a,b)=> (a[1].order||0)-(b[1].order||0))
-        .map(([id,ch]) => ({ id, name: ch.name, type: ch.type, unreadCount: 0 }));
-      return { id: cid, name: cat.name, channels };
-    });
-  io.to(groupId).emit('roomsList', roomArray, { categories: categoriesArr });
+    }))
+  ];
+  items.sort((a,b)=>(a.order||0)-(b.order||0));
+  io.to(groupId).emit('roomsList', items);
 }
 
 function cleanupWatchingRelations(io, users, userId) {
@@ -713,7 +722,7 @@ function register(io, socket, context) {
       const groupDoc = await Group.findOne({ groupId });
       if (!groupDoc) return;
       const channelId = uuidv4();
-      const order = Object.keys(groups[groupId]?.rooms || {}).length;
+      const order = getNextOrder(groups, groupId);
       const resolvedType = type === 'voice' ? 'voice' : 'text';
       let categoryDoc = null;
       if (categoryId) {
@@ -766,18 +775,29 @@ function register(io, socket, context) {
       const grp = groups[groupId];
       if (!grp || !grp.rooms[channelId]) return;
 
-      const entries = Object.entries(grp.rooms).sort((a, b) => (a[1].order || 0) - (b[1].order || 0));
-      const oldIndex = entries.findIndex(([id]) => id === channelId);
-      if (oldIndex === -1 || newIndex < 0 || newIndex >= entries.length) return;
-
-      const [moved] = entries.splice(oldIndex, 1);
-      entries.splice(newIndex, 0, moved);
-      for (let i = 0; i < entries.length; i++) {
-        const [cid, room] = entries[i];
-        room.order = i;
-        await Channel.findOneAndUpdate({ channelId: cid }, { order: i });
+      const items = [
+        ...Object.entries(grp.categories || {}).map(([id, c]) => ({ id, type: 'category', obj: c })),
+        ...Object.entries(grp.rooms || {}).map(([id, r]) => ({ id, type: 'channel', obj: r }))
+      ].sort((a, b) => (a.obj.order || 0) - (b.obj.order || 0));
+      const oldIndex = items.findIndex(i => i.type === 'channel' && i.id === channelId);
+      if (oldIndex === -1 || newIndex < 0 || newIndex >= items.length) return;
+      const [moved] = items.splice(oldIndex, 1);
+      items.splice(newIndex, 0, moved);
+      for (let i = 0; i < items.length; i++) {
+        const it = items[i];
+        it.obj.order = i;
+        if (it.type === 'category') {
+          await Category.findOneAndUpdate({ categoryId: it.id }, { order: i });
+        } else {
+          await Channel.findOneAndUpdate({ channelId: it.id }, { order: i });
+        }
       }
-      grp.rooms = Object.fromEntries(entries);
+      grp.categories = {};
+      grp.rooms = {};
+      items.forEach(it => {
+        if (it.type === 'category') grp.categories[it.id] = it.obj;
+        else grp.rooms[it.id] = it.obj;
+      });
       if (context.store) context.store.setJSON(context.store.key('group', groupId), grp);
       broadcastRoomsListToGroup(io, groups, groupId);
       broadcastAllChannelsData(io, users, groups, groupId);
@@ -831,7 +851,7 @@ function register(io, socket, context) {
       const groupDoc = await Group.findOne({ groupId });
       if (!groupDoc) return;
       const categoryId = uuidv4();
-      const order = Object.keys(groups[groupId]?.categories || {}).length;
+      const order = getNextOrder(groups, groupId);
       await Category.create({ categoryId, name: trimmed, group: groupDoc._id, order });
       if (!groups[groupId]) groups[groupId] = createEmptyGroupObj(groupDoc);
       groups[groupId].categories[categoryId] = { name: trimmed, order };
@@ -889,18 +909,27 @@ function register(io, socket, context) {
       if (!groupId || !categoryId || typeof newIndex !== 'number') return;
       const grp = groups[groupId];
       if (!grp || !grp.categories[categoryId]) return;
-      const entries = Object.entries(grp.categories).sort((a,b)=>(a[1].order||0)-(b[1].order||0));
-      const oldIndex = entries.findIndex(([id])=>id===categoryId);
-      if (oldIndex === -1 || newIndex < 0 || newIndex >= entries.length) return;
-      const [moved] = entries.splice(oldIndex,1);
-      entries.splice(newIndex,0,moved);
-      for (let i=0;i<entries.length;i++) {
-        const [cid, cat] = entries[i];
-        cat.order = i;
-        await Category.findOneAndUpdate({ categoryId: cid }, { order: i });
+      const items = [
+        ...Object.entries(grp.categories || {}).map(([id, c]) => ({ id, type: 'category', obj: c })),
+        ...Object.entries(grp.rooms || {}).map(([id, r]) => ({ id, type: 'channel', obj: r }))
+      ].sort((a,b)=>(a.obj.order||0)-(b.obj.order||0));
+      const oldIndex = items.findIndex(i=>i.type==='category' && i.id===categoryId);
+      if (oldIndex === -1 || newIndex < 0 || newIndex >= items.length) return;
+      const [moved] = items.splice(oldIndex,1);
+      items.splice(newIndex,0,moved);
+      for (let i=0;i<items.length;i++) {
+        const it = items[i];
+        it.obj.order = i;
+        if (it.type==='category') {
+          await Category.findOneAndUpdate({ categoryId: it.id }, { order: i });
+        } else {
+          await Channel.findOneAndUpdate({ channelId: it.id }, { order: i });
+        }
       }
-      grp.categories = Object.fromEntries(entries);
-      const orderMap = Object.fromEntries(entries.map(([cid], idx) => [cid, idx]));
+      grp.categories = {};
+      grp.rooms = {};
+      items.forEach(it => { if(it.type==='category') grp.categories[it.id]=it.obj; else grp.rooms[it.id]=it.obj; });
+      const orderMap = Object.fromEntries(Object.entries(grp.categories).map(([cid,cat])=>[cid,cat.order]));
       const username = users[socket.id]?.username;
       if (username) {
         const [userDoc, groupDoc] = await Promise.all([

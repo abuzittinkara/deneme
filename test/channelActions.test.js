@@ -49,6 +49,16 @@ function createContextWithTwoChannels() {
   return ctx;
 }
 
+function createContextWithCategory() {
+  const ctx = createContextWithTwoChannels();
+  ctx.groups.group1.categories.cat1 = { name: 'Cat', order: 0 };
+  ctx.channelStore.chan1.order = 1;
+  ctx.channelStore.chan2.order = 2;
+  ctx.groups.group1.rooms.chan1.order = 1;
+  ctx.groups.group1.rooms.chan2.order = 2;
+  return ctx;
+}
+
 test('renameChannel updates memory and emits event', async () => {
   const socket = new EventEmitter();
   const io = { emitted: [], to(room) { return { emit:(ev,p)=>io.emitted.push({room,ev,p}) }; } };
@@ -107,4 +117,16 @@ test('reorderChannel also emits allChannelsData', async () => {
   const handler = socket.listeners('reorderChannel')[0];
   await handler({ groupId:'group1', channelId:'chan2', newIndex:0 });
   assert.ok(io.emitted.find(e=>e.ev==='allChannelsData'));
+});
+
+test('reorderChannel across category adjusts all orders', async () => {
+  const socket = new EventEmitter();
+  const io = { emitted: [], to(r){ return { emit:(ev,p)=>io.emitted.push({r,ev,p}) }; } };
+  const { users, groups, Channel, channelStore } = createContextWithCategory();
+  groupController.register(io, socket, { users, groups, User:{}, Group:{}, Channel, onlineUsernames:new Set() });
+  const handler = socket.listeners('reorderChannel')[0];
+  await handler({ groupId:'group1', channelId:'chan2', newIndex:0 });
+  assert.strictEqual(groups.group1.rooms.chan2.order, 0);
+  assert.strictEqual(groups.group1.categories.cat1.order, 1);
+  assert.strictEqual(channelStore.chan2.order, 0);
 });
