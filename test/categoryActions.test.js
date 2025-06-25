@@ -24,6 +24,13 @@ function createContext() {
   return { users, groups, Category, Channel, Group, categoryStore, channelStore };
 }
 
+function createContextWithChannel() {
+  const ctx = createContext();
+  ctx.groups.group1.rooms.chan2 = { name:'Other', type:'text', users:[], order:1, categoryId:null };
+  ctx.channelStore.chan2 = { channelId:'chan2', group:{ groupId:'group1' }, order:1 };
+  return ctx;
+}
+
 test('createCategory adds category to memory', async () => {
   const socket = new EventEmitter();
   const io = { emitted: [], to(room){ return { emit:(ev,p)=>io.emitted.push({room,ev,p}) }; } };
@@ -95,4 +102,18 @@ test('reorderCategory updates order and emits roomsList', async () => {
   assert.strictEqual(ctx.categoryStore.cat2.order, 0);
   assert.strictEqual(ctx.categoryStore.cat1.order, 1);
   assert.ok(io.emitted.find(e=>e.ev==='roomsList'));
+});
+
+test('reorderCategory across channel adjusts orders', async () => {
+  const socket = new EventEmitter();
+  const io = { emitted: [], to(r){ return { emit:(ev,p)=>io.emitted.push({r,ev,p}) }; } };
+  const ctx = createContextWithChannel();
+  ctx.groups.group1.categories.cat1 = { name:'C1', order:1 };
+  ctx.categoryStore.cat1 = { categoryId:'cat1', name:'C1', group:{groupId:'group1'}, order:1 };
+  groupController.register(io, socket, { users: ctx.users, groups: ctx.groups, User:{}, Group: ctx.Group, Channel: ctx.Channel, Category: ctx.Category, onlineUsernames:new Set(), GroupMember:{} });
+  const handler = socket.listeners('reorderCategory')[0];
+  await handler({ groupId:'group1', categoryId:'cat1', newIndex:0 });
+  assert.strictEqual(ctx.groups.group1.categories.cat1.order, 0);
+  assert.strictEqual(ctx.groups.group1.rooms.chan1.order, 1);
+  assert.strictEqual(ctx.categoryStore.cat1.order, 0);
 });

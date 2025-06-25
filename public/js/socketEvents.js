@@ -167,7 +167,7 @@ function setupChannelDragContainer(socket, container, rootContainer = container)
     if (!draggedChannelEl || !channelPlaceholder) return;
     e.preventDefault();
     channelPlaceholder.parentNode.insertBefore(draggedChannelEl, channelPlaceholder);
-    const items = Array.from(rootContainer.querySelectorAll('.channel-item'));
+    const items = Array.from(rootContainer.querySelectorAll('.category-row, .channel-item'));
     const newIndex = items.indexOf(draggedChannelEl);
     hideChannelPreview();
     channelPlaceholder.remove();
@@ -259,7 +259,7 @@ export function initSocketEvents(socket) {
     if (!draggedCategoryEl || !categoryPlaceholder) return;
     e.preventDefault();
     categoryPlaceholder.parentNode.insertBefore(draggedCategoryEl, categoryPlaceholder);
-    const items = Array.from(roomListDiv.querySelectorAll('.category-row'));
+    const items = Array.from(roomListDiv.querySelectorAll('.category-row, .channel-item'));
     const newIndex = items.indexOf(draggedCategoryEl);
     categoryPlaceholder.remove();
     categoryPlaceholder = null;
@@ -1442,7 +1442,7 @@ export function initSocketEvents(socket) {
       if (channelPlaceholder.parentNode === channelContainer) {
         channelContainer.insertBefore(draggedChannelEl, channelPlaceholder);
       }
-      const items = Array.from(roomListDiv.querySelectorAll('.channel-item'));
+      const items = Array.from(roomListDiv.querySelectorAll('.category-row, .channel-item'));
       const newIndex = items.indexOf(draggedChannelEl);
       hideChannelPreview();
       channelPlaceholder.remove();
@@ -1483,40 +1483,25 @@ export function initSocketEvents(socket) {
       item.remove();
     }
   });
-  socket.on('roomsList', (roomsArray, opts = {}) => {
+  socket.on('roomsList', (items = []) => {
     const prevTextChannel = window.currentTextChannel;
     roomListDiv.innerHTML = '';
     window.channelUnreadCounts[window.selectedGroup] = {};
 
-    const categories = (opts.categories || []).slice();
-    const orderMap = categoryOrder[window.selectedGroup] || {};
-    categories.sort((a,b)=>{
-      const oa = orderMap[a.id];
-      const ob = orderMap[b.id];
-      if (oa !== undefined && ob !== undefined) return oa - ob;
-      if (oa !== undefined) return -1;
-      if (ob !== undefined) return 1;
-      return 0;
-    });
-    const chInCats = new Set();
-    categories.forEach(cat => {
-      const row = buildCategoryRow(cat);
-      roomListDiv.appendChild(row);
-      const container = row.querySelector('.category-channels');
-      cat.channels.forEach(ch => {
-        const item = buildChannelItem(ch);
-        container.appendChild(item);
-        attachChannelDragHandlers(item);
-        chInCats.add(ch.id);
-      });
-      setupChannelDragContainer(socket, container, roomListDiv);
-    });
-
-    roomsArray.forEach((roomObj) => {
-      if (chInCats.has(roomObj.id)) return;
-      const roomItem = buildChannelItem(roomObj);
-      roomListDiv.appendChild(roomItem);
-      attachChannelDragHandlers(roomItem);
+    const catContainers = {};
+    items.forEach(item => {
+      if (item.type === 'category') {
+        const row = buildCategoryRow(item);
+        roomListDiv.appendChild(row);
+        const container = row.querySelector('.category-channels');
+        catContainers[item.id] = container;
+        setupChannelDragContainer(socket, container, roomListDiv);
+      } else {
+        const el = buildChannelItem(item);
+        const container = item.categoryId && catContainers[item.categoryId] ? catContainers[item.categoryId] : roomListDiv;
+        container.appendChild(el);
+        attachChannelDragHandlers(el);
+      }
     });
 
     setupChannelDragContainer(socket, roomListDiv, roomListDiv);
@@ -1539,7 +1524,7 @@ export function initSocketEvents(socket) {
       }
     }
 
-    if (prevTextChannel && roomsArray.some((r) => r.id === prevTextChannel)) {
+    if (prevTextChannel && items.some((r) => r.id === prevTextChannel)) {
       const el = roomListDiv.querySelector(`.channel-item[data-room-id="${prevTextChannel}"]`);
       if (el) {
         el.classList.add('connected');
@@ -1555,10 +1540,10 @@ export function initSocketEvents(socket) {
       }
     })();
     let targetId = null;
-    if (storedChannel && roomsArray.some((r) => r.id === storedChannel && r.type === 'text')) {
+    if (storedChannel && items.some((r) => r.id === storedChannel && r.type === 'text')) {
       targetId = storedChannel;
     } else {
-      const firstText = roomsArray.find((r) => r.type === 'text');
+      const firstText = items.find((r) => r.type === 'text');
       if (firstText) targetId = firstText.id;
     }
     if (targetId) {
