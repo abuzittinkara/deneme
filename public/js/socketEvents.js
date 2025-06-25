@@ -153,9 +153,16 @@ function setupChannelDragContainer(socket, container, rootContainer = container)
     e.preventDefault();
     const target = e.target.closest('.channel-item');
     if (!target || target === draggedChannelEl) {
-      const cont = e.currentTarget;
-      if (channelPlaceholder.parentNode !== cont) {
-        cont.appendChild(channelPlaceholder);
+      const cat = e.target.closest('.category-row');
+      if (cat) {
+        const rect = cat.getBoundingClientRect();
+        const next = e.clientY - rect.top > rect.height / 2;
+        cat.parentNode.insertBefore(channelPlaceholder, next ? cat.nextSibling : cat);
+      } else {
+        const cont = e.currentTarget;
+        if (channelPlaceholder.parentNode !== cont) {
+          cont.appendChild(channelPlaceholder);
+        }
       }
       updateChannelPreview(e.clientX, e.clientY);
       return;
