@@ -129,6 +129,10 @@ function setupChannelDragContainer(socket, container, rootContainer = container)
     e.preventDefault();
     const target = e.target.closest('.channel-item');
     if (!target || target === draggedChannelEl) {
+      const cont = e.currentTarget;
+      if (channelPlaceholder.parentNode !== cont) {
+        cont.appendChild(channelPlaceholder);
+      }
       updateChannelPreview(e.clientX, e.clientY);
       return;
     }
