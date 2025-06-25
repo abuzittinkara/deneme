@@ -16,21 +16,25 @@ async function collectMuteInfo(username, { User, Group, GroupMember }) {
     await Promise.all(userDoc.groups.map(async g => {
       let gmQuery = GroupMember.findOne({ user: userDoc._id, group: g._id });
       if (gmQuery && typeof gmQuery.select === 'function') {
-        gmQuery = gmQuery.select('muteUntil channelMuteUntil');
+        gmQuery = gmQuery.select('muteUntil channelMuteUntil categoryMuteUntil');
       }
       let gm = await gmQuery;
       if (gm && typeof gm.select === 'function') {
-        gm = gm.select('muteUntil channelMuteUntil');
+        gm = gm.select('muteUntil channelMuteUntil categoryMuteUntil');
       }
       if (!gm) return;
       const groupMuteTs = gm.muteUntil instanceof Date ? gm.muteUntil.getTime() : 0;
       const channelMuteEntries = getEntries(gm.channelMuteUntil)
         .filter(([, ts]) => ts instanceof Date && ts.getTime() > now);
+      const categoryMuteEntries = getEntries(gm.categoryMuteUntil)
+        .filter(([, ts]) => ts instanceof Date && ts.getTime() > now);
       const activeChan = Object.fromEntries(channelMuteEntries);
-      if (groupMuteTs > now || channelMuteEntries.length > 0) {
+      const activeCat = Object.fromEntries(categoryMuteEntries);
+      if (groupMuteTs > now || channelMuteEntries.length > 0 || categoryMuteEntries.length > 0) {
         const entry = {};
         if (groupMuteTs > now) entry.muteUntil = gm.muteUntil;
         if (channelMuteEntries.length > 0) entry.channelMuteUntil = activeChan;
+        if (categoryMuteEntries.length > 0) entry.categoryMuteUntil = activeCat;
         result[g.groupId] = entry;
       }
     }));

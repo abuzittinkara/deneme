@@ -62,6 +62,13 @@
   align-items: center;
   justify-content: space-between;
 }
+#categoryContextMenu .context-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 15px;
+  line-height: 15px;
+}
 .context-menu-item:last-child {
   border-bottom: none;
 }

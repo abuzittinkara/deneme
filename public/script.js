@@ -575,9 +575,13 @@ function showMuteSubMenu(target, type) {
       } else if (type === 'group') {
         const gid = target.dataset.groupId;
         socket.emit('muteGroup', { groupId: gid, duration: d.ms });
+      } else if (type === 'category') {
+        const cid = target.dataset.categoryId;
+        socket.emit('muteCategory', { groupId: window.selectedGroup, categoryId: cid, duration: d.ms });
       }
       subMenu.remove();
-      const ctx = document.getElementById(type === 'channel' ? 'channelContextMenu' : 'groupContextMenu');
+      const ctxId = type === 'channel' ? 'channelContextMenu' : type === 'group' ? 'groupContextMenu' : 'categoryContextMenu';
+      const ctx = document.getElementById(ctxId);
       if (ctx) ctx.remove();
     });
     subMenu.appendChild(item);
@@ -796,6 +800,68 @@ function showChannelContextMenu(e, roomObj) {
   });
 }
 window.showChannelContextMenu = showChannelContextMenu;
+
+function showCategoryContextMenu(e, catObj) {
+  const existingMenu = document.getElementById('categoryContextMenu');
+  if (existingMenu) existingMenu.remove();
+  const menu = document.createElement('div');
+  menu.id = 'categoryContextMenu';
+  menu.className = 'context-menu';
+  menu.style.position = 'absolute';
+  menu.style.top = e.pageY + 'px';
+  menu.style.left = e.pageX + 'px';
+  menu.style.display = 'flex';
+  menu.style.flexDirection = 'column';
+
+  const cMuteTs = window.categoryMuteUntil[window.selectedGroup] && window.categoryMuteUntil[window.selectedGroup][catObj.id];
+  const muted = cMuteTs && Date.now() < cMuteTs;
+
+  const menuItems = [
+    { text: 'Kategori ayarları', action: () => { alert('Kategori ayarları henüz uygulanmadı.'); } },
+    muted
+      ? { text: 'Bu kategorinin sesini aç', action: () => { socket.emit('muteCategory', { groupId: window.selectedGroup, categoryId: catObj.id, duration: 0 }); } }
+      : { text: 'Bu kategoriyi sessize al', mute: true, action: () => {} },
+    { text: 'Bildirim türü', notification: true, action: () => {} },
+    { text: 'Kategorinin ismini değiştir', action: () => { const n = prompt('Yeni kategori ismini girin:', catObj.name); if(n && n.trim() !== '') socket.emit('renameCategory', { categoryId: catObj.id, newName: n.trim() }); } },
+    { text: 'Kategoriyi sil', action: () => { if(confirm('Bu kategoriyi silmek istediğinize emin misiniz?')) socket.emit('deleteCategory', catObj.id); } }
+  ];
+
+  menuItems.forEach(item => {
+    const menuItem = document.createElement('div');
+    menuItem.className = 'context-menu-item';
+    if (item.mute) {
+      const label = document.createElement('span');
+      label.textContent = item.text;
+      const icon = document.createElement('span');
+      icon.classList.add('material-icons');
+      icon.textContent = 'chevron_right';
+      menuItem.appendChild(label);
+      menuItem.appendChild(icon);
+      menuItem.dataset.categoryId = catObj.id;
+      menuItem.addEventListener('mouseenter', () => showMuteSubMenu(menuItem, 'category'));
+    } else if (item.notification) {
+      const label = document.createElement('span');
+      label.textContent = item.text;
+      const icon = document.createElement('span');
+      icon.classList.add('material-icons');
+      icon.textContent = 'chevron_right';
+      menuItem.appendChild(label);
+      menuItem.appendChild(icon);
+    } else {
+      menuItem.textContent = item.text;
+      menuItem.addEventListener('click', () => { item.action(); menu.remove(); });
+    }
+    menu.appendChild(menuItem);
+  });
+
+  document.body.appendChild(menu);
+  document.addEventListener('click', function handler() {
+    const m = document.getElementById('categoryContextMenu');
+    if (m) m.remove();
+    document.removeEventListener('click', handler);
+  });
+}
+window.showCategoryContextMenu = showCategoryContextMenu;
 
 function showGroupContextMenu(e, groupObj) {
   const existingMenu = document.getElementById('groupContextMenu');

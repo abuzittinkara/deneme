@@ -10,6 +10,7 @@ window.unreadCounter = {};
 window.channelUnreadCounts = {};
 window.groupMuteUntil = {};
 window.channelMuteUntil = {};
+window.categoryMuteUntil = {};
 window.mentionUnread = {};
 
 const CATEGORY_COLLAPSE_KEY = 'collapsedCategories';
@@ -65,6 +66,8 @@ function hideDragPreview() {
 let channelPreviewEl = null;
 let channelPlaceholder = null;
 let draggedChannelEl = null;
+let categoryPlaceholder = null;
+let draggedCategoryEl = null;
 
 function showChannelPreview(name) {
   channelPreviewEl = document.createElement('div');
@@ -123,6 +126,25 @@ function attachChannelDragHandlers(el) {
   });
 }
 
+function attachCategoryDragHandlers(el) {
+  el.setAttribute('draggable', 'true');
+  el.addEventListener('dragstart', (e) => {
+    draggedCategoryEl = el;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setDragImage(new Image(), 0, 0);
+    categoryPlaceholder = document.createElement('div');
+    categoryPlaceholder.classList.add('category-placeholder');
+    el.parentNode.insertBefore(categoryPlaceholder, el.nextSibling);
+    el.classList.add('dragging');
+  });
+  el.addEventListener('dragend', () => {
+    if (categoryPlaceholder) categoryPlaceholder.remove();
+    categoryPlaceholder = null;
+    el.classList.remove('dragging');
+    draggedCategoryEl = null;
+  });
+}
+
 function setupChannelDragContainer(socket, container, rootContainer = container) {
   container.addEventListener('dragover', (e) => {
     if (!draggedChannelEl) return;
@@ -173,6 +195,31 @@ function setupChannelDragContainer(socket, container, rootContainer = container)
 document.addEventListener('dragover', (e) => {
   updateDragPreview(e.clientX, e.clientY);
   updateChannelPreview(e.clientX, e.clientY);
+});
+
+roomListDiv.addEventListener('dragover', (e) => {
+  if (!draggedCategoryEl) return;
+  e.preventDefault();
+  const target = e.target.closest('.category-row');
+  if (!target || target === draggedCategoryEl) return;
+  const rect = target.getBoundingClientRect();
+  const next = e.clientY - rect.top > rect.height / 2;
+  target.parentNode.insertBefore(categoryPlaceholder, next ? target.nextSibling : target);
+});
+roomListDiv.addEventListener('drop', (e) => {
+  if (!draggedCategoryEl || !categoryPlaceholder) return;
+  e.preventDefault();
+  categoryPlaceholder.parentNode.insertBefore(draggedCategoryEl, categoryPlaceholder);
+  const items = Array.from(roomListDiv.querySelectorAll('.category-row'));
+  const newIndex = items.indexOf(draggedCategoryEl);
+  categoryPlaceholder.remove();
+  categoryPlaceholder = null;
+  draggedCategoryEl.classList.remove('dragging');
+  socket.emit('reorderCategory', { groupId: window.selectedGroup, categoryId: draggedCategoryEl.dataset.categoryId, newIndex });
+  draggedCategoryEl.classList.add('snap');
+  const dropped = draggedCategoryEl;
+  setTimeout(() => dropped.classList.remove('snap'), 150);
+  draggedCategoryEl = null;
 });
 
 function refreshVisibilityIcons() {
@@ -760,7 +807,9 @@ export function initSocketEvents(socket) {
     const gMuteTs = window.groupMuteUntil[groupId];
     if (gMuteTs && Date.now() < gMuteTs) return;
     const cMuteTs = window.channelMuteUntil[groupId] && window.channelMuteUntil[groupId][channelId];
-    if (cMuteTs && Date.now() < cMuteTs) return;
+    const catId = roomListDiv.querySelector(`.channel-item[data-room-id="${channelId}"]`)?.parentNode.closest('.category-row')?.dataset.categoryId;
+    const catMuteTs = catId && window.categoryMuteUntil[groupId] && window.categoryMuteUntil[groupId][catId];
+    if ((cMuteTs && Date.now() < cMuteTs) || (catMuteTs && Date.now() < catMuteTs)) return;
     if (!window.channelUnreadCounts[groupId]) {
       window.channelUnreadCounts[groupId] = {};
     }
@@ -939,6 +988,7 @@ export function initSocketEvents(socket) {
   socket.on('activeMutes', (mutes) => {
     window.groupMuteUntil = window.groupMuteUntil || {};
     window.channelMuteUntil = window.channelMuteUntil || {};
+    window.categoryMuteUntil = window.categoryMuteUntil || {};
     Object.entries(mutes || {}).forEach(([gid, info]) => {
       if (info.muteUntil) {
         const ts = new Date(info.muteUntil).getTime();
@@ -959,6 +1009,17 @@ export function initSocketEvents(socket) {
           if (gid === window.selectedGroup) {
             const item = roomListDiv.querySelector(`.channel-item[data-room-id="${cid}"]`);
             if (item) item.classList.add('muted', 'channel-muted');
+          }
+        });
+      }
+      if (info.categoryMuteUntil) {
+        if (!window.categoryMuteUntil[gid]) window.categoryMuteUntil[gid] = {};
+        Object.entries(info.categoryMuteUntil).forEach(([cid, tsVal]) => {
+          const ts = new Date(tsVal).getTime();
+          window.categoryMuteUntil[gid][cid] = ts >= INDEFINITE_TS ? Infinity : ts;
+          if (gid === window.selectedGroup) {
+            const row = roomListDiv.querySelector(`.category-row[data-category-id="${cid}"]`);
+            if (row) row.classList.add('muted');
           }
         });
       }
@@ -1072,11 +1133,30 @@ export function initSocketEvents(socket) {
     }
   });
 
-  socket.on('muteCleared', ({ groupId, channelId }) => {
+  socket.on('categoryMuted', ({ groupId, categoryId, muteUntil }) => {
+    if (!groupId || !categoryId) return;
+    if (!window.categoryMuteUntil[groupId]) window.categoryMuteUntil[groupId] = {};
+    if (muteUntil) {
+      const ts = new Date(muteUntil).getTime();
+      window.categoryMuteUntil[groupId][categoryId] = ts >= INDEFINITE_TS ? Infinity : ts;
+    } else {
+      window.categoryMuteUntil[groupId][categoryId] = 0;
+    }
+    if (groupId === window.selectedGroup) {
+      const row = roomListDiv.querySelector(`.category-row[data-category-id="${categoryId}"]`);
+      if (row) row.classList.add('muted');
+    }
+  });
+
+  socket.on('muteCleared', ({ groupId, channelId, categoryId }) => {
     if (channelId) {
       if (window.channelMuteUntil[groupId]) delete window.channelMuteUntil[groupId][channelId];
       const item = roomListDiv.querySelector(`.channel-item[data-room-id="${channelId}"]`);
       if (item) item.classList.remove('muted', 'channel-muted');
+    } else if (categoryId) {
+      if (window.categoryMuteUntil[groupId]) delete window.categoryMuteUntil[groupId][categoryId];
+      const row = roomListDiv.querySelector(`.category-row[data-category-id="${categoryId}"]`);
+      if (row) row.classList.remove('muted');
     } else if (groupId) {
       delete window.groupMuteUntil[groupId];
       const el = groupListDiv.querySelector(`.grp-item[data-group-id="${groupId}"]`);
@@ -1282,11 +1362,26 @@ export function initSocketEvents(socket) {
     icon.classList.add('material-icons', 'collapse-icon');
     const collapsed = collapsedCategories[catObj.id];
     icon.textContent = collapsed ? 'chevron_right' : 'expand_more';
+    const muteTs = window.categoryMuteUntil[window.selectedGroup] && window.categoryMuteUntil[window.selectedGroup][catObj.id];
+    const muted = muteTs && Date.now() < muteTs;
     const nameEl = document.createElement('span');
     nameEl.className = 'category-name';
     nameEl.textContent = catObj.name;
+    const addBtn = document.createElement('span');
+    addBtn.classList.add('material-icons', 'category-add-btn');
+    addBtn.textContent = 'add';
+    addBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.createChannelTargetCategory = catObj.id;
+      if (window.roomModal) {
+        window.roomModal.style.display = 'flex';
+        window.roomModal.classList.add('active');
+      }
+    });
     header.appendChild(icon);
     header.appendChild(nameEl);
+    header.appendChild(addBtn);
+    if (muted) row.classList.add('muted');
     row.appendChild(header);
     const channelContainer = document.createElement('div');
     channelContainer.className = 'category-channels';
@@ -1304,6 +1399,11 @@ export function initSocketEvents(socket) {
         collapsed: !isCollapsed
       });
     });
+    header.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      window.showCategoryContextMenu(e, catObj);
+    });
+
     header.addEventListener('dragover', (e) => {
       if (!draggedChannelEl) return;
       e.preventDefault();
@@ -1353,6 +1453,7 @@ export function initSocketEvents(socket) {
       setTimeout(() => droppedEl.classList.remove('snap'), 150);
       draggedChannelEl = null;
     });
+    attachCategoryDragHandlers(row);
     return row;
   }
 

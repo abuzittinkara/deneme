@@ -68,6 +68,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     modalCategoryName,
     modalCreateCategoryBtn,
     modalCloseCategoryBtn,
+    createChannelTargetCategory: null,
   } = window;
 
   Mentions.initMentions(socket);
@@ -158,6 +159,7 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
 
   if (createChannelBtn) {
     createChannelBtn.addEventListener('click', () => {
+      window.createChannelTargetCategory = null;
       if (roomModal) {
         roomModal.style.display = 'flex';
         roomModal.classList.add('active');
@@ -199,7 +201,8 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
       const name = modalRoomName ? modalRoomName.value.trim() : '';
       if (!name) return;
       const type = voiceChannel && voiceChannel.checked ? 'voice' : 'text';
-      socket.emit('createChannel', { groupId: window.selectedGroup, name, type });
+      socket.emit('createChannel', { groupId: window.selectedGroup, name, type, categoryId: window.createChannelTargetCategory });
+      window.createChannelTargetCategory = null;
       modalRoomName.value = '';
       if (roomModal) {
         roomModal.style.display = 'none';

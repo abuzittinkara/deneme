@@ -25,6 +25,7 @@ function createContext(opts = {}) {
     },
     updateOne: async () => {}
   };
+  const Channel = { findOne: async () => ({ _id: 'cid2', channelId: 'ch2', category: null }) };
   const userSessions = { u1: 's1' };
   const users = { s1: { currentGroup: 'g1', currentTextChannel: 'ch1' } };
   const io = {
@@ -33,7 +34,7 @@ function createContext(opts = {}) {
       return { emit: (ev, p) => this.emitted.push({ ev, p }) };
     }
   };
-  return { io, Group, GroupMember, userSessions, users };
+  return { io, Group, Channel, GroupMember, userSessions, users };
 }
 
 test('channel notify override to nothing prevents event', async () => {
@@ -46,6 +47,7 @@ test('channel notify override to nothing prevents event', async () => {
     'g1',
     'ch2',
     ctx.Group,
+    ctx.Channel,
     ctx.userSessions,
     ctx.GroupMember,
     ctx.users,
@@ -61,6 +63,7 @@ test('group mentions type requires mention', async () => {
     'g1',
     'ch2',
     ctx.Group,
+    ctx.Channel,
     ctx.userSessions,
     ctx.GroupMember,
     ctx.users,
@@ -76,6 +79,7 @@ test('group mentions emits when mentioned', async () => {
     'g1',
     'ch2',
     ctx.Group,
+    ctx.Channel,
     ctx.userSessions,
     ctx.GroupMember,
     ctx.users,
@@ -94,6 +98,7 @@ test('channel notify override to all beats group mentions', async () => {
     'g1',
     'ch2',
     ctx.Group,
+    ctx.Channel,
     ctx.userSessions,
     ctx.GroupMember,
     ctx.users,
