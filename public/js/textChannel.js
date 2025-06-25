@@ -114,6 +114,25 @@ function highlightMentions(text) {
   return text.replace(/@([A-Za-z0-9_]+)/g, '<span class="mention">@$1</span>');
 }
 
+function throttle(fn, interval) {
+  let last = 0;
+  let timeout;
+  return (...args) => {
+    const now = Date.now();
+    const remaining = interval - (now - last);
+    const run = () => {
+      last = Date.now();
+      requestAnimationFrame(() => fn(...args));
+    };
+    if (remaining <= 0) {
+      run();
+    } else {
+      clearTimeout(timeout);
+      timeout = setTimeout(run, remaining);
+    }
+  };
+}
+
 let lightboxEl = null;
 
 function openLightbox(target) {
@@ -492,11 +511,12 @@ function initTextChannelEvents(socket, container) {
     }
   }
 
-  container.addEventListener('scroll', markReadIfAtBottom);
+  const throttledMarkReadIfAtBottom = throttle(markReadIfAtBottom, 100);
+  container.addEventListener('scroll', throttledMarkReadIfAtBottom);
 
   socket.on('textHistory', (messages) => {
     renderTextMessages(messages, container);
-    markReadIfAtBottom();
+    throttledMarkReadIfAtBottom();
   });
 
   socket.on('newTextMessage', (data) => {
@@ -520,7 +540,7 @@ function initTextChannelEvents(socket, container) {
         insertDateSeparator(container, msg.timestamp);
       }
       appendNewMessage(msg, container);
-      markReadIfAtBottom();
+      throttledMarkReadIfAtBottom();
       const attachmentUrls = Array.isArray(msg.attachments)
         ? msg.attachments.map(a => a.url).filter(u => u && u.startsWith('/uploads/'))
         : [];
