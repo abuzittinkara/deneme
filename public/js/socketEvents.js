@@ -1192,6 +1192,7 @@ export function initSocketEvents(socket) {
         if (container && icon) {
           container.style.display = collapsed ? 'none' : 'flex';
           icon.textContent = collapsed ? 'chevron_right' : 'expand_more';
+          row.classList.toggle('expanded', !collapsed);
         }
       }
     }
@@ -1368,6 +1369,7 @@ export function initSocketEvents(socket) {
     icon.classList.add('material-icons', 'collapse-icon');
     const collapsed = collapsedCategories[catObj.id];
     icon.textContent = collapsed ? 'chevron_right' : 'expand_more';
+    row.classList.toggle('expanded', !collapsed);
     const muteTs = window.categoryMuteUntil[window.selectedGroup] && window.categoryMuteUntil[window.selectedGroup][catObj.id];
     const muted = muteTs && Date.now() < muteTs;
     const nameEl = document.createElement('span');
@@ -1384,8 +1386,8 @@ export function initSocketEvents(socket) {
         window.roomModal.classList.add('active');
       }
     });
-    header.appendChild(icon);
     header.appendChild(nameEl);
+    header.appendChild(icon);
     header.appendChild(addBtn);
     if (muted) row.classList.add('muted');
     row.appendChild(header);
@@ -1397,6 +1399,7 @@ export function initSocketEvents(socket) {
       const isCollapsed = channelContainer.style.display === 'none';
       channelContainer.style.display = isCollapsed ? 'flex' : 'none';
       icon.textContent = isCollapsed ? 'expand_more' : 'chevron_right';
+      row.classList.toggle('expanded', isCollapsed);
       collapsedCategories[catObj.id] = !isCollapsed;
       saveCollapsedCategories();
       socket.emit('setCategoryCollapsed', {
@@ -1416,6 +1419,7 @@ export function initSocketEvents(socket) {
       if (channelContainer.style.display === 'none') {
         channelContainer.style.display = 'flex';
         icon.textContent = 'expand_more';
+        row.classList.add('expanded');
         collapsedCategories[catObj.id] = false;
         saveCollapsedCategories();
         socket.emit('setCategoryCollapsed', {
