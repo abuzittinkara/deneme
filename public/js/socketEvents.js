@@ -238,42 +238,46 @@ export function initSocketEvents(socket) {
     textChannelContainer,
   } = window;
 
-  setupChannelDragContainer(socket, roomListDiv);
-
   document.addEventListener('dragover', (e) => {
     updateDragPreview(e.clientX, e.clientY);
     updateChannelPreview(e.clientX, e.clientY);
   });
 
-  roomListDiv.addEventListener('dragover', (e) => {
-    if (!draggedCategoryEl) return;
-    e.preventDefault();
-    const target = e.target.closest('.category-row');
-    if (!target || target === draggedCategoryEl) return;
-    const rect = target.getBoundingClientRect();
-    const next = e.clientY - rect.top > rect.height / 2;
-    target.parentNode.insertBefore(categoryPlaceholder, next ? target.nextSibling : target);
-  });
+  if (!roomListDiv) {
+    logger.warn('roomListDiv element not found, skipping drag and drop setup');
+  } else {
+    setupChannelDragContainer(socket, roomListDiv);
 
-  roomListDiv.addEventListener('drop', (e) => {
-    if (!draggedCategoryEl || !categoryPlaceholder) return;
-    e.preventDefault();
-    categoryPlaceholder.parentNode.insertBefore(draggedCategoryEl, categoryPlaceholder);
-    const items = Array.from(roomListDiv.querySelectorAll('.category-row, .channel-item'));
-    const newIndex = items.indexOf(draggedCategoryEl);
-    categoryPlaceholder.remove();
-    categoryPlaceholder = null;
-    draggedCategoryEl.classList.remove('dragging');
-    socket.emit('reorderCategory', {
-      groupId: window.selectedGroup,
-      categoryId: draggedCategoryEl.dataset.categoryId,
-      newIndex,
+    roomListDiv.addEventListener('dragover', (e) => {
+      if (!draggedCategoryEl) return;
+      e.preventDefault();
+      const target = e.target.closest('.category-row');
+      if (!target || target === draggedCategoryEl) return;
+      const rect = target.getBoundingClientRect();
+      const next = e.clientY - rect.top > rect.height / 2;
+      target.parentNode.insertBefore(categoryPlaceholder, next ? target.nextSibling : target);
     });
-    draggedCategoryEl.classList.add('snap');
-    const dropped = draggedCategoryEl;
-    setTimeout(() => dropped.classList.remove('snap'), 150);
-    draggedCategoryEl = null;
-  });
+
+    roomListDiv.addEventListener('drop', (e) => {
+      if (!draggedCategoryEl || !categoryPlaceholder) return;
+      e.preventDefault();
+      categoryPlaceholder.parentNode.insertBefore(draggedCategoryEl, categoryPlaceholder);
+      const items = Array.from(roomListDiv.querySelectorAll('.category-row, .channel-item'));
+      const newIndex = items.indexOf(draggedCategoryEl);
+      categoryPlaceholder.remove();
+      categoryPlaceholder = null;
+      draggedCategoryEl.classList.remove('dragging');
+      socket.emit('reorderCategory', {
+        groupId: window.selectedGroup,
+        categoryId: draggedCategoryEl.dataset.categoryId,
+        newIndex,
+      });
+      draggedCategoryEl.classList.add('snap');
+      const dropped = draggedCategoryEl;
+      setTimeout(() => dropped.classList.remove('snap'), 150);
+      draggedCategoryEl = null;
+    });
+  }
 
   if (UserList.initAvatarUpdates) {
     UserList.initAvatarUpdates(socket);
@@ -288,7 +292,7 @@ export function initSocketEvents(socket) {
         socket.emit('muteGroup', { groupId: gid, duration: 0 });
         const el = groupListDiv.querySelector(`.grp-item[data-group-id="${gid}"]`);
         if (el) el.classList.remove('muted', 'channel-muted');
-        if (gid === window.selectedGroup) {
+        if (gid === window.selectedGroup && roomListDiv) {
           roomListDiv
             .querySelectorAll('.channel-item')
             .forEach((ci) => {
@@ -315,7 +319,7 @@ export function initSocketEvents(socket) {
             channelId: cid,
             duration: 0,
           });
-          if (gid === window.selectedGroup) {
+          if (gid === window.selectedGroup && roomListDiv) {
             const item = roomListDiv.querySelector(
               `.channel-item[data-room-id="${cid}"]`
             );
