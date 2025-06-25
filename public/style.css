@@ -8,7 +8,8 @@
 
 .category-row {
   margin: 0.75rem 0;
-  padding-bottom: 8px;
+  padding-top: 4px;
+  padding-bottom: 4px;
 }
 .category-header {
   display: flex;
@@ -43,11 +44,12 @@
   color: #575757;
 }
 .category-placeholder {
-  height: 30px;
-  margin-bottom: 4px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px dashed #777;
-  border-radius: 4px;
+  width: 100%;
+  height: 1px;
+  background: #fff;
+  margin: 0;
+  border: none;
+  border-radius: 0;
 }
 
 .category-row.expanded .category-header {
