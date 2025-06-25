@@ -1516,7 +1516,25 @@ export function initSocketEvents(socket) {
     });
 
     setupChannelDragContainer(socket, roomListDiv, roomListDiv);
-    
+
+    const groupItem = groupListDiv.querySelector(`.grp-item[data-group-id="${window.selectedGroup}"]`);
+    const totalUnread = Object.values(window.channelUnreadCounts[window.selectedGroup] || {}).reduce((a,b)=>a+(Number(b)||0),0);
+    window.unreadCounter[window.selectedGroup] = totalUnread;
+    if (groupItem) {
+      let dot = groupItem.querySelector('.unread-dot');
+      if (totalUnread > 0) {
+        if (!dot) {
+          dot = document.createElement('span');
+          dot.className = 'unread-dot';
+          groupItem.appendChild(dot);
+        }
+        groupItem.classList.add('unread');
+      } else {
+        if (dot) dot.remove();
+        groupItem.classList.remove('unread');
+      }
+    }
+
     if (prevTextChannel && roomsArray.some((r) => r.id === prevTextChannel)) {
       const el = roomListDiv.querySelector(`.channel-item[data-room-id="${prevTextChannel}"]`);
       if (el) {

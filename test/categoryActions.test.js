@@ -18,14 +18,17 @@ function createContext() {
   const Channel = {
     async findOneAndUpdate(q, u){ channelStore[q.channelId] = { ...channelStore[q.channelId], ...u }; return channelStore[q.channelId]; }
   };
-  return { users, groups, Category, Channel, categoryStore, channelStore };
+  const Group = {
+    async findOne(q) { return q.groupId==='group1' ? { groupId:'group1', _id:'gdoc1' } : null; }
+  };
+  return { users, groups, Category, Channel, Group, categoryStore, channelStore };
 }
 
 test('createCategory adds category to memory', async () => {
   const socket = new EventEmitter();
   const io = { emitted: [], to(room){ return { emit:(ev,p)=>io.emitted.push({room,ev,p}) }; } };
   const ctx = createContext();
-  groupController.register(io, socket, { users: ctx.users, groups: ctx.groups, User:{}, Group:{}, Channel: ctx.Channel, Category: ctx.Category, onlineUsernames:new Set(), GroupMember:{} });
+  groupController.register(io, socket, { users: ctx.users, groups: ctx.groups, User:{}, Group: ctx.Group, Channel: ctx.Channel, Category: ctx.Category, onlineUsernames:new Set(), GroupMember:{} });
   const handler = socket.listeners('createCategory')[0];
   await handler({ groupId:'group1', name:'Cat' });
   const cid = Object.keys(ctx.groups.group1.categories)[0];
@@ -42,7 +45,7 @@ test('assignChannelCategory updates channel', async () => {
   ctx.categoryStore.cat1 = { categoryId:'cat1', name:'C1', group:{ groupId:'group1' }, order:0 };
   // But we inserted property this way; we need to ensure Category.findOne works
   ctx.Category.findOne = async (q)=> q.categoryId==='cat1'?{ categoryId:'cat1', name:'C1', group:{groupId:'group1'} } : null;
-  groupController.register(io, socket, { users: ctx.users, groups: ctx.groups, User:{}, Group:{}, Channel: ctx.Channel, Category: ctx.Category, onlineUsernames:new Set(), GroupMember:{} });
+  groupController.register(io, socket, { users: ctx.users, groups: ctx.groups, User:{}, Group: ctx.Group, Channel: ctx.Channel, Category: ctx.Category, onlineUsernames:new Set(), GroupMember:{} });
   const handler = socket.listeners('assignChannelCategory')[0];
   await handler({ groupId:'group1', channelId:'chan1', categoryId:'cat1' });
   assert.strictEqual(ctx.groups.group1.rooms.chan1.categoryId, 'cat1');
@@ -53,7 +56,7 @@ test('createCategory persists to store', async () => {
   const socket = new EventEmitter();
   const io = { emitted: [], to(room){ return { emit:(ev,p)=>io.emitted.push({room,ev,p}) }; } };
   const ctx = createContext();
-  groupController.register(io, socket, { users: ctx.users, groups: ctx.groups, User:{}, Group:{}, Channel: ctx.Channel, Category: ctx.Category, onlineUsernames:new Set(), GroupMember:{} });
+  groupController.register(io, socket, { users: ctx.users, groups: ctx.groups, User:{}, Group: ctx.Group, Channel: ctx.Channel, Category: ctx.Category, onlineUsernames:new Set(), GroupMember:{} });
   const handler = socket.listeners('createCategory')[0];
   await handler({ groupId:'group1', name:'Persist' });
   const cid = Object.keys(ctx.categoryStore)[0];
@@ -68,7 +71,7 @@ test('assignChannelCategory persists update to channel store', async () => {
   ctx.groups.group1.categories.cat1 = { name: 'C1', order:0 };
   ctx.categoryStore.cat1 = { categoryId:'cat1', name:'C1', group:{ groupId:'group1' }, _id:'doc1', order:0 };
   ctx.Category.findOne = async (q)=> q.categoryId==='cat1'?{ _id:'doc1', categoryId:'cat1', group:{groupId:'group1'} } : null;
-  groupController.register(io, socket, { users: ctx.users, groups: ctx.groups, User:{}, Group:{}, Channel: ctx.Channel, Category: ctx.Category, onlineUsernames:new Set(), GroupMember:{} });
+  groupController.register(io, socket, { users: ctx.users, groups: ctx.groups, User:{}, Group: ctx.Group, Channel: ctx.Channel, Category: ctx.Category, onlineUsernames:new Set(), GroupMember:{} });
   const handler = socket.listeners('assignChannelCategory')[0];
   await handler({ groupId:'group1', channelId:'chan1', categoryId:'cat1' });
   assert.strictEqual(ctx.channelStore.chan1.category, 'doc1');
@@ -84,7 +87,7 @@ test('reorderCategory updates order and emits roomsList', async () => {
   ctx.groups.group1.categories.cat2 = { name:'C2', order:1 };
   ctx.categoryStore.cat1 = { categoryId:'cat1', name:'C1', group:{groupId:'group1'}, order:0 };
   ctx.categoryStore.cat2 = { categoryId:'cat2', name:'C2', group:{groupId:'group1'}, order:1 };
-  groupController.register(io, socket, { users: ctx.users, groups: ctx.groups, User:{}, Group:{}, Channel: ctx.Channel, Category: ctx.Category, onlineUsernames:new Set(), GroupMember:{} });
+  groupController.register(io, socket, { users: ctx.users, groups: ctx.groups, User:{}, Group: ctx.Group, Channel: ctx.Channel, Category: ctx.Category, onlineUsernames:new Set(), GroupMember:{} });
   const handler = socket.listeners('reorderCategory')[0];
   await handler({ groupId:'group1', categoryId:'cat2', newIndex:0 });
   assert.strictEqual(ctx.groups.group1.categories.cat2.order, 0);

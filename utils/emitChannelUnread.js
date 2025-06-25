@@ -5,7 +5,10 @@ async function emitChannelUnread(io, groupId, channelId, Group, Channel, userSes
       groupDoc = await groupDoc.populate('users', 'username');
     }
     if (!groupDoc) return;
-    let channelDoc = await Channel.findOne({ channelId }).populate('category');
+    let channelDoc = await Channel.findOne({ channelId });
+    if (channelDoc && typeof channelDoc.populate === 'function') {
+      channelDoc = await channelDoc.populate('category');
+    }
     const updates = [];
     for (const u of groupDoc.users) {
       const sid = userSessions[u.username];
