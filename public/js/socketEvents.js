@@ -12,6 +12,8 @@ window.groupMuteUntil = {};
 window.channelMuteUntil = {};
 window.categoryMuteUntil = {};
 window.mentionUnread = {};
+// Stores DOM nodes for channel user rows keyed by channel and user id
+window.channelUserRows = {};
 
 const CATEGORY_COLLAPSE_KEY = 'collapsedCategories';
 let collapsedCategories = {};
@@ -332,81 +334,130 @@ export function initSocketEvents(socket) {
 
   function renderChannelUsers(channelsObj) {
     if (!channelsObj) return;
-    Object.keys(channelsObj).forEach((roomId) => {
-      const cData = channelsObj[roomId];
-      const channelDiv = document.getElementById(`channel-users-${roomId}`);
-      if (!channelDiv) return;
-      channelDiv.innerHTML = '';
-      cData.users.forEach((u) => {
-        const userRow = document.createElement('div');
-        userRow.classList.add('channel-user');
-        const leftDiv = document.createElement('div');
-        leftDiv.classList.add('channel-user-left');
-        leftDiv.dataset.userId = u.id;
-        leftDiv.dataset.username = u.username;
-        const avatarDiv = document.createElement('div');
+
+    window.channelUserRows = window.channelUserRows || {};
+
+    function createRow(u) {
+      const userRow = document.createElement('div');
+      userRow.classList.add('channel-user');
+      const leftDiv = document.createElement('div');
+      leftDiv.classList.add('channel-user-left');
+      userRow.appendChild(leftDiv);
+      const rightDiv = document.createElement('div');
+      rightDiv.classList.add('channel-user-right');
+      userRow.appendChild(rightDiv);
+      attachUserDragHandlers(leftDiv, u.id, u.username);
+      updateRow(userRow, u);
+      return userRow;
+    }
+
+    function updateRow(row, u) {
+      const leftDiv = row.querySelector('.channel-user-left');
+      const rightDiv = row.querySelector('.channel-user-right');
+
+      leftDiv.dataset.userId = u.id;
+      leftDiv.dataset.username = u.username;
+
+      let avatarDiv = leftDiv.querySelector('.channel-user-avatar');
+      if (!avatarDiv) {
+        avatarDiv = document.createElement('div');
         avatarDiv.classList.add('channel-user-avatar');
-        avatarDiv.id = `avatar-${u.id}`;
-        avatarDiv.dataset.username = u.username;
-        window.loadAvatar(u.username).then(av => {
-          avatarDiv.style.backgroundImage = `url(${av})`;
-        });
-        const nameSpan = document.createElement('span');
-        nameSpan.textContent = u.username || '(İsimsiz)';
-        leftDiv.appendChild(avatarDiv);
+        leftDiv.prepend(avatarDiv);
+      }
+      avatarDiv.id = `avatar-${u.id}`;
+      avatarDiv.dataset.username = u.username;
+      avatarDiv.style.backgroundImage = 'url(/images/default-avatar.png)';
+      window.loadAvatar(u.username).then(av => { avatarDiv.style.backgroundImage = `url(${av})`; });
+
+      let nameSpan = leftDiv.querySelector('span.user-name');
+      if (!nameSpan) {
+        nameSpan = document.createElement('span');
+        nameSpan.classList.add('user-name');
         leftDiv.appendChild(nameSpan);
-        if (
-          socket.id &&
-          Array.isArray(window.screenShareWatchers) &&
-          window.screenShareWatchers.includes(u.username)
-        ) {
+      }
+      nameSpan.textContent = u.username || '(İsimsiz)';
+
+      const existingVis = leftDiv.querySelector('.visibility-icon');
+      const shouldShowVis = socket.id && Array.isArray(window.screenShareWatchers) && window.screenShareWatchers.includes(u.username);
+      if (shouldShowVis) {
+        if (!existingVis) {
           const visIcon = document.createElement('span');
           visIcon.classList.add('material-icons', 'visibility-icon');
           visIcon.textContent = 'visibility';
           leftDiv.appendChild(visIcon);
         }
-        const rightDiv = document.createElement('div');
-        rightDiv.classList.add('channel-user-right');
-        if (u.hasMic === false) {
-          const micIcon = document.createElement('span');
-          micIcon.classList.add('material-icons', 'mic-missing');
-          micIcon.textContent = 'mic_off';
-          rightDiv.appendChild(micIcon);
-        } else if (u.micEnabled === false) {
-          const micIcon = document.createElement('span');
-          micIcon.classList.add('material-icons');
-          micIcon.textContent = 'mic_off';
-          rightDiv.appendChild(micIcon);
+      } else if (existingVis) {
+        existingVis.remove();
+      }
+
+      rightDiv.innerHTML = '';
+      if (u.hasMic === false) {
+        const micIcon = document.createElement('span');
+        micIcon.classList.add('material-icons', 'mic-missing');
+        micIcon.textContent = 'mic_off';
+        rightDiv.appendChild(micIcon);
+      } else if (u.micEnabled === false) {
+        const micIcon = document.createElement('span');
+        micIcon.classList.add('material-icons');
+        micIcon.textContent = 'mic_off';
+        rightDiv.appendChild(micIcon);
+      }
+
+      if (u.selfDeafened === true) {
+        const deafIcon = document.createElement('span');
+        deafIcon.classList.add('material-icons');
+        deafIcon.textContent = 'headset_off';
+        rightDiv.appendChild(deafIcon);
+      }
+
+      if (u.isScreenSharing === true) {
+        const screenIndicator = document.createElement('span');
+        screenIndicator.classList.add('screen-share-indicator');
+        screenIndicator.textContent = 'YAYINDA';
+        if (u.screenShareProducerId) {
+          screenIndicator.style.cursor = 'pointer';
+          screenIndicator.addEventListener('click', () => {
+            window.clearScreenShareUI();
+            WebRTC.showScreenShare(
+              socket,
+              window.currentGroup,
+              window.currentRoom,
+              u.screenShareProducerId,
+              window.clearScreenShareUI,
+            );
+          });
         }
-        if (u.selfDeafened === true) {
-          const deafIcon = document.createElement('span');
-          deafIcon.classList.add('material-icons');
-          deafIcon.textContent = 'headset_off';
-          rightDiv.appendChild(deafIcon);
+        rightDiv.appendChild(screenIndicator);
+      }
+    }
+
+    Object.keys(channelsObj).forEach((roomId) => {
+      const cData = channelsObj[roomId];
+      const channelDiv = document.getElementById(`channel-users-${roomId}`);
+      if (!channelDiv) return;
+
+      const existing = window.channelUserRows[roomId] || {};
+      window.channelUserRows[roomId] = existing;
+
+      const present = new Set();
+      cData.users.forEach((u) => {
+        let row = existing[u.id];
+        if (!row) {
+          row = createRow(u);
+          existing[u.id] = row;
+        } else {
+          updateRow(row, u);
         }
-        if (u.isScreenSharing === true) {
-          const screenIndicator = document.createElement('span');
-          screenIndicator.classList.add('screen-share-indicator');
-          screenIndicator.textContent = 'YAYINDA';
-          if (u.screenShareProducerId) {
-            screenIndicator.style.cursor = 'pointer';
-            screenIndicator.addEventListener('click', () => {
-              window.clearScreenShareUI();
-              WebRTC.showScreenShare(
-                socket,
-                window.currentGroup,
-                window.currentRoom,
-                u.screenShareProducerId,
-                window.clearScreenShareUI,
-              );
-            });
-          }
-          rightDiv.appendChild(screenIndicator);
+        present.add(String(u.id));
+        channelDiv.appendChild(row);
+      });
+
+      Object.keys(existing).forEach((uid) => {
+        if (!present.has(String(uid))) {
+          const r = existing[uid];
+          if (r && r.parentNode) r.parentNode.removeChild(r);
+          delete existing[uid];
         }
-        userRow.appendChild(leftDiv);
-        userRow.appendChild(rightDiv);
-        attachUserDragHandlers(leftDiv, u.id, u.username);
-      channelDiv.appendChild(userRow);
       });
     });
   }
