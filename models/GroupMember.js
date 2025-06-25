@@ -20,6 +20,11 @@ const GroupMemberSchema = new mongoose.Schema({
     of: Date,
     default: {}
   },
+  categoryMuteUntil: {
+    type: Map,
+    of: Date,
+    default: {}
+  },
   notificationType: {
     type: String,
     enum: ['all', 'mentions', 'nothing'],

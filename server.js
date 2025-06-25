@@ -333,6 +333,7 @@ app.post('/api/message', (req, res) => {
           channelDoc.group.groupId,
           channelId,
           Group,
+          Channel,
           userSessions,
           GroupMember,
           users,

@@ -703,7 +703,7 @@ function register(io, socket, context) {
     removeUserFromRoom(io, socket, users, groups, groupId, roomId);
   });
 
-  socket.on('createChannel', async ({ groupId, name, type }) => {
+  socket.on('createChannel', async ({ groupId, name, type, categoryId }) => {
     try {
       if (!groupId || !name) return;
       const trimmed = name.trim();
@@ -712,16 +712,21 @@ function register(io, socket, context) {
       const channelId = uuidv4();
       const order = Object.keys(groups[groupId]?.rooms || {}).length;
       const resolvedType = type === 'voice' ? 'voice' : 'text';
+      let categoryDoc = null;
+      if (categoryId) {
+        categoryDoc = await Category.findOne({ categoryId });
+      }
       const newChannel = new Channel({
         channelId,
         name: trimmed,
         group: groupDoc._id,
         type: resolvedType,
-        order
+        order,
+        category: categoryDoc ? categoryDoc._id : undefined
       });
       await newChannel.save();
       if (groups[groupId]) {
-        groups[groupId].rooms[channelId] = { name: trimmed, type: resolvedType, users: [], order };
+        groups[groupId].rooms[channelId] = { name: trimmed, type: resolvedType, users: [], order, categoryId: categoryId || null };
         io.to(groupId).emit('channelCreated', { id: channelId, name: trimmed, type: resolvedType, order });
         broadcastRoomsListToGroup(io, groups, groupId);
       }
@@ -1064,6 +1069,43 @@ function register(io, socket, context) {
       });
     } catch (err) {
       console.error('muteChannel error:', err);
+    }
+  });
+
+  socket.on('muteCategory', async ({ groupId, categoryId, duration }) => {
+    try {
+      if (!groupId || !categoryId) return;
+      const username = users[socket.id]?.username;
+      if (!username) return;
+      const [userDoc, groupDoc, categoryDoc] = await Promise.all([
+        User.findOne({ username }),
+        Group.findOne({ groupId }),
+        Category.findOne({ categoryId })
+      ]);
+      if (!userDoc || !groupDoc || !categoryDoc) return;
+      const ms = Number(duration);
+      let expire = null;
+      if (ms === -1) {
+        expire = INDEFINITE_TS;
+      } else if (ms > 0) {
+        expire = new Date(Date.now() + ms);
+      }
+      const field = `categoryMuteUntil.${categoryId}`;
+      const update = expire ? { $set: { [field]: expire } } : { $unset: { [field]: '' } };
+      await GroupMember.updateOne(
+        { user: userDoc._id, group: groupDoc._id },
+        update,
+        { upsert: true }
+      );
+      const ev = expire ? 'categoryMuted' : 'muteCleared';
+      const payload = expire ? { groupId, categoryId, muteUntil: expire } : { groupId, categoryId };
+      Object.entries(users).forEach(([sid, u]) => {
+        if (u.username === username) {
+          io.to(sid).emit(ev, payload);
+        }
+      });
+    } catch (err) {
+      console.error('muteCategory error:', err);
     }
   });
 

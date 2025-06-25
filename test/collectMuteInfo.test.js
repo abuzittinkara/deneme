@@ -12,7 +12,7 @@ test('collectMuteInfo filters out expired entries', async () => {
   const userDoc = { _id: 'u1id', groups: [{ _id: 'g1id', groupId: 'g1' }] };
   const User = { findOne: async q => q.username === 'u1' ? query(userDoc) : query(null) };
   const Group = {};
-  const gm = { muteUntil: new Date(now - 1000), channelMuteUntil: new Map([['c1', new Date(now - 1000)]]) };
+  const gm = { muteUntil: new Date(now - 1000), channelMuteUntil: new Map([['c1', new Date(now - 1000)]]), categoryMuteUntil: new Map([['cat1', new Date(now - 1000)]]) };
   const GroupMember = { findOne: async () => gm };
   const res = await collectMuteInfo('u1', { User, Group, GroupMember });
   assert.deepStrictEqual(res, {});

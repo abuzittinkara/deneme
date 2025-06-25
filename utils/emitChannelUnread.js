@@ -1,10 +1,11 @@
-async function emitChannelUnread(io, groupId, channelId, Group, userSessions, GroupMember, users, mentions = []) {
+async function emitChannelUnread(io, groupId, channelId, Group, Channel, userSessions, GroupMember, users, mentions = []) {
   try {
     let groupDoc = await Group.findOne({ groupId });
     if (groupDoc && typeof groupDoc.populate === 'function') {
       groupDoc = await groupDoc.populate('users', 'username');
     }
     if (!groupDoc) return;
+    let channelDoc = await Channel.findOne({ channelId }).populate('category');
     const updates = [];
     for (const u of groupDoc.users) {
       const sid = userSessions[u.username];
@@ -13,11 +14,11 @@ async function emitChannelUnread(io, groupId, channelId, Group, userSessions, Gr
 
       let gmQuery = GroupMember.findOne({ user: u._id, group: groupDoc._id });
       if (gmQuery && typeof gmQuery.select === 'function') {
-        gmQuery = gmQuery.select('muteUntil channelMuteUntil notificationType channelNotificationType');
+        gmQuery = gmQuery.select('muteUntil channelMuteUntil categoryMuteUntil notificationType channelNotificationType');
       }
       let gm = await gmQuery;
       if (gm && typeof gm.select === 'function') {
-        gm = gm.select('muteUntil channelMuteUntil notificationType channelNotificationType');
+        gm = gm.select('muteUntil channelMuteUntil categoryMuteUntil notificationType channelNotificationType');
       }
       const now = Date.now();
       const groupMuteUntil = gm?.muteUntil instanceof Date ? gm.muteUntil.getTime() : 0;
@@ -30,7 +31,15 @@ async function emitChannelUnread(io, groupId, channelId, Group, userSessions, Gr
         }
       }
       const channelMuteTs = channelMuteUntil instanceof Date ? channelMuteUntil.getTime() : 0;
-      const muteActive = groupMuteUntil > now || channelMuteTs > now;
+      let categoryMuteUntil;
+      const catId = channelDoc && channelDoc.category ? channelDoc.category.categoryId : null;
+      if (catId && gm?.categoryMuteUntil) {
+        categoryMuteUntil = typeof gm.categoryMuteUntil.get === 'function'
+          ? gm.categoryMuteUntil.get(catId)
+          : gm.categoryMuteUntil[catId];
+      }
+      const catMuteTs = categoryMuteUntil instanceof Date ? categoryMuteUntil.getTime() : 0;
+      const muteActive = groupMuteUntil > now || channelMuteTs > now || catMuteTs > now;
       if (muteActive) continue;
 
       const inc = {};

@@ -68,7 +68,7 @@ test('muteChannel prevents unread updates', async () => {
   await handler({ groupId: 'g1', channelId: 'ch1', duration: 1000 });
   ctx.updates.length = 0;
 
-  await emitChannelUnread(ctx.io, 'g1', 'ch1', ctx.Group, ctx.userSessions, ctx.GroupMember, ctx.users);
+  await emitChannelUnread(ctx.io, 'g1', 'ch1', ctx.Group, ctx.Channel, ctx.userSessions, ctx.GroupMember, ctx.users);
   assert.strictEqual(ctx.updates.length, 0);
 });
 
@@ -82,6 +82,6 @@ test('clearing channel mute restores unread updates', async () => {
   await handler({ groupId: 'g1', channelId: 'ch1', duration: 0 });
   ctx.updates.length = 0;
 
-  await emitChannelUnread(ctx.io, 'g1', 'ch1', ctx.Group, ctx.userSessions, ctx.GroupMember, ctx.users);
+  await emitChannelUnread(ctx.io, 'g1', 'ch1', ctx.Group, ctx.Channel, ctx.userSessions, ctx.GroupMember, ctx.users);
   assert.strictEqual(ctx.updates[0].$inc['channelUnreads.ch1'], 1);
 });

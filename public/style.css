@@ -25,3 +25,19 @@
   gap: 0.25rem;
   padding-left: 0.5rem;
 }
+.category-add-btn {
+  margin-left: auto;
+  font-size: 18px;
+  cursor: pointer;
+}
+.category-row.muted .category-name,
+.category-row.muted .collapse-icon {
+  color: #575757;
+}
+.category-placeholder {
+  height: 30px;
+  margin-bottom: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed #777;
+  border-radius: 4px;
+}
