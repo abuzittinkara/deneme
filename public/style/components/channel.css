@@ -15,13 +15,13 @@
   position: relative;
 }
 .channel-item:hover {
-  background-color: #3d3d3d;
+  background-color: #515151;
 }
 .channel-item:hover .channel-settings-btn {
   display: flex;
 }
 .channel-item.connected {
-  border: 1px solid #c61884;
+  background-color: #515151;
 }
 .channel-item .unread-dot {
   position: absolute;

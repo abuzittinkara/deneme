@@ -98,10 +98,10 @@ async function loadGroupsFromDB({ Group, groups }) {
 
 async function loadChannelsFromDB({ Channel, groups }) {
   try {
-    let channelDocs = await Channel.find({}).sort({ order: 1 });
-    if (channelDocs && typeof channelDocs.populate === 'function') {
-      channelDocs = await channelDocs.populate('group').populate('category');
-    }
+    let channelDocs = await Channel.find({})
+      .populate('group')
+      .populate('category')
+      .sort({ order: 1 });
     channelDocs.forEach(ch => {
       try {
         if (!ch.group || !ch.group.groupId) return;
@@ -125,10 +125,9 @@ async function loadChannelsFromDB({ Channel, groups }) {
 
 async function loadCategoriesFromDB({ Category, groups }) {
   try {
-    let categoryDocs = await Category.find({}).sort({ order: 1 });
-    if (categoryDocs && typeof categoryDocs.populate === 'function') {
-      categoryDocs = await categoryDocs.populate('group');
-    }
+    let categoryDocs = await Category.find({})
+      .populate('group')
+      .sort({ order: 1 });
     categoryDocs.forEach(cat => {
       try {
         if (!cat.group || !cat.group.groupId) return;
