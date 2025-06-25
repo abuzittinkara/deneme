@@ -1326,6 +1326,9 @@ export function initSocketEvents(socket) {
     header.addEventListener('drop', (e) => {
       if (!draggedChannelEl || !channelPlaceholder) return;
       e.preventDefault();
+      if (channelPlaceholder.parentNode !== channelContainer) {
+        channelContainer.appendChild(channelPlaceholder);
+      }
       channelContainer.insertBefore(draggedChannelEl, channelPlaceholder);
       const items = Array.from(roomListDiv.querySelectorAll('.channel-item'));
       const newIndex = items.indexOf(draggedChannelEl);
