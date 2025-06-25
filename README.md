@@ -70,6 +70,12 @@ The client-side code under `public/js` is organized into small ES modules:
 - **audioUtils.js** – volume analysis and audio state utilities
 - **uiEvents.js** – sets up DOM event listeners
 
+### Module Style
+
+The Node.js backend uses the CommonJS module system with `require` and
+`module.exports`. Browser code in `public/js` is written as ES modules and is
+loaded using `<script type="module">`.
+
 ### Channel Management
 
 Right-click a channel name in the rooms list to rename or delete it. Selecting
