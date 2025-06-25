@@ -8,6 +8,7 @@
 
 .category-row {
   margin: 0.75rem 0;
+  padding-bottom: 8px;
 }
 .category-header {
   display: flex;
