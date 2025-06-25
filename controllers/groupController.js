@@ -316,6 +316,7 @@ function broadcastRoomsListToGroup(io, groups, groupId) {
     return;
   }
   const groupObj = groups[groupId];
+  const categoriesObj = groupObj.categories || {};
   const roomArray = Object.entries(groupObj.rooms)
     .sort((a, b) => (a[1].order || 0) - (b[1].order || 0))
     .map(([rId, rm]) => ({
@@ -324,7 +325,7 @@ function broadcastRoomsListToGroup(io, groups, groupId) {
       type: rm.type,
       unreadCount: 0
     }));
-  const categoriesArr = Object.entries(groupObj.categories)
+  const categoriesArr = Object.entries(categoriesObj)
     .sort((a,b)=> (a[1].order||0)-(b[1].order||0))
     .map(([cid, cat]) => {
       const channels = Object.entries(groupObj.rooms)
