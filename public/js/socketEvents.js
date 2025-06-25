@@ -260,13 +260,7 @@ export function initSocketEvents(socket) {
     roomListDiv.addEventListener('dragover', (e) => {
       if (!draggedCategoryEl) return;
       e.preventDefault();
-      let ref = e.target.closest('.category-row');
-      if (!ref) {
-        const chan = e.target.closest('.channel-item');
-        if (chan) {
-          ref = chan.parentNode.closest('.category-row');
-        }
-      }
+      const ref = e.target.closest('.category-row, .channel-item');
       if (ref) {
         if (ref === draggedCategoryEl) return;
         const rect = ref.getBoundingClientRect();
