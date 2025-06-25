@@ -192,35 +192,6 @@ function setupChannelDragContainer(socket, container, rootContainer = container)
   });
 }
 
-document.addEventListener('dragover', (e) => {
-  updateDragPreview(e.clientX, e.clientY);
-  updateChannelPreview(e.clientX, e.clientY);
-});
-
-roomListDiv.addEventListener('dragover', (e) => {
-  if (!draggedCategoryEl) return;
-  e.preventDefault();
-  const target = e.target.closest('.category-row');
-  if (!target || target === draggedCategoryEl) return;
-  const rect = target.getBoundingClientRect();
-  const next = e.clientY - rect.top > rect.height / 2;
-  target.parentNode.insertBefore(categoryPlaceholder, next ? target.nextSibling : target);
-});
-roomListDiv.addEventListener('drop', (e) => {
-  if (!draggedCategoryEl || !categoryPlaceholder) return;
-  e.preventDefault();
-  categoryPlaceholder.parentNode.insertBefore(draggedCategoryEl, categoryPlaceholder);
-  const items = Array.from(roomListDiv.querySelectorAll('.category-row'));
-  const newIndex = items.indexOf(draggedCategoryEl);
-  categoryPlaceholder.remove();
-  categoryPlaceholder = null;
-  draggedCategoryEl.classList.remove('dragging');
-  socket.emit('reorderCategory', { groupId: window.selectedGroup, categoryId: draggedCategoryEl.dataset.categoryId, newIndex });
-  draggedCategoryEl.classList.add('snap');
-  const dropped = draggedCategoryEl;
-  setTimeout(() => dropped.classList.remove('snap'), 150);
-  draggedCategoryEl = null;
-});
 
 function refreshVisibilityIcons() {
   const rows = document.querySelectorAll('.channel-user');
@@ -268,6 +239,41 @@ export function initSocketEvents(socket) {
   } = window;
 
   setupChannelDragContainer(socket, roomListDiv);
+
+  document.addEventListener('dragover', (e) => {
+    updateDragPreview(e.clientX, e.clientY);
+    updateChannelPreview(e.clientX, e.clientY);
+  });
+
+  roomListDiv.addEventListener('dragover', (e) => {
+    if (!draggedCategoryEl) return;
+    e.preventDefault();
+    const target = e.target.closest('.category-row');
+    if (!target || target === draggedCategoryEl) return;
+    const rect = target.getBoundingClientRect();
+    const next = e.clientY - rect.top > rect.height / 2;
+    target.parentNode.insertBefore(categoryPlaceholder, next ? target.nextSibling : target);
+  });
+
+  roomListDiv.addEventListener('drop', (e) => {
+    if (!draggedCategoryEl || !categoryPlaceholder) return;
+    e.preventDefault();
+    categoryPlaceholder.parentNode.insertBefore(draggedCategoryEl, categoryPlaceholder);
+    const items = Array.from(roomListDiv.querySelectorAll('.category-row'));
+    const newIndex = items.indexOf(draggedCategoryEl);
+    categoryPlaceholder.remove();
+    categoryPlaceholder = null;
+    draggedCategoryEl.classList.remove('dragging');
+    socket.emit('reorderCategory', {
+      groupId: window.selectedGroup,
+      categoryId: draggedCategoryEl.dataset.categoryId,
+      newIndex,
+    });
+    draggedCategoryEl.classList.add('snap');
+    const dropped = draggedCategoryEl;
+    setTimeout(() => dropped.classList.remove('snap'), 150);
+    draggedCategoryEl = null;
+  });
 
   if (UserList.initAvatarUpdates) {
     UserList.initAvatarUpdates(socket);
