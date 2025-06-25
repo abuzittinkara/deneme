@@ -1304,6 +1304,50 @@ export function initSocketEvents(socket) {
         collapsed: !isCollapsed
       });
     });
+    header.addEventListener('dragover', (e) => {
+      if (!draggedChannelEl) return;
+      e.preventDefault();
+      if (channelContainer.style.display === 'none') {
+        channelContainer.style.display = 'flex';
+        icon.textContent = 'expand_more';
+        collapsedCategories[catObj.id] = false;
+        saveCollapsedCategories();
+        socket.emit('setCategoryCollapsed', {
+          groupId: window.selectedGroup,
+          categoryId: catObj.id,
+          collapsed: false
+        });
+      }
+      if (channelPlaceholder && channelPlaceholder.parentNode !== channelContainer) {
+        channelContainer.appendChild(channelPlaceholder);
+      }
+      updateChannelPreview(e.clientX, e.clientY);
+    });
+    header.addEventListener('drop', (e) => {
+      if (!draggedChannelEl || !channelPlaceholder) return;
+      e.preventDefault();
+      channelContainer.insertBefore(draggedChannelEl, channelPlaceholder);
+      const items = Array.from(roomListDiv.querySelectorAll('.channel-item'));
+      const newIndex = items.indexOf(draggedChannelEl);
+      hideChannelPreview();
+      channelPlaceholder.remove();
+      channelPlaceholder = null;
+      draggedChannelEl.classList.remove('dragging');
+      socket.emit('assignChannelCategory', {
+        groupId: window.selectedGroup,
+        channelId: draggedChannelEl.dataset.roomId,
+        categoryId: catObj.id
+      });
+      socket.emit('reorderChannel', {
+        groupId: window.selectedGroup,
+        channelId: draggedChannelEl.dataset.roomId,
+        newIndex
+      });
+      draggedChannelEl.classList.add('snap');
+      const droppedEl = draggedChannelEl;
+      setTimeout(() => droppedEl.classList.remove('snap'), 150);
+      draggedChannelEl = null;
+    });
     return row;
   }
 
