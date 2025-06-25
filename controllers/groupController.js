@@ -311,7 +311,10 @@ async function sendRoomsListToUser(io, socketId, context, groupId) {
 }
 
 function broadcastRoomsListToGroup(io, groups, groupId) {
-  if (!groups[groupId]) return;
+  if (!groups[groupId]?.rooms) {
+    console.warn(`[broadcastRoomsListToGroup] rooms not found for groupId=${groupId}`);
+    return;
+  }
   const groupObj = groups[groupId];
   const roomArray = Object.entries(groupObj.rooms)
     .sort((a, b) => (a[1].order || 0) - (b[1].order || 0))
