@@ -6,7 +6,7 @@ const groupController = require('../controllers/groupController');
 
 function createContext() {
   const users = { sock1: { username: 'u1' } };
-  const groups = { group1: { owner: 'u1', name: 'g', users: [], rooms: {} } };
+  const groups = { group1: { owner: 'u1', name: 'g', users: [], rooms: {}, categories: {} } };
   const savedChannels = {};
   const Group = { async findOne(q) { return q.groupId === 'group1' ? { groupId: 'group1', _id: 'gid' } : null; } };
   class Channel {

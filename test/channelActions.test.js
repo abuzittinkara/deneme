@@ -7,7 +7,7 @@ const groupController = require('../controllers/groupController');
 function createContext() {
   const users = {};
   const groups = {
-    group1: { owner: 'u1', name: 'g', users: [], rooms: { chan1: { name: 'Old', type: 'text', users: [], order: 0 } } }
+    group1: { owner: 'u1', name: 'g', users: [], rooms: { chan1: { name: 'Old', type: 'text', users: [], order: 0 } }, categories: {} }
   };
   const channelStore = {
     chan1: { channelId: 'chan1', name: 'Old', group: { groupId: 'group1' }, order: 0 }
@@ -43,6 +43,7 @@ function createContext() {
 
 function createContextWithTwoChannels() {
   const ctx = createContext();
+  ctx.groups.group1.categories = {};
   ctx.groups.group1.rooms.chan2 = { name: 'Other', type: 'text', users: [], order: 1 };
   ctx.channelStore.chan2 = { channelId: 'chan2', name: 'Other', group: { groupId: 'group1' }, order: 1 };
   return ctx;
