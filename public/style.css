@@ -7,9 +7,7 @@
 @import url("style/responsive.css");
 
 .category-row {
-  margin: 0.75rem 0;
-  padding-top: 4px;
-  padding-bottom: 4px;
+  margin: 0.25rem 0;
 }
 .category-header {
   display: flex;
