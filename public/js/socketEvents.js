@@ -253,11 +253,29 @@ export function initSocketEvents(socket) {
     roomListDiv.addEventListener('dragover', (e) => {
       if (!draggedCategoryEl) return;
       e.preventDefault();
-      const target = e.target.closest('.category-row');
-      if (!target || target === draggedCategoryEl) return;
-      const rect = target.getBoundingClientRect();
-      const next = e.clientY - rect.top > rect.height / 2;
-      target.parentNode.insertBefore(categoryPlaceholder, next ? target.nextSibling : target);
+      let ref = e.target.closest('.category-row');
+      if (!ref) {
+        const chan = e.target.closest('.channel-item');
+        if (chan) {
+          ref = chan.parentNode.closest('.category-row');
+        }
+      }
+      if (ref) {
+        if (ref === draggedCategoryEl) return;
+        const rect = ref.getBoundingClientRect();
+        const next = e.clientY - rect.top > rect.height / 2;
+        ref.parentNode.insertBefore(
+          categoryPlaceholder,
+          next ? ref.nextSibling : ref
+        );
+      } else {
+        const contRect = roomListDiv.getBoundingClientRect();
+        const next = e.clientY - contRect.top > contRect.height / 2;
+        roomListDiv.insertBefore(
+          categoryPlaceholder,
+          next ? null : roomListDiv.firstElementChild
+        );
+      }
     });
 
     roomListDiv.addEventListener('drop', (e) => {
