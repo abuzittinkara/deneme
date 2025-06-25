@@ -23,8 +23,10 @@ async function setup() {
   window.showChannelStatusPanel = () => {};
   window.textMessages = document.createElement('div');
   const mod = await import('../public/js/socketEvents.js');
+  const textMod = await import('../public/js/textChannel.js');
   const socket = new EventEmitter();
   mod.initSocketEvents(socket);
+  textMod.initTextChannelEvents(socket, window.textMessages);
   return { socket };
 }
 
