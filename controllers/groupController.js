@@ -589,7 +589,10 @@ function register(io, socket, context) {
       userData.currentTextChannel = null;
       if (context.store) context.store.setJSON(context.store.key('session', socket.id), userData);
       socket.join(groupId);
-      await sendRoomsListToUser(io, socket.id, { groups, users, Group, User, GroupMember, Channel, store: context.store }, groupId);
+      await sendRoomsListToUser(io, socket.id, {
+        groups, users, Group, User, GroupMember, Channel, Category,
+        store: context.store
+      }, groupId);
       await sendGroupsListToUser(io, socket.id, { User, users, GroupMember });
       broadcastAllChannelsData(io, users, groups, groupId);
       broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
@@ -600,7 +603,10 @@ function register(io, socket, context) {
 
   socket.on('browseGroup', async (groupId) => {
     if (!groups[groupId]) return;
-    await sendRoomsListToUser(io, socket.id, { groups, users, Group, User, GroupMember, Channel, store: context.store }, groupId);
+    await sendRoomsListToUser(io, socket.id, {
+      groups, users, Group, User, GroupMember, Channel, Category,
+      store: context.store
+    }, groupId);
     broadcastAllChannelsData(io, users, groups, groupId);
     broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
   });
