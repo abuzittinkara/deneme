@@ -1329,7 +1329,9 @@ export function initSocketEvents(socket) {
       if (channelPlaceholder.parentNode !== channelContainer) {
         channelContainer.appendChild(channelPlaceholder);
       }
-      channelContainer.insertBefore(draggedChannelEl, channelPlaceholder);
+      if (channelPlaceholder.parentNode === channelContainer) {
+        channelContainer.insertBefore(draggedChannelEl, channelPlaceholder);
+      }
       const items = Array.from(roomListDiv.querySelectorAll('.channel-item'));
       const newIndex = items.indexOf(draggedChannelEl);
       hideChannelPreview();
