@@ -6,6 +6,7 @@ const collectMentionCounts = require('../utils/collectMentionCounts');
 const collectMuteInfo = require('../utils/collectMuteInfo');
 const collectNotifyInfo = require('../utils/collectNotifyInfo');
 const collectCategoryPrefs = require('../utils/collectCategoryPrefs');
+const jwt = require('../utils/jwt');
 
 function registerAuthHandlers(io, socket, context) {
   const { User, Group, GroupMember, users, onlineUsernames, groupController } = context;
@@ -26,7 +27,8 @@ function registerAuthHandlers(io, socket, context) {
         socket.emit('loginResult', { success: false, message: 'Yanlış parola.' });
         return;
       }
-      socket.emit('loginResult', { success: true, username: user.username });
+      const token = jwt.sign({ username: user.username, id: user._id.toString() });
+      socket.emit('loginResult', { success: true, username: user.username, token });
     } catch (err) {
       socket.emit('loginResult', { success: false, message: 'Giriş hatası.' });
     }

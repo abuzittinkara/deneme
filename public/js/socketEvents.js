@@ -724,6 +724,7 @@ export function initSocketEvents(socket) {
       window.username = data.username;
       try {
         localStorage.setItem('username', data.username);
+        if (data.token) localStorage.setItem('token', data.token);
       } catch (e) {}
       loginScreen.style.display = 'none';
       callScreen.style.display = 'flex';

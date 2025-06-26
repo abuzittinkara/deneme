@@ -2,6 +2,8 @@ const test = require('node:test');
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
+process.env.JWT_SECRET = 'testsecret';
+const { sign } = require('../utils/jwt');
 
 function loadServer() {
   const originalSetInterval = global.setInterval;
@@ -29,9 +31,12 @@ test('failed /api/message request cleans up uploaded files', async () => {
   form.append('username', 'cleanupUser');
   form.append('files', new Blob(['hi']), 'a.txt');
 
+  const token = sign({ username: 'cleanupUser' });
+
   const res = await fetch(`http://localhost:${port}/api/message`, {
     method: 'POST',
-    body: form
+    body: form,
+    headers: { Authorization: `Bearer ${token}` }
   });
   await res.text();
 

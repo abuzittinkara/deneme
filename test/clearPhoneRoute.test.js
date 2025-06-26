@@ -1,5 +1,7 @@
 const test = require('node:test');
 const assert = require('assert');
+process.env.JWT_SECRET = 'testsecret';
+const { sign } = require('../utils/jwt');
 
 function loadServer(User) {
   const originalSetInterval = global.setInterval;
@@ -24,9 +26,11 @@ test('PATCH /api/user/me clears phone', async () => {
   const srv = app.listen(0);
   const port = srv.address().port;
 
+  const token = sign({ username: 'alice' });
+
   const res = await fetch(`http://localhost:${port}/api/user/me?username=alice`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify({ field: 'phone', value: '' })
   });
   await res.json();
