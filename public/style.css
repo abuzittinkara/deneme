@@ -57,3 +57,11 @@
 .category-row.expanded .category-channels {
   border-bottom: 1px solid #444;
 }
+
+.category-channels:empty {
+  display: none;
+}
+
+.category-row.expanded .category-channels:empty {
+  border-bottom: none;
+}
