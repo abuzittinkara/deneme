@@ -1263,13 +1263,7 @@ export function initSocketEvents(socket) {
     if (groupId === window.selectedGroup) {
       const row = roomListDiv.querySelector(`.category-row[data-category-id="${categoryId}"]`);
       if (row) {
-        const container = row.querySelector('.category-channels');
-        const icon = row.querySelector('.collapse-icon');
-        if (container && icon) {
-          container.style.display = collapsed ? 'none' : 'flex';
-          icon.textContent = collapsed ? 'chevron_right' : 'expand_more';
-          row.classList.toggle('expanded', !collapsed);
-        }
+        updateCategoryDisplay(row);
       }
     }
   });
@@ -1472,16 +1466,13 @@ export function initSocketEvents(socket) {
     if (collapsed) channelContainer.style.display = 'none';
     row.appendChild(channelContainer);
     header.addEventListener('click', () => {
-      const isCollapsed = channelContainer.style.display === 'none';
-      channelContainer.style.display = isCollapsed ? 'flex' : 'none';
-      icon.textContent = isCollapsed ? 'expand_more' : 'chevron_right';
-      row.classList.toggle('expanded', isCollapsed);
-      collapsedCategories[catObj.id] = !isCollapsed;
+      collapsedCategories[catObj.id] = !collapsedCategories[catObj.id];
       saveCollapsedCategories();
+      updateCategoryDisplay(row);
       socket.emit('setCategoryCollapsed', {
         groupId: window.selectedGroup,
         categoryId: catObj.id,
-        collapsed: !isCollapsed
+        collapsed: collapsedCategories[catObj.id]
       });
     });
     header.addEventListener('contextmenu', (e) => {
@@ -1538,9 +1529,24 @@ export function initSocketEvents(socket) {
       const droppedEl = draggedChannelEl;
       setTimeout(() => droppedEl.classList.remove('snap'), 150);
       draggedChannelEl = null;
+      updateCategoryDisplay(row);
     });
     attachCategoryDragHandlers(row);
+    updateCategoryDisplay(row);
     return row;
+  }
+
+  function updateCategoryDisplay(row) {
+    const container = row.querySelector('.category-channels');
+    const icon = row.querySelector('.collapse-icon');
+    const catId = row.dataset.categoryId;
+    const collapsed = collapsedCategories[catId];
+    const hasChannels = container && container.children.length > 0;
+    if (container) {
+      container.style.display = !collapsed && hasChannels ? 'flex' : 'none';
+    }
+    if (icon) icon.textContent = collapsed ? 'chevron_right' : 'expand_more';
+    row.classList.toggle('expanded', !collapsed && hasChannels);
   }
 
   function updateChannelItem(el, roomObj) {
@@ -1677,6 +1683,7 @@ export function initSocketEvents(socket) {
       syncChildren(container, catChannelNodes[cid] || []);
       setupChannelDragContainer(socket, container, roomListDiv);
     });
+    roomListDiv.querySelectorAll('.category-row').forEach(updateCategoryDisplay);
     setupChannelDragContainer(socket, roomListDiv, roomListDiv);
 
     const groupItem = groupListDiv.querySelector(`.grp-item[data-group-id="${window.selectedGroup}"]`);
