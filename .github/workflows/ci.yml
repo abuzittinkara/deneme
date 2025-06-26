@@ -9,6 +9,15 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      PORT: ${{ secrets.PORT }}
+      CORS_ORIGIN: ${{ secrets.CORS_ORIGIN }}
+      ANNOUNCED_IP: ${{ secrets.ANNOUNCED_IP }}
+      TURN_USERNAME: ${{ secrets.TURN_USERNAME }}
+      TURN_CREDENTIAL: ${{ secrets.TURN_CREDENTIAL }}
+      SOCKET_URL: ${{ secrets.SOCKET_URL }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
