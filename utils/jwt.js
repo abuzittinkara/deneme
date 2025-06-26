@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const SECRET = process.env.JWT_SECRET;
 
-if (!SECRET) {
+if (!SECRET || SECRET.trim() === '') {
   const msg = 'JWT_SECRET environment variable is required';
   throw new Error(msg);
 }
