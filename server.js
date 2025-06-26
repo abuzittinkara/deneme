@@ -171,8 +171,10 @@ app.use('/api', verifyToken);
 
 // Basit kullanıcı API'si
 app.get('/api/user/me', async (req, res) => {
-  const username = req.query.username;
-  if (!username) return res.status(400).json({ error: 'missing username' });
+  const tokenUser = req.user && req.user.username;
+  const qName = req.query.username;
+  if (qName && qName !== tokenUser) return res.status(403).json({ error: 'forbidden' });
+  const username = tokenUser;
   try {
     const user = await User.findOne({ username });
     if (!user) return res.status(404).json({ error: 'not found' });
@@ -188,9 +190,12 @@ app.get('/api/user/me', async (req, res) => {
 });
 
 app.patch('/api/user/me', async (req, res) => {
-  const username = req.query.username;
+  const tokenUser = req.user && req.user.username;
+  const qName = req.query.username;
   const { field, value } = req.body || {};
-  if (!username || !field) return res.status(400).json({ error: 'missing params' });
+  if (qName && qName !== tokenUser) return res.status(403).json({ error: 'forbidden' });
+  if (!field) return res.status(400).json({ error: 'missing params' });
+  const username = tokenUser;
   const allowed = ['displayName', 'username', 'email', 'phone'];
   if (!allowed.includes(field)) return res.status(400).json({ error: 'invalid field' });
   try {
