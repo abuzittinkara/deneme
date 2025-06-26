@@ -283,7 +283,9 @@ export function initSocketEvents(socket) {
       if (!draggedCategoryEl || !categoryPlaceholder) return;
       e.preventDefault();
       categoryPlaceholder.parentNode.insertBefore(draggedCategoryEl, categoryPlaceholder);
-      const items = Array.from(roomListDiv.querySelectorAll('.category-row, .channel-item'));
+      const items = Array.from(roomListDiv.children).filter(el =>
+        el.classList.contains('category-row') || el.classList.contains('channel-item')
+      );
       const newIndex = items.indexOf(draggedCategoryEl);
       categoryPlaceholder.remove();
       categoryPlaceholder = null;
