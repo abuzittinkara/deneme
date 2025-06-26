@@ -43,10 +43,13 @@ webpack.config.js   Bundles mediasoup-client into `public/libs`
    This script runs `npm ci` to fetch Node packages and is
    also executed in CI before running the tests.
 2. Copy `.env.example` to `.env` and update the values.
-3. Build the mediasoup client bundle (creates `public/libs/mediasoup-client.min.js`):
+3. Build the bundled client files by running:
     ```bash
-    npx webpack
+    npm run build
     ```
+   This invokes Webpack and generates both `public/libs/mediasoup-client.min.js`
+   and `public/bundle.js`. The application will not start correctly without
+   these files present.
 4. Start the application:
 ```bash
 npm start
