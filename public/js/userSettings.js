@@ -172,9 +172,10 @@ function openEditUsernameModal() {
       save.innerHTML = '<span class="spinner"></span>';
       try {
         const uname = localStorage.getItem('username');
+        const token = localStorage.getItem('token');
         const resp = await fetch(`/api/user/me?username=${encodeURIComponent(uname)}`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : undefined },
           body: JSON.stringify({ field: 'username', value: v })
         });
         if (!resp.ok) {
@@ -241,9 +242,10 @@ function openEditEmailModal() {
       save.innerHTML = '<span class="spinner"></span>';
       try {
         const uname = localStorage.getItem('username');
+        const token = localStorage.getItem('token');
         const resp = await fetch(`/api/user/me?username=${encodeURIComponent(uname)}`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : undefined },
           body: JSON.stringify({ field: 'email', value: v })
         });
         if (!resp.ok) {
@@ -307,9 +309,10 @@ function openEditPhoneModal() {
       save.innerHTML = '<span class="spinner"></span>';
       try {
         const uname = localStorage.getItem('username');
+        const token = localStorage.getItem('token');
         const resp = await fetch(`/api/user/me?username=${encodeURIComponent(uname)}`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : undefined },
           body: JSON.stringify({ field: 'phone', value: v })
         });
         if (!resp.ok) {
@@ -339,7 +342,10 @@ let avatarCropper = null;
 function initAccountSection() {
   const uname = (() => { try { return localStorage.getItem('username'); } catch (e) { return null; } })();
   if (uname) {
-    fetch(`/api/user/me?username=${encodeURIComponent(uname)}`)
+    const token = localStorage.getItem('token');
+    fetch(`/api/user/me?username=${encodeURIComponent(uname)}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined
+    })
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (!data) return;
@@ -414,9 +420,10 @@ function initAccountSection() {
       const img = document.getElementById('avatarImage');
       if (img) img.src = dataUrl;
       const uname = localStorage.getItem('username');
+      const token = localStorage.getItem('token');
       fetch(`/api/user/avatar?username=${encodeURIComponent(uname)}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : undefined },
         body: JSON.stringify({ avatar: dataUrl })
       }).then(() => {
         try { localStorage.setItem('avatar', dataUrl); } catch (e) {}
@@ -436,9 +443,10 @@ function initAccountSection() {
     const phoneVal = document.querySelector('#phoneRow .info-value');
     if (phoneVal) phoneVal.textContent = '—';
     const uname = localStorage.getItem('username');
+    const token = localStorage.getItem('token');
     fetch(`/api/user/me?username=${encodeURIComponent(uname)}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : undefined },
       body: JSON.stringify({ field: 'phone', value: '' })
     }).catch(() => {});
     closeModal('removePhoneConfirmModal');

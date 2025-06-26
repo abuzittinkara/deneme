@@ -34,6 +34,7 @@ const registerDMChatEvents = require('./modules/dmChat');
 const emitChannelUnread = require('./utils/emitChannelUnread');
 const expressWinston = require('express-winston');
 const logger = require('./utils/logger');
+const jwt = require('./utils/jwt');
 
 const authController = require("./controllers/authController");
 const groupController = require("./controllers/groupController");
@@ -74,6 +75,18 @@ const server = http.createServer(app);
 
 const io = socketIO(server, {
   wsEngine: WebSocket.Server
+});
+
+io.use((socket, next) => {
+  const auth = socket.handshake.auth || {};
+  const token = auth.token || (socket.handshake.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  if (!token) return next(new Error('auth_error'));
+  try {
+    socket.user = jwt.verify(token);
+    next();
+  } catch (err) {
+    next(new Error('auth_error'));
+  }
 });
 
 // In-memory Socket.IO instance
@@ -141,6 +154,20 @@ friendRequestCleanupTimer.unref();
 
 app.use(expressWinston.logger({ winstonInstance: logger, meta: false, msg: "{{req.method}} {{req.url}} - {{res.statusCode}} ({{res.responseTime}}ms)", colorize: true }));
 app.use(express.static("public"));
+
+function verifyToken(req, res, next) {
+  const auth = req.headers['authorization'] || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
+  if (!token) return res.status(401).json({ error: 'missing_token' });
+  try {
+    req.user = jwt.verify(token);
+    next();
+  } catch (err) {
+    res.status(401).json({ error: 'invalid_token' });
+  }
+}
+
+app.use('/api', verifyToken);
 
 // Basit kullanıcı API'si
 app.get('/api/user/me', async (req, res) => {

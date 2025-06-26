@@ -441,7 +441,8 @@ window.addEventListener('DOMContentLoaded', () => {
   hideVoiceSections();
 
   const socketURL = window.SOCKET_URL || window.location.origin;
-  socket = io(socketURL, { transports: ['websocket'] })
+  const savedToken = (() => { try { return localStorage.getItem('token'); } catch (e) { return null; } })();
+  socket = io(socketURL, { transports: ['websocket'], auth: savedToken ? { token: savedToken } : {} })
   initSocketEvents(socket);
   initProfilePopout(socket);
   initUIEvents(socket, () => attemptLogin(socket, loginUsernameInput, loginPasswordInput, loginErrorMessage), () => attemptRegister(socket, {regUsernameInput, regNameInput, regSurnameInput, regBirthdateInput, regEmailInput, regPhoneInput, regPasswordInput, regPasswordConfirmInput, registerErrorMessage}));
