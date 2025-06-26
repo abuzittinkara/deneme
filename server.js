@@ -388,11 +388,14 @@ app.post('/api/message', (req, res) => {
   });
 });
 
-app.get('/debug/group-channel-count', (req, res) => {
-  const groupCount = Object.keys(groups).length;
-  const channelCount = Object.values(groups).reduce((a, g) => a + Object.keys(g.rooms).length, 0);
-  res.json({ groupCount, channelCount });
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/debug/group-channel-count', (req, res) => {
+    const groupCount = Object.keys(groups).length;
+    const channelCount = Object.values(groups)
+      .reduce((a, g) => a + Object.keys(g.rooms).length, 0);
+    res.json({ groupCount, channelCount });
+  });
+}
 const context = { User, Group, Channel, Category, Message, DMMessage, GroupMember, users, groups, onlineUsernames, userSessions, friendRequests, sfu, groupController, store };
 
 io.on("connection", (socket) => {
