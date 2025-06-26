@@ -283,8 +283,12 @@ export function initSocketEvents(socket) {
       if (!draggedCategoryEl || !categoryPlaceholder) return;
       e.preventDefault();
       categoryPlaceholder.parentNode.insertBefore(draggedCategoryEl, categoryPlaceholder);
-      const items = Array.from(roomListDiv.children).filter(el =>
-        el.classList.contains('category-row') || el.classList.contains('channel-item')
+      // Determine the new index using the full list of category and channel
+      // elements in document order rather than only the container's direct
+      // children. This ensures channels nested inside categories are also
+      // considered when reordering categories at the extremes of the list.
+      const items = Array.from(
+        roomListDiv.querySelectorAll('.category-row, .channel-item')
       );
       const newIndex = items.indexOf(draggedCategoryEl);
       categoryPlaceholder.remove();
