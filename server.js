@@ -14,6 +14,7 @@ const { JSDOM } = require('jsdom');
 const purify = DOMPurify(new JSDOM('').window);
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const cors = require('cors');
 const store = require('./utils/sharedStore');
 
 const { MONGODB_URI, PORT, rateLimitOptions, helmetCspOptions } = require('./config/appConfig');
@@ -43,6 +44,7 @@ app.set('trust proxy', 1); // Proxy güvendiğimizi belirt
 
 // Allow JSON bodies up to 1MB so avatar uploads don't trigger 413 errors
 app.use(express.json({ limit: '1mb' }));
+app.use(cors({ origin: process.env.CORS_ORIGIN, credentials: true }));
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
