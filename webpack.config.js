@@ -1,7 +1,7 @@
 // webpack.config.js
 const path = require('path');
 
-module.exports = {
+const mediasoupConfig = {
   mode: 'production',
   // Giriş (entry) => node_modules/mediasoup-client/lib/index.js
   entry: path.resolve(__dirname, 'node_modules', 'mediasoup-client', 'lib', 'index.js'),
@@ -18,3 +18,15 @@ module.exports = {
     libraryTarget: 'window'
   }
 };
+
+const clientBundleConfig = {
+  mode: 'production',
+  // script.js, which pulls in all modules under public/js
+  entry: path.resolve(__dirname, 'public', 'script.js'),
+  output: {
+    path: path.resolve(__dirname, 'public'),
+    filename: 'bundle.js'
+  }
+};
+
+module.exports = [mediasoupConfig, clientBundleConfig];
