@@ -28,7 +28,7 @@ test('PATCH /api/user/me clears phone', async () => {
 
   const token = sign({ username: 'alice' });
 
-  const res = await fetch(`http://localhost:${port}/api/user/me?username=alice`, {
+  const res = await fetch(`http://localhost:${port}/api/user/me`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify({ field: 'phone', value: '' })

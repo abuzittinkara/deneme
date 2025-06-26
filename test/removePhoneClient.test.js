@@ -51,7 +51,7 @@ test('confirm remove phone updates UI and sends request', async () => {
   await new Promise(r => setTimeout(r, 0));
   assert.strictEqual(phoneVal.textContent, '—');
   assert.strictEqual(calls.length, 1);
-  assert.ok(calls[0].url.includes('/api/user/me?username=alice'));
+  assert.ok(calls[0].url.includes('/api/user/me'));
   const body = JSON.parse(calls[0].opts.body);
   assert.deepStrictEqual(body, { field: 'phone', value: '' });
 });

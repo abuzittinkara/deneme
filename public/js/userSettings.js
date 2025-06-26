@@ -173,7 +173,7 @@ function openEditUsernameModal() {
       try {
         const uname = localStorage.getItem('username');
         const token = localStorage.getItem('token');
-        const resp = await fetch(`/api/user/me?username=${encodeURIComponent(uname)}`, {
+        const resp = await fetch(`/api/user/me`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : undefined },
           body: JSON.stringify({ field: 'username', value: v })
@@ -243,7 +243,7 @@ function openEditEmailModal() {
       try {
         const uname = localStorage.getItem('username');
         const token = localStorage.getItem('token');
-        const resp = await fetch(`/api/user/me?username=${encodeURIComponent(uname)}`, {
+        const resp = await fetch(`/api/user/me`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : undefined },
           body: JSON.stringify({ field: 'email', value: v })
@@ -310,7 +310,7 @@ function openEditPhoneModal() {
       try {
         const uname = localStorage.getItem('username');
         const token = localStorage.getItem('token');
-        const resp = await fetch(`/api/user/me?username=${encodeURIComponent(uname)}`, {
+        const resp = await fetch(`/api/user/me`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : undefined },
           body: JSON.stringify({ field: 'phone', value: v })
@@ -343,7 +343,7 @@ function initAccountSection() {
   const uname = (() => { try { return localStorage.getItem('username'); } catch (e) { return null; } })();
   if (uname) {
     const token = localStorage.getItem('token');
-    fetch(`/api/user/me?username=${encodeURIComponent(uname)}`, {
+    fetch(`/api/user/me`, {
       headers: token ? { Authorization: `Bearer ${token}` } : undefined
     })
       .then(r => r.ok ? r.json() : null)
@@ -444,7 +444,7 @@ function initAccountSection() {
     if (phoneVal) phoneVal.textContent = '—';
     const uname = localStorage.getItem('username');
     const token = localStorage.getItem('token');
-    fetch(`/api/user/me?username=${encodeURIComponent(uname)}`, {
+    fetch(`/api/user/me`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : undefined },
       body: JSON.stringify({ field: 'phone', value: '' })
