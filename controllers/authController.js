@@ -1,5 +1,6 @@
 // Authentication handlers
 const bcrypt = require('bcryptjs');
+const rateLimit = require('express-rate-limit');
 
 const collectUnreadCounts = require('../utils/collectUnreadCounts');
 const collectMentionCounts = require('../utils/collectMentionCounts');
@@ -8,11 +9,29 @@ const collectNotifyInfo = require('../utils/collectNotifyInfo');
 const collectCategoryPrefs = require('../utils/collectCategoryPrefs');
 const jwt = require('../utils/jwt');
 
+// Rate limiters for login and registration
+const loginLimiter = rateLimit({ windowMs: 60 * 1000, max: 5 });
+const registerLimiter = rateLimit({ windowMs: 60 * 1000, max: 5 });
+
+function checkRateLimit(limiter, key) {
+  return new Promise((resolve, reject) => {
+    limiter.store.incr(key, (err, hits) => {
+      if (err) return reject(err);
+      resolve(hits > limiter.options.max);
+    });
+  });
+}
+
 function registerAuthHandlers(io, socket, context) {
   const { User, Group, GroupMember, users, onlineUsernames, groupController } = context;
 
   socket.on('login', async ({ username, password }) => {
     try {
+      const key = `${socket.handshake.address || socket.request.ip}-${username || ''}`;
+      if (await checkRateLimit(loginLimiter, key)) {
+        socket.emit('loginResult', { success: false, message: 'Çok fazla giriş denemesi, lütfen daha sonra tekrar deneyin.' });
+        return;
+      }
       if (!username || !password) {
         socket.emit('loginResult', { success: false, message: 'Eksik bilgiler' });
         return;
@@ -37,6 +56,11 @@ function registerAuthHandlers(io, socket, context) {
   socket.on('register', async (userData) => {
     const { username, name, surname, birthdate, email, phone, password, passwordConfirm } = userData;
     try {
+      const key = `${socket.handshake.address || socket.request.ip}-${username || ''}`;
+      if (await checkRateLimit(registerLimiter, key)) {
+        socket.emit('registerResult', { success: false, message: 'Çok fazla kayıt denemesi, lütfen daha sonra tekrar deneyin.' });
+        return;
+      }
       if (!username || !name || !surname || !birthdate || !email || !phone || !password || !passwordConfirm) {
         socket.emit('registerResult', { success: false, message: 'Tüm alanları doldurunuz.' });
         return;
