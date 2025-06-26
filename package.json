@@ -4,7 +4,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "build": "webpack"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
