@@ -726,6 +726,10 @@ export function initSocketEvents(socket) {
         localStorage.setItem('username', data.username);
         if (data.token) localStorage.setItem('token', data.token);
       } catch (e) {}
+      if (data.token) {
+        socket.auth = { token: data.token };
+        socket.connect();
+      }
       loginScreen.style.display = 'none';
       callScreen.style.display = 'flex';
       socket.emit('set-username', window.username);
