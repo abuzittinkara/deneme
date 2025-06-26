@@ -51,6 +51,11 @@ webpack.config.js   Bundles mediasoup-client into `public/libs`
 ```bash
 npm start
 ```
+Alternatively run the server under PM2:
+
+```bash
+pm2 start ecosystem.config.js
+```
 The application now uses an in-memory store only, so simply run `npm start`.
 
 Before running the tests, install the Node packages:
