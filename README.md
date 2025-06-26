@@ -15,6 +15,8 @@ This project contains the backend and frontend assets for a WebSocket-based chat
     server is used.
   - `SOCKET_URL` – (optional) base URL for the Socket.IO server. Defaults to
     `window.location.origin` if omitted.
+  - `JWT_SECRET` – secret key used for signing JSON Web Tokens. **Must** be set
+    to a strong value.
     
 ## Folder Structure
 
