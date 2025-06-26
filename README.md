@@ -17,6 +17,18 @@ This project contains the backend and frontend assets for a WebSocket-based chat
     `window.location.origin` if omitted.
   - `JWT_SECRET` – secret key used for signing JSON Web Tokens. **Must** be set
     to a strong value.
+
+Example `.env`:
+
+```bash
+MONGODB_URI=mongodb://localhost:27017/test
+PORT=3000
+ANNOUNCED_IP=
+TURN_USERNAME=
+TURN_CREDENTIAL=
+SOCKET_URL=
+JWT_SECRET=S3cureJWTs3cretKey_Sh0uldBeLong!
+```
     
 ## Folder Structure
 
