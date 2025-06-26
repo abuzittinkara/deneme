@@ -260,14 +260,14 @@ export function initSocketEvents(socket) {
     roomListDiv.addEventListener('dragover', (e) => {
       if (!draggedCategoryEl) return;
       e.preventDefault();
-      const ref = e.target.closest('.category-row, .channel-item');
-      if (ref) {
-        if (ref === draggedCategoryEl) return;
-        const rect = ref.getBoundingClientRect();
-        const next = e.clientY - rect.top > rect.height / 2;
-        ref.parentNode.insertBefore(
+      const targetEl = e.target.closest('.category-row, .channel-item');
+      if (targetEl) {
+        if (targetEl === draggedCategoryEl) return;
+        const rect = targetEl.getBoundingClientRect();
+        const after = e.clientY > rect.top + rect.height / 2;
+        targetEl.parentNode.insertBefore(
           categoryPlaceholder,
-          next ? ref.nextSibling : ref
+          after ? targetEl.nextSibling : targetEl
         );
       } else {
         const contRect = roomListDiv.getBoundingClientRect();
