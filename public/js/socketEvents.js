@@ -729,10 +729,12 @@ export function initSocketEvents(socket) {
       if (data.token) {
         socket.auth = { token: data.token };
         socket.connect();
+        socket.once('connect', () => {
+          socket.emit('set-username', window.username);
+        });
       }
       loginScreen.style.display = 'none';
       callScreen.style.display = 'flex';
-      socket.emit('set-username', window.username);
       document.getElementById('userCardName').textContent = window.username;
       window.applyAudioStates();
       window.loadAvatar(window.username).then(av => {
