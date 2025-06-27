@@ -195,6 +195,22 @@ async function sendGroupsListToUser(io, socketId, { User, users, GroupMember }) 
   }
 }
 
+function normalizeSessions(entry) {
+  if (!entry) return [];
+  if (Array.isArray(entry)) return entry;
+  if (entry instanceof Set) return Array.from(entry);
+  return [entry];
+}
+
+async function sendGroupsListToUserSessions(io, username, context) {
+  const { userSessions, User, users, GroupMember } = context;
+  if (!userSessions || !username) return;
+  const sessions = normalizeSessions(userSessions[username]);
+  for (const sid of sessions) {
+    await sendGroupsListToUser(io, sid, { User, users, GroupMember });
+  }
+}
+
 function getAllChannelsData(groups, users, groupId) {
   if (!groups[groupId]) return {};
   const channelsObj = {};
@@ -549,7 +565,12 @@ function register(io, socket, context) {
         context.store.setJSON(context.store.key('group', groupId), groups[groupId]);
       }
 
-      await sendGroupsListToUser(io, socket.id, { User, users, GroupMember });
+      await sendGroupsListToUserSessions(io, userName, {
+        userSessions: context.userSessions,
+        User,
+        users,
+        GroupMember
+      });
       broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
     } catch (err) {
       console.error('Create group error:', err);
@@ -1208,6 +1229,7 @@ module.exports = {
   handleLeaveGroup,
   removeUserFromAllGroupsAndRooms,
   handleDisconnect,
+  sendGroupsListToUserSessions,
   INDEFINITE_TS,
   GROUP_NOTIFY_UPDATED,
   CHANNEL_NOTIFY_UPDATED,
