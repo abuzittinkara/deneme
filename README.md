@@ -192,3 +192,7 @@ Use the MongoDB shell to list your existing groups and channels:
 db.groups.find().pretty()
 db.channels.find().pretty()
 ```
+
+If API calls return `401 Unauthorized`, ensure your requests include the JWT token
+from a successful login using the `Authorization: Bearer <token>` header. The
+front-end saves this token in `localStorage` after logging in.

@@ -727,7 +727,8 @@ export function initSocketEvents(socket) {
         if (data.token) localStorage.setItem('token', data.token);
       } catch (e) {}
       if (data.token) {
-        socket.auth = { token: data.token };
+        socket.auth = socket.auth || {};
+        socket.auth.token = data.token;
         socket.connect();
         socket.once('connect', () => {
           socket.emit('set-username', window.username);

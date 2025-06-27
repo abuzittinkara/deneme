@@ -172,7 +172,7 @@ function openEditUsernameModal() {
       save.innerHTML = '<span class="spinner"></span>';
       try {
         const uname = localStorage.getItem('username');
-        const token = localStorage.getItem('token');
+        const token = window.getAuthToken();
         const resp = await fetch(`/api/user/me`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : undefined },
@@ -242,7 +242,7 @@ function openEditEmailModal() {
       save.innerHTML = '<span class="spinner"></span>';
       try {
         const uname = localStorage.getItem('username');
-        const token = localStorage.getItem('token');
+        const token = window.getAuthToken();
         const resp = await fetch(`/api/user/me`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : undefined },
@@ -309,7 +309,7 @@ function openEditPhoneModal() {
       save.innerHTML = '<span class="spinner"></span>';
       try {
         const uname = localStorage.getItem('username');
-        const token = localStorage.getItem('token');
+        const token = window.getAuthToken();
         const resp = await fetch(`/api/user/me`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : undefined },
@@ -342,7 +342,7 @@ let avatarCropper = null;
 function initAccountSection() {
   const uname = (() => { try { return localStorage.getItem('username'); } catch (e) { return null; } })();
   if (uname) {
-    const token = localStorage.getItem('token');
+    const token = window.getAuthToken();
     fetch(`/api/user/me`, {
       headers: token ? { Authorization: `Bearer ${token}` } : undefined
     })
@@ -420,7 +420,7 @@ function initAccountSection() {
       const img = document.getElementById('avatarImage');
       if (img) img.src = dataUrl;
       const uname = localStorage.getItem('username');
-      const token = localStorage.getItem('token');
+      const token = window.getAuthToken();
       fetch(`/api/user/avatar?username=${encodeURIComponent(uname)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : undefined },
@@ -443,7 +443,7 @@ function initAccountSection() {
     const phoneVal = document.querySelector('#phoneRow .info-value');
     if (phoneVal) phoneVal.textContent = '—';
     const uname = localStorage.getItem('username');
-    const token = localStorage.getItem('token');
+    const token = window.getAuthToken();
     fetch(`/api/user/me`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : undefined },

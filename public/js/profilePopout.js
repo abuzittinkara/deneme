@@ -19,7 +19,9 @@ export async function showProfilePopout(username, event) {
     currentUsername = null;
   }
   currentUsername = username;
-  const resp = await fetch(`/api/user/me?username=${encodeURIComponent(username)}`);
+  const token = window.getAuthToken();
+  const resp = await fetch(`/api/user/me?username=${encodeURIComponent(username)}`,
+    { headers: token ? { Authorization: `Bearer ${token}` } : undefined });
   if (!resp.ok) return;
   const data = await resp.json();
   const pop = document.createElement('div');
