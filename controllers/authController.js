@@ -14,15 +14,16 @@ const logger = require('../utils/logger');
 const loginLimiter = rateLimit({ windowMs: 60 * 1000, max: 5 });
 const registerLimiter = rateLimit({ windowMs: 60 * 1000, max: 5 });
 
-function checkRateLimit(limiter, key) {
-  return new Promise((resolve, reject) => {
-    const increment = limiter.store.increment || limiter.store.incr;
-    if (!increment) return resolve(false);
-    increment.call(limiter.store, key, (err, hits) => {
-      if (err) return reject(err);
-      resolve(hits > limiter.options.max);
-    });
-  });
+async function checkRateLimit(limiter, key) {
+  const increment = limiter?.store?.increment || limiter?.store?.incr;
+  if (!increment) return false;
+  try {
+    const res = await increment.call(limiter.store, key);
+    const hits = res?.totalHits ?? res;
+    return hits > limiter.options.max;
+  } catch {
+    return false;
+  }
 }
 
 function registerAuthHandlers(io, socket, context) {
