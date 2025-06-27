@@ -75,7 +75,10 @@ pm2 start ecosystem.config.js
 ```
 The application now uses an in-memory store only, so simply run `npm start`.
 
-Before running the tests, install the Node packages:
+## Testing
+
+Ensure you have a `.env` file at the project root before running the tests.
+Install the dependencies and execute the test suite with:
 
 ```bash
 ./setup.sh     # installs required Node packages
