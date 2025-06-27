@@ -15,7 +15,9 @@ const registerLimiter = rateLimit({ windowMs: 60 * 1000, max: 5 });
 
 function checkRateLimit(limiter, key) {
   return new Promise((resolve, reject) => {
-    limiter.store.incr(key, (err, hits) => {
+    const increment = limiter.store.increment || limiter.store.incr;
+    if (!increment) return resolve(false);
+    increment.call(limiter.store, key, (err, hits) => {
       if (err) return reject(err);
       resolve(hits > limiter.options.max);
     });
