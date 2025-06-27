@@ -32,7 +32,7 @@ function createContext() {
 test('createGroup requires channel name and creates channel', async () => {
   const socket = new EventEmitter();
   socket.id = 'sock1';
-  const io = { to(){ return { emit(){} }; } };
+  const io = { emitted: [], to(room){ return { emit:(ev,p)=>io.emitted.push({room,ev,p}) }; } };
   const ctx = createContext();
   groupController.register(io, socket, { ...ctx, onlineUsernames: new Set(['u1']) });
   const handler = socket.listeners('createGroup')[0];
@@ -44,16 +44,19 @@ test('createGroup requires channel name and creates channel', async () => {
   const chIds = Object.keys(ctx.groups[gId].rooms);
   assert.strictEqual(chIds.length, 1);
   assert.strictEqual(ctx.groups[gId].rooms[chIds[0]].name, 'general');
+  assert.ok(io.emitted.find(e=>e.ev==='roomsList' && e.room==='sock1'));
+  assert.ok(io.emitted.find(e=>e.ev==='roomsList' && e.room===gId));
 });
 
 test('createGroup rejects without channel name', async () => {
   const socket = new EventEmitter();
   socket.id = 'sock1';
-  const io = { to(){ return { emit(){} }; } };
+  const io = { emitted: [], to(room){ return { emit:(ev,p)=>io.emitted.push({room,ev,p}) }; } };
   const ctx = createContext();
   groupController.register(io, socket, { ...ctx, onlineUsernames: new Set(['u1']) });
   const handler = socket.listeners('createGroup')[0];
 
   await handler({ groupName: 'GroupA' });
   assert.strictEqual(Object.keys(ctx.groups).length, 0);
+  assert.strictEqual(io.emitted.length, 0);
 });
