@@ -8,6 +8,7 @@ const collectMuteInfo = require('../utils/collectMuteInfo');
 const collectNotifyInfo = require('../utils/collectNotifyInfo');
 const collectCategoryPrefs = require('../utils/collectCategoryPrefs');
 const jwt = require('../utils/jwt');
+const logger = require('../utils/logger');
 
 // Rate limiters for login and registration
 const loginLimiter = rateLimit({ windowMs: 60 * 1000, max: 5 });
@@ -58,6 +59,7 @@ function registerAuthHandlers(io, socket, context) {
   socket.on('register', async (userData) => {
     const { username, name, surname, birthdate, email, phone, password, passwordConfirm } = userData;
     try {
+      logger.info('Register payload:', userData);
       const key = `${socket.handshake.address || socket.request.ip}-${username || ''}`;
       if (await checkRateLimit(registerLimiter, key)) {
         socket.emit('registerResult', { success: false, message: 'Çok fazla kayıt denemesi, lütfen daha sonra tekrar deneyin.' });
@@ -103,6 +105,7 @@ function registerAuthHandlers(io, socket, context) {
       await newUser.save();
       socket.emit('registerResult', { success: true });
     } catch (err) {
+      logger.error('Register error:', err);
       socket.emit('registerResult', { success: false, message: 'Kayıt hatası.' });
     }
   });
