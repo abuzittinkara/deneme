@@ -406,7 +406,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 const context = { User, Group, Channel, Category, Message, DMMessage, GroupMember, users, groups, onlineUsernames, userSessions, friendRequests, sfu, groupController, store };
 
-io.on("connection", (socket) => {
+io.on("connection", async (socket) => {
   logger.info(`Yeni bağlantı: ${socket.id}`);
 
   users[socket.id] = {
@@ -431,8 +431,17 @@ io.on("connection", (socket) => {
     screenShareProducerId: null,
     hasMic: true,
     watching: [],
-    watchers: []
+  watchers: []
   });
+
+  if (socket.user && socket.user.username) {
+    users[socket.id].username = socket.user.username;
+    onlineUsernames.add(socket.user.username);
+    if (store) {
+      store.setJSON(store.key('session', socket.id), users[socket.id]);
+      store.addSetMember('onlineUsers', socket.user.username);
+    }
+  }
   authController(io, socket, { User, Group, GroupMember, users, onlineUsernames, groupController, store, userSessions });
   groupController.register(io, socket, context);
   friendController(io, socket, context);
@@ -454,6 +463,14 @@ io.on("connection", (socket) => {
     GroupMember
   });
   registerDMChatEvents(socket, { io, User, DMMessage, users, logger });
+  if (socket.user && socket.user.username) {
+    if (groupController && groupController.sendGroupsListToUser) {
+      await groupController.sendGroupsListToUser(io, socket.id, { User, users, GroupMember });
+    }
+    if (socket.user.lastGroupId && groupController && groupController.sendRoomsListToUser) {
+      await groupController.sendRoomsListToUser(io, socket.id, context, socket.user.lastGroupId);
+    }
+  }
   socket.on("disconnect", () => { groupController.handleDisconnect(io, socket, context); });
 });
 

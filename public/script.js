@@ -487,7 +487,9 @@ window.addEventListener('DOMContentLoaded', () => {
     window.username = storedUser;
     loginScreen.style.display = 'none';
     callScreen.style.display = 'flex';
-    socket.emit('set-username', storedUser);
+    if (!savedToken) {
+      socket.emit('set-username', storedUser);
+    }
     document.getElementById('userCardName').textContent = storedUser;
     window.applyAudioStates();
     window.loadAvatar(storedUser).then(av => {
