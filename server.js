@@ -80,7 +80,10 @@ const io = socketIO(server, {
 io.use((socket, next) => {
   const auth = socket.handshake.auth || {};
   const token = auth.token || (socket.handshake.headers.authorization || '').replace(/^Bearer\s+/i, '');
-  if (!token) return next(new Error('auth_error'));
+  if (!token) {
+    socket.user = null;
+    return next();
+  }
   try {
     socket.user = jwt.verify(token);
     next();
