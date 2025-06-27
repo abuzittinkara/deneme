@@ -51,6 +51,42 @@ function registerAuthHandlers(io, socket, context) {
       }
       const token = jwt.sign({ username: user.username, id: user._id.toString() });
       socket.emit('loginResult', { success: true, username: user.username, token });
+      users[socket.id].username = user.username;
+      if (groupController && groupController.sendGroupsListToUser) {
+        await groupController.sendGroupsListToUser(io, socket.id, { User, users, GroupMember });
+      }
+      if (
+        groupController &&
+        groupController.sendRoomsListToUser &&
+        context.groups &&
+        context.Channel &&
+        context.Category
+      ) {
+        try {
+          await user.populate('groups');
+          const firstGrp = user.groups && user.groups[0];
+          const gid = firstGrp ? firstGrp.groupId : null;
+          if (gid) {
+            await groupController.sendRoomsListToUser(
+              io,
+              socket.id,
+              {
+                groups: context.groups,
+                users,
+                Group,
+                User,
+                GroupMember,
+                Channel: context.Channel,
+                Category: context.Category,
+                store: context.store
+              },
+              gid
+            );
+          }
+        } catch (e) {
+          logger.error('login sendRoomsList error: %o', e);
+        }
+      }
     } catch (err) {
       socket.emit('loginResult', { success: false, message: 'Giriş hatası.' });
     }
@@ -104,6 +140,43 @@ function registerAuthHandlers(io, socket, context) {
       });
       await newUser.save();
       socket.emit('registerResult', { success: true });
+      users[socket.id].username = newUser.username;
+      if (groupController && groupController.sendGroupsListToUser) {
+        await groupController.sendGroupsListToUser(io, socket.id, { User, users, GroupMember });
+      }
+      if (
+        groupController &&
+        groupController.sendRoomsListToUser &&
+        context.groups &&
+        context.Channel &&
+        context.Category &&
+        newUser.groups &&
+        newUser.groups.length > 0
+      ) {
+        try {
+          await newUser.populate('groups');
+          const gid = newUser.groups[0]?.groupId;
+          if (gid) {
+            await groupController.sendRoomsListToUser(
+              io,
+              socket.id,
+              {
+                groups: context.groups,
+                users,
+                Group,
+                User,
+                GroupMember,
+                Channel: context.Channel,
+                Category: context.Category,
+                store: context.store
+              },
+              gid
+            );
+          }
+        } catch (e) {
+          logger.error('register sendRoomsList error: %o', e);
+        }
+      }
     } catch (err) {
       logger.error('Register error:', err);
       socket.emit('registerResult', { success: false, message: 'Kayıt hatası.' });
