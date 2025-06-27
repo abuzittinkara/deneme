@@ -11,6 +11,8 @@ module.exports = function registerTextChannelEvents(io, socket, { Channel, Messa
   // Kullanıcının bir metin kanalına katılma ve mesaj geçmişini alma
   socket.on('joinTextChannel', async ({ groupId, roomId }) => {
     try {
+      const uname = users[socket.id]?.username || socket.user?.username;
+      if (!uname) return;
       const channelDoc = await Channel.findOne({ channelId: roomId });
       if (!channelDoc) {
         return;
@@ -30,13 +32,15 @@ module.exports = function registerTextChannelEvents(io, socket, { Channel, Messa
   });
 
   // Gelen metin mesajlarını işleme ve diğer kullanıcılara iletme
-  socket.on('textMessage', async ({ groupId, roomId, message, username, attachments = [] }) => {
+  socket.on('textMessage', async ({ groupId, roomId, message, attachments = [] }) => {
     try {
+      const username = users[socket.id]?.username || socket.user?.username;
+      if (!username) return;
       const channelDoc = await Channel.findOne({ channelId: roomId });
       if (!channelDoc) {
         return;
       }
-      const userDoc = await User.findOne({ username: username });
+      const userDoc = await User.findOne({ username });
       if (!userDoc) {
         return;
       }
@@ -94,13 +98,15 @@ module.exports = function registerTextChannelEvents(io, socket, { Channel, Messa
   });
 
   // Kullanıcının yazmaya başladığını diğer kullanıcılara bildir
-  socket.on('typing', ({ username, channel }) => {
+  socket.on('typing', ({ channel }) => {
+    const username = users[socket.id]?.username || socket.user?.username;
     if (!channel || !username) return;
     socket.broadcast.to(channel).emit('typing', { username, channel });
   });
 
   // Kullanıcının yazmayı bıraktığını diğer kullanıcılara bildir
-  socket.on('stop typing', ({ username, channel }) => {
+  socket.on('stop typing', ({ channel }) => {
+    const username = users[socket.id]?.username || socket.user?.username;
     if (!channel || !username) return;
     socket.broadcast.to(channel).emit('stop typing', { username, channel });
   });

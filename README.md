@@ -82,6 +82,19 @@ Before running the tests, install the Node packages:
 npm test
 ```
 
+## Login flow
+
+Clients may connect to the Socket.IO server without providing a token. In this
+case `socket.user` will be `null` and only public events can be used. When a
+valid JWT is supplied either in the `auth` object or `Authorization` header,
+`socket.user` contains the decoded payload. Invalid tokens still cause an
+`auth_error` during the handshake.
+
+After connecting, call the `login` event to obtain a token or send
+`set-username` to register the username on the server. Authenticated events
+verify that a user is known through `socket.user` or the stored username before
+processing.
+
 ### Front-end Modules
 
 The client-side code under `public/js` is organized into small ES modules:
