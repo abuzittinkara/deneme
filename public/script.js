@@ -92,6 +92,14 @@ let selfDeafened = false;
 let micWasEnabledBeforeDeaf = false;
 let hasMic = true;
 
+window.getAuthToken = function() {
+  try {
+    const token = localStorage.getItem('token');
+    if (token) return token;
+  } catch (e) {}
+  return socket && socket.auth && socket.auth.token ? socket.auth.token : null;
+};
+
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').then(reg => {
     window.swRegistration = reg;
@@ -112,10 +120,7 @@ window.loadAvatar = async function(username) {
   if (!username) return null;
   if (window.userAvatars[username]) return window.userAvatars[username];
   try {
-    const getToken = () => {
-      try { return localStorage.getItem('token'); } catch (e) { return null; }
-    };
-    let token = getToken();
+    let token = window.getAuthToken();
     let headers = token ? { Authorization: `Bearer ${token}` } : undefined;
 
     let resp = await fetch(
@@ -124,7 +129,7 @@ window.loadAvatar = async function(username) {
     );
 
     if (resp.status === 401) {
-      const retryToken = getToken();
+      const retryToken = window.getAuthToken();
       if (!token && retryToken) {
         resp = await fetch(
           `/api/user/avatar?username=${encodeURIComponent(username)}`,
