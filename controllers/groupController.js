@@ -565,6 +565,20 @@ function register(io, socket, context) {
         context.store.setJSON(context.store.key('group', groupId), groups[groupId]);
       }
 
+      logger.info(`Created group ${groupId} with channel ${channelId}`);
+
+      await sendRoomsListToUser(io, socket.id, {
+        groups,
+        users,
+        Group,
+        User,
+        GroupMember,
+        Channel,
+        Category,
+        store: context.store
+      }, groupId);
+      broadcastRoomsListToGroup(io, groups, groupId);
+
       await sendGroupsListToUserSessions(io, userName, {
         userSessions: context.userSessions,
         User,
