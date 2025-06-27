@@ -112,7 +112,14 @@ window.loadAvatar = async function(username) {
   if (!username) return null;
   if (window.userAvatars[username]) return window.userAvatars[username];
   try {
-    const resp = await fetch(`/api/user/avatar?username=${encodeURIComponent(username)}`);
+    const token = (() => {
+      try { return localStorage.getItem('token'); } catch (e) { return null; }
+    })();
+    const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+    const resp = await fetch(
+      `/api/user/avatar?username=${encodeURIComponent(username)}`,
+      { headers }
+    );
     if (resp.ok) {
       const data = await resp.json();
       window.userAvatars[username] = data.avatar || '/images/default-avatar.png';
