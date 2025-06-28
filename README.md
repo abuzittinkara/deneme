@@ -4,7 +4,7 @@ This project contains the backend and frontend assets for a WebSocket-based chat
 
 ## Prerequisites
 
-- **Node.js** 18 or later
+- **Node.js** 20 or later
 - **MongoDB** running instance
 - `.env` file at the project root defining:
   - `MONGODB_URI` – MongoDB connection string
