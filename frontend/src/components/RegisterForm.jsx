@@ -60,7 +60,7 @@ export default function RegisterForm({ onSwitch }) {
   };
 
   return (
-    <div id="registerScreen" className="screen-container" style={{ display: 'none' }}>
+    <div id="registerScreen" className="screen-container">
       <div className="card">
         <h1 className="app-title">Kayıt Ol</h1>
         <p

@@ -7,7 +7,7 @@ export default function CallScreen() {
     }
   }, []);
   return (
-    <div id="callScreen" className="screen-container" style={{ display: 'none' }}>
+    <div id="callScreen" className="screen-container">
       {/* Soldaki Paneller */}
       <div id="leftPanels" className="left-panels">
         <div id="groupsAndRooms" className="groups-rooms">
