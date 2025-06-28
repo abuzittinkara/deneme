@@ -1,6 +1,7 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { SocketContext } from '../SocketProvider.jsx';
 import { attemptRegister } from '../auth.js';
+import { ScreenContext } from '../App.jsx';
 
 export default function RegisterForm({ onSwitch }) {
   const [username, setUsername] = useState('');
@@ -16,6 +17,21 @@ export default function RegisterForm({ onSwitch }) {
   const [shakePass, setShakePass] = useState(false);
   const [shakePassConf, setShakePassConf] = useState(false);
   const socket = useContext(SocketContext);
+  const { setScreen } = useContext(ScreenContext);
+
+  useEffect(() => {
+    if (!socket) return;
+    const handleRegisterResult = (data) => {
+      if (data.success) {
+        alert('Hesap başarıyla oluşturuldu');
+        if (setScreen) setScreen('login');
+      } else {
+        setError(data.message || 'Kayıt hatası');
+      }
+    };
+    socket.on('registerResult', handleRegisterResult);
+    return () => socket.off('registerResult', handleRegisterResult);
+  }, [socket, setScreen]);
 
   const handleRegister = () => {
     setShakeUser(false);

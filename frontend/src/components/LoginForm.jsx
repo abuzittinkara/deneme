@@ -1,6 +1,7 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { SocketContext } from '../SocketProvider.jsx';
 import { attemptLogin } from '../auth.js';
+import { ScreenContext } from '../App.jsx';
 
 export default function LoginForm({ onSwitch }) {
   const [username, setUsername] = useState('');
@@ -9,6 +10,32 @@ export default function LoginForm({ onSwitch }) {
   const [shakeUser, setShakeUser] = useState(false);
   const [shakePass, setShakePass] = useState(false);
   const socket = useContext(SocketContext);
+  const { setScreen } = useContext(ScreenContext);
+
+  useEffect(() => {
+    if (!socket) return;
+    const handleLoginResult = (data) => {
+      if (data.success) {
+        window.username = data.username;
+        try {
+          localStorage.setItem('username', data.username);
+          if (data.token) localStorage.setItem('token', data.token);
+        } catch (e) {}
+        if (data.token) {
+          socket.auth = socket.auth || {};
+          socket.auth.token = data.token;
+        }
+        socket.emit('set-username', data.username);
+        if (setScreen) setScreen('call');
+      } else {
+        setError('Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin');
+        setShakeUser(true);
+        setShakePass(true);
+      }
+    };
+    socket.on('loginResult', handleLoginResult);
+    return () => socket.off('loginResult', handleLoginResult);
+  }, [socket, setScreen]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
