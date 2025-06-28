@@ -729,7 +729,10 @@ export function initSocketEvents(socket) {
       }
       socket.emit('set-username', window.username);
       if (window.setScreen) window.setScreen('call');
-      document.getElementById('userCardName').textContent = window.username;
+      const userCardNameEl = document.getElementById('userCardName');
+      if (userCardNameEl) {
+        userCardNameEl.textContent = window.username;
+      }
       window.applyAudioStates();
       window.loadAvatar(window.username).then(av => {
         const el = document.getElementById('userCardAvatar');
@@ -1401,7 +1404,10 @@ export function initSocketEvents(socket) {
         return;
       }
       window.clearScreenShareUI();
-      document.getElementById('channelUsersContainer').style.display = 'grid';
+      const channelUsersContainer = document.getElementById('channelUsersContainer');
+      if (channelUsersContainer) {
+        channelUsersContainer.style.display = 'grid';
+      }
       document.querySelectorAll('.channel-item').forEach((ci) => ci.classList.remove('connected'));
       if (window.currentRoom === roomObj.id && window.currentGroup === window.selectedGroup) {
         roomItem.classList.add('connected');
