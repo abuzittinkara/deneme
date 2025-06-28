@@ -10,19 +10,14 @@ export default function App() {
     if (window.initScreenRefs) {
       window.initScreenRefs();
     }
-  }, []);
-
-  useEffect(() => {
-    const loginEl = document.getElementById('loginScreen');
-    const regEl = document.getElementById('registerScreen');
-    if (loginEl) loginEl.style.display = screen === 'login' ? 'block' : 'none';
-    if (regEl) regEl.style.display = screen === 'register' ? 'block' : 'none';
   }, [screen]);
 
   return (
     <>
-      <LoginForm onSwitch={() => setScreen('register')} />
-      <RegisterForm onSwitch={() => setScreen('login')} />
+      {screen === 'login' && <LoginForm onSwitch={() => setScreen('register')} />}
+      {screen === 'register' && (
+        <RegisterForm onSwitch={() => setScreen('login')} />
+      )}
       <CallScreen />
     </>
   );
