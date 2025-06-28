@@ -1,0 +1,10 @@
+{
+  "name": "frontend",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@testing-library/react": "^14.1.2",
+    "@vitejs/plugin-react": "^4.0.0",
+    "vitest": "^1.0.0"
+  }
+}
