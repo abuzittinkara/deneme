@@ -1,6 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 export default function CallScreen() {
+  useEffect(() => {
+    if (window.initCallScreen) {
+      window.initCallScreen();
+    }
+  }, []);
   return (
     <div id="callScreen" className="screen-container" style={{ display: 'none' }}>
       {/* Soldaki Paneller */}

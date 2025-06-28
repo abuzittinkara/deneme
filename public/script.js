@@ -347,7 +347,7 @@ window.applyAudioStates = (opts) => {
   }
   applyAudioStates(opts);
 };
-window.addEventListener('DOMContentLoaded', () => {
+function initCallScreen() {
   // Query DOM elements once the page has loaded
   groupListDiv = document.getElementById('groupList');
   createGroupButton = document.getElementById('createGroupButton');
@@ -572,6 +572,16 @@ window.addEventListener('DOMContentLoaded', () => {
       console.info('DM Filter clicked: ' + filter);
     }
   });
+}
+window.initCallScreen = initCallScreen;
+
+window.addEventListener('DOMContentLoaded', () => {
+  if (
+    document.getElementById('groupList') &&
+    document.getElementById('roomList')
+  ) {
+    initCallScreen();
+  }
 });
 
 /* Yeni fonksiyon: Context Menu Gösterimi */
