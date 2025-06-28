@@ -108,6 +108,18 @@ async function startServer() {
     logger.info(`Startup: groups=${grpCount}, categories=${catCount}, channels=${channelsLoaded}`);
     logger.info("Uygulama başlangıç yüklemeleri tamam.");
 
+    const requiredFiles = [
+      path.join(__dirname, 'public', 'app.js'),
+      path.join(__dirname, 'public', 'bundle.js'),
+      path.join(__dirname, 'public', 'libs', 'mediasoup-client.min.js')
+    ];
+    const missing = requiredFiles.filter(f => !fs.existsSync(f));
+    if (missing.length) {
+      const names = missing.map(f => path.relative(__dirname, f)).join(', ');
+      logger.error(`Missing build files: ${names}. Run \"npm run build\" or \"npm run build:react\".`);
+      process.exit(1);
+    }
+
     server.listen(PORT, () => {
       logger.info(`Sunucu çalışıyor: http://localhost:${PORT}`);
     });
