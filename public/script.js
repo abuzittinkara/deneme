@@ -158,17 +158,6 @@ window.openNotifyType = null;
 
 /* Formatlama fonksiyonları artık TextChannel modülünden sağlanıyor */
 
-let loginScreen;
-let registerScreen;
-let callScreen;
-
-function initScreenRefs() {
-  loginScreen = document.getElementById('loginScreen');
-  registerScreen = document.getElementById('registerScreen');
-  callScreen = document.getElementById('callScreen');
-  }
-window.initScreenRefs = initScreenRefs;
-
 // Gruplar, Odalar
 let groupListDiv;
 let createGroupButton;
@@ -447,9 +436,6 @@ window.addEventListener('DOMContentLoaded', () => {
   modalCloseCategoryBtn = document.getElementById('modalCloseCategoryBtn');
 
   Object.assign(window, {
-    loginScreen,
-    registerScreen,
-    callScreen,
     groupListDiv,
     createGroupButton,
     roomListDiv,
@@ -518,11 +504,6 @@ window.addEventListener('DOMContentLoaded', () => {
     toggleDMButton.querySelector('.material-icons').textContent = 'forum';
   }
 
-  // Ensure screen references are captured now that React has rendered
-  if (window.initScreenRefs) {
-    window.initScreenRefs();
-  }
-  
   // Hide voice channel sections until a voice channel is joined
   hideVoiceSections();
 
