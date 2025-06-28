@@ -443,7 +443,7 @@ io.on("connection", async (socket) => {
     screenShareProducerId: null,
     hasMic: true,
     watching: [],
-  watchers: []
+    watchers: [],
   });
 
   if (socket.user && socket.user.username) {
