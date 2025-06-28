@@ -486,6 +486,9 @@ io.on("connection", async (socket) => {
   socket.on("disconnect", () => { groupController.handleDisconnect(io, socket, context); });
 });
 
+// 404 handler for unknown routes
+app.use((req, res) => res.status(404).json({ error: 'not found' }));
+
 // Express hata middleware'i (route'lardan sonra olacak!)
 app.use(expressWinston.errorLogger({
   winstonInstance: logger
