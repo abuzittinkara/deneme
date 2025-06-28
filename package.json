@@ -6,7 +6,7 @@
     "start": "node server.js",
     "test": "node --env-file=.env --test && npm run test:react",
     "test:react": "vitest run --config frontend/vitest.config.js",
-    "build": "webpack",
+    "build": "webpack && npm run build:react",
     "build:react": "vite build --config frontend/vite.config.js && cp frontend/dist/app.js public/app.js"
   },
   "dependencies": {
