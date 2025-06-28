@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { SocketContext } from '../SocketProvider.jsx';
+import { attemptLogin } from '../auth.js';
 
 export default function LoginForm({ onSwitch }) {
   const [username, setUsername] = useState('');
@@ -13,7 +14,7 @@ export default function LoginForm({ onSwitch }) {
     e.preventDefault();
     setShakeUser(false);
     setShakePass(false);
-    const res = window.attemptLogin(socket, username, password);
+    const res = attemptLogin(socket, username, password);
     if (!res.ok) {
       setError(res.message || '');
       setShakeUser(true);
