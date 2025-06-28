@@ -4,7 +4,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node --env-file=.env --test && npm run test:react",
+    "test": "node -e \"const fs=require('fs');const{spawnSync}=require('child_process');const f=fs.existsSync('.env')?'.env':'.env.example';const r=spawnSync(process.execPath,['--env-file',f,'--test'],{stdio:'inherit'});process.exit(r.status);\" && npm run test:react",
     "test:react": "npm --prefix frontend install --no-audit --no-fund && vitest run --config frontend/vitest.config.js",
     "build": "webpack && npm run build:react",
     "build:react": "vite build --config frontend/vite.config.js && node -e \"require('fs').copyFileSync('frontend/dist/app.js','public/app.js')\""

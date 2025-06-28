@@ -91,7 +91,7 @@ The application now uses an in-memory store only, so simply run `npm start`.
 
 ## Testing
 
-A minimal `.env` file with sample values is included for running the test suite. Copy `.env.example` if you need custom settings.Install the dependencies and execute the test suite with:
+A minimal `.env` file with sample values is included for running the test suite. The `npm test` command checks for `.env` and falls back to `.env.example` when calling Node with `--env-file`. Install the dependencies and execute the test suite with:
 
 ```bash
 ./setup.sh     # installs backend and frontend Node packages
