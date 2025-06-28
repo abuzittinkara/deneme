@@ -55,7 +55,8 @@ webpack.config.js   Bundles mediasoup-client into `public/libs`
    ./setup.sh
    ```
    This script runs `npm ci` and `npm --prefix frontend ci` to fetch
-   backend and frontend Node packages. It is also executed in CI before
+   backend and frontend Node packages, including the `socket.io-client`
+   dependency used by the React Socket provider. It is also executed in CI before
    running the tests.
 2. Copy `.env.example` to `.env` and update the values.
 3. Build the bundled client files by running:
@@ -69,11 +70,14 @@ webpack.config.js   Bundles mediasoup-client into `public/libs`
    after cloning the repository so they are recreated.
 4. Build the React front-end:
     ```bash
-    npm run build:react
-    ```
+   npm run build:react
+   ```
    This compiles the Vite project under `frontend/` and copies the resulting
    `frontend/dist/app.js` bundle into the `public/` directory as
    `public/app.js` using a Node-based copy command.
+   The React application uses a `SocketProvider` component which creates the
+   Socket.IO client with `socket.io-client` and assigns it to `window.socket` so
+   the scripts under `public/` can reuse the same connection.
 5. Start the application:
 ```bash
 npm start

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { SocketContext } from '../SocketProvider.jsx';
 
 export default function LoginForm({ onSwitch }) {
   const [username, setUsername] = useState('');
@@ -6,12 +7,13 @@ export default function LoginForm({ onSwitch }) {
   const [error, setError] = useState('');
   const [shakeUser, setShakeUser] = useState(false);
   const [shakePass, setShakePass] = useState(false);
+  const socket = useContext(SocketContext);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setShakeUser(false);
     setShakePass(false);
-    const res = window.attemptLogin(window.socket, username, password);
+    const res = window.attemptLogin(socket, username, password);
     if (!res.ok) {
       setError(res.message || '');
       setShakeUser(true);
