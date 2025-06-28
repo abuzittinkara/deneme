@@ -1,3 +1,4 @@
+const logger = require('./logger');
 const getEntries = map => {
   if (!map) return [];
   if (typeof map.entries === 'function') return Array.from(map.entries());
@@ -22,7 +23,7 @@ async function collectMentionCounts(username, { User, Group, GroupMember }) {
       }
     }));
   } catch (err) {
-    console.error('collectMentionCounts error:', err);
+    logger.error('collectMentionCounts error:', err);
   }
   return result;
 }

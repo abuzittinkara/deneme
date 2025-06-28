@@ -1,3 +1,4 @@
+const logger = require('./logger');
 const getEntries = map => {
   if (!map) return [];
   if (typeof map.entries === 'function') return Array.from(map.entries());
@@ -39,7 +40,7 @@ async function collectMuteInfo(username, { User, Group, GroupMember }) {
       }
     }));
   } catch (err) {
-    console.error('collectMuteInfo error:', err);
+    logger.error('collectMuteInfo error:', err);
   }
   return result;
 }

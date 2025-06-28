@@ -1,3 +1,4 @@
+const logger = require('./logger');
 const getEntries = map => {
   if (!map) return [];
   if (typeof map.entries === 'function') return Array.from(map.entries());
@@ -30,7 +31,7 @@ async function collectNotifyInfo(username, { User, Group, GroupMember }) {
       };
     }));
   } catch (err) {
-    console.error('collectNotifyInfo error:', err);
+    logger.error('collectNotifyInfo error:', err);
   }
   return result;
 }

@@ -1,3 +1,4 @@
+const logger = require('./logger');
 const getEntries = map => {
   if (!map) return [];
   if (typeof map.entries === 'function') return Array.from(map.entries());
@@ -32,7 +33,7 @@ async function collectCategoryPrefs(username, { User, Group, GroupMember }) {
       };
     }));
   } catch (err) {
-    console.error('collectCategoryPrefs error:', err);
+    logger.error('collectCategoryPrefs error:', err);
   }
   return result;
 }
