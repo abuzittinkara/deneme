@@ -55,7 +55,9 @@ webpack.config.js   Bundles mediasoup-client into `public/libs`
    ./setup.sh
    ```
    This script runs `npm ci` to fetch Node packages and is
-   also executed in CI before running the tests.
+   also executed in CI before running the tests. The React
+   test dependencies are installed automatically during
+   `npm test` so no extra setup is required.
 2. Copy `.env.example` to `.env` and update the values.
 3. Build the bundled client files by running:
     ```bash
@@ -89,7 +91,7 @@ Install the dependencies and execute the test suite with:
 
 ```bash
 ./setup.sh     # installs required Node packages
-npm test
+npm test       # installs frontend test deps and runs all tests
 ```
 
 ## Login flow

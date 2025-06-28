@@ -26,6 +26,8 @@ jobs:
           cache: 'npm'
       - name: Install dependencies
         run: bash ./setup.sh
+      - name: Install frontend dependencies
+        run: npm --prefix frontend install --no-audit --no-fund
       - name: Build client bundle
         run: npm run build
       - name: Run tests
