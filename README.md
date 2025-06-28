@@ -9,6 +9,8 @@ This project contains the backend and frontend assets for a WebSocket-based chat
 - `.env` file at the project root defining:
   - `MONGODB_URI` – MongoDB connection string
   - `PORT` – (optional) server port, defaults to `3000`
+  - `CORS_ORIGIN` – (optional) allowed origin for cross-origin HTTP requests.
+    Leave blank to permit all origins.
   - `ANNOUNCED_IP` – (optional) public IP for mediasoup
   - `TURN_USERNAME` and `TURN_CREDENTIAL` – credentials for the bundled TURN
     servers. If omitted the TURN servers are skipped and only a public STUN
@@ -23,6 +25,7 @@ Example `.env`:
 ```bash
 MONGODB_URI=mongodb://localhost:27017/test
 PORT=3000
+CORS_ORIGIN=
 ANNOUNCED_IP=
 TURN_USERNAME=
 TURN_CREDENTIAL=
