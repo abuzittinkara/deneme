@@ -1049,7 +1049,7 @@ window.showScreenShare = showScreenShare;
 
 /* displayScreenShareEndedMessage */
 function displayScreenShareEndedMessage(msg) {
-  const channelContentArea = document.querySelector('.channel-content-area');
+  const channelContentAreaElem = document.querySelector('.channel-content-area');
   let messageEl = document.getElementById('screenShareEndedMessage');
   if (!messageEl) {
     messageEl = document.createElement('div');
@@ -1065,8 +1065,9 @@ function displayScreenShareEndedMessage(msg) {
     messageEl.style.fontSize = '1.2rem';
   }
   messageEl.textContent = msg || 'Bu yayın sonlandırıldı';
-  const channelContentAreaElem = document.querySelector('.channel-content-area');
-  channelContentAreaElem.appendChild(messageEl);
+  if (channelContentAreaElem) {
+    channelContentAreaElem.appendChild(messageEl);
+  }
 }
 window.displayScreenShareEndedMessage = displayScreenShareEndedMessage;
 
