@@ -102,7 +102,7 @@ async function loadGroupsFromDB({ Group, groups }) {
       logger.info('loadGroupsFromDB tamam, groups:', groupKeys);
     }
   } catch (err) {
-    console.error('loadGroupsFromDB hata:', err);
+    logger.error('loadGroupsFromDB hata:', err);
   }
 }
 
@@ -191,7 +191,7 @@ async function sendGroupsListToUser(io, socketId, { User, users, GroupMember }) 
     );
     io.to(socketId).emit('groupsList', groupList);
   } catch (err) {
-    console.error('sendGroupsListToUser hatası:', err);
+    logger.error('sendGroupsListToUser hatası:', err);
   }
 }
 
@@ -265,7 +265,7 @@ async function sendRoomsListToUser(io, socketId, context, groupId) {
         }
       }
     } catch (err) {
-      console.error('sendRoomsListToUser error:', err);
+      logger.error('sendRoomsListToUser error:', err);
     }
   }
   const groupObj = groups[groupId];
@@ -466,7 +466,7 @@ async function broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId) 
     });
     io.to(groupId).emit('groupUsers', { online, offline });
   } catch (err) {
-    console.error('broadcastGroupUsers hata:', err);
+    logger.error('broadcastGroupUsers hata:', err);
   }
 }
 
@@ -518,7 +518,7 @@ async function handleLeaveGroup(io, socket, context, groupId) {
       await groupDoc.save();
     }
   } catch (err) {
-    console.error('leaveGroup error:', err);
+    logger.error('leaveGroup error:', err);
   }
 
   await sendGroupsListToUser(io, socket.id, { User, users, GroupMember });
@@ -587,7 +587,7 @@ function register(io, socket, context) {
       });
       broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
     } catch (err) {
-      console.error('Create group error:', err);
+      logger.error('Create group error:', err);
       socket.emit('errorMessage', 'Grup oluşturulurken bir hata oluştu.');
     }
   });
@@ -644,7 +644,7 @@ function register(io, socket, context) {
       broadcastAllChannelsData(io, users, groups, groupId);
       broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
     } catch (err) {
-      console.error('joinGroup error:', err);
+      logger.error('joinGroup error:', err);
     }
   });
 
@@ -698,7 +698,7 @@ function register(io, socket, context) {
       broadcastAllChannelsData(io, users, groups, groupId);
       broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
     } catch (err) {
-      console.error('joinRoom error:', err);
+      logger.error('joinRoom error:', err);
     }
   });
 
@@ -741,7 +741,7 @@ function register(io, socket, context) {
       broadcastAllChannelsData(io, users, groups, groupId);
       broadcastGroupUsers(io, groups, onlineUsernames, Group, groupId);
     } catch (err) {
-      console.error('moveUser error:', err);
+      logger.error('moveUser error:', err);
     }
   });
   
@@ -778,7 +778,7 @@ function register(io, socket, context) {
         broadcastRoomsListToGroup(io, groups, groupId);
       }
     } catch (err) {
-      console.error('createChannel error:', err);
+      logger.error('createChannel error:', err);
     }
   });
 
@@ -800,7 +800,7 @@ function register(io, socket, context) {
         broadcastRoomsListToGroup(io, groups, gid);
       }
     } catch (err) {
-      console.error('renameChannel error:', err);
+      logger.error('renameChannel error:', err);
     }
   });
 
@@ -837,7 +837,7 @@ function register(io, socket, context) {
       broadcastRoomsListToGroup(io, groups, groupId);
       broadcastAllChannelsData(io, users, groups, groupId);
     } catch (err) {
-      console.error('reorderChannel error:', err);
+      logger.error('reorderChannel error:', err);
     }
   });
   
@@ -875,7 +875,7 @@ function register(io, socket, context) {
         broadcastRoomsListToGroup(io, groups, gid);
       }
     } catch (err) {
-      console.error('deleteChannel error:', err);
+      logger.error('deleteChannel error:', err);
     }
   });
 
@@ -893,7 +893,7 @@ function register(io, socket, context) {
       if (context.store) context.store.setJSON(context.store.key('group', groupId), groups[groupId]);
       broadcastRoomsListToGroup(io, groups, groupId);
     } catch (err) {
-      console.error('createCategory error:', err);
+      logger.error('createCategory error:', err);
     }
   });
 
@@ -912,7 +912,7 @@ function register(io, socket, context) {
         broadcastRoomsListToGroup(io, groups, gid);
       }
     } catch (err) {
-      console.error('renameCategory error:', err);
+      logger.error('renameCategory error:', err);
     }
   });
 
@@ -935,7 +935,7 @@ function register(io, socket, context) {
         broadcastRoomsListToGroup(io, groups, gid);
       }
     } catch (err) {
-      console.error('deleteCategory error:', err);
+      logger.error('deleteCategory error:', err);
     }
   });
 
@@ -987,7 +987,7 @@ function register(io, socket, context) {
       if (context.store) context.store.setJSON(context.store.key('group', groupId), grp);
       broadcastRoomsListToGroup(io, groups, groupId);
     } catch (err) {
-      console.error('reorderCategory error:', err);
+      logger.error('reorderCategory error:', err);
     }
   });
 
@@ -1010,7 +1010,7 @@ function register(io, socket, context) {
       if (context.store) context.store.setJSON(context.store.key('group', groupId), grp);
       broadcastRoomsListToGroup(io, groups, groupId);
     } catch (err) {
-      console.error('assignChannelCategory error:', err);
+      logger.error('assignChannelCategory error:', err);
     }
   });
 
@@ -1036,7 +1036,7 @@ function register(io, socket, context) {
         }
       });
     } catch (err) {
-      console.error('setCategoryCollapsed error:', err);
+      logger.error('setCategoryCollapsed error:', err);
     }
   });
   
@@ -1057,7 +1057,7 @@ function register(io, socket, context) {
       );
       io.to(socket.id).emit('groupUnreadReset', { groupId });
     } catch (err) {
-      console.error('markGroupRead error:', err);
+      logger.error('markGroupRead error:', err);
     }
   });
 
@@ -1096,7 +1096,7 @@ function register(io, socket, context) {
         }
       });
     } catch (err) {
-      console.error('muteGroup error:', err);
+      logger.error('muteGroup error:', err);
     }
   });
 
@@ -1135,7 +1135,7 @@ function register(io, socket, context) {
         }
       });
     } catch (err) {
-      console.error('muteChannel error:', err);
+      logger.error('muteChannel error:', err);
     }
   });
 
@@ -1172,7 +1172,7 @@ function register(io, socket, context) {
         }
       });
     } catch (err) {
-      console.error('muteCategory error:', err);
+      logger.error('muteCategory error:', err);
     }
   });
 
@@ -1197,7 +1197,7 @@ function register(io, socket, context) {
         }
       });
     } catch (err) {
-      console.error('setGroupNotifyType error:', err);
+      logger.error('setGroupNotifyType error:', err);
     }
   });
 
@@ -1224,7 +1224,7 @@ function register(io, socket, context) {
         }
       });
     } catch (err) {
-      console.error('setChannelNotifyType error:', err);
+      logger.error('setChannelNotifyType error:', err);
     }
   });
   // Diğer handlerlar (joinGroupByID, browseGroup, createRoom, joinRoom, leaveRoom,

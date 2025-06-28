@@ -1,3 +1,4 @@
+const logger = require('./logger');
 async function emitChannelUnread(io, groupId, channelId, Group, Channel, userSessions, GroupMember, users, mentions = []) {
   try {
     let groupDoc = await Group.findOne({ groupId });
@@ -77,7 +78,7 @@ async function emitChannelUnread(io, groupId, channelId, Group, Channel, userSes
     }
     if (updates.length) await Promise.all(updates);
   } catch (err) {
-    console.error('emitChannelUnread error:', err);
+    logger.error('emitChannelUnread error:', err);
   }
 }
 

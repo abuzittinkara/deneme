@@ -1,3 +1,4 @@
+const logger = require('./logger');
 async function emitMentionUnread(io, groupId, channelId, username, Group, userSessions, GroupMember, users) {
   try {
     let groupDoc = await Group.findOne({ groupId });
@@ -42,7 +43,7 @@ async function emitMentionUnread(io, groupId, channelId, username, Group, userSe
       io.to(sid).emit('mentionUnread', { groupId, channelId });
     }
   } catch (err) {
-    console.error('emitMentionUnread error:', err);
+    logger.error('emitMentionUnread error:', err);
   }
 }
 
