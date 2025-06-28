@@ -20,54 +20,7 @@
     />
   </head>
   <body>
-    <!-- Giriş Ekranı -->
-    <div id="loginScreen" class="screen-container" style="display: block;">
-      <div class="card">
-        <h1 class="app-title">Oturum Aç</h1>
-        <!-- Giriş Hatası Mesajı -->
-        <p id="loginErrorMessage" style="display: none; color: #f44; margin: 0 0 0.6rem; font-size: 0.9rem;">
-          Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin
-        </p>
-        <form id="loginForm" autocomplete="on">
-          <input type="text" id="loginUsernameInput" name="username" autocomplete="username" placeholder="Kullanıcı Adı" class="input-text" />
-          <input type="password" id="loginPasswordInput" name="password" autocomplete="current-password" placeholder="Parola" class="input-text" />
-          <button id="loginButton" type="submit" class="btn primary">Giriş Yap</button>
-        </form>
-        <p style="margin-top: 1rem;">
-          Hesabın yok mu?
-          <span id="showRegisterScreen" style="color: #fff; cursor: pointer; text-decoration: underline;">
-            Yeni Hesap Oluştur
-          </span>
-        </p>
-      </div>
-    </div>
-
-    <!-- Kayıt Ekranı -->
-    <div id="registerScreen" class="screen-container" style="display: none;">
-      <div class="card">
-        <h1 class="app-title">Kayıt Ol</h1>
-        <!-- Kayıt Hatası Mesajı -->
-        <p id="registerErrorMessage" style="display: none; color: #f44; margin: 0 0 0.6rem; font-size: 0.9rem;">
-          Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin
-        </p>
-        <input type="text" id="regUsernameInput" placeholder="Kullanıcı Adı (küçük harf)" class="input-text" />
-        <input type="text" id="regNameInput" placeholder="İsim" class="input-text" />
-        <input type="text" id="regSurnameInput" placeholder="Soyisim" class="input-text" />
-        <input type="date" id="regBirthdateInput" class="input-text" />
-        <input type="email" id="regEmailInput" placeholder="E-Posta" class="input-text" />
-        <input type="tel" id="regPhoneInput" placeholder="Telefon Numarası" class="input-text" />
-        <input type="password" id="regPasswordInput" placeholder="Parola" class="input-text" />
-        <input type="password" id="regPasswordConfirmInput" placeholder="Parola (Tekrar)" class="input-text" />
-        <button id="registerButton" class="btn primary">Kayıt Ol ve Başla</button>
-        <button id="backToLoginButton" class="btn secondary">Geri Gel</button>
-        <p style="margin-top: 1rem;">
-          Zaten hesabın var mı?
-          <span id="showLoginScreen" style="color: #fff; cursor: pointer; text-decoration: underline;">
-            Oturum Aç
-          </span>
-        </p>
-      </div>
-    </div>
+    <div id="app"></div>
 
     <!-- Görüşme Ekranı -->
     <div id="callScreen" class="screen-container" style="display: none;">
@@ -416,6 +369,7 @@
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
     <script src="libs/mediasoup-client.min.js"></script>
     <script src="https://unpkg.com/cropperjs@1.5.13/dist/cropper.min.js"></script>
+    <script type="module" src="app.js"></script>
     <!-- Uygulama JavaScript'i webpack ile derlenmiş bundle.js'de -->
     <script src="bundle.js"></script>
   </body>
