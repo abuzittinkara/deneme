@@ -8,8 +8,6 @@ import * as Mentions from './mentions.js';
 
 export function initUIEvents(socket) {
   const {
-    loginScreen,
-    registerScreen,
     groupDropdownIcon,
     groupDropdownMenu,
     copyGroupIdBtn,

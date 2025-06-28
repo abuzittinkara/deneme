@@ -229,12 +229,9 @@ function refreshVisibilityIcons() {
 
 export function initSocketEvents(socket) {
   const {
-    loginScreen,
-    callScreen,
     loginErrorMessage,
     loginUsernameInput,
     loginPasswordInput,
-    registerScreen,
     registerErrorMessage,
     groupListDiv,
     groupTitle,
@@ -731,8 +728,7 @@ export function initSocketEvents(socket) {
         socket.auth.token = data.token;
       }
       socket.emit('set-username', window.username);
-      loginScreen.style.display = 'none';
-      callScreen.style.display = 'flex';
+      if (window.setScreen) window.setScreen('call');
       document.getElementById('userCardName').textContent = window.username;
       window.applyAudioStates();
       window.loadAvatar(window.username).then(av => {
@@ -752,8 +748,7 @@ export function initSocketEvents(socket) {
   socket.on('registerResult', (data) => {
     if (data.success) {
       alert('Hesap başarıyla oluşturuldu');
-      registerScreen.style.display = 'none';
-      loginScreen.style.display = 'block';
+      if (window.setScreen) window.setScreen('login');
     } else {
       registerErrorMessage.textContent = data.message || 'Kayıt hatası';
       registerErrorMessage.style.display = 'block';
@@ -1830,8 +1825,7 @@ export function initSocketEvents(socket) {
     });
   });
   socket.on('forceLogout', () => {
-    callScreen.style.display = 'none';
-    loginScreen.style.display = 'block';
+    if (window.setScreen) window.setScreen('login');
     window.username = null;
   })
 }
