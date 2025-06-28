@@ -162,6 +162,14 @@ let loginScreen;
 let registerScreen;
 let callScreen;
 
+function initScreenRefs() {
+  loginScreen = document.getElementById('loginScreen');
+  registerScreen = document.getElementById('registerScreen');
+  callScreen = document.getElementById('callScreen');
+  Object.assign(window, { loginScreen, registerScreen, callScreen });
+}
+window.initScreenRefs = initScreenRefs;
+
 // Gruplar, Odalar
 const groupListDiv = document.getElementById('groupList');
 const createGroupButton = document.getElementById('createGroupButton');
@@ -420,10 +428,6 @@ window.applyAudioStates = (opts) => {
   applyAudioStates(opts);
 };
 window.addEventListener('DOMContentLoaded', () => {
-  loginScreen = document.getElementById('loginScreen');
-  registerScreen = document.getElementById('registerScreen');
-  callScreen = document.getElementById('callScreen');
-  Object.assign(window, { loginScreen, registerScreen, callScreen });
   toggleDMButton.querySelector('.material-icons').textContent = 'forum';
   
   // Hide voice channel sections until a voice channel is joined

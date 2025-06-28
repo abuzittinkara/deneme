@@ -7,6 +7,12 @@ export default function App() {
   const [screen, setScreen] = useState('login');
 
   useEffect(() => {
+    if (window.initScreenRefs) {
+      window.initScreenRefs();
+    }
+  }, []);
+
+  useEffect(() => {
     const loginEl = document.getElementById('loginScreen');
     const regEl = document.getElementById('registerScreen');
     if (loginEl) loginEl.style.display = screen === 'login' ? 'block' : 'none';
