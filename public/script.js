@@ -61,7 +61,6 @@ import { initTypingIndicator } from './js/typingIndicator.js';
 import { initFriendRequests } from './js/friendRequests.js';
 import * as Ping from './js/ping.js';
 import * as UserList from './js/userList.js';
-import { attemptLogin, attemptRegister } from "./js/auth.js";
 import { initUIEvents } from "./js/uiEvents.js";
 import { initSocketEvents } from "./js/socketEvents.js";
 import * as WebRTC from "./js/webrtc.js";
@@ -161,30 +160,6 @@ window.openNotifyType = null;
 const loginScreen = document.getElementById('loginScreen');
 const registerScreen = document.getElementById('registerScreen');
 const callScreen = document.getElementById('callScreen');
-
-// Login
-const loginUsernameInput = document.getElementById('loginUsernameInput');
-const loginPasswordInput = document.getElementById('loginPasswordInput');
-const loginForm = document.getElementById('loginForm');
-const loginButton = document.getElementById('loginButton');
-const loginErrorMessage = document.getElementById('loginErrorMessage');
-
-// Register
-const regUsernameInput = document.getElementById('regUsernameInput');
-const regNameInput = document.getElementById('regNameInput');
-const regSurnameInput = document.getElementById('regSurnameInput');
-const regBirthdateInput = document.getElementById('regBirthdateInput');
-const regEmailInput = document.getElementById('regEmailInput');
-const regPhoneInput = document.getElementById('regPhoneInput');
-const regPasswordInput = document.getElementById('regPasswordInput');
-const regPasswordConfirmInput = document.getElementById('regPasswordConfirmInput');
-const registerButton = document.getElementById('registerButton');
-const backToLoginButton = document.getElementById('backToLoginButton');
-const registerErrorMessage = document.getElementById('registerErrorMessage');
-
-// Ekran geçiş linkleri
-const showRegisterScreen = document.getElementById('showRegisterScreen');
-const showLoginScreen = document.getElementById('showLoginScreen');
 
 // Gruplar, Odalar
 const groupListDiv = document.getElementById('groupList');
@@ -338,24 +313,6 @@ Object.assign(window, {
   loginScreen,
   registerScreen,
   callScreen,
-  loginUsernameInput,
-  loginPasswordInput,
-  loginForm,
-  loginButton,
-  loginErrorMessage,
-  regUsernameInput,
-  regNameInput,
-  regSurnameInput,
-  regBirthdateInput,
-  regEmailInput,
-  regPhoneInput,
-  regPasswordInput,
-  regPasswordConfirmInput,
-  registerButton,
-  backToLoginButton,
-  registerErrorMessage,
-  showRegisterScreen,
-  showLoginScreen,
   groupListDiv,
   createGroupButton,
   roomListDiv,
@@ -468,38 +425,14 @@ window.addEventListener('DOMContentLoaded', () => {
   const socketURL = window.SOCKET_URL || window.location.origin;
   const savedToken = (() => { try { return localStorage.getItem('token'); } catch (e) { return null; } })();
   socket = io(socketURL, { transports: ['websocket'], auth: savedToken ? { token: savedToken } : {} })
+  window.socket = socket;
   initSocketEvents(socket);
   initProfilePopout(socket);
-  initUIEvents(socket, () => attemptLogin(socket, loginUsernameInput, loginPasswordInput, loginErrorMessage), () => attemptRegister(socket, {regUsernameInput, regNameInput, regSurnameInput, regBirthdateInput, regEmailInput, regPhoneInput, regPasswordInput, regPasswordConfirmInput, registerErrorMessage}));
+  initUIEvents(socket);
   initTypingIndicator(socket, () => window.currentTextChannel, () => window.username);
   initFriendRequests(socket);
   initUserSettings();
   initAttachments();
-
-  const storedUser = (() => {
-    try {
-      return localStorage.getItem('username');
-    } catch (e) {
-      return null;
-    }
-  })();
-  if (storedUser) {
-    window.username = storedUser;
-    loginScreen.style.display = 'none';
-    callScreen.style.display = 'flex';
-    if (!savedToken) {
-      socket.emit('set-username', storedUser);
-    }
-    document.getElementById('userCardName').textContent = storedUser;
-    window.applyAudioStates();
-    window.loadAvatar(storedUser).then(av => {
-      const el = document.getElementById('userCardAvatar');
-      if (el) {
-        el.style.backgroundImage = `url(${av})`;
-        el.dataset.username = storedUser;
-      }
-    });
-  }
 
   const area = document.getElementById('channelContentArea');
   const resizeCb = () => {

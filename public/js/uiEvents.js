@@ -6,19 +6,10 @@ import { getAttachments, clearAttachments, updateAttachmentProgress, markAttachm
 import { toggleInputIcons, getInputText, clearInput } from './uiHelpers.js';
 import * as Mentions from './mentions.js';
 
-export function initUIEvents(socket, attemptLogin, attemptRegister) {
+export function initUIEvents(socket) {
   const {
-    loginButton,
-    loginForm,
-    loginUsernameInput,
-    loginPasswordInput,
-    registerButton,
-    regPasswordConfirmInput,
     loginScreen,
     registerScreen,
-    showRegisterScreen,
-    showLoginScreen,
-    backToLoginButton,
     groupDropdownIcon,
     groupDropdownMenu,
     copyGroupIdBtn,
@@ -109,26 +100,6 @@ export function initUIEvents(socket, attemptLogin, attemptRegister) {
     try { localStorage.setItem(RIGHT_PANEL_KEY, open ? '1' : '0'); } catch (e) {}
   }
 
-  loginForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    attemptLogin();
-  });
-
-  registerButton.addEventListener('click', () => attemptRegister());
-  regPasswordConfirmInput.addEventListener('keydown', (e) => e.key === 'Enter' && attemptRegister());
-
-  showRegisterScreen.addEventListener('click', () => {
-    loginScreen.style.display = 'none';
-    registerScreen.style.display = 'block';
-  });
-  showLoginScreen.addEventListener('click', () => {
-    registerScreen.style.display = 'none';
-    loginScreen.style.display = 'block';
-  });
-  backToLoginButton.addEventListener('click', () => {
-    registerScreen.style.display = 'none';
-    loginScreen.style.display = 'block';
-  });
 
   if (groupDropdownIcon) {
     groupDropdownIcon.addEventListener('click', (e) => {
