@@ -86,7 +86,7 @@ The application now uses an in-memory store only, so simply run `npm start`.
 
 ## Testing
 
-Ensure you have a `.env` file at the project root before running the tests.
+A minimal `.env` file with sample values is included for running the test suite. Copy `.env.example` if you need custom settings.
 Install the dependencies and execute the test suite with:
 
 ```bash
