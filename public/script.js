@@ -158,9 +158,9 @@ window.openNotifyType = null;
 
 /* Formatlama fonksiyonları artık TextChannel modülünden sağlanıyor */
 
-const loginScreen = document.getElementById('loginScreen');
-const registerScreen = document.getElementById('registerScreen');
-const callScreen = document.getElementById('callScreen');
+let loginScreen;
+let registerScreen;
+let callScreen;
 
 // Gruplar, Odalar
 const groupListDiv = document.getElementById('groupList');
@@ -420,6 +420,10 @@ window.applyAudioStates = (opts) => {
   applyAudioStates(opts);
 };
 window.addEventListener('DOMContentLoaded', () => {
+  loginScreen = document.getElementById('loginScreen');
+  registerScreen = document.getElementById('registerScreen');
+  callScreen = document.getElementById('callScreen');
+  Object.assign(window, { loginScreen, registerScreen, callScreen });
   toggleDMButton.querySelector('.material-icons').textContent = 'forum';
   
   // Hide voice channel sections until a voice channel is joined
