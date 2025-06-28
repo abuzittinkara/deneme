@@ -15,51 +15,28 @@ export default function RegisterForm({ onSwitch }) {
   const [shakePassConf, setShakePassConf] = useState(false);
 
   const handleRegister = () => {
-    const u = username.trim();
-    const n = name.trim();
-    const s = surname.trim();
-    const b = birthdate.trim();
-    const e = email.trim();
-    const p = phone.trim();
-    const pw = password.trim();
-    const pwc = passwordConfirm.trim();
-    setError('');
     setShakeUser(false);
     setShakePass(false);
     setShakePassConf(false);
-
-    if (!u || !n || !s || !b || !e || !p || !pw || !pwc) {
-      setError('Lütfen tüm alanları doldurunuz.');
-      return;
-    }
-    if (u !== u.toLowerCase()) {
-      setError('Kullanıcı adı sadece küçük harf olmalı!');
-      setShakeUser(true);
-      return;
-    }
-    if (pw !== pwc) {
-      setError('Parolalar eşleşmiyor!');
-      setShakePass(true);
-      setShakePassConf(true);
-      return;
-    }
-    const complexityRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
-    if (!complexityRegex.test(pw)) {
-      setError('Parola en az 8 karakter, büyük/küçük harf, rakam ve özel karakter içermeli.');
-      setShakePass(true);
-      return;
-    }
-    if (window.socket) {
-      window.socket.emit('register', {
-        username: u,
-        name: n,
-        surname: s,
-        birthdate: b,
-        email: e,
-        phone: p,
-        password: pw,
-        passwordConfirm: pwc,
-      });
+    const res = window.attemptRegister(window.socket, {
+      username,
+      name,
+      surname,
+      birthdate,
+      email,
+      phone,
+      password,
+      passwordConfirm,
+    });
+    if (!res.ok) {
+      setError(res.message || '');
+      if (res.message && res.message.includes('Kullanıcı adı')) setShakeUser(true);
+      if (res.message && res.message.includes('Parola')) {
+        setShakePass(true);
+        if (res.message.includes('eşleşmiyor')) setShakePassConf(true);
+      }
+    } else {
+      setError('');
     }
   };
 
