@@ -60,11 +60,13 @@ webpack.config.js   Bundles mediasoup-client into `public/libs`
 2. Copy `.env.example` to `.env` and update the values.
 3. Build the bundled client files by running:
     ```bash
-    npm run build
-    ```
+   npm run build
+   ```
    This invokes Webpack and generates both `public/libs/mediasoup-client.min.js`
    and `public/bundle.js`. The application will not start correctly without
-   these files present.
+   these files present. Because the generated files under `public/*.js` and the
+   `public/libs/` directory are ignored in Git, make sure to run this command
+   after cloning the repository so they are recreated.
 4. Build the React front-end:
     ```bash
     npm run build:react
