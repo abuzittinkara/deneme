@@ -1,1 +1,1 @@
-export { attemptLogin, attemptRegister } from '../public/js/auth.js';
+export { attemptLogin, attemptRegister } from '../../public/js/auth.js';
