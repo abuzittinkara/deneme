@@ -9,19 +9,15 @@ export default function LoginForm({ onSwitch }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const userVal = username.trim();
-    const passVal = password.trim();
-    setError('');
     setShakeUser(false);
     setShakePass(false);
-    if (!userVal || !passVal) {
-      setError('Lütfen gerekli alanları doldurunuz');
+    const res = window.attemptLogin(window.socket, username, password);
+    if (!res.ok) {
+      setError(res.message || '');
       setShakeUser(true);
       setShakePass(true);
-      return;
-    }
-    if (window.socket) {
-      window.socket.emit('login', { username: userVal, password: passVal });
+    } else {
+      setError('');
     }
   };
 

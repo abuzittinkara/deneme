@@ -68,6 +68,7 @@ import { applyAudioStates } from "./js/audioUtils.js";
 import { initUserSettings, openUserSettings, closeUserSettings } from "./js/userSettings.js";
 import { showProfilePopout, initProfilePopout } from "./js/profilePopout.js";
 import { initAttachments } from "./js/attachments.js";
+import { attemptLogin, attemptRegister } from "./js/auth.js";
 
 let socket = null;
 let device = null;   // mediasoup-client Device
@@ -372,7 +373,9 @@ Object.assign(window, {
   categoryModal,
   modalCategoryName,
   modalCreateCategoryBtn,
-  modalCloseCategoryBtn
+  modalCloseCategoryBtn,
+  attemptLogin,
+  attemptRegister
 });
 window.WebRTC = WebRTC;
 window.joinRoom = WebRTC.joinRoom;
