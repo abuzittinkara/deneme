@@ -166,50 +166,47 @@ function initScreenRefs() {
   loginScreen = document.getElementById('loginScreen');
   registerScreen = document.getElementById('registerScreen');
   callScreen = document.getElementById('callScreen');
-  Object.assign(window, { loginScreen, registerScreen, callScreen });
-}
+  }
 window.initScreenRefs = initScreenRefs;
 
 // Gruplar, Odalar
-const groupListDiv = document.getElementById('groupList');
-const createGroupButton = document.getElementById('createGroupButton');
-const roomListDiv = document.getElementById('roomList');
-const groupTitle = document.getElementById('groupTitle');
-const groupDropdownIcon = document.getElementById('groupDropdownIcon');
-const groupDropdownMenu = document.getElementById('groupDropdownMenu');
-const copyGroupIdBtn = document.getElementById('copyGroupIdBtn');
-const renameGroupBtn = document.getElementById('renameGroupBtn');
-const createChannelBtn = document.getElementById('createChannelBtn');
-const deleteGroupBtn = document.getElementById('deleteGroupBtn');
-const groupSettingsBtn = document.getElementById('groupSettingsBtn');
-const leaveGroupBtn = document.getElementById('leaveGroupBtn');
+let groupListDiv;
+let createGroupButton;
+let roomListDiv;
+let groupTitle;
+let groupDropdownIcon;
+let groupDropdownMenu;
+let copyGroupIdBtn;
+let renameGroupBtn;
+let createChannelBtn;
+let deleteGroupBtn;
+let groupSettingsBtn;
+let leaveGroupBtn;
 
 // DM panel ve odalar alanı (kanallar paneli)
-const toggleDMButton = document.getElementById('toggleDMButton');
-const roomPanel = document.getElementById('roomPanel');
+let toggleDMButton;
+let roomPanel;
 let isDMMode = false;
 
 // Sağ panel
-const rightPanel = document.getElementById('rightPanel');
+let rightPanel;
 // Kullanıcı listesi (rightPanel içinde)
-const userListDiv = document.getElementById('userList');
-const toggleUserListButton = document.getElementById('toggleUserListButton');
+let userListDiv;
+let toggleUserListButton;
 
 // Kanal Durum Paneli
-const channelStatusPanel = document.getElementById('channelStatusPanel');
-channelStatusPanel.style.zIndex = "20";
-channelStatusPanel.style.display = 'flex';
-const connectionStatusText = document.getElementById('connectionStatusText');
-const pingValueSpan = document.getElementById('pingValue');
-const cellBar1 = document.getElementById('cellBar1');
-const cellBar2 = document.getElementById('cellBar2');
-const cellBar3 = document.getElementById('cellBar3');
-const cellBar4 = document.getElementById('cellBar4');
-const connectionHeader = channelStatusPanel.querySelector('.connection-header');
-const channelInfoRow = channelStatusPanel.querySelector('.channel-info-row');
-const buttonRow = channelStatusPanel.querySelector('.button-row');
-const panelDivider = channelStatusPanel.querySelector('.panel-divider');
-const userCard = channelStatusPanel.querySelector('.user-card');
+let channelStatusPanel;
+let connectionStatusText;
+let pingValueSpan;
+let cellBar1;
+let cellBar2;
+let cellBar3;
+let cellBar4;
+let connectionHeader;
+let channelInfoRow;
+let buttonRow;
+let panelDivider;
+let userCard;
 
 function showVoiceSections() {
   if (connectionHeader) connectionHeader.style.display = 'flex';
@@ -263,128 +260,62 @@ window.showVoiceSections = showVoiceSections;
 window.hideVoiceSections = hideVoiceSections;
 
 // Ayrıl Butonu
-const leaveButton = document.getElementById('leaveButton');
-const screenShareButton = document.getElementById('screenShareButton');
-const cameraShareButton = document.getElementById('cameraShareButton');
-const screenShareLargeButton = document.getElementById('screenShareLargeButton');
-const soundbarButton = document.getElementById('soundbarButton');
+let leaveButton;
+let screenShareButton;
+let cameraShareButton;
+let screenShareLargeButton;
+let soundbarButton;
 
 // Mikrofon / Kulaklık butonları
-const micToggleButton = document.getElementById('micToggleButton');
-const deafenToggleButton = document.getElementById('deafenToggleButton');
-const settingsButton = document.getElementById('settingsButton');
+let micToggleButton;
+let deafenToggleButton;
+let settingsButton;
 
 // Metin Kanalı Elemanları
-const textChannelContainer = document.getElementById('textChannelContainer');
-const textMessages = document.getElementById('textMessages');
-const textChatInputBar = document.getElementById('textChatInputBar');
-const textChannelMessageInput = document.getElementById('textChannelMessageInput');
-const micMessageBtn = document.getElementById('micMessageBtn');
-const sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
+let textChannelContainer;
+let textMessages;
+let textChatInputBar;
+let textChannelMessageInput;
+let micMessageBtn;
+let sendTextMessageBtn;
 
 // Ek: Seçili başlık ve ana içerik alanı
-const selectedChannelTitle = document.getElementById('selectedChannelTitle');
-const channelContentArea = document.getElementById('channelContentArea');
+let selectedChannelTitle;
+let channelContentArea;
 
 // Yeni: DM modunda kullanılacak content alanı (selectedDMBar altında)
-const dmContentArea = document.getElementById('dmContentArea');
+let dmContentArea;
 
 // "dmPanel" yine mevcut (display:none); DM paneli, dmChatSearchInput öğesini barındıracak
-const dmPanel = document.getElementById('dmPanel');
+let dmPanel;
 // Modal elements for group creation/joining
-const groupModal = document.getElementById('groupModal');
-const modalGroupCreateBtn = document.getElementById('modalGroupCreateBtn');
-const modalGroupJoinBtn = document.getElementById('modalGroupJoinBtn');
-const actualGroupCreateModal = document.getElementById('actualGroupCreateModal');
-const actualGroupName = document.getElementById('actualGroupName');
-const actualGroupNameBtn = document.getElementById('actualGroupNameBtn');
-const closeCreateGroupModal = document.getElementById('closeCreateGroupModal');
-const joinGroupModal = document.getElementById('joinGroupModal');
-const joinGroupIdInput = document.getElementById('joinGroupIdInput');
-const joinGroupIdBtn = document.getElementById('joinGroupIdBtn');
-const closeJoinGroupModal = document.getElementById('closeJoinGroupModal');
-const groupSettingsModal = document.getElementById('groupSettingsModal');
-const closeGroupSettingsModal = document.getElementById('closeGroupSettingsModal');
-const userSettingsPage = document.getElementById('userSettingsPage');
-const closeUserSettingsPageBtn = document.getElementById('closeUserSettingsPageBtn');
-const roomModal = document.getElementById('roomModal');
-const modalRoomName = document.getElementById('modalRoomName');
-const textChannel = document.getElementById('textChannel');
-const voiceChannel = document.getElementById('voiceChannel');
-const modalCreateRoomBtn = document.getElementById('modalCreateRoomBtn');
-const modalCloseRoomBtn = document.getElementById('modalCloseRoomBtn');
-const createCategoryBtn = document.getElementById('createCategoryBtn');
-const categoryModal = document.getElementById('categoryModal');
-const modalCategoryName = document.getElementById('modalCategoryName');
-const modalCreateCategoryBtn = document.getElementById('modalCreateCategoryBtn');
-const modalCloseCategoryBtn = document.getElementById('modalCloseCategoryBtn');
-Object.assign(window, {
-  loginScreen,
-  registerScreen,
-  callScreen,
-  groupListDiv,
-  createGroupButton,
-  roomListDiv,
-  groupTitle,
-  groupDropdownIcon,
-  groupDropdownMenu,
-  copyGroupIdBtn,
-  renameGroupBtn,
-  createChannelBtn,
-  groupSettingsBtn,
-  leaveGroupBtn,
-  deleteGroupBtn,
-  toggleDMButton,
-  roomPanel,
-  rightPanel,
-  leaveButton,
-  screenShareButton,
-  micToggleButton,
-  deafenToggleButton,
-  settingsButton,
-  textChannelContainer,
-  textMessages,
-  textChatInputBar,
-  textChannelMessageInput,
-  micMessageBtn,
-  sendTextMessageBtn,
-  selectedChannelTitle,
-  channelContentArea,
-  dmContentArea,
-  dmPanel,
-  cameraShareButton,
-  screenShareLargeButton,
-  toggleUserListButton,
-  soundbarButton,
-  groupModal,
-  modalGroupCreateBtn,
-  modalGroupJoinBtn,
-  actualGroupCreateModal,
-  actualGroupName,
-  actualGroupNameBtn,
-  closeCreateGroupModal,
-  joinGroupModal,
-  joinGroupIdInput,
-  joinGroupIdBtn,
-  closeJoinGroupModal,
-  groupSettingsModal,
-  closeGroupSettingsModal,
-  userSettingsPage,
-  closeUserSettingsPageBtn,
-  roomModal,
-  modalRoomName,
-  textChannel,
-  voiceChannel,
-  modalCreateRoomBtn,
-  modalCloseRoomBtn,
-  createCategoryBtn,
-  categoryModal,
-  modalCategoryName,
-  modalCreateCategoryBtn,
-  modalCloseCategoryBtn,
-  attemptLogin,
-  attemptRegister
-});
+let groupModal;
+let modalGroupCreateBtn;
+let modalGroupJoinBtn;
+let actualGroupCreateModal;
+let actualGroupName;
+let actualGroupNameBtn;
+let closeCreateGroupModal;
+let joinGroupModal;
+let joinGroupIdInput;
+let joinGroupIdBtn;
+let closeJoinGroupModal;
+let groupSettingsModal;
+let closeGroupSettingsModal;
+let userSettingsPage;
+let closeUserSettingsPageBtn;
+let roomModal;
+let modalRoomName;
+let textChannel;
+let voiceChannel;
+let modalCreateRoomBtn;
+let modalCloseRoomBtn;
+let createCategoryBtn;
+let categoryModal;
+let modalCategoryName;
+let modalCreateCategoryBtn;
+let modalCloseCategoryBtn;
+
 window.WebRTC = WebRTC;
 window.joinRoom = WebRTC.joinRoom;
 window.leaveRoomInternal = WebRTC.leaveRoomInternal;
@@ -428,7 +359,164 @@ window.applyAudioStates = (opts) => {
   applyAudioStates(opts);
 };
 window.addEventListener('DOMContentLoaded', () => {
-  toggleDMButton.querySelector('.material-icons').textContent = 'forum';
+  // Query DOM elements once the page has loaded
+  groupListDiv = document.getElementById('groupList');
+  createGroupButton = document.getElementById('createGroupButton');
+  roomListDiv = document.getElementById('roomList');
+  groupTitle = document.getElementById('groupTitle');
+  groupDropdownIcon = document.getElementById('groupDropdownIcon');
+  groupDropdownMenu = document.getElementById('groupDropdownMenu');
+  copyGroupIdBtn = document.getElementById('copyGroupIdBtn');
+  renameGroupBtn = document.getElementById('renameGroupBtn');
+  createChannelBtn = document.getElementById('createChannelBtn');
+  deleteGroupBtn = document.getElementById('deleteGroupBtn');
+  groupSettingsBtn = document.getElementById('groupSettingsBtn');
+  leaveGroupBtn = document.getElementById('leaveGroupBtn');
+
+  toggleDMButton = document.getElementById('toggleDMButton');
+  roomPanel = document.getElementById('roomPanel');
+
+  rightPanel = document.getElementById('rightPanel');
+  userListDiv = document.getElementById('userList');
+  toggleUserListButton = document.getElementById('toggleUserListButton');
+
+  channelStatusPanel = document.getElementById('channelStatusPanel');
+  connectionStatusText = document.getElementById('connectionStatusText');
+  pingValueSpan = document.getElementById('pingValue');
+  cellBar1 = document.getElementById('cellBar1');
+  cellBar2 = document.getElementById('cellBar2');
+  cellBar3 = document.getElementById('cellBar3');
+  cellBar4 = document.getElementById('cellBar4');
+  if (channelStatusPanel) {
+    channelStatusPanel.style.zIndex = '20';
+    channelStatusPanel.style.display = 'flex';
+    connectionHeader = channelStatusPanel.querySelector('.connection-header');
+    channelInfoRow = channelStatusPanel.querySelector('.channel-info-row');
+    buttonRow = channelStatusPanel.querySelector('.button-row');
+    panelDivider = channelStatusPanel.querySelector('.panel-divider');
+    userCard = channelStatusPanel.querySelector('.user-card');
+  }
+
+  leaveButton = document.getElementById('leaveButton');
+  screenShareButton = document.getElementById('screenShareButton');
+  cameraShareButton = document.getElementById('cameraShareButton');
+  screenShareLargeButton = document.getElementById('screenShareLargeButton');
+  soundbarButton = document.getElementById('soundbarButton');
+
+  micToggleButton = document.getElementById('micToggleButton');
+  deafenToggleButton = document.getElementById('deafenToggleButton');
+  settingsButton = document.getElementById('settingsButton');
+
+  textChannelContainer = document.getElementById('textChannelContainer');
+  textMessages = document.getElementById('textMessages');
+  textChatInputBar = document.getElementById('textChatInputBar');
+  textChannelMessageInput = document.getElementById('textChannelMessageInput');
+  micMessageBtn = document.getElementById('micMessageBtn');
+  sendTextMessageBtn = document.getElementById('sendTextMessageBtn');
+
+  selectedChannelTitle = document.getElementById('selectedChannelTitle');
+  channelContentArea = document.getElementById('channelContentArea');
+  dmContentArea = document.getElementById('dmContentArea');
+
+  dmPanel = document.getElementById('dmPanel');
+  groupModal = document.getElementById('groupModal');
+  modalGroupCreateBtn = document.getElementById('modalGroupCreateBtn');
+  modalGroupJoinBtn = document.getElementById('modalGroupJoinBtn');
+  actualGroupCreateModal = document.getElementById('actualGroupCreateModal');
+  actualGroupName = document.getElementById('actualGroupName');
+  actualGroupNameBtn = document.getElementById('actualGroupNameBtn');
+  closeCreateGroupModal = document.getElementById('closeCreateGroupModal');
+  joinGroupModal = document.getElementById('joinGroupModal');
+  joinGroupIdInput = document.getElementById('joinGroupIdInput');
+  joinGroupIdBtn = document.getElementById('joinGroupIdBtn');
+  closeJoinGroupModal = document.getElementById('closeJoinGroupModal');
+  groupSettingsModal = document.getElementById('groupSettingsModal');
+  closeGroupSettingsModal = document.getElementById('closeGroupSettingsModal');
+  userSettingsPage = document.getElementById('userSettingsPage');
+  closeUserSettingsPageBtn = document.getElementById('closeUserSettingsPageBtn');
+  roomModal = document.getElementById('roomModal');
+  modalRoomName = document.getElementById('modalRoomName');
+  textChannel = document.getElementById('textChannel');
+  voiceChannel = document.getElementById('voiceChannel');
+  modalCreateRoomBtn = document.getElementById('modalCreateRoomBtn');
+  modalCloseRoomBtn = document.getElementById('modalCloseRoomBtn');
+  createCategoryBtn = document.getElementById('createCategoryBtn');
+  categoryModal = document.getElementById('categoryModal');
+  modalCategoryName = document.getElementById('modalCategoryName');
+  modalCreateCategoryBtn = document.getElementById('modalCreateCategoryBtn');
+  modalCloseCategoryBtn = document.getElementById('modalCloseCategoryBtn');
+
+  Object.assign(window, {
+    loginScreen,
+    registerScreen,
+    callScreen,
+    groupListDiv,
+    createGroupButton,
+    roomListDiv,
+    groupTitle,
+    groupDropdownIcon,
+    groupDropdownMenu,
+    copyGroupIdBtn,
+    renameGroupBtn,
+    createChannelBtn,
+    groupSettingsBtn,
+    leaveGroupBtn,
+    deleteGroupBtn,
+    toggleDMButton,
+    roomPanel,
+    rightPanel,
+    leaveButton,
+    screenShareButton,
+    micToggleButton,
+    deafenToggleButton,
+    settingsButton,
+    textChannelContainer,
+    textMessages,
+    textChatInputBar,
+    textChannelMessageInput,
+    micMessageBtn,
+    sendTextMessageBtn,
+    selectedChannelTitle,
+    channelContentArea,
+    dmContentArea,
+    dmPanel,
+    cameraShareButton,
+    screenShareLargeButton,
+    toggleUserListButton,
+    soundbarButton,
+    groupModal,
+    modalGroupCreateBtn,
+    modalGroupJoinBtn,
+    actualGroupCreateModal,
+    actualGroupName,
+    actualGroupNameBtn,
+    closeCreateGroupModal,
+    joinGroupModal,
+    joinGroupIdInput,
+    joinGroupIdBtn,
+    closeJoinGroupModal,
+    groupSettingsModal,
+    closeGroupSettingsModal,
+    userSettingsPage,
+    closeUserSettingsPageBtn,
+    roomModal,
+    modalRoomName,
+    textChannel,
+    voiceChannel,
+    modalCreateRoomBtn,
+    modalCloseRoomBtn,
+    createCategoryBtn,
+    categoryModal,
+    modalCategoryName,
+    modalCreateCategoryBtn,
+    modalCloseCategoryBtn,
+    attemptLogin,
+    attemptRegister
+  });
+
+  if (toggleDMButton) {
+    toggleDMButton.querySelector('.material-icons').textContent = 'forum';
+  }
 
   // Ensure screen references are captured now that React has rendered
   if (window.initScreenRefs) {
@@ -960,7 +1048,6 @@ function updateVoiceChannelUI(roomName, alreadyConnected = false) {
   }
   textChannelContainer.style.display = 'none';
   if (alreadyConnected) {
-    if (channelStatusPanel) channelStatusPanel.style.display = 'flex';
     showVoiceSections();
   } else {
     showChannelStatusPanel();
