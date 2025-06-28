@@ -1,5 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-# Install npm dependencies
+# Install backend and frontend npm dependencies
 npm ci
+npm --prefix frontend ci
