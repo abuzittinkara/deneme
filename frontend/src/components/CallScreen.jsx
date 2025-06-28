@@ -6,6 +6,21 @@ export default function CallScreen() {
       window.initCallScreen();
     }
   }, []);
+  useEffect(() => {
+    if (window.username) {
+      const nameEl = document.getElementById('userCardName');
+      if (nameEl) nameEl.textContent = window.username;
+      if (window.loadAvatar) {
+        window.loadAvatar(window.username).then((av) => {
+          const avatarEl = document.getElementById('userCardAvatar');
+          if (avatarEl) {
+            avatarEl.style.backgroundImage = `url(${av})`;
+            avatarEl.dataset.username = window.username;
+          }
+        });
+      }
+    }
+  }, []);
   return (
     <div id="callScreen" className="screen-container">
       {/* Soldaki Paneller */}
