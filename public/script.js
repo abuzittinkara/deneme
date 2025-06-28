@@ -532,8 +532,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const socketURL = window.SOCKET_URL || window.location.origin;
   const savedToken = (() => { try { return localStorage.getItem('token'); } catch (e) { return null; } })();
-  socket = io(socketURL, { transports: ['websocket'], auth: savedToken ? { token: savedToken } : {} })
-  window.socket = socket;
+  if (window.socket) {
+    socket = window.socket;
+  } else {
+    socket = io(socketURL, { transports: ['websocket'], auth: savedToken ? { token: savedToken } : {} });
+    window.socket = socket;
+  }
   initSocketEvents(socket);
   initProfilePopout(socket);
   initUIEvents(socket);

@@ -2,17 +2,22 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import LoginForm from '../src/components/LoginForm.jsx';
 import { attemptLogin } from '../../public/js/auth.js';
+import { SocketContext } from '../src/SocketProvider.jsx';
 
-vi.stubGlobal('socket', { emit: vi.fn() });
+const mockSocket = { emit: vi.fn() };
 vi.stubGlobal('attemptLogin', attemptLogin);
 
 beforeEach(() => {
-  socket.emit.mockClear();
+  mockSocket.emit.mockClear();
 });
 
 describe('LoginForm', () => {
   it('emits login event with entered credentials', () => {
-    render(<LoginForm onSwitch={() => {}} />);
+    render(
+      <SocketContext.Provider value={mockSocket}>
+        <LoginForm onSwitch={() => {}} />
+      </SocketContext.Provider>
+    );
     fireEvent.change(screen.getByPlaceholderText('Kullanıcı Adı'), {
       target: { value: 'alice' }
     });
@@ -20,6 +25,9 @@ describe('LoginForm', () => {
       target: { value: 'Secret1!' }
     });
     fireEvent.click(screen.getByText('Giriş Yap'));
-    expect(socket.emit).toHaveBeenCalledWith('login', { username: 'alice', password: 'Secret1!' });
+    expect(mockSocket.emit).toHaveBeenCalledWith('login', {
+      username: 'alice',
+      password: 'Secret1!'
+    });
   });
 });
