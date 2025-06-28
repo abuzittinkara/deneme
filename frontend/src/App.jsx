@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import LoginForm from './components/LoginForm.jsx';
 import RegisterForm from './components/RegisterForm.jsx';
+import CallScreen from './components/CallScreen.jsx';
 
 export default function App() {
   const [screen, setScreen] = useState('login');
@@ -16,6 +17,7 @@ export default function App() {
     <>
       <LoginForm onSwitch={() => setScreen('register')} />
       <RegisterForm onSwitch={() => setScreen('login')} />
+      <CallScreen />
     </>
   );
 }
