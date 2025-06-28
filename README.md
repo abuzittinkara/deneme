@@ -72,7 +72,7 @@ webpack.config.js   Bundles mediasoup-client into `public/libs`
     ```
    This compiles the Vite project under `frontend/` and copies the resulting
    `frontend/dist/app.js` bundle into the `public/` directory as
-   `public/app.js`.
+   `public/app.js` using a cross-platform `cp` command.
 5. Start the application:
 ```bash
 npm start
