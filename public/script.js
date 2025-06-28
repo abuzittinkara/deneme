@@ -429,6 +429,11 @@ window.applyAudioStates = (opts) => {
 };
 window.addEventListener('DOMContentLoaded', () => {
   toggleDMButton.querySelector('.material-icons').textContent = 'forum';
+
+  // Ensure screen references are captured now that React has rendered
+  if (window.initScreenRefs) {
+    window.initScreenRefs();
+  }
   
   // Hide voice channel sections until a voice channel is joined
   hideVoiceSections();
