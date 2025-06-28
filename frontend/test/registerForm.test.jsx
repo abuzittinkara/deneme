@@ -1,11 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import RegisterForm from '../src/components/RegisterForm.jsx';
-import { attemptRegister } from '../../public/js/auth.js';
+import { attemptRegister } from '../src/auth.js';
 import { SocketContext } from '../src/SocketProvider.jsx';
 
 const mockSocket = { emit: vi.fn() };
-vi.stubGlobal('attemptRegister', attemptRegister);
 
 beforeEach(() => {
   mockSocket.emit.mockClear();

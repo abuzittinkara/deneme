@@ -70,10 +70,6 @@ import { showProfilePopout, initProfilePopout } from "./js/profilePopout.js";
 import { initAttachments } from "./js/attachments.js";
 import { attemptLogin, attemptRegister } from "./js/auth.js";
 
-// Expose auth helpers early so they are available even before DOMContentLoaded
-window.attemptLogin = attemptLogin;
-window.attemptRegister = attemptRegister;
-
 let socket = null;
 let device = null;   // mediasoup-client Device
 

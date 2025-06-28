@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { SocketContext } from '../SocketProvider.jsx';
+import { attemptRegister } from '../auth.js';
 
 export default function RegisterForm({ onSwitch }) {
   const [username, setUsername] = useState('');
@@ -20,7 +21,7 @@ export default function RegisterForm({ onSwitch }) {
     setShakeUser(false);
     setShakePass(false);
     setShakePassConf(false);
-    const res = window.attemptRegister(socket, {
+    const res = attemptRegister(socket, {
       username,
       name,
       surname,
