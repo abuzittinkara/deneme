@@ -110,6 +110,12 @@ function registerFriendHandlers(io, socket, context) {
       if (!fromUsername) return callback({ success: false, message: 'Kullanıcı adı tanımlı değil.' });
       const { toUsername, content, attachments = [] } = data;
       if (!toUsername || (!content && attachments.length === 0)) return callback({ success: false, message: 'Eksik parametre.' });
+      if (!Array.isArray(attachments) || !attachments.every(a => a && typeof a === 'object'
+        && Object.prototype.hasOwnProperty.call(a, 'id')
+        && Object.prototype.hasOwnProperty.call(a, 'url')
+        && Object.prototype.hasOwnProperty.call(a, 'type'))) {
+        return callback({ success: false, message: 'Geçersiz ekler.' });
+      }
       const fromUserDoc = await User.findOne({ username: fromUsername });
       const toUserDoc = await User.findOne({ username: toUsername });
       if (!fromUserDoc || !toUserDoc) return callback({ success: false, message: 'Kullanıcılar bulunamadı.' });
