@@ -137,4 +137,6 @@ dist
 
 # Built client assets
 public/*.js
+!public/script.js
+!public/sw.js
 public/libs/
