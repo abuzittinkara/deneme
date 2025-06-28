@@ -64,7 +64,14 @@ webpack.config.js   Bundles mediasoup-client into `public/libs`
    This invokes Webpack and generates both `public/libs/mediasoup-client.min.js`
    and `public/bundle.js`. The application will not start correctly without
    these files present.
-4. Start the application:
+4. Build the React front-end:
+    ```bash
+    npm run build:react
+    ```
+   This compiles the Vite project under `frontend/` and copies the resulting
+   `frontend/dist/app.js` bundle into the `public/` directory as
+   `public/app.js`.
+5. Start the application:
 ```bash
 npm start
 ```

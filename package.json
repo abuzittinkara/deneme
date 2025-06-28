@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node server.js",
     "test": "node --env-file=.env --test",
-    "build": "webpack"
+    "build": "webpack",
+    "build:react": "vite build --config frontend/vite.config.js && cp frontend/dist/app.js public/app.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -27,7 +28,9 @@
     "uuid": "^11.0.3",
     "winston": "^3.17.0",
     "ws": "^8.18.0",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "keywords": [],
   "author": "",
@@ -35,6 +38,8 @@
   "description": "",
   "devDependencies": {
     "webpack": "^5.97.1",
-    "webpack-cli": "^6.0.1"
+    "webpack-cli": "^6.0.1",
+    "vite": "^5.0.10",
+    "@vitejs/plugin-react": "^4.0.0"
   }
 }
