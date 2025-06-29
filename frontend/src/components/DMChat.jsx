@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { SocketContext } from '../SocketProvider.jsx';
+import MessageItem from './MessageItem.jsx';
 
 export default function DMChat({ friend, dmActive }) {
   const socket = useContext(SocketContext);
@@ -67,21 +68,7 @@ export default function DMChat({ friend, dmActive }) {
     >
       <div id="dmMessages" className="text-messages" style={{ flex: 1 }}>
         {messages.map((msg) => (
-          <div key={msg.id || msg._id} className="text-message">
-            <div className="message-item" style={{ position: 'relative' }}>
-              <span className="sender-name">{msg.username || msg.user?.username}</span>
-              <div className="message-content">{msg.content}</div>
-              {Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
-                <div className="message-attachments">
-                  {msg.attachments.map((a) => (
-                    <a key={a.id} href={a.url} target="_blank" rel="noopener noreferrer">
-                      {a.name || a.url}
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+          <MessageItem key={msg.id || msg._id} msg={msg} />
         ))}
       </div>
       <div id="dmTextChatInputBar" className="text-chat-input-bar">
