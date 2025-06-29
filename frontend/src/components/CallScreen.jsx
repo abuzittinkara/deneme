@@ -106,6 +106,9 @@ export default function CallScreen() {
     } else if (typeof window.hideChannelStatusPanel === 'function') {
       window.hideChannelStatusPanel();
     }
+    if (typeof window.initUIEvents === 'function' && socket) {
+      window.initUIEvents(socket);
+    }
   }, []);
 
   const openCreateGroup = () => {
