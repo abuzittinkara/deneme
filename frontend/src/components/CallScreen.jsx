@@ -1,9 +1,17 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import UserCard from './UserCard.jsx';
+import DMChat from './DMChat.jsx';
 import useCallScreenInit from '../useCallScreenInit.js';
 
 export default function CallScreen() {
+  const [dmFriend, setDmFriend] = useState(null);
   useCallScreenInit();
+  useEffect(() => {
+    window.openDMChat = setDmFriend;
+    return () => {
+      if (window.openDMChat === setDmFriend) delete window.openDMChat;
+    };
+  }, []);
   return (
     <div id="callScreen" className="screen-container">
       {/* Soldaki Paneller */}
@@ -92,10 +100,8 @@ export default function CallScreen() {
             <span className="dm-filter-item" data-filter="add">Arkadaş ekle</span>
           </h2>
         </div>
-        {/* dmContentArea, selectedDMBar'dan hemen sonra, main-content'in geri kalanını dolduracak şekilde konumlandırılmıştır */}
-        <div id="dmContentArea" style={{ display: 'none', flex: 1, overflow: 'auto' }}>
-          {/* DM içerikleri buraya gelecek */}
-        </div>
+        {/* DMChat React component */}
+        <DMChat friend={dmFriend} />
         <div id="channelContentArea" className="channel-content-area">
           {/* Voice kanallar için */}
           <div id="channelUsersContainer" className="channel-users-container" style={{ display: 'none' }}></div>
