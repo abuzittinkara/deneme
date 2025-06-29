@@ -322,7 +322,6 @@ export function initUIEvents(socket) {
     const selectedChannelBar = document.getElementById('selectedChannelBar');
     const selectedDMBar = document.getElementById('selectedDMBar');
     const dmContentArea = document.getElementById('dmContentArea');
-    const dmPanel = document.getElementById('dmPanel');
     if (!window.isDMMode) {
       roomPanel.style.display = 'none';
       channelContentArea.style.display = 'none';
@@ -330,7 +329,6 @@ export function initUIEvents(socket) {
       selectedChannelBar.style.display = 'none';
       selectedDMBar.style.display = 'flex';
       dmContentArea.style.display = 'flex';
-      dmPanel.style.display = 'block';
       toggleDMButton.querySelector('.material-icons').textContent = 'group';
       window.isDMMode = true;
     } else {
@@ -340,7 +338,6 @@ export function initUIEvents(socket) {
       applyRightPanelState(stored);
       selectedDMBar.style.display = 'none';
       dmContentArea.style.display = 'none';
-      dmPanel.style.display = 'none';
       selectedChannelBar.style.display = 'flex';
       toggleDMButton.querySelector('.material-icons').textContent = 'forum';
       selectedChannelTitle.textContent = 'Kanal Seçilmedi';
