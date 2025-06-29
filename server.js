@@ -46,7 +46,9 @@ app.set('trust proxy', 1); // Proxy güvendiğimizi belirt
 
 // Allow JSON bodies up to 1MB so avatar uploads don't trigger 413 errors
 app.use(express.json({ limit: '1mb' }));
-app.use(cors({ origin: process.env.CORS_ORIGIN, credentials: true }));
+// Use provided CORS_ORIGIN or allow all origins when empty
+const corsOrigin = process.env.CORS_ORIGIN || true;
+app.use(cors({ origin: corsOrigin, credentials: true }));
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
