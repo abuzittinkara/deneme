@@ -1768,16 +1768,16 @@ export function initSocketEvents(socket) {
     const channelContentArea = document.querySelector('.channel-content-area');
     if (
       WebRTC.screenShareContainer &&
-      channelContentArea &&
-      channelContentArea.contains(WebRTC.screenShareContainer)
+      WebRTC.screenShareContainer.parentNode
     ) {
-      channelContentArea.removeChild(WebRTC.screenShareContainer);
+      WebRTC.screenShareContainer.parentNode.removeChild(
+        WebRTC.screenShareContainer,
+      );
     } else if (
       WebRTC.screenShareVideo &&
-      channelContentArea &&
-      channelContentArea.contains(WebRTC.screenShareVideo)
+      WebRTC.screenShareVideo.parentNode
     ) {
-      channelContentArea.removeChild(WebRTC.screenShareVideo);
+      WebRTC.screenShareVideo.parentNode.removeChild(WebRTC.screenShareVideo);
     }
     if (
       window.screenShareVideo &&
@@ -1787,6 +1787,12 @@ export function initSocketEvents(socket) {
     }
     window.screenShareVideo = null;
     window.screenShareContainer = null;
+    if (typeof WebRTC.setScreenShareVideo === 'function') {
+      WebRTC.setScreenShareVideo(null);
+    }
+    if (typeof WebRTC.setScreenShareContainer === 'function') {
+      WebRTC.setScreenShareContainer(null);
+    }
     const message =
       userId === socket.id
         ? 'Yayınınız sonlandırıldı'
