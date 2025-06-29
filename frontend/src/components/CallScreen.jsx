@@ -101,6 +101,11 @@ export default function CallScreen() {
     };
     setDomRefs(refs);
     Object.assign(window, refs);
+    if (typeof window.hideVoiceSections === 'function') {
+      window.hideVoiceSections();
+    } else if (typeof window.hideChannelStatusPanel === 'function') {
+      window.hideChannelStatusPanel();
+    }
   }, []);
 
   const openCreateGroup = () => {
