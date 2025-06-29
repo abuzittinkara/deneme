@@ -216,15 +216,6 @@ export function initUIEvents(socket) {
     });
   }
 
-  if (createGroupButton) {
-    createGroupButton.addEventListener('click', () => {
-      if (groupModal) {
-        groupModal.style.display = 'flex';
-        groupModal.classList.add('active');
-      }
-    });
-  }
-
   // create/join group handled by React
 
   if (closeGroupSettingsModal) {
