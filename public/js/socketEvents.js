@@ -1403,6 +1403,9 @@ export function initSocketEvents(socket) {
       if (channelUsersContainer) {
         channelUsersContainer.style.display = 'grid';
       }
+      if (typeof window.updateVoiceChannelUI === 'function') {
+        window.updateVoiceChannelUI(roomObj.name);
+      }
       document.querySelectorAll('.channel-item').forEach((ci) => ci.classList.remove('connected'));
       if (window.currentRoom === roomObj.id && window.currentGroup === window.selectedGroup) {
         roomItem.classList.add('connected');
@@ -1428,7 +1431,7 @@ export function initSocketEvents(socket) {
             roomObj.name,
             currentGroupName,
             selectedChannelTitle,
-            window.showChannelStatusPanel,
+            null,
             { value: window.currentRoomType },
           );
         });
