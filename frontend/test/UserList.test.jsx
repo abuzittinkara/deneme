@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, waitFor } from '@testing-library/react';
 import UserList from '../src/components/UserList.jsx';
 import { SocketContext } from '../src/SocketProvider.jsx';
-import { ProfilePopoutProvider } from '../../public/js/profilePopout.js';
+import { ProfilePopoutProvider } from '../src/ProfilePopoutProvider.jsx';
 
 let handlers;
 let mockSocket;
