@@ -724,8 +724,8 @@ export function initSocketEvents(socket) {
         socket.auth = socket.auth || {};
         socket.auth.token = data.token;
       }
-      socket.emit('set-username', data.username);
       if (window.setScreen) window.setScreen('call');
+      socket.emit('set-username', data.username);
       const userCardNameEl = document.getElementById('userCardName');
       if (userCardNameEl) {
         userCardNameEl.textContent = data.username;
