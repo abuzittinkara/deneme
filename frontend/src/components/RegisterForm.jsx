@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { SocketContext } from '../SocketProvider.jsx';
-import { attemptRegister } from '../auth.js';
+import { attemptRegister } from '../auth';
 import { ScreenContext } from '../App.jsx';
 
 export default function RegisterForm({ onSwitch }) {

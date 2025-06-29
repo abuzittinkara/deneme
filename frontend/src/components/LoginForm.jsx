@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { SocketContext } from '../SocketProvider.jsx';
-import { attemptLogin } from '../auth.js';
+import { attemptLogin } from '../auth';
 import { ScreenContext } from '../App.jsx';
 import { UserContext } from '../UserContext.jsx';
 
