@@ -1,11 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import UserCard from './UserCard.jsx';
 import DMChat from './DMChat.jsx';
+import GroupOptionsModal from './GroupOptionsModal.jsx';
 import useCallScreenInit from '../useCallScreenInit.js';
 
 export default function CallScreen() {
   const [dmFriend, setDmFriend] = useState(null);
+  const [groupOptionsOpen, setGroupOptionsOpen] = useState(false);
   useCallScreenInit();
+
+  const openCreateGroup = () => {
+    const el = document.getElementById('actualGroupCreateModal');
+    if (el) {
+      el.style.display = 'flex';
+      el.classList.add('active');
+    }
+    setGroupOptionsOpen(false);
+  };
+
+  const openJoinGroup = () => {
+    const el = document.getElementById('joinGroupModal');
+    if (el) {
+      el.style.display = 'flex';
+      el.classList.add('active');
+    }
+    setGroupOptionsOpen(false);
+  };
   useEffect(() => {
     window.openDMChat = setDmFriend;
     return () => {
@@ -14,6 +34,12 @@ export default function CallScreen() {
   }, []);
   return (
     <div id="callScreen" className="screen-container">
+      <GroupOptionsModal
+        open={groupOptionsOpen}
+        onCreateGroup={openCreateGroup}
+        onJoinGroup={openJoinGroup}
+        onClose={() => setGroupOptionsOpen(false)}
+      />
       {/* Soldaki Paneller */}
       <div id="leftPanels" className="left-panels">
         <div id="groupsAndRooms" className="groups-rooms">
@@ -23,7 +49,11 @@ export default function CallScreen() {
               <span className="material-icons">forum</span>
             </button>
             <div id="groupList" className="group-list"></div>
-            <button id="createGroupButton" className="circle-btn create-group-btn">
+            <button
+              id="createGroupButton"
+              className="circle-btn create-group-btn"
+              onClick={() => setGroupOptionsOpen(true)}
+            >
               <span className="material-icons">add</span>
             </button>
           </div>
