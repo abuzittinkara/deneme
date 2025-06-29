@@ -2,6 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { SocketContext } from '../SocketProvider.jsx';
 import { attemptLogin } from '../auth.js';
 import { ScreenContext } from '../App.jsx';
+import { UserContext } from '../UserContext.jsx';
 
 export default function LoginForm({ onSwitch }) {
   const [username, setUsername] = useState('');
@@ -11,12 +12,14 @@ export default function LoginForm({ onSwitch }) {
   const [shakePass, setShakePass] = useState(false);
   const socket = useContext(SocketContext);
   const { setScreen } = useContext(ScreenContext);
+  const { setUsername: setLoggedInUsername } = useContext(UserContext);
 
   useEffect(() => {
     if (!socket) return;
     const handleLoginResult = (data) => {
       if (data.success) {
         window.username = data.username;
+        if (setLoggedInUsername) setLoggedInUsername(data.username);
         try {
           localStorage.setItem('username', data.username);
           if (data.token) localStorage.setItem('token', data.token);
@@ -35,7 +38,7 @@ export default function LoginForm({ onSwitch }) {
     };
     socket.on('loginResult', handleLoginResult);
     return () => socket.off('loginResult', handleLoginResult);
-  }, [socket, setScreen]);
+  }, [socket, setScreen, setLoggedInUsername]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
