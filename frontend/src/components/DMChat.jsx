@@ -31,6 +31,7 @@ export default function DMChat({ friend }) {
     socket.on('newDMMessage', handleNew);
     socket.on('dmMessageDeleted', handleDeleted);
     return () => {
+      socket.emit('leaveDM', { friend });
       socket.off('newDMMessage', handleNew);
       socket.off('dmMessageDeleted', handleDeleted);
     };

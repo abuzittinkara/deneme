@@ -25,6 +25,21 @@ module.exports = function registerDMChatEvents(socket, { io, User, DMMessage, us
     }
   });
 
+  socket.on('leaveDM', async ({ friend }, callback = () => {}) => {
+    const username = users[socket.id]?.username;
+    try {
+      if (!username || !friend) {
+        logger.warn('leaveDM failed: %s -> %s', username, friend);
+        return callback({ success: false });
+      }
+      socket.leave(getRoomName(username, friend));
+      callback({ success: true });
+    } catch (err) {
+      logger.error('leaveDM error: %o', err);
+      callback({ success: false });
+    }
+  });
+
   socket.on('getDMMessages', async ({ friend }, callback) => {
     const username = users[socket.id]?.username;
     try {
