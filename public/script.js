@@ -60,7 +60,6 @@ import * as ScreenShare from './js/screenShare.js';
 import { initTypingIndicator } from './js/typingIndicator.js';
 import { initFriendRequests } from './js/friendRequests.js';
 import * as Ping from './js/ping.js';
-import * as UserList from './js/userList.js';
 import { initUIEvents } from "./js/uiEvents.js";
 import { initSocketEvents } from "./js/socketEvents.js";
 import * as WebRTC from "./js/webrtc.js";
