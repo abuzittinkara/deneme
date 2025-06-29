@@ -165,6 +165,7 @@ export default function TextChannel() {
       style={{
         display:
           channelId && window.currentRoomType !== 'voice' ? 'flex' : 'none',
+        flex: 1,
         flexDirection: 'column',
       }}
     >
