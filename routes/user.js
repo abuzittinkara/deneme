@@ -92,6 +92,23 @@ module.exports = function createUserRouter(io) {
     }
   });
 
+  // GET /profile
+  router.get('/profile', async (req, res) => {
+    const username = req.query.username;
+    if (!username) return res.status(400).json({ error: 'missing username' });
+    try {
+      const user = await User.findOne({ username });
+      if (!user) return res.status(404).json({ error: 'not found' });
+      res.json({
+        displayName: user.name || '',
+        avatar: user.avatar || null,
+        badges: Array.isArray(user.badges) ? user.badges : []
+      });
+    } catch (err) {
+      res.status(500).json({ error: 'server error' });
+    }
+  });
+
   return router;
 };
 
