@@ -1,34 +1,42 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import UserCard from './UserCard.jsx';
 import DMChat from './DMChat.jsx';
 import TextChannel from './TextChannel.jsx';
 import DMPanel from './DMPanel.jsx';
 import GroupOptionsModal from './GroupOptionsModal.jsx';
+import CreateGroupModal from './CreateGroupModal.jsx';
+import JoinGroupModal from './JoinGroupModal.jsx';
 import UserList from './UserList.jsx';
 import useCallScreenInit from '../useCallScreenInit.js';
+import { SocketContext } from '../SocketProvider.jsx';
 
 export default function CallScreen() {
+  const socket = useContext(SocketContext);
   const [dmFriend, setDmFriend] = useState(null);
   const [groupOptionsOpen, setGroupOptionsOpen] = useState(false);
   const [dmPanelOpen, setDmPanelOpen] = useState(false);
+  const [createGroupOpen, setCreateGroupOpen] = useState(false);
+  const [joinGroupOpen, setJoinGroupOpen] = useState(false);
   useCallScreenInit();
 
   const openCreateGroup = () => {
-    const el = document.getElementById('actualGroupCreateModal');
-    if (el) {
-      el.style.display = 'flex';
-      el.classList.add('active');
-    }
+    setCreateGroupOpen(true);
     setGroupOptionsOpen(false);
   };
 
   const openJoinGroup = () => {
-    const el = document.getElementById('joinGroupModal');
-    if (el) {
-      el.style.display = 'flex';
-      el.classList.add('active');
-    }
+    setJoinGroupOpen(true);
     setGroupOptionsOpen(false);
+  };
+
+  const handleCreateGroup = (name, channel) => {
+    if (socket) socket.emit('createGroup', { groupName: name, channelName: channel });
+    setCreateGroupOpen(false);
+  };
+
+  const handleJoinGroup = (gid) => {
+    if (socket) socket.emit('joinGroup', gid);
+    setJoinGroupOpen(false);
   };
   useEffect(() => {
     window.openDMChat = setDmFriend;
@@ -43,6 +51,16 @@ export default function CallScreen() {
         onCreateGroup={openCreateGroup}
         onJoinGroup={openJoinGroup}
         onClose={() => setGroupOptionsOpen(false)}
+      />
+      <CreateGroupModal
+        open={createGroupOpen}
+        onSubmit={handleCreateGroup}
+        onClose={() => setCreateGroupOpen(false)}
+      />
+      <JoinGroupModal
+        open={joinGroupOpen}
+        onSubmit={handleJoinGroup}
+        onClose={() => setJoinGroupOpen(false)}
       />
       {dmPanelOpen && <DMPanel />}
       {/* Soldaki Paneller */}
