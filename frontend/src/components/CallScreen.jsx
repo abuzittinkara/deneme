@@ -1,26 +1,30 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
+import { UserContext } from '../UserContext.jsx';
 
 export default function CallScreen() {
+  const { username: ctxUsername } = useContext(UserContext);
+  const [username, setUsername] = useState(window.username || '');
+
   useEffect(() => {
     if (window.initCallScreen) {
       window.initCallScreen();
     }
   }, []);
   useEffect(() => {
-    if (window.username) {
-      const nameEl = document.getElementById('userCardName');
-      if (nameEl) nameEl.textContent = window.username;
-      if (window.loadAvatar) {
-        window.loadAvatar(window.username).then((av) => {
-          const avatarEl = document.getElementById('userCardAvatar');
-          if (avatarEl) {
-            avatarEl.style.backgroundImage = `url(${av})`;
-            avatarEl.dataset.username = window.username;
-          }
-        });
-      }
+    if (ctxUsername) setUsername(ctxUsername);
+  }, [ctxUsername]);
+
+  useEffect(() => {
+    if (username && window.loadAvatar) {
+      window.loadAvatar(username).then((av) => {
+        const avatarEl = document.getElementById('userCardAvatar');
+        if (avatarEl) {
+          avatarEl.style.backgroundImage = `url(${av})`;
+          avatarEl.dataset.username = username;
+        }
+      });
     }
-  }, []);
+  }, [username]);
   return (
     <div id="callScreen" className="screen-container">
       {/* Soldaki Paneller */}
@@ -89,7 +93,7 @@ export default function CallScreen() {
           <div className="user-card">
             <div className="user-avatar" id="userCardAvatar"></div>
             <div className="user-info">
-              <span id="userCardName" className="user-name">(Kullanıcı)</span>
+              <span id="userCardName" className="user-name">{username || '(Kullanıcı)'}</span>
               <span id="userCardStatus" className="user-status">Çevrimdışı</span>
             </div>
             <button id="micToggleButton" className="icon-btn" title="Mikrofon Aç/Kapa"></button>
