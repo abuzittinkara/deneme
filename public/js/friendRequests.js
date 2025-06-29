@@ -179,10 +179,10 @@ export function initFriendRequests(socket) {
                     h2.textContent = friend.username;
                     selectedDMBar.appendChild(h2);
                   }
-                  // Artık aktif DM sohbeti için yeni dmChat modülünü çağırıyoruz:
-                  import('./dmChat.js').then(module => {
-                    module.initDMChat(socket, friend.username);
-                  }).catch(err => console.error(err));
+                  // React tabanlı DM sohbetini aç
+                  if (window.openDMChat) {
+                    window.openDMChat(friend.username);
+                  }
                 });
                 dmContentArea.appendChild(friendItem);
               });
@@ -218,9 +218,9 @@ export function initFriendRequests(socket) {
                       h2.textContent = friend.username;
                       selectedDMBar.appendChild(h2);
                     }
-                    import('./dmChat.js').then(module => {
-                      module.initDMChat(socket, friend.username);
-                    }).catch(err => console.error(err));
+                    if (window.openDMChat) {
+                      window.openDMChat(friend.username);
+                    }
                   });
                   dmContentArea.appendChild(friendItem);
                 });
@@ -253,9 +253,9 @@ export function initFriendRequests(socket) {
                     h2.textContent = friend.username;
                     selectedDMBar.appendChild(h2);
                   }
-                  import('./dmChat.js').then(module => {
-                    module.initDMChat(socket, friend.username);
-                  }).catch(err => console.error(err));
+                  if (window.openDMChat) {
+                    window.openDMChat(friend.username);
+                  }
                 });
                 dmContentArea.appendChild(friendItem);
               });
@@ -358,10 +358,10 @@ export function initFriendRequests(socket) {
                 h2.textContent = friend.username;
                 selectedDMBar.appendChild(h2);
               }
-              // Artık aktif DM sohbet arayüzü için dmChat modülünü çağırıyoruz.
-              import('./dmChat.js').then(module => {
-                module.initDMChat(socket, friend.username);
-              }).catch(err => console.error(err));
+              // React tabanlı DM sohbetini aç
+              if (window.openDMChat) {
+                window.openDMChat(friend.username);
+              }
             });
             dmPanel.appendChild(friendItem);
           });
