@@ -7,7 +7,6 @@ import GroupOptionsModal from './GroupOptionsModal.jsx';
 import CreateGroupModal from './CreateGroupModal.jsx';
 import JoinGroupModal from './JoinGroupModal.jsx';
 import UserList from './UserList.jsx';
-import useCallScreenInit from '../useCallScreenInit.js';
 import { SocketContext } from '../SocketProvider.jsx';
 
 export default function CallScreen() {
@@ -17,7 +16,82 @@ export default function CallScreen() {
   const [dmMode, setDmMode] = useState(false);
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
   const [joinGroupOpen, setJoinGroupOpen] = useState(false);
-  useCallScreenInit();
+  const [domRefs, setDomRefs] = useState({});
+
+  useEffect(() => {
+    const refs = {
+      groupListDiv: document.getElementById('groupList'),
+      createGroupButton: document.getElementById('createGroupButton'),
+      roomListDiv: document.getElementById('roomList'),
+      groupTitle: document.getElementById('groupTitle'),
+      groupDropdownIcon: document.getElementById('groupDropdownIcon'),
+      groupDropdownMenu: document.getElementById('groupDropdownMenu'),
+      copyGroupIdBtn: document.getElementById('copyGroupIdBtn'),
+      renameGroupBtn: document.getElementById('renameGroupBtn'),
+      createChannelBtn: document.getElementById('createChannelBtn'),
+      deleteGroupBtn: document.getElementById('deleteGroupBtn'),
+      groupSettingsBtn: document.getElementById('groupSettingsBtn'),
+      leaveGroupBtn: document.getElementById('leaveGroupBtn'),
+      toggleDMButton: document.getElementById('toggleDMButton'),
+      roomPanel: document.getElementById('roomPanel'),
+      rightPanel: document.getElementById('rightPanel'),
+      userListDiv: document.getElementById('userList'),
+      toggleUserListButton: document.getElementById('toggleUserListButton'),
+      channelStatusPanel: document.getElementById('channelStatusPanel'),
+      connectionStatusText: document.getElementById('connectionStatusText'),
+      pingValueSpan: document.getElementById('pingValue'),
+      cellBar1: document.getElementById('cellBar1'),
+      cellBar2: document.getElementById('cellBar2'),
+      cellBar3: document.getElementById('cellBar3'),
+      cellBar4: document.getElementById('cellBar4'),
+      leaveButton: document.getElementById('leaveButton'),
+      screenShareButton: document.getElementById('screenShareButton'),
+      cameraShareButton: document.getElementById('cameraShareButton'),
+      screenShareLargeButton: document.getElementById('screenShareLargeButton'),
+      soundbarButton: document.getElementById('soundbarButton'),
+      micToggleButton: document.getElementById('micToggleButton'),
+      deafenToggleButton: document.getElementById('deafenToggleButton'),
+      settingsButton: document.getElementById('settingsButton'),
+      textChannelContainer: document.getElementById('textChannelContainer'),
+      textMessages: document.getElementById('textMessages'),
+      textChatInputBar: document.getElementById('textChatInputBar'),
+      textChannelMessageInput: document.getElementById('textChannelMessageInput'),
+      micMessageBtn: document.getElementById('micMessageBtn'),
+      sendTextMessageBtn: document.getElementById('sendTextMessageBtn'),
+      selectedChannelTitle: document.getElementById('selectedChannelTitle'),
+      channelContentArea: document.getElementById('channelContentArea'),
+      dmContentArea: document.getElementById('dmContentArea'),
+      dmPanel: document.getElementById('dmPanel'),
+      groupModal: document.getElementById('groupModal'),
+      modalGroupCreateBtn: document.getElementById('modalGroupCreateBtn'),
+      modalGroupJoinBtn: document.getElementById('modalGroupJoinBtn'),
+      actualGroupCreateModal: document.getElementById('actualGroupCreateModal'),
+      actualGroupName: document.getElementById('actualGroupName'),
+      actualGroupNameBtn: document.getElementById('actualGroupNameBtn'),
+      closeCreateGroupModal: document.getElementById('closeCreateGroupModal'),
+      joinGroupModal: document.getElementById('joinGroupModal'),
+      joinGroupIdInput: document.getElementById('joinGroupIdInput'),
+      joinGroupIdBtn: document.getElementById('joinGroupIdBtn'),
+      closeJoinGroupModal: document.getElementById('closeJoinGroupModal'),
+      groupSettingsModal: document.getElementById('groupSettingsModal'),
+      closeGroupSettingsModal: document.getElementById('closeGroupSettingsModal'),
+      userSettingsPage: document.getElementById('userSettingsPage'),
+      closeUserSettingsPageBtn: document.getElementById('closeUserSettingsPageBtn'),
+      roomModal: document.getElementById('roomModal'),
+      modalRoomName: document.getElementById('modalRoomName'),
+      textChannel: document.getElementById('textChannel'),
+      voiceChannel: document.getElementById('voiceChannel'),
+      modalCreateRoomBtn: document.getElementById('modalCreateRoomBtn'),
+      modalCloseRoomBtn: document.getElementById('modalCloseRoomBtn'),
+      createCategoryBtn: document.getElementById('createCategoryBtn'),
+      categoryModal: document.getElementById('categoryModal'),
+      modalCategoryName: document.getElementById('modalCategoryName'),
+      modalCreateCategoryBtn: document.getElementById('modalCreateCategoryBtn'),
+      modalCloseCategoryBtn: document.getElementById('modalCloseCategoryBtn'),
+    };
+    setDomRefs(refs);
+    Object.assign(window, refs);
+  }, []);
 
   const openCreateGroup = () => {
     setCreateGroupOpen(true);
