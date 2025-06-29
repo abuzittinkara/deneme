@@ -43,6 +43,10 @@
     "vite": "^7.0.0",
     "vitest": "^3.2.4",
     "webpack": "^5.97.1",
-    "webpack-cli": "^6.0.1"
+    "webpack-cli": "^6.0.1",
+    "babel-loader": "^9.1.3",
+    "@babel/core": "^7.24.5",
+    "@babel/preset-env": "^7.24.5",
+    "@babel/preset-react": "^7.24.5"
   }
 }
