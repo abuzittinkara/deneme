@@ -55,9 +55,7 @@ function clearScreenShareUI() {
 }
 window.clearScreenShareUI = clearScreenShareUI;
 
-import * as TextChannel from './js/textChannel.js';
 import * as ScreenShare from './js/screenShare.js';
-import { initTypingIndicator } from './js/typingIndicator.js';
 import { initFriendRequests } from './js/friendRequests.js';
 import * as Ping from './js/ping.js';
 import { initUIEvents } from "./js/uiEvents.js";
@@ -517,11 +515,6 @@ export function initCallScreen() {
   initSocketEvents(socket);
   initProfilePopout(socket);
   initUIEvents(socket);
-  initTypingIndicator(
-    socket,
-    () => window.currentTextChannel,
-    () => (window.getUsername ? window.getUsername() : window.username)
-  );
   initFriendRequests(socket);
   initUserSettings();
   initAttachments();
@@ -567,7 +560,6 @@ export function initCallScreen() {
     });
   }
   
-  TextChannel.initTextChannelEvents(socket, textMessages);
 
   document.addEventListener('click', function(e) {
     if(e.target && e.target.classList.contains('dm-filter-item')) {
