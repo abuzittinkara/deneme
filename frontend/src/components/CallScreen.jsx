@@ -109,6 +109,9 @@ export default function CallScreen() {
     if (typeof window.initUIEvents === 'function' && socket) {
       window.initUIEvents(socket);
     }
+    if (typeof window.initSocketEvents === 'function' && socket) {
+      window.initSocketEvents(socket);
+    }
   }, []);
 
   const openCreateGroup = () => {
