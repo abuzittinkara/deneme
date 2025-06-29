@@ -1,42 +1,39 @@
-import React from 'react';
-import { createRoot } from 'react-dom/client';
+import React, { createContext, useContext, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import ProfilePopout from '../../frontend/src/components/ProfilePopout.jsx';
-import { SocketContext } from '../../frontend/src/SocketProvider.jsx';
 
-export let currentPopout = null;
-let root = null;
-let socketRef = null;
+export const ProfilePopoutContext = createContext({
+  openPopout: () => {},
+  closePopout: () => {}
+});
 
-export function initProfilePopout(socket) {
-  socketRef = socket;
+export function ProfilePopoutProvider({ children }) {
+  const [info, setInfo] = useState(null);
+
+  const openPopout = useCallback((username, event) => {
+    const x = event?.clientX || 0;
+    const y = event?.clientY || 0;
+    setInfo({ username, x, y });
+  }, []);
+
+  const closePopout = useCallback(() => setInfo(null), []);
+
+  return (
+    <ProfilePopoutContext.Provider value={{ openPopout, closePopout }}>
+      {children}
+      {info && createPortal(
+        <ProfilePopout
+          username={info.username}
+          anchorX={info.x}
+          anchorY={info.y}
+          onClose={closePopout}
+        />,
+        document.body
+      )}
+    </ProfilePopoutContext.Provider>
+  );
 }
 
-export function showProfilePopout(username, event) {
-  if (root) {
-    root.unmount();
-    if (currentPopout && currentPopout.parentNode) currentPopout.remove();
-    currentPopout = null;
-    root = null;
-  }
-  currentPopout = document.createElement('div');
-  document.body.appendChild(currentPopout);
-  const close = () => {
-    if (root) {
-      root.unmount();
-      if (currentPopout && currentPopout.parentNode) currentPopout.remove();
-      root = null;
-      currentPopout = null;
-    }
-  };
-  root = createRoot(currentPopout);
-  root.render(
-    React.createElement(SocketContext.Provider, { value: socketRef },
-      React.createElement(ProfilePopout, {
-        username,
-        anchorX: event.clientX,
-        anchorY: event.clientY,
-        onClose: close
-      })
-    )
-  );
+export function useProfilePopout() {
+  return useContext(ProfilePopoutContext);
 }

@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, waitFor } from '@testing-library/react';
 import UserList from '../src/components/UserList.jsx';
 import { SocketContext } from '../src/SocketProvider.jsx';
+import { ProfilePopoutProvider } from '../../public/js/profilePopout.js';
 
 let handlers;
 let mockSocket;
@@ -19,7 +20,9 @@ describe('UserList', () => {
   it('updates list when events received', async () => {
     const { container } = render(
       <SocketContext.Provider value={mockSocket}>
-        <UserList />
+        <ProfilePopoutProvider>
+          <UserList />
+        </ProfilePopoutProvider>
       </SocketContext.Provider>
     );
     handlers['groupUsers']({ online: [{ username: 'alice' }], offline: [] });

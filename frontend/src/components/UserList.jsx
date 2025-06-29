@@ -1,9 +1,10 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { SocketContext } from '../SocketProvider.jsx';
-import { showProfilePopout } from '../../../public/js/profilePopout.js';
+import { useProfilePopout } from '../../../public/js/profilePopout.js';
 
 function UserItem({ username }) {
   const socket = useContext(SocketContext);
+  const { openPopout } = useProfilePopout();
   const [avatar, setAvatar] = useState('/images/default-avatar.png');
 
   useEffect(() => {
@@ -23,9 +24,9 @@ function UserItem({ username }) {
     };
   }, [username, socket]);
 
-  const openPopout = (e) => {
+  const handleOpen = (e) => {
     e.stopPropagation();
-    showProfilePopout(username, e);
+    openPopout(username, e);
   };
 
   return (
@@ -35,9 +36,9 @@ function UserItem({ username }) {
         data-username={username}
         src={avatar}
         alt=""
-        onClick={openPopout}
+        onClick={handleOpen}
       />
-      <span className="user-name" onClick={openPopout}>{username}</span>
+      <span className="user-name" onClick={handleOpen}>{username}</span>
     </div>
   );
 }
