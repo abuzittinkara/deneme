@@ -3,6 +3,7 @@ import UserCard from './UserCard.jsx';
 import DMChat from './DMChat.jsx';
 import DMPanel from './DMPanel.jsx';
 import GroupOptionsModal from './GroupOptionsModal.jsx';
+import UserList from './UserList.jsx';
 import useCallScreenInit from '../useCallScreenInit.js';
 
 export default function CallScreen() {
@@ -195,7 +196,7 @@ export default function CallScreen() {
       </div>
       {/* Sağ Panel (Kullanıcılar) */}
       <div className="right-panel" id="rightPanel">
-        <div id="userList" className="user-list"></div>
+        <UserList />
       </div>
     </div>
   );
