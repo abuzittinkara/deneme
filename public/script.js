@@ -1092,3 +1092,4 @@ window.removeScreenShareEndedMessage = removeScreenShareEndedMessage;
 
 window.openUserSettings = openUserSettings;
 window.closeUserSettings = closeUserSettings;
+window.initCallScreen = initCallScreen;
