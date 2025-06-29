@@ -23,10 +23,25 @@ async function setup() {
   window.showChannelStatusPanel = () => {};
   window.textMessages = document.createElement('div');
   const mod = await import('../public/js/socketEvents.js');
-  const textMod = await import('../public/js/textChannel.js');
   const socket = new EventEmitter();
   mod.initSocketEvents(socket);
-  textMod.initTextChannelEvents(socket, window.textMessages);
+  socket.on('textHistory', () => {
+    const atBottom =
+      window.textMessages.scrollTop + window.textMessages.clientHeight >=
+      window.textMessages.scrollHeight - 5;
+    if (
+      atBottom &&
+      window.selectedGroup &&
+      window.currentTextChannel &&
+      window.channelUnreadCounts[window.selectedGroup] &&
+      window.channelUnreadCounts[window.selectedGroup][window.currentTextChannel] > 0
+    ) {
+      socket.emit('markChannelRead', {
+        groupId: window.selectedGroup,
+        channelId: window.currentTextChannel,
+      });
+    }
+  });
   return { socket };
 }
 

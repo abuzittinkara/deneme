@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import UserCard from './UserCard.jsx';
 import DMChat from './DMChat.jsx';
+import TextChannel from './TextChannel.jsx';
 import DMPanel from './DMPanel.jsx';
 import GroupOptionsModal from './GroupOptionsModal.jsx';
 import UserList from './UserList.jsx';
@@ -143,55 +144,8 @@ export default function CallScreen() {
         <div id="channelContentArea" className="channel-content-area">
           {/* Voice kanallar için */}
           <div id="channelUsersContainer" className="channel-users-container" style={{ display: 'none' }}></div>
-          {/* Text kanallar için: mesajların listeleneceği alan + mesaj yazma kutusu */}
-          <div id="textChannelContainer" className="text-channel-container" style={{ display: 'none' }}>
-            <div id="textMessages" className="text-messages">
-              {/* Örnek mesaj öğeleri (HTML üretiminiz dinamik olsa bile örnek olarak eklenmiştir) */}
-              <div className="text-message first-message" data-timestamp="2025-02-24T14:47:08.391Z" data-sender="abuzorttin">
-                <div className="message-item" style={{ position: 'relative' }}>
-                  <span className="hover-time">14:47</span>
-                  <div className="message-content first-message">Merhaba, bu ilk mesaj.</div>
-                </div>
-              </div>
-              <div className="text-message middle-message" data-timestamp="2025-02-24T14:47:12.000Z" data-sender="abuzorttin">
-                <div className="message-item" style={{ position: 'relative' }}>
-                  <span className="hover-time">14:47</span>
-                  <div className="message-content middle-message">Devam eden mesaj.</div>
-                </div>
-              </div>
-              <div className="text-message last-message" data-timestamp="2025-02-24T14:47:16.000Z" data-sender="abuzorttin">
-                <div className="message-item" style={{ position: 'relative' }}>
-                  <span className="hover-time">14:47</span>
-                  <div className="message-content last-message">Son mesaj.</div>
-                </div>
-              </div>
-            </div>
-            <div id="textChatInputBar" className="text-chat-input-bar">
-              <div className="chat-input-wrapper">
-                <button id="attachBtn" className="icon-btn" type="button">
-                  <span className="material-icons">add</span>
-                </button>
-                <input id="attachFileInput" type="file" multiple hidden />
-                <input id="attachMediaInput" type="file" accept="image/*,video/*" multiple hidden />
-                <input id="attachAudioInput" type="file" accept="audio/*" multiple hidden />
-                <input id="attachGifInput" type="file" accept="image/gif" multiple hidden />
-                <div id="textChannelMessageInput" className="chat-input" contentEditable="true" data-placeholder="Bir mesaj yazın..."></div>
-                <span id="micMessageBtn" className="material-icons mic-icon">mic</span>
-                <span id="sendTextMessageBtn" className="material-icons send-icon">send</span>
-              </div>
-              <div id="attachmentPreview" className="attachment-preview" style={{ display: 'none' }}></div>
-            </div>
-            <div id="previewWrapper" className="preview-wrapper" style={{ display: 'none' }}>
-              <div className="preview-toolbar">
-                <span className="toolbar-icon close-icon material-icons">close</span>
-                <span className="toolbar-icon edit-icon material-icons">edit</span>
-                <span className="toolbar-icon download-icon material-icons">download</span>
-              </div>
-              <div className="main-media"></div>
-              <div className="thumbnail-tray"></div>
-              <input type="text" className="caption-input" placeholder="Add a caption..." />
-            </div>
-          </div>
+          {/* Text kanalı React bileşeni */}
+          <TextChannel />
         </div>
       </div>
       {/* Sağ Panel (Kullanıcılar) */}
