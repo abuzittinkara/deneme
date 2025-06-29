@@ -316,40 +316,7 @@ export function initUIEvents(socket) {
     });
   }
 
-  toggleDMButton.addEventListener('click', () => {
-    window.removeScreenShareEndedMessage();
-    const channelContentArea = document.getElementById('channelContentArea');
-    const selectedChannelBar = document.getElementById('selectedChannelBar');
-    const selectedDMBar = document.getElementById('selectedDMBar');
-    const dmContentArea = document.getElementById('dmContentArea');
-    if (!window.isDMMode) {
-      roomPanel.style.display = 'none';
-      channelContentArea.style.display = 'none';
-      applyRightPanelState(false);
-      selectedChannelBar.style.display = 'none';
-      selectedDMBar.style.display = 'flex';
-      dmContentArea.style.display = 'flex';
-      toggleDMButton.querySelector('.material-icons').textContent = 'group';
-      window.isDMMode = true;
-    } else {
-      roomPanel.style.display = 'flex';
-      channelContentArea.style.display = 'flex';
-      const stored = (() => { try { return localStorage.getItem(RIGHT_PANEL_KEY) !== '0'; } catch (e) { return true; } })();
-      applyRightPanelState(stored);
-      selectedDMBar.style.display = 'none';
-      dmContentArea.style.display = 'none';
-      selectedChannelBar.style.display = 'flex';
-      toggleDMButton.querySelector('.material-icons').textContent = 'forum';
-      selectedChannelTitle.textContent = 'Kanal Seçilmedi';
-      window.isDMMode = false;
-      const messages = document.getElementById('textMessages');
-      const chatInput = document.getElementById('textChannelMessageInput');
-      const chatBar = document.getElementById('textChatInputBar');
-      if (messages) messages.style.width = '';
-      if (chatInput) chatInput.style.width = '';
-      if (chatBar) chatBar.style.width = '';
-    }
-  });
+  // DM panel toggle is now controlled by React
 
   if (toggleUserListButton) {
     toggleUserListButton.addEventListener('click', () => {

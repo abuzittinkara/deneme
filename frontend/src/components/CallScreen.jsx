@@ -8,6 +8,7 @@ import useCallScreenInit from '../useCallScreenInit.js';
 export default function CallScreen() {
   const [dmFriend, setDmFriend] = useState(null);
   const [groupOptionsOpen, setGroupOptionsOpen] = useState(false);
+  const [dmPanelOpen, setDmPanelOpen] = useState(false);
   useCallScreenInit();
 
   const openCreateGroup = () => {
@@ -41,13 +42,17 @@ export default function CallScreen() {
         onJoinGroup={openJoinGroup}
         onClose={() => setGroupOptionsOpen(false)}
       />
-      <DMPanel />
+      {dmPanelOpen && <DMPanel />}
       {/* Soldaki Paneller */}
       <div id="leftPanels" className="left-panels">
         <div id="groupsAndRooms" className="groups-rooms">
           {/* Sidebar (Gruplar) */}
           <div className="sidebar" id="sidebar">
-            <button id="toggleDMButton" className="circle-btn dm-toggle-btn">
+            <button
+              id="toggleDMButton"
+              className="circle-btn dm-toggle-btn"
+              onClick={() => setDmPanelOpen((o) => !o)}
+            >
               <span className="material-icons">forum</span>
             </button>
             <div id="groupList" className="group-list"></div>
