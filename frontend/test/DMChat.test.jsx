@@ -47,4 +47,14 @@ describe('DMChat', () => {
       expect.any(Function)
     );
   });
+
+  it('emits leaveDM on cleanup', () => {
+    const { unmount } = render(
+      <SocketContext.Provider value={mockSocket}>
+        <DMChat friend="carol" />
+      </SocketContext.Provider>
+    );
+    unmount();
+    expect(mockSocket.emit).toHaveBeenCalledWith('leaveDM', { friend: 'carol' });
+  });
 });
