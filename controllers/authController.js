@@ -96,7 +96,7 @@ function registerAuthHandlers(io, socket, context) {
   socket.on('register', async (userData) => {
     const { username, name, surname, birthdate, email, phone, password, passwordConfirm } = userData;
     try {
-      logger.info('Register payload:', userData);
+      logger.info('Register payload:', { username, email });
       const key = `${socket.handshake.address || socket.request.ip}-${username || ''}`;
       if (await checkRateLimit(registerLimiter, key)) {
         socket.emit('registerResult', { success: false, message: 'Çok fazla kayıt denemesi, lütfen daha sonra tekrar deneyin.' });
