@@ -27,8 +27,8 @@ export default function LoginForm({ onSwitch }) {
           socket.auth = socket.auth || {};
           socket.auth.token = data.token;
         }
-        socket.emit('set-username', data.username);
         if (setScreen) setScreen('call');
+        socket.emit('set-username', data.username);
       } else {
         setError('Lütfen girdiğiniz bilgileri kontrol edip tekrar deneyin');
         setShakeUser(true);
