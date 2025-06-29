@@ -10,7 +10,7 @@
   left: 65px;
   top: 0;
   height: 100%;
-  z-index: 5;
+  z-index: 15; /* above room panel */
 }
 .dm-close-btn {
   display: inline-flex;

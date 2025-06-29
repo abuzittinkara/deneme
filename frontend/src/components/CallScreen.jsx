@@ -14,7 +14,7 @@ export default function CallScreen() {
   const socket = useContext(SocketContext);
   const [dmFriend, setDmFriend] = useState(null);
   const [groupOptionsOpen, setGroupOptionsOpen] = useState(false);
-  const [dmPanelOpen, setDmPanelOpen] = useState(false);
+  const [dmMode, setDmMode] = useState(false);
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
   const [joinGroupOpen, setJoinGroupOpen] = useState(false);
   useCallScreenInit();
@@ -62,7 +62,7 @@ export default function CallScreen() {
         onSubmit={handleJoinGroup}
         onClose={() => setJoinGroupOpen(false)}
       />
-      {dmPanelOpen && <DMPanel />}
+      {dmMode && <DMPanel />}
       {/* Soldaki Paneller */}
       <div id="leftPanels" className="left-panels">
         <div id="groupsAndRooms" className="groups-rooms">
@@ -71,7 +71,7 @@ export default function CallScreen() {
             <button
               id="toggleDMButton"
               className="circle-btn dm-toggle-btn"
-              onClick={() => setDmPanelOpen((o) => !o)}
+              onClick={() => setDmMode((o) => !o)}
             >
               <span className="material-icons">forum</span>
             </button>
@@ -140,12 +140,20 @@ export default function CallScreen() {
       {/* Ortadaki Ana İçerik */}
       <div className="main-content" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
         {/* Seçili Kanal Barı (kanal moduna özel) */}
-        <div id="selectedChannelBar" className="selected-channel-bar">
+        <div
+          id="selectedChannelBar"
+          className="selected-channel-bar"
+          style={{ display: dmMode ? 'none' : 'flex' }}
+        >
           <h2 id="selectedChannelTitle" className="selected-channel-title">Kanal Seçilmedi</h2>
           <span id="toggleUserListButton" className="material-icons userlist-toggle">groups</span>
         </div>
         {/* Seçili DM Barı (DM moduna özel) */}
-        <div id="selectedDMBar" className="selected-channel-bar" style={{ display: 'none' }}>
+        <div
+          id="selectedDMBar"
+          className="selected-channel-bar"
+          style={{ display: dmMode ? 'flex' : 'none' }}
+        >
           {/* dmChannelTitle doğrudan selectedDMBar içinde yer alır, sol hizalı */}
           <h2 id="dmChannelTitle" className="dm-channel-title">
             <span className="dm-title-text">Arkadaşlar</span>
@@ -158,8 +166,12 @@ export default function CallScreen() {
           </h2>
         </div>
         {/* DMChat React component */}
-        <DMChat friend={dmFriend} />
-        <div id="channelContentArea" className="channel-content-area">
+        <DMChat friend={dmFriend} dmActive={dmMode} />
+        <div
+          id="channelContentArea"
+          className="channel-content-area"
+          style={{ display: dmMode ? 'none' : 'flex' }}
+        >
           {/* Voice kanallar için */}
           <div id="channelUsersContainer" className="channel-users-container" style={{ display: 'none' }}></div>
           {/* Text kanalı React bileşeni */}
