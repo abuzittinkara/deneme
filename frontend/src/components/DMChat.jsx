@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { SocketContext } from '../SocketProvider.jsx';
 
-export default function DMChat({ friend }) {
+export default function DMChat({ friend, dmActive }) {
   const socket = useContext(SocketContext);
   const [messages, setMessages] = useState([]);
   const inputRef = useRef(null);
@@ -63,7 +63,7 @@ export default function DMChat({ friend }) {
   return (
     <div
       id="dmContentArea"
-      style={{ display: friend ? 'flex' : 'none', flex: 1, flexDirection: 'column', overflow: 'auto' }}
+      style={{ display: dmActive && friend ? 'flex' : 'none', flex: 1, flexDirection: 'column', overflow: 'auto' }}
     >
       <div id="dmMessages" className="text-messages" style={{ flex: 1 }}>
         {messages.map((msg) => (

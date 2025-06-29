@@ -19,7 +19,7 @@ describe('DMChat', () => {
   it('sends message when send button clicked', () => {
     const { container } = render(
       <SocketContext.Provider value={mockSocket}>
-        <DMChat friend="bob" />
+        <DMChat friend="bob" dmActive={true} />
       </SocketContext.Provider>
     );
     const input = container.querySelector('#dmMessageInput');
@@ -35,7 +35,7 @@ describe('DMChat', () => {
   it('sends message on Enter key', () => {
     const { container } = render(
       <SocketContext.Provider value={mockSocket}>
-        <DMChat friend="alice" />
+        <DMChat friend="alice" dmActive={true} />
       </SocketContext.Provider>
     );
     const input = container.querySelector('#dmMessageInput');
@@ -51,7 +51,7 @@ describe('DMChat', () => {
   it('emits leaveDM on cleanup', () => {
     const { unmount } = render(
       <SocketContext.Provider value={mockSocket}>
-        <DMChat friend="carol" />
+        <DMChat friend="carol" dmActive={true} />
       </SocketContext.Provider>
     );
     unmount();
