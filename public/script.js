@@ -518,7 +518,11 @@ export function initCallScreen() {
   initSocketEvents(socket);
   initProfilePopout(socket);
   initUIEvents(socket);
-  initTypingIndicator(socket, () => window.currentTextChannel, () => window.username);
+  initTypingIndicator(
+    socket,
+    () => window.currentTextChannel,
+    () => (window.getUsername ? window.getUsername() : window.username)
+  );
   initFriendRequests(socket);
   initUserSettings();
   initAttachments();
@@ -934,7 +938,11 @@ function showGroupContextMenu(e, groupObj) {
       ? { text: 'Bu grubun sesini aç', action: () => { socket.emit('muteGroup', { groupId: groupObj.id, duration: 0 }); } }
       : { text: 'Bu grubu sessize al', mute: true, action: () => {} },
     { text: 'Bildirim türü', notification: true, action: () => {} },
-    { text: 'Gruptan Ayrıl', hide: groupObj.owner === window.username, action: () => { socket.emit('leaveGroup', groupObj.id); } }
+    {
+      text: 'Gruptan Ayrıl',
+      hide: groupObj.owner === (window.getUsername ? window.getUsername() : window.username),
+      action: () => { socket.emit('leaveGroup', groupObj.id); }
+    }
   ];
 
   menuItems.forEach(item => {

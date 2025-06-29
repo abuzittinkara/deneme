@@ -335,7 +335,8 @@ function renderTextMessages(messages, container) {
     msgDiv.setAttribute('data-id', msg.id || msg._id || '');
     msgDiv.setAttribute('data-timestamp', new Date(msg.timestamp).toISOString());
     msgDiv.setAttribute('data-sender', sender);
-    if (sender === window.username) msgDiv.classList.add('own-message');
+    const currentUser = window.getUsername ? window.getUsername() : window.username;
+    if (sender === currentUser) msgDiv.classList.add('own-message');
     window.loadAvatar(sender).then(av => {
       const img = msgDiv.querySelector('.message-avatar');
       if (img) img.src = av;
@@ -399,7 +400,8 @@ function appendNewMessage(msg, container) {
   msgDiv.className = `text-message ${newMsgClass}`;
   msgDiv.setAttribute('data-timestamp', new Date(msg.timestamp).toISOString());
   msgDiv.setAttribute('data-sender', sender);
-  if (sender === window.username) msgDiv.classList.add('own-message');
+  const currentUser = window.getUsername ? window.getUsername() : window.username;
+  if (sender === currentUser) msgDiv.classList.add('own-message');
   window.loadAvatar(sender).then(av => {
     const img = msgDiv.querySelector('.message-avatar');
     if (img) img.src = av;

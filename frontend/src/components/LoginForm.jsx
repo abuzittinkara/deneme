@@ -18,7 +18,6 @@ export default function LoginForm({ onSwitch }) {
     if (!socket) return;
     const handleLoginResult = (data) => {
       if (data.success) {
-        window.username = data.username;
         if (setLoggedInUsername) setLoggedInUsername(data.username);
         try {
           localStorage.setItem('username', data.username);
