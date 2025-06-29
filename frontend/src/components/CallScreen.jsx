@@ -18,9 +18,11 @@ import AvatarUploadModal from './AvatarUploadModal.jsx';
 import RemoveAvatarModal from './RemoveAvatarModal.jsx';
 import UserList from './UserList.jsx';
 import { SocketContext } from '../SocketProvider.jsx';
+import { UserContext } from '../UserContext.jsx';
 
 export default function CallScreen() {
   const socket = useContext(SocketContext);
+  const { username } = useContext(UserContext);
   const [dmFriend, setDmFriend] = useState(null);
   const [groupOptionsOpen, setGroupOptionsOpen] = useState(false);
   const [dmMode, setDmMode] = useState(false);
@@ -107,10 +109,10 @@ export default function CallScreen() {
     };
     setDomRefs(refs);
     Object.assign(window, refs);
-    if (typeof window.hideVoiceSections === 'function') {
-      window.hideVoiceSections();
-    } else if (typeof window.hideChannelStatusPanel === 'function') {
+    if (typeof window.hideChannelStatusPanel === 'function') {
       window.hideChannelStatusPanel();
+    } else if (typeof window.hideVoiceSections === 'function') {
+      window.hideVoiceSections();
     }
     if (typeof window.initUIEvents === 'function' && socket) {
       window.initUIEvents(socket);
@@ -118,12 +120,13 @@ export default function CallScreen() {
     if (typeof window.initSocketEvents === 'function' && socket) {
       window.initSocketEvents(socket);
     }
-    if (socket && typeof socket.emit === 'function') {
-      const nameFn = window.getUsername || (() => window.username);
-      const uname = nameFn && nameFn();
-      if (uname) socket.emit('set-username', uname);
-    }
   }, []);
+
+  useEffect(() => {
+    if (socket && username) {
+      socket.emit('set-username', username);
+    }
+  }, [socket, username]);
 
   const openCreateGroup = () => {
     setCreateGroupOpen(true);
