@@ -162,7 +162,11 @@ export default function TextChannel() {
     <div
       id="textChannelContainer"
       className="text-channel-container"
-      style={{ display: channelId ? 'flex' : 'none', flexDirection: 'column' }}
+      style={{
+        display:
+          channelId && window.currentRoomType !== 'voice' ? 'flex' : 'none',
+        flexDirection: 'column',
+      }}
     >
       <div id="textMessages" className="text-messages" style={{ flex: 1 }}>
         {messages.map((msg, idx) => {
