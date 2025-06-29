@@ -118,6 +118,11 @@ export default function CallScreen() {
     if (typeof window.initSocketEvents === 'function' && socket) {
       window.initSocketEvents(socket);
     }
+    if (socket && typeof socket.emit === 'function') {
+      const nameFn = window.getUsername || (() => window.username);
+      const uname = nameFn && nameFn();
+      if (uname) socket.emit('set-username', uname);
+    }
   }, []);
 
   const openCreateGroup = () => {
