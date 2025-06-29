@@ -29,6 +29,7 @@ export default function CallScreen() {
   const [domRefs, setDomRefs] = useState({});
 
   useEffect(() => {
+    const channelStatusPanelEl = document.getElementById('channelStatusPanel');
     const refs = {
       groupListDiv: document.getElementById('groupList'),
       createGroupButton: document.getElementById('createGroupButton'),
@@ -47,7 +48,12 @@ export default function CallScreen() {
       rightPanel: document.getElementById('rightPanel'),
       userListDiv: document.getElementById('userList'),
       toggleUserListButton: document.getElementById('toggleUserListButton'),
-      channelStatusPanel: document.getElementById('channelStatusPanel'),
+      channelStatusPanel: channelStatusPanelEl,
+      connectionHeader: channelStatusPanelEl?.querySelector('.connection-header'),
+      channelInfoRow: channelStatusPanelEl?.querySelector('.channel-info-row'),
+      buttonRow: channelStatusPanelEl?.querySelector('.button-row'),
+      panelDivider: channelStatusPanelEl?.querySelector('.panel-divider'),
+      userCard: channelStatusPanelEl?.querySelector('.user-card'),
       connectionStatusText: document.getElementById('connectionStatusText'),
       pingValueSpan: document.getElementById('pingValue'),
       cellBar1: document.getElementById('cellBar1'),
