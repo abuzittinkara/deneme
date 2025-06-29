@@ -1,12 +1,9 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import UserCard from './UserCard.jsx';
+import useCallScreenInit from '../useCallScreenInit.js';
 
 export default function CallScreen() {
-  useEffect(() => {
-    if (window.initCallScreen) {
-      window.initCallScreen();
-    }
-  }, []);
+  useCallScreenInit();
   return (
     <div id="callScreen" className="screen-container">
       {/* Soldaki Paneller */}
