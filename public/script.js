@@ -63,7 +63,6 @@ import { initSocketEvents } from "./js/socketEvents.js";
 import * as WebRTC from "./js/webrtc.js";
 import { applyAudioStates } from "./js/audioUtils.js";
 import { initUserSettings, openUserSettings, closeUserSettings } from "./js/userSettings.js";
-import { showProfilePopout, initProfilePopout } from "./js/profilePopout.js";
 import { attemptLogin, attemptRegister } from "../frontend/src/auth.js";
 
 let socket = null;
@@ -512,7 +511,6 @@ export function initCallScreen() {
     window.socket = socket;
   }
   initSocketEvents(socket);
-  initProfilePopout(socket);
   initUIEvents(socket);
   initFriendRequests(socket);
   initUserSettings();

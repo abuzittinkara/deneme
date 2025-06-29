@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import ProfilePopout from '../../frontend/src/components/ProfilePopout.jsx';
+import ProfilePopout from './components/ProfilePopout.jsx';
 
 export const ProfilePopoutContext = createContext({
   openPopout: () => {},

@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { SocketContext } from '../SocketProvider.jsx';
-import { useProfilePopout } from '../../../public/js/profilePopout.js';
+import { useProfilePopout } from '../ProfilePopoutProvider.jsx';
 
 function UserItem({ username }) {
   const socket = useContext(SocketContext);
