@@ -727,18 +727,18 @@ export function initSocketEvents(socket) {
         socket.auth = socket.auth || {};
         socket.auth.token = data.token;
       }
-      socket.emit('set-username', window.username);
+      socket.emit('set-username', data.username);
       if (window.setScreen) window.setScreen('call');
       const userCardNameEl = document.getElementById('userCardName');
       if (userCardNameEl) {
-        userCardNameEl.textContent = window.username;
+        userCardNameEl.textContent = data.username;
       }
       window.applyAudioStates();
-      window.loadAvatar(window.username).then(av => {
+      window.loadAvatar(data.username).then(av => {
         const el = document.getElementById('userCardAvatar');
          if (el) {
           el.style.backgroundImage = `url(${av})`;
-          el.dataset.username = window.username;
+          el.dataset.username = data.username;
         }
       });
     } else {
@@ -812,7 +812,8 @@ export function initSocketEvents(socket) {
         if (typeof window.removeScreenShareEndedMessage === 'function') {
           window.removeScreenShareEndedMessage();
         }
-        if (groupObj.owner === window.username) {
+        const currentUser = window.getUsername ? window.getUsername() : window.username;
+        if (groupObj.owner === currentUser) {
           deleteGroupBtn.style.display = 'block';
           renameGroupBtn.style.display = 'block';
         } else {
@@ -822,12 +823,12 @@ export function initSocketEvents(socket) {
 
         if (groupSettingsBtn) {
           groupSettingsBtn.style.display =
-            groupObj.owner === window.username ? 'block' : 'none';
+            groupObj.owner === currentUser ? 'block' : 'none';
         }
 
         if (leaveGroupBtn) {
           leaveGroupBtn.style.display =
-            groupObj.owner === window.username ? 'none' : 'block';
+            groupObj.owner === currentUser ? 'none' : 'block';
         }
       });
       groupListDiv.appendChild(grpItem);

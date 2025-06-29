@@ -431,7 +431,7 @@ export function initUIEvents(socket) {
         groupId: window.selectedGroup,
         roomId: window.currentTextChannel,
         message: msg,
-        username: window.username,
+        username: window.getUsername ? window.getUsername() : window.username,
       });
       clearInput(textChannelMessageInput);
       if (captionEl) captionEl.value = '';
@@ -441,7 +441,8 @@ export function initUIEvents(socket) {
     }
 
     const fd = new FormData();
-    fd.append('username', window.username || '');
+    const currentUser = window.getUsername ? window.getUsername() : window.username;
+    fd.append('username', currentUser || '');
     fd.append('channelId', window.currentTextChannel);
     fd.append('content', msg);
     atts.forEach(a => fd.append('files', a.file));
