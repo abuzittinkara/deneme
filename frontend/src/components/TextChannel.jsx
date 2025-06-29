@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import { SocketContext } from '../SocketProvider.jsx';
 import { UserContext } from '../UserContext.jsx';
 import AttachmentPreview from './AttachmentPreview.jsx';
+import MessageItem from './MessageItem.jsx';
 
 function isDifferentDay(a, b) {
   const d1 = new Date(a);
@@ -180,22 +181,7 @@ export default function TextChannel() {
                   <span className="separator-text">{formatLongDate(msg.timestamp)}</span>
                 </div>
               )}
-              <div className="text-message">
-                <div className="message-item" style={{ position: 'relative' }}>
-                  <span className="sender-name">{msg.username || msg.user?.username}</span>
-                  <span className="timestamp">{formatTimestamp(msg.timestamp)}</span>
-                  <div className="message-content">{msg.content}</div>
-                  {Array.isArray(msg.attachments) && msg.attachments.length > 0 && (
-                    <div className="message-attachments">
-                      {msg.attachments.map(a => (
-                        <a key={a.id} href={a.url} target="_blank" rel="noreferrer">
-                          {a.name || a.url}
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
+              <MessageItem msg={msg} time={formatTimestamp(msg.timestamp)} />
             </React.Fragment>
           );
         })}
