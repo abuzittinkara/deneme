@@ -6,6 +6,16 @@ import DMPanel from './DMPanel.jsx';
 import GroupOptionsModal from './GroupOptionsModal.jsx';
 import CreateGroupModal from './CreateGroupModal.jsx';
 import JoinGroupModal from './JoinGroupModal.jsx';
+import GroupSettingsModal from './GroupSettingsModal.jsx';
+import UserSettingsPage from './UserSettingsPage.jsx';
+import LogoutConfirmModal from './LogoutConfirmModal.jsx';
+import RoomModal from './RoomModal.jsx';
+import CategoryModal from './CategoryModal.jsx';
+import EditUsernameModal from './EditUsernameModal.jsx';
+import EditEmailModal from './EditEmailModal.jsx';
+import EditPhoneModal from './EditPhoneModal.jsx';
+import AvatarUploadModal from './AvatarUploadModal.jsx';
+import RemoveAvatarModal from './RemoveAvatarModal.jsx';
 import UserList from './UserList.jsx';
 import { SocketContext } from '../SocketProvider.jsx';
 
@@ -136,6 +146,16 @@ export default function CallScreen() {
         onSubmit={handleJoinGroup}
         onClose={() => setJoinGroupOpen(false)}
       />
+      <GroupSettingsModal />
+      <UserSettingsPage />
+      <LogoutConfirmModal />
+      <RoomModal />
+      <CategoryModal />
+      <EditUsernameModal />
+      <EditEmailModal />
+      <EditPhoneModal />
+      <AvatarUploadModal />
+      <RemoveAvatarModal />
       {dmMode && <DMPanel />}
       {/* Soldaki Paneller */}
       <div id="leftPanels" className="left-panels">
