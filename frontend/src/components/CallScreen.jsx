@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import UserCard from './UserCard.jsx';
 import DMChat from './DMChat.jsx';
+import DMPanel from './DMPanel.jsx';
 import GroupOptionsModal from './GroupOptionsModal.jsx';
 import useCallScreenInit from '../useCallScreenInit.js';
 
@@ -40,6 +41,7 @@ export default function CallScreen() {
         onJoinGroup={openJoinGroup}
         onClose={() => setGroupOptionsOpen(false)}
       />
+      <DMPanel />
       {/* Soldaki Paneller */}
       <div id="leftPanels" className="left-panels">
         <div id="groupsAndRooms" className="groups-rooms">
