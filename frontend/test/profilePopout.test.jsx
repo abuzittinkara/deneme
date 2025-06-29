@@ -10,7 +10,7 @@ beforeEach(() => {
     on: vi.fn(),
     off: vi.fn()
   };
-  global.fetch = vi.fn(() =>
+  global.fetch = vi.fn((url, opts) =>
     Promise.resolve({ ok: true, json: () => Promise.resolve({ displayName: 'alice', badges: [] }) })
   );
   window.loadAvatar = vi.fn(() => Promise.resolve('avatar1.png'));
@@ -24,6 +24,10 @@ describe('ProfilePopout', () => {
       <SocketContext.Provider value={mockSocket}>
         <ProfilePopout username="alice" anchorX={0} anchorY={0} />
       </SocketContext.Provider>
+    );
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/user/profile?username=alice',
+      { headers: undefined }
     );
     await waitFor(() => {
       const img = container.querySelector('.popout-avatar');

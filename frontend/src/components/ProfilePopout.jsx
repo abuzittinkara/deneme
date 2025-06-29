@@ -14,7 +14,7 @@ export default function ProfilePopout({ username, anchorX = 0, anchorY = 0, onCl
       });
     }
     const token = window.getAuthToken ? window.getAuthToken() : null;
-    fetch(`/api/user/me?username=${encodeURIComponent(username)}`, {
+    fetch(`/api/user/profile?username=${encodeURIComponent(username)}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : undefined
     })
       .then((res) => (res.ok ? res.json() : null))
