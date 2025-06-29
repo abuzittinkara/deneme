@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { SocketContext } from '../SocketProvider.jsx';
 import { UserContext } from '../UserContext.jsx';
+import AttachmentPreview from './AttachmentPreview.jsx';
 
 function isDifferentDay(a, b) {
   const d1 = new Date(a);
@@ -65,9 +66,8 @@ export default function TextChannel() {
   const { username } = useContext(UserContext);
   const [channelId, setChannelId] = useState(() => window.currentTextChannel);
   const [messages, setMessages] = useState([]);
-  const [files, setFiles] = useState([]);
   const inputRef = useRef(null);
-  const fileRef = useRef(null);
+  const attachRef = useRef(null);
 
   // poll for channel changes
   useEffect(() => {
@@ -142,7 +142,8 @@ export default function TextChannel() {
   const send = () => {
     if (!socket || !channelId) return;
     const content = inputRef.current ? inputRef.current.innerText.trim() : '';
-    const atts = Array.from(files).map(f => ({ id: f.name, url: URL.createObjectURL(f), type: f.type }));
+    const files = attachRef.current ? attachRef.current.getFiles() : [];
+    const atts = files.map(f => ({ id: f.name, url: URL.createObjectURL(f), type: f.type }));
     if (!content && atts.length === 0) return;
     socket.emit('textMessage', {
       groupId: window.selectedGroup,
@@ -151,13 +152,11 @@ export default function TextChannel() {
       attachments: atts
     });
     if (inputRef.current) inputRef.current.innerHTML = '';
-    if (fileRef.current) fileRef.current.value = '';
-    setFiles([]);
+    if (attachRef.current) attachRef.current.clear();
   };
 
   const handleKey = (e) => { if (e.key === 'Enter') { e.preventDefault(); send(); } };
 
-  const handleFiles = (e) => { setFiles(Array.from(e.target.files)); };
 
   return (
     <div
@@ -198,7 +197,7 @@ export default function TextChannel() {
       </div>
       <div id="textChatInputBar" className="text-chat-input-bar">
         <div className="chat-input-wrapper">
-          <input ref={fileRef} type="file" multiple onChange={handleFiles} />
+          <AttachmentPreview ref={attachRef} />
           <div
             id="textChannelMessageInput"
             className="chat-input"
@@ -209,11 +208,7 @@ export default function TextChannel() {
           ></div>
           <span id="sendTextMessageBtn" className="material-icons send-icon" onClick={send}>send</span>
         </div>
-        {files.length > 0 && (
-          <div id="attachmentPreview" className="attachment-preview">
-            {files.map(f => (<span key={f.name}>{f.name}</span>))}
-          </div>
-        )}
+        {/* AttachmentPreview renders previews itself */}
         <TypingIndicator socket={socket} channelId={channelId} username={username} />
       </div>
     </div>

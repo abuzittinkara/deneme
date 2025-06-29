@@ -2,7 +2,6 @@ import * as ScreenShare from './screenShare.js';
 import { applyAudioStates } from './audioUtils.js';
 import { sendTransport } from './webrtc.js';
 import * as Ping from './ping.js';
-import { getAttachments, clearAttachments, updateAttachmentProgress, markAttachmentFailed } from './attachments.js';
 import { toggleInputIcons, getInputText, clearInput } from './uiHelpers.js';
 import * as Mentions from './mentions.js';
 
